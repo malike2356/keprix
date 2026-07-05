@@ -63,6 +63,7 @@ from keprix.security.redactor import get_redactor
 from keprix.security.validation import ValidationError, default_validator
 from keprix.security.vault_routes import router as vault_router
 from keprix.export.routes import router as export_router
+import keprix.export.export_tool  # noqa: F401 - registers export_document tool on import
 from keprix.privacy.routes import router as privacy_router
 from keprix.scout.routes import router as scout_router
 from keprix.data_plane.routes import router as data_plane_router
