@@ -1,0 +1,261 @@
+#!/usr/bin/env python3
+# scripts/keprix-backup
+#
+# Standard library only. No dependency on the app virtualenv.
+# Usage:
+#   keprix-backup snapshot [--out PATH] [--include-research] [--include-attachments]
+#   keprix-backup list [--backup-dir PATH]
+#   keprix-backup verify ARCHIVE
+#   keprix-backup restore ARCHIVE --yes [--data-dir PATH]
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import shutil
+import sqlite3
+import sys
+import tarfile
+import tempfile
+from datetime import datetime, timezone
+from pathlib import Path
+
+DATA_DIR_DEFAULT = Path("data")
+BACKUP_DIR_DEFAULT = Path("backups")
+
+ALWAYS_EXCLUDE = {"sessions"}
+SENSITIVE_NOTE = (
+    "WARNING: This backup contains your vault encryption key (.app_key) and "
+    "all stored credentials. Store it securely. Never commit to git."
+)
+
+
+def snapshot(args: argparse.Namespace) -> None:
+    data_dir = Path(args.data_dir) if getattr(args, "data_dir", None) else DATA_DIR_DEFAULT
+    backup_dir = Path(args.backup_dir) if getattr(args, "backup_dir", None) else BACKUP_DIR_DEFAULT
+
+    if not data_dir.exists():
+        _fail(f"Data directory not found: {data_dir}")
+
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    out_path = Path(args.out) if args.out else backup_dir / f"keprix-backup-{ts}.tar.gz"
+
+    if out_path.resolve().is_relative_to(data_dir.resolve()):
+        _fail("Output path must be outside the data directory.")
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    excludes = set(ALWAYS_EXCLUDE)
+    if not getattr(args, "include_research", False):
+        excludes.add("research")
+    if not getattr(args, "include_attachments", False):
+        excludes.add("mail-attachments")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        stage = tmp_path / "stage"
+        stage.mkdir()
+
+        manifest_entries = []
+
+        db_path = data_dir / "app.db"
+        if db_path.exists():
+            staged_db = stage / "app.db"
+            _sqlite_backup(db_path, staged_db)
+            manifest_entries.append(_manifest_entry(staged_db, "app.db"))
+
+        for item in sorted(data_dir.iterdir()):
+            if item.name == "app.db":
+                continue
+            if item.name in excludes:
+                continue
+            dest = stage / item.name
+            if item.is_dir():
+                shutil.copytree(item, dest, symlinks=False)
+            else:
+                shutil.copy2(item, dest)
+            for f in (dest.rglob("*") if dest.is_dir() else [dest]):
+                if f.is_file():
+                    manifest_entries.append(_manifest_entry(f, str(f.relative_to(stage))))
+
+        manifest = {
+            "keprix_backup_version": "1",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "data_dir": str(data_dir.resolve()),
+            "excluded": sorted(excludes),
+            "note": SENSITIVE_NOTE,
+            "files": manifest_entries,
+        }
+        (stage / "MANIFEST.json").write_text(json.dumps(manifest, indent=2))
+
+        with tarfile.open(out_path, "w:gz") as tar:
+            tar.add(stage, arcname=".")
+
+    _print_result({
+        "path": str(out_path),
+        "size_bytes": out_path.stat().st_size,
+        "file_count": len(manifest_entries),
+        "excluded": sorted(excludes),
+    }, args)
+
+
+def _sqlite_backup(src: Path, dest: Path) -> None:
+    src_conn = sqlite3.connect(str(src))
+    dest_conn = sqlite3.connect(str(dest))
+    try:
+        src_conn.backup(dest_conn)
+    finally:
+        dest_conn.close()
+        src_conn.close()
+
+
+def _manifest_entry(path: Path, name: str) -> dict:
+    sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
+    return {"name": name, "sha256": sha256, "size_bytes": path.stat().st_size}
+
+
+def verify(args: argparse.Namespace) -> None:
+    archive = Path(args.archive)
+    if not archive.exists():
+        _fail(f"Archive not found: {archive}")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        with tarfile.open(archive, "r:gz") as tar:
+            for member in tar.getmembers():
+                if member.name.startswith("/") or ".." in member.name:
+                    _fail(f"Archive contains unsafe path: {member.name}")
+            tar.extractall(tmp_path)
+
+        manifest_path = tmp_path / "MANIFEST.json"
+        if not manifest_path.exists():
+            _fail("Archive does not contain MANIFEST.json. It may be corrupt or not a keprix backup.")
+
+        manifest = json.loads(manifest_path.read_text())
+        errors = []
+        for entry in manifest.get("files", []):
+            file_path = tmp_path / entry["name"]
+            if not file_path.exists():
+                errors.append(f"MISSING: {entry['name']}")
+                continue
+            actual_sha = hashlib.sha256(file_path.read_bytes()).hexdigest()
+            if actual_sha != entry["sha256"]:
+                errors.append(f"CHECKSUM MISMATCH: {entry['name']}")
+
+        _print_result({
+            "archive": str(archive),
+            "created_at": manifest.get("created_at"),
+            "file_count": len(manifest.get("files", [])),
+            "errors": errors,
+            "valid": len(errors) == 0,
+        }, args)
+
+        if errors:
+            sys.exit(1)
+
+
+def restore(args: argparse.Namespace) -> None:
+    archive = Path(args.archive)
+    if not archive.exists():
+        _fail(f"Archive not found: {archive}")
+
+    if not getattr(args, "yes", False):
+        _fail("Restore is destructive. Pass --yes to confirm.")
+
+    data_dir = Path(args.data_dir) if getattr(args, "data_dir", None) else DATA_DIR_DEFAULT
+
+    verify(args)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        with tarfile.open(archive, "r:gz") as tar:
+            for member in tar.getmembers():
+                if member.name.startswith("/") or ".." in member.name:
+                    _fail(f"Archive contains unsafe path: {member.name}")
+            tar.extractall(tmp_path)
+
+        if data_dir.exists():
+            bak = (
+                data_dir.parent
+                / f"{data_dir.name}.bak.{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
+            )
+            data_dir.rename(bak)
+            print(f"Previous data directory moved to: {bak}", file=sys.stderr)
+
+        data_dir.mkdir(parents=True)
+        for item in tmp_path.iterdir():
+            if item.name == "MANIFEST.json":
+                continue
+            dest = data_dir / item.name
+            if item.is_dir():
+                shutil.copytree(item, dest)
+            else:
+                shutil.copy2(item, dest)
+
+    print(json.dumps({"restored": True, "data_dir": str(data_dir)}, indent=2))
+
+
+def list_backups(args: argparse.Namespace) -> None:
+    backup_dir = Path(args.backup_dir) if getattr(args, "backup_dir", None) else BACKUP_DIR_DEFAULT
+    if not backup_dir.exists():
+        _print_result({"backups": []}, args)
+        return
+
+    backups = []
+    for f in sorted(backup_dir.glob("keprix-backup-*.tar.gz"), reverse=True):
+        backups.append({
+            "path": str(f),
+            "size_bytes": f.stat().st_size,
+            "modified": datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc).isoformat(),
+        })
+
+    _print_result({"backups": backups}, args)
+
+
+def _fail(msg: str) -> None:
+    print(json.dumps({"error": msg}), file=sys.stderr)
+    sys.exit(1)
+
+
+def _print_result(result: dict, args: argparse.Namespace) -> None:
+    if getattr(args, "pretty", False):
+        print(json.dumps(result, indent=2))
+    else:
+        print(json.dumps(result))
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Keprix backup utility")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    snap = sub.add_parser("snapshot", help="Create a hot backup archive")
+    snap.add_argument("--out", default="", help="Output path")
+    snap.add_argument("--data-dir", default="", dest="data_dir", help="Data directory (default: data/)")
+    snap.add_argument("--backup-dir", default="", dest="backup_dir", help="Backup dir (default: backups/)")
+    snap.add_argument("--include-research", action="store_true", dest="include_research")
+    snap.add_argument("--include-attachments", action="store_true", dest="include_attachments")
+    snap.add_argument("--pretty", action="store_true")
+
+    lst = sub.add_parser("list", help="List available backups")
+    lst.add_argument("--backup-dir", default="", dest="backup_dir", help="Backup dir (default: backups/)")
+    lst.add_argument("--pretty", action="store_true")
+
+    ver = sub.add_parser("verify", help="Verify MANIFEST checksums")
+    ver.add_argument("archive", help="Path to backup archive")
+    ver.add_argument("--pretty", action="store_true")
+
+    rst = sub.add_parser("restore", help="Restore from a backup archive")
+    rst.add_argument("archive", help="Path to backup archive")
+    rst.add_argument("--yes", action="store_true", help="Confirm destructive restore")
+    rst.add_argument("--data-dir", default="", dest="data_dir", help="Target data directory (default: data/)")
+    rst.add_argument("--pretty", action="store_true")
+
+    args = parser.parse_args()
+
+    {"snapshot": snapshot, "list": list_backups, "verify": verify, "restore": restore}[args.command](args)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
