@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contributing | keprix</title>
+  <meta name="description" content="How to contribute to keprix: development setup, coding standards, and pull request process.">
+  <link rel="canonical" href="https://keprixai.uk/contributing/">
+  <link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="/" class="site-logo">
+      <span class="site-logo-mark">K</span>
+      keprix
+    </a>
+    <nav class="site-nav">
+      <span class="nav-links">
+        <a href="/architecture/">Architecture</a>
+        <a href="/consolidation/">Consolidation</a>
+        <a href="/mutation-engine/">Mutation Engine</a>
+        <a href="/community/">Community</a>
+        <a href="https://github.com/malike2356/keprix" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </span>
+      <a href="https://github.com/malike2356/keprix" class="btn-primary" target="_blank" rel="noopener noreferrer">Get started on GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+
+  <section class="hero" style="min-height: 40vh;">
+    <div class="site-container">
+      <div class="hero-eyebrow">open contribution</div>
+      <h1>Contributing</h1>
+      <p class="hero-tagline">keprix welcomes contributions. Read this before opening a pull request.</p>
+    </div>
+  </section>
+
+  <section class="section section-dark">
+    <div class="site-container">
+      <h2 class="section-h">Before you start.</h2>
+      <p class="section-sub">
+        For bug fixes and small improvements: open a pull request directly. Include the issue
+        number if one exists.
+      </p>
+      <p class="section-sub">
+        For new features or architectural changes: open a GitHub Discussion first. Describe
+        what you want to build and why. Maintainers will confirm scope and approach before you
+        invest time writing code. This prevents rejected pull requests.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="site-container">
+      <h2 class="section-h">Development setup.</h2>
+      <div class="terminal" style="max-width: 680px; margin: 0 auto 48px;">
+        <div class="terminal-bar">
+          <span class="terminal-dot" style="background:#ff5f57"></span>
+          <span class="terminal-dot" style="background:#febc2e"></span>
+          <span class="terminal-dot" style="background:#28c840"></span>
+        </div>
+        <div class="terminal-body" style="font-size: 0.82rem; line-height: 1.9;">
+          <div><span class="prompt">$</span> <span class="cmd">git clone https://github.com/malike2356/keprix</span></div>
+          <div><span class="prompt">$</span> <span class="cmd">cd keprix</span></div>
+          <div><span class="prompt">$</span> <span class="cmd">python -m venv .venv &amp;&amp; source .venv/bin/activate</span></div>
+          <div><span class="prompt">$</span> <span class="cmd">pip install -e ".[dev]"</span></div>
+          <div><span class="prompt">$</span> <span class="cmd">cp .env.example .env  # fill in at least one LLM key</span></div>
+          <div><span class="prompt">$</span> <span class="cmd">docker compose up -d postgres redis</span></div>
+          <div class="info"><span class="prompt">$</span> <span class="cmd">keprix --help</span></div>
+        </div>
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <h3>Code style</h3>
+          <p>Python: Black formatting, Ruff linting. Run <code>make lint</code> before committing. The CI gate will reject unformatted code.</p>
+        </div>
+        <div class="card">
+          <h3>Tests</h3>
+          <p>pytest. Unit tests in <code>tests/unit/</code>. Integration tests in <code>tests/integration/</code> (require Docker). Run <code>make test</code>. New features need test coverage.</p>
+        </div>
+        <div class="card">
+          <h3>Type annotations</h3>
+          <p>All public functions must have type annotations. mypy strict mode enforced in CI. Do not use <code>Any</code> without a comment explaining why.</p>
+        </div>
+        <div class="card">
+          <h3>Commit messages</h3>
+          <p>Conventional Commits format: <code>feat:</code>, <code>fix:</code>, <code>docs:</code>, <code>refactor:</code>, <code>test:</code>. Short subject, no trailing period. Body if the change is non-obvious.</p>
+        </div>
+        <div class="card">
+          <h3>Pull request size</h3>
+          <p>Keep PRs focused on one thing. Large refactors split into logical steps. PRs over 600 lines of non-generated diff will be asked to split.</p>
+        </div>
+        <div class="card">
+          <h3>Licence requirements</h3>
+          <p>keprix is MIT. Any dependency you add must have a compatible licence (MIT, Apache 2.0, BSD). AGPL and GPL dependencies are not permitted - they poison the MIT licence for downstream users.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-dark">
+    <div class="site-container">
+      <h2 class="section-h">What to work on.</h2>
+      <p class="section-sub">
+        Good first issues are labelled <strong>good first issue</strong> on GitHub. These are
+        scoped, documented, and have a clear acceptance criteria.
+      </p>
+      <p class="section-sub">
+        Help wanted issues are labelled <strong>help wanted</strong>. These are more open-ended
+        and may require design discussion before implementation.
+      </p>
+      <p style="margin-top: 24px; text-align: center;">
+        <a href="https://github.com/malike2356/keprix/labels/good%20first%20issue" class="btn-outline" target="_blank" rel="noopener noreferrer">Good first issues</a>
+      </p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="site-container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="site-logo" style="font-size:1rem;">
+          <span class="site-logo-mark">K</span>
+          keprix
+        </a>
+        <p>Self-hosted open-source AI agent OS. MIT licensed.</p>
+        <p class="footer-sponsor">Sponsored by Carina</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="/architecture/">Architecture</a></li>
+          <li><a href="/consolidation/">Consolidation</a></li>
+          <li><a href="/mutation-engine/">Mutation Engine</a></li>
+          <li><a href="/playbooks/">Playbooks</a></li>
+          <li><a href="https://github.com/malike2356/keprix" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="/community/">Community</a></li>
+          <li><a href="/contributing/">Contributing</a></li>
+          <li><a href="#">Discord</a></li>
+          <li><a href="#">Telegram</a></li>
+          <li><a href="/security/">Security</a></li>
+          <li><a href="/roadmap/">Roadmap</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/legal/">MIT License</a></li>
+          <li><a href="/brand-boundary/">Brand Boundary</a></li>
+          <li><a href="/security/">Security Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>keprix is MIT open source. Not a Carina product.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

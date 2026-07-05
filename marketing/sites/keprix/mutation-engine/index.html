@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mutation Engine | keprix</title>
+  <meta name="description" content="The keprix Mutation engine detects capability gaps, proposes new tools, sandboxes them, and waits for your approval before installing anything.">
+  <link rel="canonical" href="https://keprixai.uk/mutation-engine/">
+  <link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="/" class="site-logo">
+      <span class="site-logo-mark">K</span>
+      keprix
+    </a>
+    <nav class="site-nav">
+      <span class="nav-links">
+        <a href="/architecture/">Architecture</a>
+        <a href="/consolidation/">Consolidation</a>
+        <a href="/mutation-engine/" aria-current="page">Mutation Engine</a>
+        <a href="/community/">Community</a>
+        <a href="https://github.com/malike2356/keprix" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </span>
+      <a href="https://github.com/malike2356/keprix" class="btn-primary" target="_blank" rel="noopener noreferrer">Get started on GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+
+  <section class="hero" style="min-height: 40vh;">
+    <div class="site-container">
+      <div class="hero-eyebrow">self-extending runtime</div>
+      <h1>Mutation Engine</h1>
+      <p class="hero-tagline">When keprix cannot complete a task, it builds the tool it needs and waits for you to approve.</p>
+    </div>
+  </section>
+
+  <section class="section section-dark">
+    <div class="site-container">
+      <h2 class="section-h">The problem it solves.</h2>
+      <p class="section-sub">
+        Every AI agent framework ships with a fixed tool set. When your task falls outside
+        those tools, the agent either fails or hallucinates. You then write a custom tool,
+        deploy a new version, and try again.
+      </p>
+      <p class="section-sub">
+        The Mutation engine closes that loop. keprix detects the gap, writes the tool,
+        runs it in isolation, and asks you to approve before it becomes part of the
+        active tool set. No redeployment. No version bump. The instance grows its own
+        capabilities under your supervision.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="site-container">
+      <h2 class="section-h">How it works.</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>Gap detection</h3>
+          <p>
+            The agent kernel runs the tool selection loop. When no registered tool satisfies
+            the task, the kernel sets a gap flag and passes the task description to the
+            Mutation engine instead of failing.
+          </p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>Tool synthesis</h3>
+          <p>
+            The Mutation engine calls the configured LLM with the task description, the
+            keprix tool schema contract, and examples of existing tools. The LLM returns
+            a Python function with a typed signature, docstring, and body.
+          </p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>Sandbox execution</h3>
+          <p>
+            The candidate tool runs inside an isolated Docker container with no network
+            access and a scoped scratch volume. Stdout, stderr, and return value are
+            captured. The container is destroyed after the run.
+          </p>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <h3>Approval gate</h3>
+          <p>
+            keprix presents the tool code, the sandbox output, and a plain-language
+            description of what it does. You approve, reject, or edit. Nothing installs
+            without explicit confirmation.
+          </p>
+        </div>
+        <div class="step">
+          <div class="step-num">05</div>
+          <h3>Hot registration</h3>
+          <p>
+            An approved tool is written to the tool registry and loaded into the kernel
+            without restarting the runtime. The next request to the same agent has the
+            new capability available immediately.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-dark">
+    <div class="site-container">
+      <h2 class="section-h">Safety design.</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h3>No auto-install</h3>
+          <p>Every candidate tool must receive an explicit human approval before it is registered. There is no configuration option to bypass this gate.</p>
+        </div>
+        <div class="card">
+          <h3>Sandbox isolation</h3>
+          <p>Candidate tools run in a Docker container with no network and no access to your host file system. The only thing that escapes is captured output.</p>
+        </div>
+        <div class="card">
+          <h3>Code shown first</h3>
+          <p>You see the full Python source before the sandbox run, not after. Reject before execution if the code looks wrong.</p>
+        </div>
+        <div class="card">
+          <h3>Audit trail</h3>
+          <p>Every mutation attempt is logged: task description, generated code, sandbox result, and your decision. The log is queryable and exportable.</p>
+        </div>
+        <div class="card">
+          <h3>Revocation</h3>
+          <p>Installed tools can be disabled or removed at any time from the tool registry. Removal takes effect on the next request without a restart.</p>
+        </div>
+        <div class="card">
+          <h3>Schema contract</h3>
+          <p>Generated tools must satisfy the keprix tool schema: typed input, typed output, a description the kernel can use for selection. Tools that fail schema validation are rejected automatically.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="site-container">
+      <h2 class="section-h">Example: a new data tool.</h2>
+      <div class="terminal" style="max-width:700px; margin: 0 auto;">
+        <div class="terminal-bar">
+          <span class="terminal-dot" style="background:#ff5f57"></span>
+          <span class="terminal-dot" style="background:#febc2e"></span>
+          <span class="terminal-dot" style="background:#28c840"></span>
+        </div>
+        <div class="terminal-body" style="font-size:0.82rem; line-height:1.9;">
+          <div><span class="out">&gt; Task: "Fetch the latest GHS/USD exchange rate and return it as a float."</span></div>
+          <div><span class="out">&gt; Searching tool registry... no match found.</span></div>
+          <div><span class="out">&gt; Mutation engine: synthesising tool...</span></div>
+          <div><span class="out">&gt; Tool: get_ghs_usd_rate() - 18 lines Python</span></div>
+          <div><span class="out">&gt; Sandbox run: PASS (result: 15.82)</span></div>
+          <div class="info">&gt; Approval required. View code? [approve / reject / edit]</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <h2>An agent that grows with your needs.</h2>
+    <p>MIT license. Self-hosted. You control every new capability.</p>
+    <div class="btn-row">
+      <a href="https://github.com/malike2356/keprix" class="btn-primary" target="_blank" rel="noopener noreferrer">Get started on GitHub</a>
+      <a href="/architecture/" class="btn-outline">See the architecture</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="site-container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="site-logo" style="font-size:1rem;">
+          <span class="site-logo-mark">K</span>
+          keprix
+        </a>
+        <p>Self-hosted open-source AI agent OS. MIT licensed.</p>
+        <p class="footer-sponsor">Sponsored by Carina</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="/architecture/">Architecture</a></li>
+          <li><a href="/consolidation/">Consolidation</a></li>
+          <li><a href="/mutation-engine/">Mutation Engine</a></li>
+          <li><a href="/playbooks/">Playbooks</a></li>
+          <li><a href="https://github.com/malike2356/keprix" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="/community/">Community</a></li>
+          <li><a href="/contributing/">Contributing</a></li>
+          <li><a href="#">Discord</a></li>
+          <li><a href="#">Telegram</a></li>
+          <li><a href="/security/">Security</a></li>
+          <li><a href="/roadmap/">Roadmap</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/legal/">MIT License</a></li>
+          <li><a href="/brand-boundary/">Brand Boundary</a></li>
+          <li><a href="/security/">Security Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>keprix is MIT open source. Not a Carina product.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

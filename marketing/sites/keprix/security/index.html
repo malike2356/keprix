@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security Policy | keprix</title>
+  <meta name="description" content="keprix security policy: how to report vulnerabilities, what is in scope, and expected response timelines.">
+  <link rel="canonical" href="https://keprixai.uk/security/">
+  <link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="/" class="site-logo">
+      <span class="site-logo-mark">K</span>
+      keprix
+    </a>
+    <nav class="site-nav">
+      <span class="nav-links">
+        <a href="/architecture/">Architecture</a>
+        <a href="/consolidation/">Consolidation</a>
+        <a href="/mutation-engine/">Mutation Engine</a>
+        <a href="/community/">Community</a>
+        <a href="https://github.com/malike2356/keprix" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </span>
+      <a href="https://github.com/malike2356/keprix" class="btn-primary" target="_blank" rel="noopener noreferrer">Get started on GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+
+  <section class="hero" style="min-height: 40vh;">
+    <div class="site-container">
+      <div class="hero-eyebrow">security policy</div>
+      <h1>Security</h1>
+      <p class="hero-tagline">How to report a vulnerability in keprix and what to expect.</p>
+    </div>
+  </section>
+
+  <section class="section section-dark">
+    <div class="site-container">
+      <h2 class="section-h">Reporting a vulnerability.</h2>
+      <p class="section-sub">
+        Do not open a public GitHub issue for a security vulnerability. Public issues expose
+        the vulnerability to all users before a fix is available.
+      </p>
+      <p class="section-sub">
+        Use GitHub's private vulnerability reporting: go to the keprix repository, click
+        Security, then click "Report a vulnerability." This creates a private disclosure
+        visible only to the maintainers.
+      </p>
+      <p class="section-sub">
+        Include: the vulnerability type, the affected component, steps to reproduce,
+        and the potential impact. The more detail you provide, the faster we can triage.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="site-container">
+      <h2 class="section-h">Response timeline.</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">24h</div>
+          <h3>Acknowledgement</h3>
+          <p>We will acknowledge receipt of the report within 24 hours and confirm whether it is in scope.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">7d</div>
+          <h3>Initial assessment</h3>
+          <p>We will triage the severity and confirm a fix timeline within 7 days. We will keep you updated if assessment takes longer.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">90d</div>
+          <h3>Disclosure</h3>
+          <p>We aim to fix and publicly disclose within 90 days of the initial report. We will coordinate the disclosure date with the reporter.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-dark">
+    <div class="site-container">
+      <h2 class="section-h">Scope.</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h3>In scope</h3>
+          <ul style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8; padding-left: 1rem;">
+            <li>keprix agent kernel and tool loop</li>
+            <li>Mutation engine approval gate bypass</li>
+            <li>Tool sandbox escape</li>
+            <li>Hub authentication bypass</li>
+            <li>Memory layer data leakage</li>
+            <li>Remote code execution via keprix</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Out of scope</h3>
+          <ul style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8; padding-left: 1rem;">
+            <li>Vulnerabilities in the LLM providers you configure</li>
+            <li>Vulnerabilities in Labyrinth Scout (report to Scout)</li>
+            <li>Social engineering or phishing</li>
+            <li>Physical access attacks</li>
+            <li>Denial of service on your own instance</li>
+            <li>Vulnerabilities requiring admin credentials already in attacker hands</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="site-container section-center">
+      <h2 class="section-h">Security hardening notes.</h2>
+      <p class="section-sub">
+        keprix is self-hosted. You control the network boundary. The main attack surface
+        is the hub API. Recommendations: put the hub behind an authenticated reverse proxy,
+        do not expose port 3333 to the public internet, use strong API keys, and keep
+        the Docker socket inaccessible from within the tool sandbox.
+      </p>
+      <p class="section-sub">
+        See the security hardening section in the README for the full checklist.
+      </p>
+      <a href="https://github.com/malike2356/keprix#security" class="btn-outline" target="_blank" rel="noopener noreferrer">Read security hardening guide</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="site-container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="site-logo" style="font-size:1rem;">
+          <span class="site-logo-mark">K</span>
+          keprix
+        </a>
+        <p>Self-hosted open-source AI agent OS. MIT licensed.</p>
+        <p class="footer-sponsor">Sponsored by Carina</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="/architecture/">Architecture</a></li>
+          <li><a href="/consolidation/">Consolidation</a></li>
+          <li><a href="/mutation-engine/">Mutation Engine</a></li>
+          <li><a href="/playbooks/">Playbooks</a></li>
+          <li><a href="https://github.com/malike2356/keprix" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="/community/">Community</a></li>
+          <li><a href="/contributing/">Contributing</a></li>
+          <li><a href="#">Discord</a></li>
+          <li><a href="#">Telegram</a></li>
+          <li><a href="/security/">Security</a></li>
+          <li><a href="/roadmap/">Roadmap</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/legal/">MIT License</a></li>
+          <li><a href="/brand-boundary/">Brand Boundary</a></li>
+          <li><a href="/security/">Security Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>keprix is MIT open source. Not a Carina product.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

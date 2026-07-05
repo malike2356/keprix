@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architecture | keprix</title>
+  <meta name="description" content="keprix runtime architecture: agent kernel, memory layer, channel adapters, tool sandbox, and optional Scout connector.">
+  <link rel="canonical" href="https://keprixai.uk/architecture/">
+  <link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="/" class="site-logo">
+      <span class="site-logo-mark">K</span>
+      keprix
+    </a>
+    <nav class="site-nav">
+      <span class="nav-links">
+        <a href="/architecture/" aria-current="page">Architecture</a>
+        <a href="/consolidation/">Consolidation</a>
+        <a href="/mutation-engine/">Mutation Engine</a>
+        <a href="/community/">Community</a>
+        <a href="https://github.com/malike2356/keprix" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </span>
+      <a href="https://github.com/malike2356/keprix" class="btn-primary" target="_blank" rel="noopener noreferrer">Get started on GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+
+  <section class="hero" style="min-height: 40vh;">
+    <div class="site-container">
+      <div class="hero-eyebrow">system design</div>
+      <h1>Architecture</h1>
+      <p class="hero-tagline">keprix is a layered AI agent OS. Each layer has a clear boundary and can be extended independently.</p>
+    </div>
+  </section>
+
+  <section class="section section-dark">
+    <div class="site-container">
+      <h2 class="section-h">System layers.</h2>
+      <p class="section-sub">
+        keprix is organised as five concentric layers. Requests enter from the outside
+        (channels) and travel inward to the agent kernel. Responses travel outward.
+        The Mutation engine sits adjacent to the kernel, proposing and (after approval)
+        installing new tools without restarting the runtime.
+      </p>
+      <div class="terminal" style="max-width:700px; margin: 0 auto;">
+        <div class="terminal-bar">
+          <span class="terminal-dot" style="background:#ff5f57"></span>
+          <span class="terminal-dot" style="background:#febc2e"></span>
+          <span class="terminal-dot" style="background:#28c840"></span>
+        </div>
+        <div class="terminal-body" style="font-size:0.85rem; line-height:1.9">
+          <div><span class="prompt">Layer 5:</span> <span class="cmd">Channel adapters (Telegram, Discord, REST, browser)</span></div>
+          <div><span class="prompt">Layer 4:</span> <span class="cmd">Hub - session management, routing, auth</span></div>
+          <div><span class="prompt">Layer 3:</span> <span class="cmd">Memory - short-term context + long-term vector store</span></div>
+          <div><span class="prompt">Layer 2:</span> <span class="cmd">Agent kernel - tool loop, LLM routing, playbook engine</span></div>
+          <div><span class="prompt">Layer 1:</span> <span class="cmd">Tool sandbox - Python execution, approval gate, Mutation engine</span></div>
+          <div class="info"><span class="prompt">External:</span> Optional Scout governance connector (Labyrinth Scout)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="site-container">
+      <div class="card-grid">
+        <div class="card">
+          <h3>Agent kernel</h3>
+          <p>
+            The agent kernel manages the function-call loop. It receives a task, selects
+            from the registered tool set, calls the LLM with the tool schema, executes the
+            chosen tool, and iterates until the task resolves or requires human input.
+          </p>
+          <p>
+            LLM routing is configurable per-task. One task can use Anthropic Claude for
+            reasoning and Mistral for summarisation. The kernel does not care which provider
+            is behind each call.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Tool sandbox</h3>
+          <p>
+            All tool execution happens inside Docker. The sandbox has no network access
+            unless the tool explicitly requests it. File system access is scoped to a per-session
+            scratch volume.
+          </p>
+          <p>
+            The Mutation engine writes candidate tools here first. If the sandbox run succeeds,
+            the tool surfaces for approval. If it fails, the error is reported and the mutation
+            attempt is discarded.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Memory layer</h3>
+          <p>
+            Short-term memory is the conversation window. Long-term memory is a vector store
+            backed by PostgreSQL with the pgvector extension. Entities (people, organisations,
+            tasks) are extracted from conversations and stored in a structured memory graph.
+          </p>
+          <p>
+            Retrieval-augmented generation pulls relevant long-term context into the kernel
+            prompt before each LLM call.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Hub</h3>
+          <p>
+            The hub manages sessions, routes incoming messages from channel adapters to the
+            correct agent context, and enforces per-user rate limits. It also exposes the
+            REST API used by the browser interface and programmatic clients.
+          </p>
+          <p>
+            Authentication is configurable: API key, OAuth, or single-user local mode.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Channel adapters</h3>
+          <p>
+            Adapters normalise input from Telegram, Discord, the REST API, and the web UI
+            into a common message format before passing it to the hub. Adding a new channel
+            means writing one adapter that satisfies the channel interface.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Scout connector (optional)</h3>
+          <p>
+            Labyrinth Scout attaches as an optional sidecar. It observes all tool calls and
+            LLM completions, writes a tamper-evident audit log, and enforces operator-defined
+            policies (allowed tool classes, budget caps, restricted topics).
+          </p>
+          <p>
+            keprix works without Scout. Scout is a paid external service.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-dark">
+    <div class="site-container">
+      <h2 class="section-h">Infrastructure requirements.</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">Min</div>
+          <h3>Single machine</h3>
+          <p>2 vCPU, 4 GB RAM. keprix + PostgreSQL + Redis on one host. Suitable for one user or a small team. Tested on a $6/month VPS.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">Mid</div>
+          <h3>Separated data layer</h3>
+          <p>4 vCPU, 8 GB RAM. keprix runtime on one host, managed PostgreSQL and Redis elsewhere. Standard team configuration.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">HA</div>
+          <h3>Kubernetes deployment</h3>
+          <p>Helm chart provided. keprix hub as a deployment, tool sandbox as a DaemonSet. Horizontal scaling on the hub layer only.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="site-container section-center">
+      <h2 class="section-h">Data stays on your infrastructure.</h2>
+      <p class="section-sub">
+        Conversations, memory, task history, and tool outputs are stored in PostgreSQL and Redis
+        on your server. Nothing is sent to Carina, Verlox, or any third party. The only outbound
+        traffic is the LLM API calls you configure.
+      </p>
+      <a href="https://github.com/malike2356/keprix" class="btn-primary" target="_blank" rel="noopener noreferrer">Read the source</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="site-container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="site-logo" style="font-size:1rem;">
+          <span class="site-logo-mark">K</span>
+          keprix
+        </a>
+        <p>Self-hosted open-source AI agent OS. MIT licensed.</p>
+        <p class="footer-sponsor">Sponsored by Carina</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="/architecture/">Architecture</a></li>
+          <li><a href="/consolidation/">Consolidation</a></li>
+          <li><a href="/mutation-engine/">Mutation Engine</a></li>
+          <li><a href="/playbooks/">Playbooks</a></li>
+          <li><a href="https://github.com/malike2356/keprix" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="/community/">Community</a></li>
+          <li><a href="/contributing/">Contributing</a></li>
+          <li><a href="#">Discord</a></li>
+          <li><a href="#">Telegram</a></li>
+          <li><a href="/security/">Security</a></li>
+          <li><a href="/roadmap/">Roadmap</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/legal/">MIT License</a></li>
+          <li><a href="/brand-boundary/">Brand Boundary</a></li>
+          <li><a href="/security/">Security Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>keprix is MIT open source. Not a Carina product.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/site.js"></script>
+</body>
+</html>

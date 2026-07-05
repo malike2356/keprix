@@ -1,0 +1,12 @@
+{
+  "siteName": "keprix",
+  "tagline": "Ten agents. One OS.",
+  "domain": "https://keprixai.uk",
+  "repoUrl": "https://github.com/malike2356/keprix",
+  "docsUrl": "https://github.com/malike2356/keprix/blob/main/README.md",
+  "sponsorText": "Sponsored by Carina",
+  "scoutUrl": "https://labyrinthscout.com",
+  "consolidationCapabilityCount": 10,
+  "analyticsProvider": "none",
+  "analyticsDomain": "keprixai.uk"
+}

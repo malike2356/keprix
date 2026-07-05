@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hub | keprix</title>
+  <meta name="description" content="The keprix hub manages sessions, routes channel traffic, and exposes the REST API for programmatic access.">
+  <link rel="canonical" href="https://keprixai.uk/hub/">
+  <link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-header-inner">
+    <a href="/" class="site-logo">
+      <span class="site-logo-mark">K</span>
+      keprix
+    </a>
+    <nav class="site-nav">
+      <span class="nav-links">
+        <a href="/architecture/">Architecture</a>
+        <a href="/consolidation/">Consolidation</a>
+        <a href="/mutation-engine/">Mutation Engine</a>
+        <a href="/community/">Community</a>
+        <a href="https://github.com/malike2356/keprix" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </span>
+      <a href="https://github.com/malike2356/keprix" class="btn-primary" target="_blank" rel="noopener noreferrer">Get started on GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site-main">
+
+  <section class="hero" style="min-height: 40vh;">
+    <div class="site-container">
+      <div class="hero-eyebrow">session and routing layer</div>
+      <h1>Hub</h1>
+      <p class="hero-tagline">The keprix hub is the routing layer between your users and the agent kernel. Sessions, auth, and the REST API all live here.</p>
+    </div>
+  </section>
+
+  <section class="section section-dark">
+    <div class="site-container">
+      <div class="card-grid">
+        <div class="card">
+          <h3>Session management</h3>
+          <p>Each conversation is a session with its own context window, memory reference, and playbook state. The hub creates, suspends, and resumes sessions. Multiple users can have concurrent sessions against the same agent kernel.</p>
+        </div>
+        <div class="card">
+          <h3>Channel routing</h3>
+          <p>Messages from Telegram, Discord, the REST API, and the browser UI all normalise to the same message format before entering the kernel. The hub applies per-channel rate limits and access rules.</p>
+        </div>
+        <div class="card">
+          <h3>REST API</h3>
+          <p>POST /api/message to send a task. GET /api/sessions for session history. Full OpenAPI spec included. Use the API to embed keprix into your own product UI.</p>
+        </div>
+        <div class="card">
+          <h3>Authentication</h3>
+          <p>Three modes: single-user local (no auth), API key (for programmatic clients), and OAuth (for team deployments). Configurable per environment.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <h2>Your agent, your routing.</h2>
+    <p>MIT license. Self-hosted. REST API included.</p>
+    <div class="btn-row">
+      <a href="https://github.com/malike2356/keprix" class="btn-primary" target="_blank" rel="noopener noreferrer">Get started on GitHub</a>
+      <a href="/architecture/" class="btn-outline">Full architecture</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="site-container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="site-logo" style="font-size:1rem;">
+          <span class="site-logo-mark">K</span>
+          keprix
+        </a>
+        <p>Self-hosted open-source AI agent OS. MIT licensed.</p>
+        <p class="footer-sponsor">Sponsored by Carina</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="/architecture/">Architecture</a></li>
+          <li><a href="/consolidation/">Consolidation</a></li>
+          <li><a href="/mutation-engine/">Mutation Engine</a></li>
+          <li><a href="/playbooks/">Playbooks</a></li>
+          <li><a href="https://github.com/malike2356/keprix" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="/community/">Community</a></li>
+          <li><a href="/contributing/">Contributing</a></li>
+          <li><a href="#">Discord</a></li>
+          <li><a href="#">Telegram</a></li>
+          <li><a href="/security/">Security</a></li>
+          <li><a href="/roadmap/">Roadmap</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/legal/">MIT License</a></li>
+          <li><a href="/brand-boundary/">Brand Boundary</a></li>
+          <li><a href="/security/">Security Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>keprix is MIT open source. Not a Carina product.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/site.js"></script>
+</body>
+</html>
