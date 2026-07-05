@@ -1,0 +1,19 @@
+{
+  "navigation": {
+    "workspace": "hub",
+    "apps": "apps",
+    "data": "database",
+    "research": "science",
+    "automations": "schedule",
+    "commerce": "payments",
+    "security": "shield",
+    "admin": "settings"
+  },
+  "actions": {
+    "approve": "check",
+    "reject": "close",
+    "retry": "refresh",
+    "export": "download",
+    "audit": "history"
+  }
+}
