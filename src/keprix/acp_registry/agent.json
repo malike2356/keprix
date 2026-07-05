@@ -1,0 +1,16 @@
+{
+  "id": "keprix",
+  "name": "Keprix",
+  "version": "0.16.0",
+  "description": "Self-improving open-source AI agent by Nous Research with ACP editor integration, persistent memory, skills, and rich tool support.",
+  "repository": "https://github.com/NousResearch/keprix",
+  "website": "https://keprix.nousresearch.com/docs/user-guide/features/acp",
+  "authors": ["Nous Research"],
+  "license": "MIT",
+  "distribution": {
+    "uvx": {
+      "package": "keprix[acp]==0.16.0",
+      "args": ["keprix-acp"]
+    }
+  }
+}
