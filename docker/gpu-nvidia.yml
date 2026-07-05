@@ -1,0 +1,21 @@
+# NVIDIA GPU overlay for Mutant.
+# Requires the NVIDIA Container Toolkit on the host:
+#   sudo apt install nvidia-container-toolkit
+#   sudo nvidia-ctk runtime configure --runtime=docker
+#   sudo systemctl restart docker
+#
+# Usage:
+#   COMPOSE_FILE=docker/docker-compose.yml:docker/gpu-nvidia.yml docker compose up
+#
+# On Windows:
+#   COMPOSE_FILE=docker/docker-compose.yml;docker/gpu-nvidia.yml docker compose up
+
+services:
+  mutant-backend:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

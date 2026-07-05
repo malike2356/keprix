@@ -1,0 +1,17 @@
+# AMD ROCm GPU overlay for Mutant.
+# Requires ROCm drivers on the host and your user in the render group:
+#   sudo usermod -aG render $USER
+#
+# Find your render GID: getent group render | cut -d: -f3
+# Set RENDER_GID in your .env or export it before running.
+#
+# Usage:
+#   COMPOSE_FILE=docker/docker-compose.yml:docker/gpu-amd.yml docker compose up
+
+services:
+  mutant-backend:
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - ${RENDER_GID:-989}

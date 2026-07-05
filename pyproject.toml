@@ -1,0 +1,117 @@
+[build-system]
+requires = ["setuptools>=77.0,<83"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "keprix"
+version = "0.1.0"
+description = "Keprix - self-hosted AI agent OS, Community Edition"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+authors = [{ name = "Verlox Ltd" }]
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = [
+  # Web framework
+  "fastapi==0.115.6",
+  "uvicorn[standard]==0.34.2",
+  "python-multipart==0.0.20",
+
+  # LLM and agent core
+  "openai==2.24.0",
+  "anthropic>=0.40.0",
+  "httpx[socks]==0.28.1",
+  "tenacity==9.1.4",
+  "jinja2==3.1.6",
+  "pydantic==2.13.4",
+  "pydantic-settings==2.9.1",
+
+  # CLI and shell
+  "fire==0.7.1",
+  "rich==14.3.3",
+  "prompt_toolkit==3.0.52",
+
+  # Config and serialisation
+  "python-dotenv==1.2.2",
+  "pyyaml==6.0.3",
+  "ruamel.yaml==0.18.17",
+
+  # Database
+  "asyncpg==0.30.0",
+  "SQLAlchemy[asyncio]==2.0.41",
+  "alembic==1.15.2",
+
+  # Cache
+  "redis==5.2.1",
+
+  # Auth and crypto
+  "cryptography==44.0.3",
+  "bcrypt==4.3.0",
+  "PyJWT[crypto]==2.13.0",
+  "passlib[bcrypt]==1.7.4",
+  "pyotp==2.9.0",
+  "qrcode[pil]==8.1",
+
+  # MCP host
+  "mcp==1.9.2",
+
+  # Memory and RAG
+  "chromadb-client==0.6.3",
+  "fastembed==0.5.1",
+  "numpy==2.2.6",
+
+  # Workspace
+  "pypdf==5.5.0",
+  "beautifulsoup4==4.13.4",
+  "charset-normalizer==3.4.2",
+  "Markdown==3.10.2",
+  "icalendar==6.3.1",
+  "python-dateutil==2.9.0.post0",
+  "caldav==1.4.0",
+  "youtube-transcript-api==0.6.3",
+
+  # HTML sanitisation (LLM output in research reports)
+  "nh3==0.2.21",
+
+  # Scheduling
+  "croniter==6.0.0",
+
+  # Misc
+  "certifi==2026.5.20",
+  "requests==2.33.0",
+  "packaging==26.0",
+  "psutil==7.2.2",
+  "urllib3>=2.7.0,<3",
+  "tzdata==2025.3; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==8.3.4",
+  "pytest-asyncio==0.25.0",
+  "httpx==0.28.1",
+  "ruff==0.11.12",
+  "mypy==1.16.0",
+]
+
+[project.scripts]
+keprix = "keprix.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
