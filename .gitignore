@@ -52,7 +52,7 @@ src/keprix/skills/generated/*.yaml
 Thumbs.db
 
 # ---- Alembic ----
-migrations/versions/
+# migrations/versions are tracked - do not ignore them
 
 # ---- Test runtime data ----
 .pytest-data/
