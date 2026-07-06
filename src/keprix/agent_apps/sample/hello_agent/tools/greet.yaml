@@ -1,0 +1,4 @@
+name: greet
+description: Return a greeting for the provided name
+risk: low
+approval_required: false

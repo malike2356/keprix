@@ -1,0 +1,14 @@
+{
+  "csv_header": ["age", "region", "satisfaction"],
+  "csv_rows": [
+    ["30", "north", "4"],
+    ["41", "south", "3"],
+    ["29", "north", "5"]
+  ],
+  "expected": {
+    "column_count": 3,
+    "row_count": 3,
+    "variables": ["age", "region", "satisfaction"],
+    "age_measurement_level": "scale"
+  }
+}

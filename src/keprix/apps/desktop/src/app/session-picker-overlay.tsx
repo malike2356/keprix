@@ -8,7 +8,7 @@ interface SessionPickerOverlayProps {
 }
 
 /**
- * Mounts the session picker that `/resume` (and `/sessions`, `/switch`) opens —
+ * Mounts the session picker that `/resume` (and `/sessions`, `/switch`) opens;
  * the desktop equivalent of the TUI's sessions overlay. Resuming runs through
  * the same `resumeSession` path the sidebar uses.
  */

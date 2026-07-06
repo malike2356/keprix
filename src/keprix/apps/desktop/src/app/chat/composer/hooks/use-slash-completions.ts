@@ -52,7 +52,7 @@ const SESSION_INLINE_LIMIT = 7
 /** Live `/` completions backed by the gateway's `complete.slash` RPC. */
 export function useSlashCompletions(options: {
   gateway: HermesGateway | null
-  /** Desktop theme list — `/skin` is owned client-side, so its arg completions
+  /** Desktop theme list; `/skin` is owned client-side, so its arg completions
    *  come from here, not the backend (whose skin list is CLI/TUI-only). */
   skinThemes?: DesktopThemeCommandOption[]
   activeSkin?: string
@@ -88,8 +88,8 @@ export function useSlashCompletions(options: {
         return { items, query }
       }
 
-      // /resume (and its aliases) completes recent sessions inline — the same
-      // client-side list the picker overlay shows — instead of the backend
+      // /resume (and its aliases) completes recent sessions inline; the same
+      // client-side list the picker overlay shows; instead of the backend
       // (whose /resume opens an interactive TUI picker we can't render here).
       const sessionArg = /^\/(?:resume|sessions|switch)\s+(.*)$/is.exec(text)
 
@@ -156,7 +156,7 @@ export function useSlashCompletions(options: {
           { text }
         )
 
-        // Arg-completion items (replace_from > 1) carry just the arg stub —
+        // Arg-completion items (replace_from > 1) carry just the arg stub;
         // e.g. complete.slash returns `{text: "alice"}` for `/personality alic`
         // with replace_from = 14. Rewrite those entries so the popover inserts
         // the full `/personality alice` token instead of stranding `/alice`.
@@ -181,7 +181,7 @@ export function useSlashCompletions(options: {
             // header; otherwise split skills out from built-in commands.
             group: isArgCompletion ? 'Options' : isDesktopSlashExtensionCommand(item.text) ? 'Skills' : 'Commands',
             // Arg items carry their own meta (the personality/toolset/platform
-            // blurb). Only command rows get the registry description — looking
+            // blurb). Only command rows get the registry description; looking
             // one up for `/personality none` would clobber it with the parent
             // command's text.
             meta: isArgCompletion ? textValue(item.meta) : desktopSlashDescription(item.text, textValue(item.meta))

@@ -5,7 +5,7 @@ version: 1.0.0
 description: >
   ntfy push-notification gateway adapter for Keprix.
   Subscribes to a topic on ntfy.sh or any self-hosted ntfy server via
-  HTTP streaming, and publishes replies via HTTP POST. Lightweight —
+  HTTP streaming, and publishes replies via HTTP POST. Lightweight;
   no external SDK, only httpx (already a Keprix dependency).
 
   ntfy has no native user-identity primitive; the adapter treats each
@@ -43,7 +43,7 @@ optional_env:
     prompt: "Allowed topic names (comma-separated)"
     password: false
   - name: NTFY_ALLOW_ALL_USERS
-    description: "Allow any topic to talk to the bot (dev only — disables allowlist)"
+    description: "Allow any topic to talk to the bot (dev only; disables allowlist)"
     prompt: "Allow all topics? (true/false)"
     password: false
   - name: NTFY_HOME_CHANNEL

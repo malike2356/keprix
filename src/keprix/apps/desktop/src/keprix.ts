@@ -151,7 +151,7 @@ export async function listSessions(
 }
 
 // Unified, read-only session list aggregated across ALL profiles. Served by the
-// primary backend straight off each profile's state.db — no per-profile backend
+// primary backend straight off each profile's state.db; no per-profile backend
 // is spawned. Single-profile users get the same rows as listSessions(), tagged
 // profile="default".
 // Source scoping lets callers split the unified list into independent slices:
@@ -192,7 +192,7 @@ export async function listAllProfileSessions(
 }
 
 // Mutations take the owning `profile` so Electron routes them to that profile's
-// backend (remote pool or local primary) via request.profile — matching the
+// backend (remote pool or local primary) via request.profile; matching the
 // read path. A remote session's row lives only on its remote host, so a mutation
 // that hit the local primary would no-op or 404. Omit for the current/default.
 export function setSessionArchived(id: string, archived: boolean, profile?: string | null): Promise<{ ok: boolean }> {
@@ -212,7 +212,7 @@ export function searchSessions(query: string): Promise<SessionSearchResponse> {
 
 // Resolves a single session row by id on one backend (the active profile, or
 // the given `profile`). The backend resolves exact ids and unique prefixes and
-// 404s when the id isn't on that profile — so a cheap by-id lookup replaces the
+// 404s when the id isn't on that profile; so a cheap by-id lookup replaces the
 // cross-profile list scan when locating an unknown id's owner.
 export function getSession(id: string, profile?: string | null): Promise<SessionInfo> {
   const suffix = profile ? `?profile=${encodeURIComponent(profile)}` : ''
@@ -656,7 +656,7 @@ export interface RecommendedDefaultModel {
 }
 
 // Recommended default model for a freshly-authenticated provider. Mirrors the
-// curation `hermes model` does — for Nous it honors the free/paid tier so a
+// curation `hermes model` does; for Nous it honors the free/paid tier so a
 // free user gets a free model instead of a paid default.
 export function getRecommendedDefaultModel(provider: string): Promise<RecommendedDefaultModel> {
   return window.hermesDesktop.api<RecommendedDefaultModel>({

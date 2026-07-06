@@ -82,7 +82,7 @@ const onRender: ProfilerOnRenderCallback = (id, phase, actualDuration, baseDurat
 }
 
 if (typeof window !== 'undefined' && !window.__PERF_DRIVE__) {
-  // Synthetic stream driver — pushes tokens through the live $messages atom so the
+  // Synthetic stream driver; pushes tokens through the live $messages atom so the
   // assistant-ui runtime + react tree sees them exactly as a real LLM stream would.
   // Used by scripts/measure-real-stream.mjs when no live LLM credit is available.
   let baseline: ReturnType<typeof $messages.get> | null = null
@@ -109,7 +109,7 @@ if (typeof window !== 'undefined' && !window.__PERF_DRIVE__) {
       chunk = 'word ',
       intervalMs = 16,
       totalTokens = 400,
-      // Mimic `use-message-stream.scheduleDeltaFlush` — batch token deltas
+      // Mimic `use-message-stream.scheduleDeltaFlush`; batch token deltas
       // into at-most one $messages update every `flushMinMs` ms, exactly as
       // the real gateway path does. With this on, the synthetic harness's
       // numbers actually reflect what a real LLM stream of the same token
@@ -125,7 +125,7 @@ if (typeof window !== 'undefined' && !window.__PERF_DRIVE__) {
       }
 
       const msgId = `synthetic-${Date.now()}`
-      // Seed an empty assistant message — assistant-ui will see it grow.
+      // Seed an empty assistant message; assistant-ui will see it grow.
       setMessages([
         ...current,
         {

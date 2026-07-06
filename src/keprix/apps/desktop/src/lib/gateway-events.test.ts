@@ -9,7 +9,7 @@ describe('gateway event routing', () => {
   })
 
   it('attributes unscoped foreground turn events to the active chat', () => {
-    // These must NOT be dropped when unscoped — they are the focused turn's own
+    // These must NOT be dropped when unscoped; they are the focused turn's own
     // output, and dropping them loses the live response until a refetch (#42178).
     expect(gatewayEventRequiresSessionId('message.delta')).toBe(false)
     expect(gatewayEventRequiresSessionId('message.complete')).toBe(false)

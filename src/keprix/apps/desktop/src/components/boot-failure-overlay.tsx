@@ -19,13 +19,13 @@ type BusyAction = 'local' | 'repair' | 'retry' | 'signin' | null
 // A remote gateway whose access cookie has lapsed (e.g. the dashboard
 // restarted on the remote box) boots into this overlay with a reauth-shaped
 // error. The local-recovery buttons (Retry resets the local bootstrap latch;
-// Repair re-runs the installer) are no-ops for that case — the only fix is to
+// Repair re-runs the installer) are no-ops for that case; the only fix is to
 // re-establish the remote session. The detection + copy helpers live in
 // ./boot-failure-reauth so they're unit-testable without a React render.
 
 // Recovery surface for a hard boot failure (gateway never came up, backend
 // exited during startup, bootstrap latched, …). Without this the app shell
-// renders dead — "gateway offline", no composer, only a toast — with no way
+// renders dead; "gateway offline", no composer, only a toast; with no way
 // to retry, repair the install, switch the gateway, or find the logs.
 export function BootFailureOverlay() {
   const boot = useStore($desktopBoot)
@@ -130,7 +130,7 @@ export function BootFailureOverlay() {
   }
 
   // Open the gateway's login window (renders the username/password form for a
-  // basic gateway, or the OAuth redirect otherwise — the desktop drives both
+  // basic gateway, or the OAuth redirect otherwise; the desktop drives both
   // through the same window). On a successful sign-in the session cookie is
   // re-established in the persistent partition; reload so boot re-runs and the
   // reconnect now mints a ticket against a live session.

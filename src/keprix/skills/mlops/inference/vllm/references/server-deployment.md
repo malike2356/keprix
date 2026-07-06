@@ -121,7 +121,7 @@ spec:
 **Nginx configuration**:
 ```nginx
 upstream vllm_backend {
-    least_conn;  # Route to least-loaded server
+    least_conn; # Route to least-loaded server
     server localhost:8001;
     server localhost:8002;
     server localhost:8003;

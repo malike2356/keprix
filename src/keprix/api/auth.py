@@ -17,6 +17,7 @@ PUBLIC_PATHS = frozenset(
         "/api/health",
         "/api/v1/health",
         "/api/auth/login",
+        "/api/auth/config",
         "/api/v1/auth/login",
         "/openapi.json",
         "/docs",
@@ -37,6 +38,9 @@ async def optional_user(
 ) -> str | None:
     token = _token_from_request(request, credentials)
     if not token:
+        client_host = (request.client.host if request.client else "") or ""
+        if client_host in ("127.0.0.1", "::1", "localhost") and effective_access_level() == "developer":
+            return "developer"
         return None
     api_token = os.environ.get("KEPRIX_API_TOKEN", "")
     if api_token and token == api_token:

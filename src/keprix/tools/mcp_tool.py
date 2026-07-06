@@ -4154,3 +4154,57 @@ def _stop_mcp_loop(*, only_if_idle: bool = False) -> bool:
         # since the loop is gone and no session can still be in flight.
         _kill_orphaned_mcp_children(include_active=True)
     return True
+
+
+def register_server_runtime(name: str, config: dict) -> None:
+    """Connect a new MCP server in the live session without restarting Keprix.
+
+    ``config`` matches a ``mcp_servers`` entry in config.yaml. After this
+    returns, the server's tools are registered for the current process.
+
+    Raises ``RuntimeError`` when the MCP event loop is not running.
+    Raises ``ValueError`` when ``name`` is already registered.
+    """
+    with _lock:
+        if _mcp_loop is None or not _mcp_loop.is_running():
+            raise RuntimeError(
+                "MCP event loop is not running. "
+                "Start keprix with MCP support enabled."
+            )
+        if name in _servers:
+            raise ValueError(f"MCP server '{name}' is already registered")
+
+    register_mcp_servers({name: dict(config)})
+
+    with _lock:
+        if name not in _servers:
+            raise RuntimeError(f"Failed to connect MCP server '{name}' at runtime")
+
+    logger.info("MCP server '%s' registered at runtime", name)
+
+
+def unregister_server_runtime(name: str) -> None:
+    """Disconnect and remove a server from the live session.
+
+    Does not modify config.yaml. No-op when the name is not registered.
+    """
+    with _lock:
+        server = _servers.get(name)
+        if server is None:
+            return
+
+    async def _shutdown_one() -> None:
+        await server.shutdown()
+        with _lock:
+            _servers.pop(name, None)
+            _parallel_safe_servers.discard(sanitize_mcp_name_component(name))
+            _server_connect_errors.pop(name, None)
+            _server_connecting.discard(name)
+
+    try:
+        _run_on_mcp_loop(_shutdown_one(), timeout=15)
+    except RuntimeError:
+        with _lock:
+            _servers.pop(name, None)
+            _parallel_safe_servers.discard(sanitize_mcp_name_component(name))
+    logger.info("MCP server '%s' unregistered at runtime", name)

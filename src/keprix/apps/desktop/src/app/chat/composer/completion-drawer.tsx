@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 // left-aligned card (not full width) that fuses to the composer's edge instead
 // of floating above it. `left-1` matches the stack's `mx-1` inset; the negative
 // margin overlaps the seam so the composer's (now-transparent) edge border reads
-// as shared. Fused (opaque) fill — the composer surface swaps to the same fill
+// as shared. Fused (opaque) fill; the composer surface swaps to the same fill
 // while a drawer is open, so the two paint as one panel.
 const DRAWER_SHELL =
   'absolute left-1 z-50 w-80 max-w-[calc(100%-0.5rem)] max-h-[min(22rem,calc(100vh-8rem))] overflow-y-auto overscroll-contain p-1 text-xs text-popover-foreground'

@@ -11,7 +11,7 @@ let manager: DragDropManager | null = null
  * global, ref-counted singleton context and nulls it when the count hits 0.
  * On a keyed remount (cwd / collapse changes force a fresh `<Tree>`), the
  * singleton can be torn down and recreated while the previous `HTML5Backend`
- * still owns the `window.__isReactDndHtml5Backend` setup flag — so the new
+ * still owns the `window.__isReactDndHtml5Backend` setup flag; so the new
  * backend's `setup()` throws "Cannot have two HTML5 backends at the same
  * time." and trips the file-tree error boundary (it never recovers, because
  * "Try again" just remounts into the same race).

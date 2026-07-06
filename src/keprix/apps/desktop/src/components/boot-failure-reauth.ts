@@ -7,7 +7,7 @@ import type { DesktopAuthProvider, DesktopConnectionConfig } from '@/global'
 
 export interface RemoteReauth {
   url: string
-  // True when every advertised provider is username/password — drives the
+  // True when every advertised provider is username/password; drives the
   // button copy ("Sign in to remote gateway" vs "Sign in with <provider>"),
   // mirroring the gateway-settings page. Probe is best-effort.
   isPassword: boolean
@@ -29,7 +29,7 @@ const DEFAULT_SIGN_IN_COPY: SignInCopy = {
 // A remote, gated (oauth-bucket), not-currently-connected gateway is a
 // remote-reauth boot failure: the access cookie lapsed (e.g. the remote
 // dashboard restarted) and the local-recovery buttons (Retry/Repair) can't
-// fix it — only re-establishing the remote session can. A connected oauth
+// fix it; only re-establishing the remote session can. A connected oauth
 // session, or a token/local gateway, boots for some other reason the
 // local-recovery buttons address, so those return false here.
 export function isRemoteReauthFailure(config: DesktopConnectionConfig | null | undefined): boolean {

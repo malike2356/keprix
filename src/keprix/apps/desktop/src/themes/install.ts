@@ -31,9 +31,9 @@ export function installVscodeThemeFromText(
  * Fold every color theme an extension contributes into ONE desktop theme family.
  *
  * Many extensions ship a light *and* a dark variant (GitHub, Solarized, Winter
- * is Coming…). Rather than install them as separate flat entries — which made
+ * is Coming…). Rather than install them as separate flat entries; which made
  * the light/dark toggle a no-op and let "install in dark mode" land on the light
- * variant — we map the first light variant onto `colors` and the first dark
+ * variant; we map the first light variant onto `colors` and the first dark
  * variant onto `darkColors`. The result is a single picker entry whose light/dark
  * toggle switches between the real variants. A single-variant extension fills
  * both slots with its one palette (the toggle is a no-op, as it must be).

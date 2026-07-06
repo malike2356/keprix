@@ -1,0 +1,18 @@
+name: notion-trello-weekly-sync
+description: Copy open Trello cards from a board into a Notion database summary page.
+steps:
+  - id: list_cards
+    agent: default
+    prompt: |
+      Using Trello MCP tools (mcp_trello_*) or the trello skill with curl,
+      list all open cards on board {board_id}. Return a markdown bullet list
+      with card name, list name, due date, and card URL.
+  - id: write_notion
+    agent: default
+    prompt: |
+      Using Notion MCP tools (mcp_notion_* or mcp_notion_token_*) or the notion skill,
+      append a markdown summary of those cards to page {notion_page_id}.
+      Include a heading with today's date.
+variables:
+  board_id: ""
+  notion_page_id: ""

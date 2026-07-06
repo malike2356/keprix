@@ -4,7 +4,7 @@ import { useCallback, useRef } from 'react'
  * One-shot enter animation via the Web Animations API.
  *
  * Returns a callback ref. The animation fires exactly once when the element
- * first attaches to the DOM and never replays for an already-mounted node —
+ * first attaches to the DOM and never replays for an already-mounted node;
  * this is deliberate. CSS-transition + `@starting-style` is fragile here
  * because:
  *   - Streaming deltas constantly invalidate ancestor state, which can
@@ -15,11 +15,11 @@ import { useCallback, useRef } from 'react'
  *     ancestor toggles, even if the descendant's properties never change.
  *
  * `el.animate(...)` runs against the element directly and is independent of
- * CSS rule churn — it plays once, finishes, and is done. If the element
+ * CSS rule churn; it plays once, finishes, and is done. If the element
  * unmounts and re-mounts, the callback ref runs again and replays it
  * (correct behaviour).
  *
- * `enabled` is captured at mount-time only — flipping it later doesn't
+ * `enabled` is captured at mount-time only; flipping it later doesn't
  * suddenly play the animation on existing nodes.
  */
 const playedAnimationKeys = new Set<string>()

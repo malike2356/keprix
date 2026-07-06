@@ -1,0 +1,53 @@
+{
+  "teamId": "FWJYW4S8P8",
+  "signingRepo": "git@github.com:openclaw/ios-signing.git",
+  "certificateType": "IOS_DISTRIBUTION",
+  "profileType": "IOS_APP_STORE",
+  "targets": [
+    {
+      "target": "Carina",
+      "displayName": "Carina",
+      "bundleId": "ai.verlox.carinakeprix.app",
+      "platform": "IOS",
+      "profileKey": "OPENCLAW_APP_PROFILE",
+      "profileName": "Carina App Store ai.verlox.carinakeprix.app",
+      "capabilities": ["PUSH_NOTIFICATIONS"]
+    },
+    {
+      "target": "CarinaShareExtension",
+      "displayName": "Carina Share",
+      "bundleId": "ai.verlox.carinakeprix.app.share",
+      "platform": "IOS",
+      "profileKey": "OPENCLAW_SHARE_PROFILE",
+      "profileName": "Carina App Store ai.verlox.carinakeprix.app.share",
+      "capabilities": []
+    },
+    {
+      "target": "CarinaActivityWidget",
+      "displayName": "Carina Activity Widget",
+      "bundleId": "ai.verlox.carinakeprix.app.activitywidget",
+      "platform": "IOS",
+      "profileKey": "OPENCLAW_ACTIVITY_WIDGET_PROFILE",
+      "profileName": "Carina App Store ai.verlox.carinakeprix.app.activitywidget",
+      "capabilities": []
+    },
+    {
+      "target": "CarinaWatchApp",
+      "displayName": "Carina Watch App",
+      "bundleId": "ai.verlox.carinakeprix.app.watchkitapp",
+      "platform": "IOS",
+      "profileKey": "OPENCLAW_WATCH_APP_PROFILE",
+      "profileName": "Carina App Store ai.verlox.carinakeprix.app.watchkitapp",
+      "capabilities": []
+    },
+    {
+      "target": "CarinaWatchExtension",
+      "displayName": "Carina Watch Extension",
+      "bundleId": "ai.verlox.carinakeprix.app.watchkitapp.extension",
+      "platform": "IOS",
+      "profileKey": "OPENCLAW_WATCH_EXTENSION_PROFILE",
+      "profileName": "Carina App Store ai.verlox.carinakeprix.app.watchkitapp.extension",
+      "capabilities": []
+    }
+  ]
+}

@@ -54,7 +54,7 @@ const FG_BY_CODE: Record<number, AnsiColor> = {
 // text. Range covers the common CSI command set (A-Z / a-z / @).
 // eslint-disable-next-line no-control-regex
 const CSI_RE = /\x1b\[([\d;]*)([\x40-\x7e])/g
-// Other escape sequences (single-char OSC/SS3/etc.) — strip silently.
+// Other escape sequences (single-char OSC/SS3/etc.); strip silently.
 // eslint-disable-next-line no-control-regex
 const OTHER_ESCAPE_RE = /\x1b[@-Z\\-_]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g
 
@@ -63,7 +63,7 @@ export function parseAnsi(input: string): AnsiSegment[] {
     return []
   }
 
-  // Strip non-CSI escapes upfront — none of them carry text we want to keep
+  // Strip non-CSI escapes upfront; none of them carry text we want to keep
   // and CSI_RE wouldn't match them.
   const cleaned = input.replace(OTHER_ESCAPE_RE, '')
 
@@ -119,7 +119,7 @@ export function parseAnsi(input: string): AnsiSegment[] {
         } else if (code in FG_BY_CODE) {
           fg = FG_BY_CODE[code]
         } else if (code === 38) {
-          // 256-color / truecolor — skip the trailing args we don't render.
+          // 256-color / truecolor; skip the trailing args we don't render.
           if (codes[i + 1] === 5) {
             i += 2
           } else if (codes[i + 1] === 2) {
@@ -127,7 +127,7 @@ export function parseAnsi(input: string): AnsiSegment[] {
           }
         }
         // Background colors (40-47, 100-107) and effects we don't render are
-        // intentionally ignored — the segment keeps the prior bold/fg state.
+        // intentionally ignored; the segment keeps the prior bold/fg state.
       }
     }
 
@@ -175,7 +175,7 @@ export function hasAnsiCodes(input: string): boolean {
 }
 
 /** Remove all ANSI escape sequences, returning plain text. Use when output is
- *  rendered as text (e.g. chat system messages) rather than styled segments —
+ *  rendered as text (e.g. chat system messages) rather than styled segments;
  *  otherwise the ESC byte is invisible and the `[1;31m…` payload leaks through. */
 export function stripAnsi(input: string): string {
   if (!input) {

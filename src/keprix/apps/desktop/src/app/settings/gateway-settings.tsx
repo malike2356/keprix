@@ -214,7 +214,7 @@ export function GatewaySettings() {
   }, [probe, probeStatus, state.remoteAuthMode])
 
   // Whether we actually KNOW how this gateway authenticates yet. Until we do,
-  // neither the OAuth button nor the session-token box should render —
+  // neither the OAuth button nor the session-token box should render;
   // `authMode` defaults to 'token', so without this gate the token box flashes
   // for every gateway (including OAuth ones) during the idle/probing window
   // before the first probe lands. The scheme is known when either:
@@ -250,8 +250,8 @@ export function GatewaySettings() {
 
   // A username/password gateway authenticates through a credential form on the
   // gateway's /login page (POST /auth/password-login) rather than an OAuth
-  // redirect. Everything downstream — the session cookie, the ws-ticket mint,
-  // the persistent partition — is identical, so the desktop drives it through
+  // redirect. Everything downstream; the session cookie, the ws-ticket mint,
+  // the persistent partition; is identical, so the desktop drives it through
   // the same sign-in window; only the button copy changes. We treat the
   // gateway as password-style only when EVERY advertised provider supports
   // password, so a mixed deployment keeps the generic OAuth copy.

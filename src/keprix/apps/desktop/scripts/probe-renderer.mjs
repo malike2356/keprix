@@ -1,4 +1,4 @@
-// quick probe — read state of the renderer
+// quick probe; read state of the renderer
 const list = await (await fetch('http://127.0.0.1:9222/json/list')).json()
 const tgt = list.find(t => t.type === 'page' && t.url.startsWith('http'))
 console.log('target:', tgt?.url)

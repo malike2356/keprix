@@ -1,0 +1,403 @@
+{
+  "$defs": {
+    "AddonConfig": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "price": {
+          "title": "Price",
+          "type": "integer"
+        },
+        "currency": {
+          "default": "gbp",
+          "title": "Currency",
+          "type": "string"
+        },
+        "interval": {
+          "default": "month",
+          "enum": [
+            "month",
+            "year"
+          ],
+          "title": "Interval",
+          "type": "string"
+        },
+        "applies_to": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Applies To",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "price"
+      ],
+      "title": "AddonConfig",
+      "type": "object"
+    },
+    "DunningConfig": {
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "retry_schedule": {
+          "items": {
+            "$ref": "#/$defs/DunningStepConfig"
+          },
+          "title": "Retry Schedule",
+          "type": "array"
+        }
+      },
+      "title": "DunningConfig",
+      "type": "object"
+    },
+    "DunningStepConfig": {
+      "properties": {
+        "days": {
+          "title": "Days",
+          "type": "integer"
+        },
+        "action": {
+          "default": "retry",
+          "enum": [
+            "retry",
+            "cancel"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "notify": {
+          "default": false,
+          "title": "Notify",
+          "type": "boolean"
+        },
+        "notify_template": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Notify Template"
+        },
+        "degrade_features": {
+          "default": false,
+          "title": "Degrade Features",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "days"
+      ],
+      "title": "DunningStepConfig",
+      "type": "object"
+    },
+    "PlanConfig": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "price": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Price"
+        },
+        "currency": {
+          "default": "gbp",
+          "title": "Currency",
+          "type": "string"
+        },
+        "interval": {
+          "anyOf": [
+            {
+              "enum": [
+                "month",
+                "year"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Interval"
+        },
+        "prices": {
+          "items": {
+            "$ref": "#/$defs/PlanPriceConfig"
+          },
+          "title": "Prices",
+          "type": "array"
+        },
+        "seats": {
+          "default": 1,
+          "title": "Seats",
+          "type": "integer"
+        },
+        "metadata": {
+          "additionalProperties": true,
+          "title": "Metadata",
+          "type": "object"
+        },
+        "feature_flags": {
+          "additionalProperties": true,
+          "title": "Feature Flags",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "PlanConfig",
+      "type": "object"
+    },
+    "PlanPriceConfig": {
+      "properties": {
+        "amount": {
+          "minimum": 0,
+          "title": "Amount",
+          "type": "integer"
+        },
+        "currency": {
+          "default": "gbp",
+          "title": "Currency",
+          "type": "string"
+        },
+        "interval": {
+          "anyOf": [
+            {
+              "enum": [
+                "month",
+                "year"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Interval"
+        },
+        "discount_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Discount Text"
+        }
+      },
+      "required": [
+        "amount"
+      ],
+      "title": "PlanPriceConfig",
+      "type": "object"
+    },
+    "ProductConfig": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "company": {
+          "title": "Company",
+          "type": "string"
+        },
+        "company_address": {
+          "default": "",
+          "title": "Company Address",
+          "type": "string"
+        },
+        "vat_number": {
+          "default": "",
+          "title": "Vat Number",
+          "type": "string"
+        },
+        "support_email": {
+          "default": "",
+          "title": "Support Email",
+          "type": "string"
+        },
+        "website": {
+          "default": "",
+          "title": "Website",
+          "type": "string"
+        },
+        "trial_days": {
+          "default": 0,
+          "title": "Trial Days",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "company"
+      ],
+      "title": "ProductConfig",
+      "type": "object"
+    },
+    "TaxConfig": {
+      "properties": {
+        "regions": {
+          "items": {
+            "$ref": "#/$defs/TaxRegionConfig"
+          },
+          "title": "Regions",
+          "type": "array"
+        }
+      },
+      "title": "TaxConfig",
+      "type": "object"
+    },
+    "TaxRegionConfig": {
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "rate": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rate"
+        },
+        "rule": {
+          "default": "none",
+          "enum": [
+            "always",
+            "b2b_reverse",
+            "none"
+          ],
+          "title": "Rule",
+          "type": "string"
+        },
+        "vat_validation": {
+          "default": "none",
+          "enum": [
+            "hmrc",
+            "vies",
+            "none"
+          ],
+          "title": "Vat Validation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "name"
+      ],
+      "title": "TaxRegionConfig",
+      "type": "object"
+    },
+    "WebhookConfig": {
+      "properties": {
+        "signing_secret_env": {
+          "default": "STRIPE_WEBHOOK_SECRET",
+          "title": "Signing Secret Env",
+          "type": "string"
+        },
+        "events": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Events",
+          "type": "array"
+        }
+      },
+      "title": "WebhookConfig",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "product": {
+      "$ref": "#/$defs/ProductConfig"
+    },
+    "plans": {
+      "items": {
+        "$ref": "#/$defs/PlanConfig"
+      },
+      "title": "Plans",
+      "type": "array"
+    },
+    "addons": {
+      "items": {
+        "$ref": "#/$defs/AddonConfig"
+      },
+      "title": "Addons",
+      "type": "array"
+    },
+    "tax": {
+      "$ref": "#/$defs/TaxConfig"
+    },
+    "dunning": {
+      "$ref": "#/$defs/DunningConfig"
+    },
+    "webhooks": {
+      "$ref": "#/$defs/WebhookConfig"
+    }
+  },
+  "required": [
+    "product",
+    "plans"
+  ],
+  "title": "BillingConfig",
+  "type": "object"
+}

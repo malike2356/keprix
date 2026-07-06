@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 
 // The single canonical error glyph (codicon's filled error mark). Use this
 // everywhere an error is surfaced (boundaries, dialogs, banners) so failures
-// read identically — one icon, one color, no background chip.
+// read identically; one icon, one color, no background chip.
 export function ErrorIcon({ className, size = '1.75rem' }: { className?: string; size?: string }) {
   return <Codicon className={cn('text-destructive', className)} name="error" size={size} />
 }

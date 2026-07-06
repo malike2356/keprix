@@ -56,7 +56,7 @@ export type GatewayEventPayload = {
   request_id?: string
   question?: string
   choices?: string[] | null
-  // approval.request (dangerous command / execute_code) — session-keyed
+  // approval.request (dangerous command / execute_code); session-keyed
   command?: string
   description?: string
   // False when a tirith content-security warning forbids a permanent allow.
@@ -187,7 +187,7 @@ const STREAM_PART: Record<'reasoning' | 'text', (text: string) => ChatMessagePar
 // current segment, where a segment is bounded by any non-streaming part (a
 // tool call, image, …). The opposite streaming channel (text <-> reasoning) is
 // transparent, so a reasoning burst between two content deltas can't shred one
-// sentence into text / Thinking / text — the fragmentation models that
+// sentence into text / Thinking / text; the fragmentation models that
 // interleave reasoning_content + content otherwise produce. Tool calls still
 // open a fresh part, preserving narration order across steps.
 function appendStreamPart(

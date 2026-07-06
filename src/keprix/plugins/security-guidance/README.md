@@ -9,7 +9,7 @@ mode, GitHub Actions `${{ github.event.* }}` injection, `torch.load` without
 The file is still written; the model sees the warning in the next turn and
 can fix the code or briefly document why the construct is safe.
 
-This is layer 1 of Anthropic's `security-guidance` plugin design — a fast
+This is layer 1 of Anthropic's `security-guidance` plugin design; a fast
 first-pass that runs locally with zero LLM tokens spent. Layers 2 and 3 (LLM
 diff review on turn end, agentic commit review) are not ported; the agent
 can already run those kinds of reviews on demand via `delegate_task`.
@@ -31,7 +31,7 @@ under Apache-2.0. Categories:
 | CI/CD injection | GitHub Actions workflow files using `${{ github.event.* }}` in `run:` |
 
 The pattern data uses Python regex + literal-substring matching. Each rule
-carries a per-extension `path_filter` lambda — Python-only rules skip `.js`,
+carries a per-extension `path_filter` lambda; Python-only rules skip `.js`,
 JS rules skip `.py`, all rules skip `.md/.txt/.rst/.json/.yaml`. Lookbehind
 assertions exclude method calls (so `model.eval()` and `redis.eval()` don't
 trip the `eval(` rule). False-positive rate is mediocre but tolerable; the
@@ -53,9 +53,9 @@ plugins:
 
 | Env var | Default | Effect |
 |---|---|---|
-| (none) | warn | Appends a `⚠️ Security guidance` block to the tool result. The file is written. |
+| (none) | warn | Appends a `WARNING:  Security guidance` block to the tool result. The file is written. |
 | `SECURITY_GUIDANCE_BLOCK=1` | unset | Refuses the write entirely with the warning as the block reason. Use for stricter environments. |
-| `SECURITY_GUIDANCE_DISABLE=1` | unset | Kill switch — plugin loads but does nothing. |
+| `SECURITY_GUIDANCE_DISABLE=1` | unset | Kill switch; plugin loads but does nothing. |
 
 ## What it does **not** do (yet)
 

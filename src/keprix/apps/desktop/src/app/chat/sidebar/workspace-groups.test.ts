@@ -31,7 +31,7 @@ function makeSession(cwd: null | string, overrides: Partial<SessionInfo> = {}): 
 const labels = (sessions: SessionInfo[]) => workspaceGroupsFor(sessions, 'No workspace').map(g => g.label)
 
 describe('workspaceGroupsFor', () => {
-  it('groups by full cwd, not by basename — same-named folders are separate groups', () => {
+  it('groups by full cwd, not by basename; same-named folders are separate groups', () => {
     const groups = workspaceGroupsFor(
       [makeSession('/a/hermes-agent/apps/desktop'), makeSession('/a/hermes-agent-wt-rtl/apps/desktop')],
       'No workspace'
@@ -86,7 +86,7 @@ describe('workspaceTreeFor', () => {
     expect(tree[0].groups.map(g => g.label).sort()).toEqual(['hermes-agent', 'rtl'])
   })
 
-  it('git metadata is authoritative — worktrees group by repoRoot regardless of directory naming', () => {
+  it('git metadata is authoritative; worktrees group by repoRoot regardless of directory naming', () => {
     const resolver: WorktreeResolver = cwd => {
       if (cwd === '/www/hermes-agent') {
         return info({ repoRoot: '/www/hermes-agent', worktreeRoot: '/www/hermes-agent', isMainWorktree: true, branch: 'main' })
@@ -107,7 +107,7 @@ describe('workspaceTreeFor', () => {
 
     expect(tree).toHaveLength(1)
     expect(tree[0].label).toBe('hermes-agent')
-    // The main checkout labels by directory (its branch is transient — using it
+    // The main checkout labels by directory (its branch is transient; using it
     // would misattribute old sessions to the currently checked-out branch);
     // linked worktrees label by branch.
     expect(tree[0].groups.map(g => g.label)).toEqual(['hermes-agent', 'rtl'])

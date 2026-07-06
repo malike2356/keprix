@@ -14,20 +14,20 @@ metadata:
 
 # Keprix
 
-Keprix is an open-source AI agent framework by Nous Research that runs in your terminal, messaging platforms, and IDEs. It belongs to the same category as Claude Code (Anthropic), Codex (OpenAI), and OpenClaw — autonomous coding and task-execution agents that use tool calling to interact with your system. Keprix works with any LLM provider (OpenRouter, Anthropic, OpenAI, DeepSeek, local models, and 15+ others) and runs on Linux, macOS, and WSL.
+Keprix is an open-source AI agent framework by Nous Research that runs in your terminal, messaging platforms, and IDEs. It belongs to the same category as Claude Code (Anthropic), Codex (OpenAI), and OpenClaw; autonomous coding and task-execution agents that use tool calling to interact with your system. Keprix works with any LLM provider (OpenRouter, Anthropic, OpenAI, DeepSeek, local models, and 15+ others) and runs on Linux, macOS, and WSL.
 
 What makes Keprix different:
 
-- **Self-improving through skills** — Keprix learns from experience by saving reusable procedures as skills. When it solves a complex problem, discovers a workflow, or gets corrected, it can persist that knowledge as a skill document that loads into future sessions. Skills accumulate over time, making the agent better at your specific tasks and environment.
-- **Persistent memory across sessions** — remembers who you are, your preferences, environment details, and lessons learned. Pluggable memory backends (built-in, Honcho, Mem0, and more) let you choose how memory works.
-- **Multi-platform gateway** — the same agent runs on Telegram, Discord, Slack, WhatsApp, Signal, Matrix, Email, and 10+ other platforms with full tool access, not just chat.
-- **Provider-agnostic** — swap models and providers mid-workflow without changing anything else. Credential pools rotate across multiple API keys automatically.
-- **Profiles** — run multiple independent Keprix instances with isolated configs, sessions, skills, and memory.
-- **Extensible** — plugins, MCP servers, custom tools, webhook triggers, cron scheduling, and the full Python ecosystem.
+- **Self-improving through skills**; Keprix learns from experience by saving reusable procedures as skills. When it solves a complex problem, discovers a workflow, or gets corrected, it can persist that knowledge as a skill document that loads into future sessions. Skills accumulate over time, making the agent better at your specific tasks and environment.
+- **Persistent memory across sessions**; remembers who you are, your preferences, environment details, and lessons learned. Pluggable memory backends (built-in, Honcho, Mem0, and more) let you choose how memory works.
+- **Multi-platform gateway**; the same agent runs on Telegram, Discord, Slack, WhatsApp, Signal, Matrix, Email, and 10+ other platforms with full tool access, not just chat.
+- **Provider-agnostic**; swap models and providers mid-workflow without changing anything else. Credential pools rotate across multiple API keys automatically.
+- **Profiles**; run multiple independent Keprix instances with isolated configs, sessions, skills, and memory.
+- **Extensible**; plugins, MCP servers, custom tools, webhook triggers, cron scheduling, and the full Python ecosystem.
 
 People use Keprix for software development, research, system administration, data analysis, content creation, home automation, and anything else that benefits from an AI agent with persistent context and full system access.
 
-**This skill helps you work with Keprix effectively** — setting it up, configuring features, spawning additional agent instances, troubleshooting issues, finding the right commands and settings, and understanding how the system works when you need to extend or contribute to it.
+**This skill helps you work with Keprix effectively**; setting it up, configuring features, spawning additional agent instances, troubleshooting issues, finding the right commands and settings, and understanding how the system works when you need to extend or contribute to it.
 
 **Docs:** https://keprix.nousresearch.com/docs/
 
@@ -240,7 +240,7 @@ keprix uninstall            Uninstall Keprix
 Type these during an interactive chat session. New commands land fairly
 often; if something below looks stale, run `/help` in-session for the
 authoritative list or see the [live slash commands reference](https://keprix.nousresearch.com/docs/reference/slash-commands).
-The registry of record is `keprix_cli/commands.py` — every consumer
+The registry of record is `keprix_cli/commands.py`; every consumer
 (autocomplete, Telegram menu, Slack mapping, `/help`) derives from it.
 
 ### Session Control
@@ -449,17 +449,17 @@ Tool changes take effect on `/reset` (new session). They do NOT apply mid-conver
 
 ## Security & Privacy Toggles
 
-Common "why is Keprix doing X to my output / tool calls / commands?" toggles — and the exact commands to change them. Most of these need a fresh session (`/reset` in chat, or start a new `keprix` invocation) because they're read once at startup.
+Common "why is Keprix doing X to my output / tool calls / commands?" toggles; and the exact commands to change them. Most of these need a fresh session (`/reset` in chat, or start a new `keprix` invocation) because they're read once at startup.
 
 ### Secret redaction in tool output
 
-Secret redaction is **on by default** — tool output (terminal stdout, `read_file`, web content, subagent summaries, etc.) is scanned for strings that look like API keys, tokens, and secrets before it enters the conversation context and logs. Leave it enabled for normal use:
+Secret redaction is **on by default**; tool output (terminal stdout, `read_file`, web content, subagent summaries, etc.) is scanned for strings that look like API keys, tokens, and secrets before it enters the conversation context and logs. Leave it enabled for normal use:
 
 ```bash
 keprix config set security.redact_secrets true       # keep enabled globally
 ```
 
-**Restart required.** `security.redact_secrets` is snapshotted at import time — toggling it mid-session (e.g. via `export KEPRIX_REDACT_SECRETS=false` from a tool call) will NOT take effect for the running process. Tell the user to change it in config from a terminal, then start a new session. This is deliberate — it prevents an LLM from flipping the toggle on itself mid-task.
+**Restart required.** `security.redact_secrets` is snapshotted at import time; toggling it mid-session (e.g. via `export KEPRIX_REDACT_SECRETS=false` from a tool call) will NOT take effect for the running process. Tell the user to change it in config from a terminal, then start a new session. This is deliberate; it prevents an LLM from flipping the toggle on itself mid-task.
 
 Disable only when you deliberately need raw credential-like strings for debugging or redactor development:
 ```bash
@@ -479,9 +479,9 @@ keprix config set privacy.redact_pii false   # disable (default)
 
 By default (`approvals.mode: manual`), Keprix prompts the user before running shell commands flagged as destructive (`rm -rf`, `git reset --hard`, etc.). The modes are:
 
-- `manual` — always prompt (default)
-- `smart` — use an auxiliary LLM to auto-approve low-risk commands, prompt on high-risk
-- `off` — skip all approval prompts (equivalent to `--yolo`)
+- `manual`; always prompt (default)
+- `smart`; use an auxiliary LLM to auto-approve low-risk commands, prompt on high-risk
+- `off`; skip all approval prompts (equivalent to `--yolo`)
 
 ```bash
 keprix config set approvals.mode smart       # recommended middle ground
@@ -496,7 +496,7 @@ Note: YOLO / `approvals.mode: off` does NOT turn off secret redaction. They are 
 
 ### Shell hooks allowlist
 
-Some shell-hook integrations require explicit allowlisting before they fire. Managed via `~/.keprix/shell-hooks-allowlist.json` — prompted interactively the first time a hook wants to run.
+Some shell-hook integrations require explicit allowlisting before they fire. Managed via `~/.keprix/shell-hooks-allowlist.json`; prompted interactively the first time a hook wants to run.
 
 ### Disabling the web/browser/image-gen tools
 
@@ -511,10 +511,10 @@ To keep the model away from network or media tools entirely, open `keprix tools`
 Voice messages from messaging platforms are auto-transcribed.
 
 Provider priority (auto-detected):
-1. **Local faster-whisper** — free, no API key: `pip install faster-whisper`
-2. **Groq Whisper** — free tier: set `GROQ_API_KEY`
-3. **OpenAI Whisper** — paid: set `VOICE_TOOLS_OPENAI_KEY`
-4. **Mistral Voxtral** — set `MISTRAL_API_KEY`
+1. **Local faster-whisper**; free, no API key: `pip install faster-whisper`
+2. **Groq Whisper**; free tier: set `GROQ_API_KEY`
+3. **OpenAI Whisper**; paid: set `VOICE_TOOLS_OPENAI_KEY`
+4. **Mistral Voxtral**; set `MISTRAL_API_KEY`
 
 Config:
 ```yaml
@@ -542,7 +542,7 @@ Voice commands: `/voice on` (voice-to-voice), `/voice tts` (always voice), `/voi
 
 ## Spawning Additional Keprix Instances
 
-Run additional Keprix processes as fully independent subprocesses — separate sessions, tools, and environments.
+Run additional Keprix processes as fully independent subprocesses; separate sessions, tools, and environments.
 
 ### When to Use This vs delegate_task
 
@@ -612,12 +612,12 @@ terminal(command="tmux new-session -d -s resumed 'keprix --resume 20260225_14305
 
 ### Tips
 
-- **Prefer `delegate_task` for quick subtasks** — less overhead than spawning a full process
-- **Use `-w` (worktree mode)** when spawning agents that edit code — prevents git conflicts
-- **Set timeouts** for one-shot mode — complex tasks can take 5-10 minutes
-- **Use `keprix chat -q` for fire-and-forget** — no PTY needed
-- **Use tmux for interactive sessions** — raw PTY mode has `\r` vs `\n` issues with prompt_toolkit
-- **For scheduled tasks**, use the `cronjob` tool instead of spawning — handles delivery and retry
+- **Prefer `delegate_task` for quick subtasks**; less overhead than spawning a full process
+- **Use `-w` (worktree mode)** when spawning agents that edit code; prevents git conflicts
+- **Set timeouts** for one-shot mode; complex tasks can take 5-10 minutes
+- **Use `keprix chat -q` for fire-and-forget**; no PTY needed
+- **Use tmux for interactive sessions**; raw PTY mode has `\r` vs `\n` issues with prompt_toolkit
+- **For scheduled tasks**, use the `cronjob` tool instead of spawning; handles delivery and retry
 
 ---
 
@@ -629,7 +629,7 @@ here; full developer notes live in `AGENTS.md`, user-facing docs under
 
 ### Delegation (`delegate_task`)
 
-Synchronous subagent spawn — the parent waits for the child's summary
+Synchronous subagent spawn; the parent waits for the child's summary
 before continuing its own loop. Isolated context + terminal session.
 
 - **Single:** `delegate_task(goal, context, toolsets)`.
@@ -645,7 +645,7 @@ Config: `delegation.*` in `config.yaml`.
 
 ### Cron (scheduled jobs)
 
-Durable scheduler — `cron/jobs.py` + `cron/scheduler.py`. Drive it via
+Durable scheduler; `cron/jobs.py` + `cron/scheduler.py`. Drive it via
 the `cronjob` tool, the `keprix cron` CLI (`list`, `add`, `edit`,
 `pause`, `resume`, `run`, `remove`), or the `/cron` slash command.
 
@@ -670,11 +670,11 @@ Background maintenance for agent-created skills. Tracks usage, marks
 idle skills stale, archives stale ones, keeps a pre-run tar.gz backup
 so nothing is lost.
 
-- **CLI:** `keprix curator <verb>` — `status`, `run`, `pause`, `resume`,
+- **CLI:** `keprix curator <verb>`; `status`, `run`, `pause`, `resume`,
   `pin`, `unpin`, `archive`, `restore`, `prune`, `backup`, `rollback`.
 - **Slash:** `/curator <subcommand>` mirrors the CLI.
 - **Scope:** only touches skills with `created_by: "agent"` provenance.
-  Bundled + hub-installed skills are off-limits. **Never deletes** —
+  Bundled + hub-installed skills are off-limits. **Never deletes**;
   max destructive action is archive. Pinned skills are exempt from
   every auto-transition and every LLM review pass.
 - **Telemetry:** sidecar at `~/.keprix/skills/.usage.json` holds
@@ -703,7 +703,7 @@ sessions still have zero `kanban_*` schema footprint unless configured.
   outside a dispatcher-spawned task also get `kanban_list` and
   `kanban_unblock` for board routing.
 - **Dispatcher** runs inside the gateway by default
-  (`kanban.dispatch_in_gateway: true`) — reclaims stale claims,
+  (`kanban.dispatch_in_gateway: true`); reclaims stale claims,
   promotes ready tasks, atomically claims, spawns assigned profiles.
   Auto-blocks a task after `failure_limit` consecutive spawn failures
   (default 2; configurable via `kanban.failure_limit` or per-task
@@ -720,19 +720,19 @@ User docs: https://keprix.nousresearch.com/docs/user-guide/features/kanban
 
 Keprix runs natively on Windows (PowerShell, cmd, Windows Terminal, git-bash
 mintty, VS Code integrated terminal). Most of it just works, but a handful
-of differences between Win32 and POSIX have bitten us — document new ones
+of differences between Win32 and POSIX have bitten us; document new ones
 here as you hit them so the next person (or the next session) doesn't
 rediscover them from scratch.
 
 ### Input / Keybindings
 
 **Alt+Enter doesn't insert a newline.** Windows Terminal intercepts Alt+Enter
-at the terminal layer to toggle fullscreen — the keystroke never reaches
+at the terminal layer to toggle fullscreen; the keystroke never reaches
 prompt_toolkit. Use **Ctrl+Enter** instead. Windows Terminal delivers
 Ctrl+Enter as LF (`c-j`), distinct from plain Enter (`c-m` / CR), and the
 CLI binds `c-j` to newline insertion on `win32` only (see
 `_bind_prompt_submit_keys` + the Windows-only `c-j` binding in `cli.py`).
-Side effect: the raw Ctrl+J keystroke also inserts a newline on Windows —
+Side effect: the raw Ctrl+J keystroke also inserts a newline on Windows;
 unavoidable, because Windows Terminal collapses Ctrl+Enter and Ctrl+J to
 the same keycode at the Win32 console API layer. No conflicting binding
 existed for Ctrl+J on Windows, so this is a harmless side effect.
@@ -743,7 +743,7 @@ disable Alt+Fn shortcuts in Options → Keys. Easier to just use Ctrl+Enter.
 **Diagnosing keybindings.** Run `python scripts/keystroke_diagnostic.py`
 (repo root) to see exactly how prompt_toolkit identifies each keystroke
 in the current terminal. Answers questions like "does Shift+Enter come
-through as a distinct key?" (almost never — most terminals collapse it
+through as a distinct key?" (almost never; most terminals collapse it
 to plain Enter) or "what byte sequence is my terminal sending for
 Ctrl+Enter?" This is how the Ctrl+Enter = c-j fact was established.
 
@@ -757,7 +757,7 @@ Notepad are the usual culprit.
 ### `execute_code` / Sandbox
 
 **WinError 10106** ("The requested service provider could not be loaded
-or initialized") from the sandbox child process — it can't create an
+or initialized") from the sandbox child process; it can't create an
 `AF_INET` socket, so the loopback-TCP RPC fallback fails before
 `connect()`. Root cause is usually **not** a broken Winsock LSP; it's
 Keprix's own env scrubber dropping `SYSTEMROOT` / `WINDIR` / `COMSPEC`
@@ -769,7 +769,7 @@ diagnostic recipe in `references/execute-code-sandbox-env-windows.md`.
 
 ### Testing / Contributing
 
-**`scripts/run_tests.sh` doesn't work as-is on Windows** — it looks for
+**`scripts/run_tests.sh` doesn't work as-is on Windows**; it looks for
 POSIX venv layouts (`.venv/bin/activate`). The Keprix-installed venv at
 `venv/Scripts/` has no pip or pytest either (stripped for install size).
 Workaround: install `pytest + pytest-xdist + pyyaml` into a system Python
@@ -781,14 +781,14 @@ export PYTHONPATH="$(pwd)"
 "/c/Program Files/Python311/python" -m pytest tests/foo/test_bar.py -v --tb=short -n 0
 ```
 
-Use `-n 0`, not `-n 4` — `pyproject.toml`'s default `addopts` already
+Use `-n 0`, not `-n 4`; `pyproject.toml`'s default `addopts` already
 includes `-n`, and the wrapper's CI-parity guarantees don't apply off POSIX.
 
 **POSIX-only tests need skip guards.** Common markers already in the codebase:
-- Symlinks — elevated privileges on Windows
-- `0o600` file modes — POSIX mode bits not enforced on NTFS by default
-- `signal.SIGALRM` — Unix-only (see `tests/conftest.py::_enforce_test_timeout`)
-- Winsock / Windows-specific regressions — `@pytest.mark.skipif(sys.platform != "win32", ...)`
+- Symlinks; elevated privileges on Windows
+- `0o600` file modes; POSIX mode bits not enforced on NTFS by default
+- `signal.SIGALRM`; Unix-only (see `tests/conftest.py::_enforce_test_timeout`)
+- Winsock / Windows-specific regressions; `@pytest.mark.skipif(sys.platform != "win32", ...)`
 
 Use the existing skip-pattern style (`sys.platform == "win32"` or
 `sys.platform.startswith("win")`) to stay consistent with the rest of the
@@ -797,12 +797,12 @@ suite.
 ### Path / Filesystem
 
 **Line endings.** Git may warn `LF will be replaced by CRLF the next time
-Git touches it`. Cosmetic — the repo's `.gitattributes` normalizes. Don't
+Git touches it`. Cosmetic; the repo's `.gitattributes` normalizes. Don't
 let editors auto-convert committed POSIX-newline files to CRLF.
 
 **Forward slashes work almost everywhere.** `C:/Users/...` is accepted by
 every Keprix tool and most Windows APIs. Prefer forward slashes in code
-and logs — avoids shell-escaping backslashes in bash.
+and logs; avoids shell-escaping backslashes in bash.
 
 ---
 
@@ -814,13 +814,13 @@ and logs — avoids shell-escaping backslashes in bash.
 3. In gateway: `/restart`. In CLI: exit and relaunch.
 
 ### Tool not available
-1. `keprix tools` — check if toolset is enabled for your platform
+1. `keprix tools`; check if toolset is enabled for your platform
 2. Some tools need env vars (check `.env`)
 3. `/reset` after enabling tools
 
 ### Model/provider issues
-1. `keprix doctor` — check config and dependencies
-2. `keprix auth` — re-authenticate OAuth providers (or `keprix auth add <provider>`)
+1. `keprix doctor`; check config and dependencies
+2. `keprix auth`; re-authenticate OAuth providers (or `keprix auth add <provider>`)
 3. Check `.env` has the right API key
 4. **Copilot 403**: `gh auth login` tokens do NOT work for Copilot API. You must use the Copilot-specific OAuth device code flow via `keprix model` → GitHub Copilot.
 
@@ -830,8 +830,8 @@ and logs — avoids shell-escaping backslashes in bash.
 - **Code changes:** Restart the CLI or gateway process
 
 ### Skills not showing
-1. `keprix skills list` — verify installed
-2. `keprix skills config` — check platform enablement
+1. `keprix skills list`; verify installed
+2. `keprix skills config`; check platform enablement
 3. Load explicitly: `/skill name` or `keprix -s name`
 
 ### Gateway issues
@@ -889,7 +889,7 @@ For occasional contributors and PR authors. Full developer docs: https://keprix.
 
 ```
 keprix/
-├── run_agent.py          # AIAgent — core conversation loop
+├── run_agent.py          # AIAgent; core conversation loop
 ├── model_tools.py        # Tool discovery and dispatch
 ├── toolsets.py           # Toolset definitions
 ├── cli.py                # Interactive CLI (KeprixCLI)
@@ -908,7 +908,7 @@ keprix/
 └── website/              # Docusaurus docs site
 ```
 
-Config: `~/.keprix/config.yaml` (settings), `~/.keprix/.env` (API keys) — both under `$KEPRIX_HOME` when it is set.
+Config: `~/.keprix/config.yaml` (settings), `~/.keprix/.env` (API keys); both under `$KEPRIX_HOME` when it is set.
 
 ### Adding a Tool (3 files)
 
@@ -936,7 +936,7 @@ registry.register(
 
 **2. Add to `toolsets.py`** → `_KEPRIX_CORE_TOOLS` list.
 
-Auto-discovery: any `tools/*.py` file with a top-level `registry.register()` call is imported automatically — no manual list needed.
+Auto-discovery: any `tools/*.py` file with a top-level `registry.register()` call is imported automatically; no manual list needed.
 
 All handlers must return JSON strings. Use `get_keprix_home()` for paths, never hardcode `~/.keprix`.
 
@@ -967,11 +967,11 @@ python -m pytest tests/ -o 'addopts=' -q   # Full suite
 python -m pytest tests/tools/ -q            # Specific area
 ```
 
-- Tests auto-redirect `KEPRIX_HOME` to temp dirs — never touch real `~/.keprix/`
+- Tests auto-redirect `KEPRIX_HOME` to temp dirs; never touch real `~/.keprix/`
 - Run full suite before pushing any change
 - Use `-o 'addopts='` to clear any baked-in pytest flags
 
-**Windows contributors:** `scripts/run_tests.sh` currently looks for POSIX venvs (`.venv/bin/activate` / `venv/bin/activate`) and will error out on Windows where the layout is `venv/Scripts/activate` + `python.exe`. The Keprix-installed venv at `venv/Scripts/` also has no `pip` or `pytest` — it's stripped for end-user install size. Workaround: install pytest + pytest-xdist + pyyaml into a system Python 3.11 user site (`/c/Program Files/Python311/python -m pip install --user pytest pytest-xdist pyyaml`), then run tests directly:
+**Windows contributors:** `scripts/run_tests.sh` currently looks for POSIX venvs (`.venv/bin/activate` / `venv/bin/activate`) and will error out on Windows where the layout is `venv/Scripts/activate` + `python.exe`. The Keprix-installed venv at `venv/Scripts/` also has no `pip` or `pytest`; it's stripped for end-user install size. Workaround: install pytest + pytest-xdist + pyyaml into a system Python 3.11 user site (`/c/Program Files/Python311/python -m pip install --user pytest pytest-xdist pyyaml`), then run tests directly:
 
 ```bash
 export PYTHONPATH="$(pwd)"
@@ -1002,7 +1002,7 @@ Factual guidance about the host OS, user home, cwd, terminal backend, and shell 
 
 - **Local terminal backend** → emit host info (OS, `$HOME`, cwd) + Windows-specific notes (hostname ≠ username, `terminal` uses bash not PowerShell).
 - **Remote terminal backend** (anything in `_REMOTE_TERMINAL_BACKENDS`: `docker, singularity, modal, daytona, ssh, managed_modal`) → **suppress** host info entirely and describe only the backend. A live `uname`/`whoami`/`pwd` probe runs inside the backend via `tools.environments.get_environment(...).execute(...)`, cached per process in `_BACKEND_PROBE_CACHE`, with a static fallback if the probe times out.
-- **Key fact for prompt authoring:** when `TERMINAL_ENV != "local"`, *every* file tool (`read_file`, `write_file`, `patch`, `search_files`) runs inside the backend container, not on the host. The system prompt must never describe the host in that case — the agent can't touch it.
+- **Key fact for prompt authoring:** when `TERMINAL_ENV != "local"`, *every* file tool (`read_file`, `write_file`, `patch`, `search_files`) runs inside the backend container, not on the host. The system prompt must never describe the host in that case; the agent can't touch it.
 
 Full design notes, the exact emitted strings, and testing pitfalls:
 `references/prompt-builder-environment-hints.md`.
@@ -1021,8 +1021,8 @@ Types: `fix:`, `feat:`, `refactor:`, `docs:`, `chore:`
 
 ### Key Rules
 
-- **Never break prompt caching** — don't change context, tools, or system prompt mid-conversation
-- **Message role alternation** — never two assistant or two user messages in a row
+- **Never break prompt caching**; don't change context, tools, or system prompt mid-conversation
+- **Message role alternation**; never two assistant or two user messages in a row
 - Use `get_keprix_home()` from `keprix_constants` for all paths (profile-safe)
 - Config values go in `config.yaml`, secrets go in `.env`
 - New tools need a `check_fn` so they only appear when requirements are met

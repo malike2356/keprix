@@ -51,7 +51,7 @@ export function isNewSessionWindow(): boolean {
 let watchWindowCache: boolean | null = null
 
 // A "watch" window spectates a session that is being driven elsewhere (a
-// running subagent). It resumes lazily — the gateway registers history + a
+// running subagent). It resumes lazily; the gateway registers history + a
 // transport for the live mirror without building an agent, so opening it is
 // cheap even while the backend is busy running the delegation.
 export function isWatchWindow(): boolean {

@@ -52,14 +52,14 @@ Full specifications: `references/styles/<style>.md`
 
 | | vector-illustration | notion | warm | minimal | blueprint | watercolor | elegant | editorial | scientific | screen-print |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| infographic | ✓✓ | ✓✓ | ✓ | ✓✓ | ✓✓ | ✓ | ✓✓ | ✓✓ | ✓✓ | ✓ |
-| scene | ✓ | ✓ | ✓✓ | ✓ | ✗ | ✓✓ | ✓ | ✓ | ✗ | ✓✓ |
-| flowchart | ✓✓ | ✓✓ | ✓ | ✓ | ✓✓ | ✗ | ✓ | ✓✓ | ✓ | ✗ |
-| comparison | ✓✓ | ✓✓ | ✓ | ✓✓ | ✓ | ✓ | ✓✓ | ✓✓ | ✓ | ✓ |
-| framework | ✓✓ | ✓✓ | ✓ | ✓✓ | ✓✓ | ✗ | ✓✓ | ✓ | ✓✓ | ✓ |
-| timeline | ✓ | ✓✓ | ✓ | ✓ | ✓ | ✓✓ | ✓✓ | ✓✓ | ✓ | ✓ |
+| infographic |  |  |  |  |  |  |  |  |  |  |
+| scene |  |  |  |  |  |  |  |  |  |  |
+| flowchart |  |  |  |  |  |  |  |  |  |  |
+| comparison |  |  |  |  |  |  |  |  |  |  |
+| framework |  |  |  |  |  |  |  |  |  |  |
+| timeline |  |  |  |  |  |  |  |  |  |  |
 
-✓✓ = highly recommended | ✓ = compatible | ✗ = not recommended
+ = highly recommended |  = compatible |  = not recommended
 
 ## Auto Selection by Type
 

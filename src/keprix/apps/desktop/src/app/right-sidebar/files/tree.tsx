@@ -170,7 +170,7 @@ function ProjectTreeRow({
         }
 
         if (event.shiftKey) {
-          ;(isFolder ? onAttachFolder : onAttachFile)(node.data.id)
+;(isFolder ? onAttachFolder : onAttachFile)(node.data.id)
 
           return
         }
@@ -210,7 +210,7 @@ function ProjectTreeRow({
             : Number.parseFloat(String(style.paddingLeft ?? 0)) || 0) + TREE_ROW_INSET
       }}
     >
-      {/* No chevron column — the folder icon (open/closed) already carries the
+      {/* No chevron column; the folder icon (open/closed) already carries the
           expand state, so the extra glyph was pure noise. */}
       <span aria-hidden className="flex w-3.5 items-center justify-center text-(--ui-text-tertiary)">
         {isPlaceholder && !isErrorPlaceholder ? (

@@ -20,10 +20,10 @@ The lm-evaluation-harness supports evaluating API-based models through a unified
 
 | Provider | Model Type | Request Types | Logprobs |
 |----------|------------|---------------|----------|
-| OpenAI (completions) | `openai-completions` | All | ✅ Yes |
-| OpenAI (chat) | `openai-chat-completions` | `generate_until` only | ❌ No |
-| Anthropic (completions) | `anthropic-completions` | All | ❌ No |
-| Anthropic (chat) | `anthropic-chat` | `generate_until` only | ❌ No |
+| OpenAI (completions) | `openai-completions` | All | Done:  Yes |
+| OpenAI (chat) | `openai-chat-completions` | `generate_until` only | Failed:  No |
+| Anthropic (completions) | `anthropic-completions` | All | Failed:  No |
+| Anthropic (chat) | `anthropic-chat` | `generate_until` only | Failed:  No |
 | Local (OpenAI-compatible) | `local-completions` | Depends on server | Varies |
 
 **Note**: Models without logprobs can only be evaluated on generation tasks, not perplexity or loglikelihood tasks.
@@ -48,9 +48,9 @@ lm_eval --model openai-completions \
 ```
 
 **Supports**:
-- `generate_until`: ✅
-- `loglikelihood`: ✅
-- `loglikelihood_rolling`: ✅
+- `generate_until`: Done: 
+- `loglikelihood`: Done: 
+- `loglikelihood_rolling`: Done: 
 
 ### Chat Models
 
@@ -65,9 +65,9 @@ lm_eval --model openai-chat-completions \
 ```
 
 **Supports**:
-- `generate_until`: ✅
-- `loglikelihood`: ❌ (no logprobs)
-- `loglikelihood_rolling`: ❌
+- `generate_until`: Done: 
+- `loglikelihood`: Failed:  (no logprobs)
+- `loglikelihood_rolling`: Failed: 
 
 **Important**: Chat models don't provide logprobs, so they can only be used with generation tasks (MMLU, GSM8K, HumanEval), not perplexity tasks.
 

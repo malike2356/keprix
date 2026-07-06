@@ -1,6 +1,6 @@
 # ByteRover Memory Provider
 
-Persistent memory via the `brv` CLI — hierarchical knowledge tree with tiered retrieval (fuzzy text → LLM-driven search).
+Persistent memory via the `brv` CLI; hierarchical knowledge tree with tiered retrieval (fuzzy text → LLM-driven search).
 
 ## Requirements
 

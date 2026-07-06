@@ -1,4 +1,4 @@
-// CPU-profile during a real LLM stream — confirms or refutes whether the
+// CPU-profile during a real LLM stream; confirms or refutes whether the
 // synthetic stream's hotspots (Streamdown markdown re-parse, FadeText)
 // match real-world content.
 //
@@ -74,7 +74,7 @@ async function main() {
     cdp.close()
     process.exit(2)
   }
-  console.log('REAL stream started after', streamT - submitT0, 'ms — starting CPU profile NOW')
+  console.log('REAL stream started after', streamT - submitT0, 'ms; starting CPU profile NOW')
 
   // Start CPU profile NOW, only during stream phase.
   await cdp.send('Profiler.enable')

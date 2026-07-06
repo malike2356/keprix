@@ -1,0 +1,23 @@
+name: browser_basics
+version: "1"
+category: tool_execution
+min_pass_rate: 0.9
+max_cost_usd: 0.08
+max_runtime_ms: 45000
+tasks:
+  - id: navigate_page
+    input: "Open docs homepage and extract title"
+    expect_contains: "title"
+    mock_output: "Page title: Keprix Documentation"
+    mock_tool_calls:
+      - {name: "browser.navigate", success: true}
+      - {name: "browser.extract", success: true}
+    max_runtime_ms: 15000
+  - id: form_fill
+    input: "Fill search form and submit"
+    expect_contains: "search"
+    mock_output: "Submitted search query successfully."
+    mock_tool_calls:
+      - {name: "browser.fill", success: true}
+      - {name: "browser.click", success: true}
+    max_runtime_ms: 15000

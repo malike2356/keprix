@@ -1,0 +1,76 @@
+name: Bug Report
+description: Report a bug or incorrect behavior.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please search existing issues and include a minimal reproduction.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: What went wrong?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps another developer can follow.
+      placeholder: |
+        1. Start keprix API
+        2. Call endpoint ...
+        3. See error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: version
+    attributes:
+      label: Keprix version
+      description: Output of `keprix --version` or git SHA if running from source.
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: OS and Docker version
+      description: e.g. Ubuntu 24.04, Docker 27.x, or bare metal without Docker.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Optional. Paste API logs or traceback.
+      render: shell
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I have searched existing issues
+          required: true
+        - label: I have read the troubleshooting guide in docs/
+          required: true

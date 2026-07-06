@@ -102,7 +102,7 @@ export function useGatewayBoot({
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null
     let reconnectAttempt = 0
     // Surface "sign in again" once per disconnect episode, not on every backoff
-    // tick — a stale OAuth ticket fails every attempt and would otherwise stack
+    // tick; a stale OAuth ticket fails every attempt and would otherwise stack
     // identical error toasts (and their haptics). Reset on the next clean open.
     let reauthNotified = false
 
@@ -128,7 +128,7 @@ export function useGatewayBoot({
       try {
         // Drop a stale REMOTE backend cache before re-dialing. After sleep/wake a
         // remote backend can become unreachable, but it has no child process
-        // whose 'exit' would clear the main process's cached descriptor — without
+        // whose 'exit' would clear the main process's cached descriptor; without
         // this the renderer re-dials the same dead endpoint forever and stays on
         // "Starting Hermes…". The probe is a no-op for a healthy or local backend.
         await desktop.revalidateConnection?.().catch(() => undefined)
@@ -142,7 +142,7 @@ export function useGatewayBoot({
         publish(conn)
         // Re-mint the WS URL before reconnecting. OAuth tickets are single-use
         // with a short TTL, so the ticket baked into the cached conn.wsUrl is
-        // dead on every reconnect after the initial boot — reusing it surfaces
+        // dead on every reconnect after the initial boot; reusing it surfaces
         // as an opaque "Could not connect to Hermes gateway". resolveGatewayWsUrl
         // mints a fresh ticket (or throws a reauth error in OAuth mode rather
         // than connecting with a stale one). For local/token gateways the URL
@@ -223,7 +223,7 @@ export function useGatewayBoot({
     configureGatewayRegistry({ onEvent: event => callbacksRef.current.handleGatewayEvent(event) })
 
     const offState = gateway.onState(st => {
-      // Mirror to the composer only while the primary is the active profile —
+      // Mirror to the composer only while the primary is the active profile;
       // a background secondary reconnect mustn't flip the foreground state.
       reportPrimaryGatewayState(st)
 
@@ -235,7 +235,7 @@ export function useGatewayBoot({
         // A revalidate-driven reconnect can rebuild the backend in place when the
         // cached remote was found dead, which re-drives the boot-progress overlay.
         // Unlike the initial boot, nothing calls completeDesktopBoot() afterwards,
-        // so dismiss it here once we're open again — otherwise the overlay sticks
+        // so dismiss it here once we're open again; otherwise the overlay sticks
         // at ~94%. A no-op on a normal (non-rebuild) reconnect.
         if (bootCompleted) {
           completeDesktopBoot()

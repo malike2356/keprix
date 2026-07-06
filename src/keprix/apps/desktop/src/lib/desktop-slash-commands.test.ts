@@ -89,7 +89,7 @@ describe('desktop slash command curation', () => {
       ['/ship-it', 'Run release checklist']
     ])
     // skill_count is recomputed from the filtered output (only /ship-it is an
-    // extension command — /new is a built-in) so the /help footer matches what
+    // extension command; /new is a built-in) so the /help footer matches what
     // the user actually sees rather than echoing the unfiltered backend total.
     expect(filtered.skill_count).toBe(1)
   })

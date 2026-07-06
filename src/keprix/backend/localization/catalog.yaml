@@ -1,0 +1,280 @@
+- code: ak-GH
+  name: Akan/Twi
+  local_name: Twi
+  regions: [Ghana]
+  script: Latin
+  direction: ltr
+  text_detection: supported
+  translation: supported
+  speech_to_text: supported
+  text_to_speech: supported
+  fallback_languages: [en-GH, en]
+  human_review_default: false
+  minimum_confidence: 0.7
+  dialect_aliases: [tw-GH]
+
+- code: gaa-GH
+  name: Ga
+  local_name: Ga
+  regions: [Ghana]
+  script: Latin
+  direction: ltr
+  text_detection: supported
+  translation: supported
+  speech_to_text: supported
+  text_to_speech: partial
+  fallback_languages: [en-GH, ak-GH]
+  human_review_default: false
+  minimum_confidence: 0.68
+
+- code: ee-GH
+  name: Ewe
+  local_name: Eʋegbe
+  regions: [Ghana, Togo]
+  script: Latin
+  direction: ltr
+  text_detection: supported
+  translation: supported
+  speech_to_text: supported
+  text_to_speech: supported
+  fallback_languages: [en-GH, fr-TG]
+  human_review_default: false
+  minimum_confidence: 0.7
+
+- code: dag-GH
+  name: Dagbani
+  local_name: Dagbanli
+  regions: [Ghana]
+  script: Latin
+  direction: ltr
+  text_detection: partial
+  translation: supported
+  speech_to_text: partial
+  text_to_speech: partial
+  fallback_languages: [en-GH, ha-GH]
+  human_review_default: true
+  minimum_confidence: 0.6
+
+- code: nzi-GH
+  name: Nzema
+  local_name: Nzema
+  regions: [Ghana]
+  script: Latin
+  direction: ltr
+  text_detection: partial
+  translation: supported
+  speech_to_text: partial
+  text_to_speech: none
+  fallback_languages: [en-GH, ak-GH]
+  human_review_default: true
+  minimum_confidence: 0.55
+
+- code: ha-NG
+  name: Hausa
+  local_name: Hausa
+  regions: [Nigeria, Niger, Ghana]
+  script: Latin
+  direction: ltr
+  text_detection: supported
+  translation: supported
+  speech_to_text: supported
+  text_to_speech: supported
+  fallback_languages: [en-NG, en]
+  human_review_default: false
+  minimum_confidence: 0.72
+
+- code: yo-NG
+  name: Yoruba
+  local_name: Yorùbá
+  regions: [Nigeria]
+  script: Latin
+  direction: ltr
+  text_detection: supported
+  translation: supported
+  speech_to_text: supported
+  text_to_speech: partial
+  fallback_languages: [en-NG, en]
+  human_review_default: false
+  minimum_confidence: 0.7
+
+- code: ig-NG
+  name: Igbo
+  local_name: Igbo
+  regions: [Nigeria]
+  script: Latin
+  direction: ltr
+  text_detection: supported
+  translation: supported
+  speech_to_text: partial
+  text_to_speech: partial
+  fallback_languages: [en-NG, en]
+  human_review_default: false
+  minimum_confidence: 0.68
+
+- code: pcm-NG
+  name: Nigerian Pidgin
+  local_name: Naijá
+  regions: [Nigeria]
+  script: Latin
+  direction: ltr
+  text_detection: partial
+  translation: supported
+  speech_to_text: partial
+  text_to_speech: none
+  fallback_languages: [en-NG, en]
+  human_review_default: true
+  minimum_confidence: 0.6
+
+- code: wo-SN
+  name: Wolof
+  local_name: Wolof
+  regions: [Senegal, Gambia]
+  script: Latin
+  direction: ltr
+  text_detection: partial
+  translation: supported
+  speech_to_text: partial
+  text_to_speech: none
+  fallback_languages: [fr-SN, en]
+  human_review_default: true
+  minimum_confidence: 0.58
+
+- code: sw-KE
+  name: Swahili
+  local_name: Kiswahili
+  regions: [Kenya, Tanzania, Uganda, Rwanda, Democratic Republic of the Congo]
+  script: Latin
+  direction: ltr
+  text_detection: supported
+  translation: supported
+  speech_to_text: supported
+  text_to_speech: supported
+  fallback_languages: [en-KE, en]
+  human_review_default: false
+  minimum_confidence: 0.75
+
+- code: am-ET
+  name: Amharic
+  local_name: አማርኛ
+  regions: [Ethiopia]
+  script: Ethiopic
+  direction: ltr
+  text_detection: supported
+  translation: supported
+  speech_to_text: supported
+  text_to_speech: partial
+  fallback_languages: [en, om-ET]
+  human_review_default: false
+  minimum_confidence: 0.7
+
+- code: so-SO
+  name: Somali
+  local_name: Soomaali
+  regions: [Somalia, Kenya, Ethiopia]
+  script: Latin
+  direction: ltr
+  text_detection: supported
+  translation: supported
+  speech_to_text: partial
+  text_to_speech: partial
+  fallback_languages: [en-KE, sw-KE]
+  human_review_default: false
+  minimum_confidence: 0.65
+
+- code: zu-ZA
+  name: Zulu
+  local_name: isiZulu
+  regions: [South Africa]
+  script: Latin
+  direction: ltr
+  text_detection: supported
+  translation: supported
+  speech_to_text: supported
+  text_to_speech: supported
+  fallback_languages: [en-ZA, af-ZA]
+  human_review_default: false
+  minimum_confidence: 0.72
+
+- code: xh-ZA
+  name: Xhosa
+  local_name: isiXhosa
+  regions: [South Africa]
+  script: Latin
+  direction: ltr
+  text_detection: supported
+  translation: supported
+  speech_to_text: partial
+  text_to_speech: partial
+  fallback_languages: [en-ZA, zu-ZA]
+  human_review_default: false
+  minimum_confidence: 0.68
+
+- code: ln-CD
+  name: Lingala
+  local_name: Lingála
+  regions: [Democratic Republic of the Congo, Republic of the Congo]
+  script: Latin
+  direction: ltr
+  text_detection: partial
+  translation: supported
+  speech_to_text: partial
+  text_to_speech: none
+  fallback_languages: [fr-CD, sw-CD]
+  human_review_default: true
+  minimum_confidence: 0.55
+
+- code: ar-EG
+  name: Egyptian Arabic
+  local_name: مصرى
+  regions: [Egypt]
+  script: Arabic
+  direction: rtl
+  text_detection: supported
+  translation: supported
+  speech_to_text: supported
+  text_to_speech: supported
+  fallback_languages: [ar, en]
+  human_review_default: false
+  minimum_confidence: 0.75
+
+- code: ary-MA
+  name: Moroccan Darija
+  local_name: Darija
+  regions: [Morocco]
+  script: Arabic
+  direction: rtl
+  text_detection: partial
+  translation: supported
+  speech_to_text: partial
+  text_to_speech: partial
+  fallback_languages: [ar-MA, fr-MA]
+  human_review_default: true
+  minimum_confidence: 0.6
+
+- code: kab-DZ
+  name: Kabyle
+  local_name: Taqbaylit
+  regions: [Algeria]
+  script: Latin
+  direction: ltr
+  text_detection: partial
+  translation: partial
+  speech_to_text: partial
+  text_to_speech: none
+  fallback_languages: [ar-DZ, fr-DZ]
+  human_review_default: true
+  minimum_confidence: 0.5
+
+- code: en-GH
+  name: English (Ghana)
+  local_name: English
+  regions: [Ghana]
+  script: Latin
+  direction: ltr
+  text_detection: supported
+  translation: supported
+  speech_to_text: supported
+  text_to_speech: supported
+  fallback_languages: [en]
+  human_review_default: false
+  minimum_confidence: 0.95

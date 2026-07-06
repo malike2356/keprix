@@ -55,6 +55,8 @@ _KEPRIX_CORE_TOOLS = [
     "session_search",
     # Clarifying questions
     "clarify",
+    # Autonomous MCP spawn (gated on KEPRIX_AUTO_MCP_SPAWN via check_fn)
+    "keprix_spawn_mcp",
     # Code execution + delegation
     "execute_code", "delegate_task",
     # Cronjob management

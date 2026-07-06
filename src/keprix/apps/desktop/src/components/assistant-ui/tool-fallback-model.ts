@@ -43,7 +43,7 @@ export interface ToolView {
   searchHits?: SearchResultRow[]
   /** When the backend reports stderr as a separate stream (terminal /
    *  execute_code), the renderer shows it as its own labeled, neutrally
-   *  tinted block under stdout — distinct from an error tone. */
+   *  tinted block under stdout; distinct from an error tone. */
   stderr?: string
   /** When set, the renderer uses stdout+stderr as separate sections and
    *  ignores the merged `detail`. */
@@ -749,7 +749,7 @@ function toolErrorText(part: ToolPart, result: Record<string, unknown>): string 
 
   // A non-zero exit code alone is a weak failure signal: grep returns 1 on
   // no-match, diff returns 1 on differences, piped commands surface the last
-  // stage's code, etc. — all routinely produce useful output and aren't
+  // stage's code, etc.; all routinely produce useful output and aren't
   // failures. Only treat it as an error when the command produced no real
   // output to show; otherwise render the output normally (not red).
   const exit = numberValue(result.exit_code)
@@ -815,7 +815,7 @@ function toolImageUrl(args: Record<string, unknown>, result: Record<string, unkn
 
   // Only inline-render images the renderer can actually fetch: data URLs or
   // remote http(s). A bare filesystem path (e.g. vision_analyze's input image)
-  // resolves against the dev-server origin and 404s — fall back to the tool's
+  // resolves against the dev-server origin and 404s; fall back to the tool's
   // codicon instead of a broken <img>.
   const isDataImage = candidate.toLowerCase().startsWith('data:image/')
   const isRemoteImage = /^https?:\/\//i.test(candidate) && /\.(png|jpe?g|gif|webp|bmp|svg)(\?|#|$)/i.test(candidate)
@@ -863,7 +863,7 @@ export function inlineDiffFromResult(result: unknown): string {
   return typeof value === 'string' ? stripInlineDiffChrome(value) : ''
 }
 
-// Falls back to a string only when there's something concrete to render —
+// Falls back to a string only when there's something concrete to render;
 // counts of opaque items/fields are noise, not signal.
 function minimalValueSummary(value: unknown): string {
   if (value == null) {
@@ -1341,7 +1341,7 @@ export function buildToolView(part: ToolPart, inlineDiff: string): ToolView {
   const stdout = rendersAnsi ? firstStringField(resultRecord, ['stdout']) : ''
   const stderrRaw = rendersAnsi ? firstStringField(resultRecord, ['stderr']) : ''
   // Only attach stderr when the backend actually returned it as its own
-  // field — otherwise the merged `detail` already covers it and double-
+  // field; otherwise the merged `detail` already covers it and double-
   // rendering would duplicate output.
   const hasSplitStreams = rendersAnsi && (Boolean(stdout) || Boolean(stderrRaw))
 

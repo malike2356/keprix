@@ -259,7 +259,7 @@ function powershellUnderRoot(root) {
 // %SystemRoot%\System32\WindowsPowerShell\v1.0. On machines whose PATH was
 // trimmed, truncated, or stored as a non-expanding REG_SZ (so %SystemRoot%
 // never expands), that lookup fails and the spawn dies with ENOENT before
-// install.ps1 ever runs — the installer stalls at "0 of 0 steps". Resolve by
+// install.ps1 ever runs; the installer stalls at "0 of 0 steps". Resolve by
 // absolute path first, then fall back to PATH (powershell 5.1, then pwsh 7),
 // then a bare name as a last resort.
 function resolveWindowsPowerShell() {
@@ -612,7 +612,7 @@ async function runBootstrap(opts) {
     writeMarker // callback to write the bootstrap-complete marker; main.cjs provides
   } = opts
 
-  // Bail before spawning anything if the user already cancelled — otherwise an
+  // Bail before spawning anything if the user already cancelled; otherwise an
   // already-aborted signal would still fetch the manifest (a spawn) before the
   // in-loop abort check fires.
   if (abortSignal && abortSignal.aborted) {

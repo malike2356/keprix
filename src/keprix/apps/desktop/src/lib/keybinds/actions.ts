@@ -3,11 +3,11 @@
 // Each entry is pure metadata: an id, a category, and the default combo(s).
 // Handlers are wired separately in `use-keybinds.ts` (they need React context
 // like navigate / theme); labels come from i18n (`t.keybinds.actions[id]`). To
-// add a hotkey, add a row here and a handler there — nothing else.
+// add a hotkey, add a row here and a handler there; nothing else.
 
 export type KeybindCategory = 'composer' | 'profiles' | 'session' | 'navigation' | 'view'
 
-// The self-referential opener — bound + dispatched like any action, but shown in
+// The self-referential opener; bound + dispatched like any action, but shown in
 // the panel subtitle (not as its own row).
 export const KEYBIND_PANEL_ACTION = 'keybinds.openPanel'
 
@@ -24,7 +24,7 @@ export interface KeybindActionMeta {
 
 // Positional switch slots for *named* profiles: ⌘1…⌘9 for profiles 1-9, then
 // ⌘⌥1…⌘⌥9 for 10-18. The default profile gets the two-key mnemonic ⌘D (see
-// `profile.default`) — ⌘` is macOS-reserved (window cycling) and ⌘0 is reset-zoom.
+// `profile.default`); ⌘` is macOS-reserved (window cycling) and ⌘0 is reset-zoom.
 export const PROFILE_SLOT_COUNT = 18
 
 function comboForSlot(slot: number): string {
@@ -42,7 +42,7 @@ const PROFILE_SWITCH_ACTIONS: KeybindActionMeta[] = Array.from({ length: PROFILE
 // window-cycler, which is fine for a single-window app.
 const TERMINAL_TOGGLE_DEFAULTS = ['mod+`', 'mod+shift+`']
 
-// Positional jumps — ^1…^9, mirroring profiles' ⌘1…⌘9.
+// Positional jumps; ^1…^9, mirroring profiles' ⌘1…⌘9.
 export const SESSION_SLOT_COUNT = 9
 
 const SESSION_SLOT_ACTIONS: KeybindActionMeta[] = Array.from({ length: SESSION_SLOT_COUNT }, (_, i) => ({
@@ -67,7 +67,7 @@ export const KEYBIND_ACTIONS: readonly KeybindActionMeta[] = [
   // ── Session ──────────────────────────────────────────────────────────────
   { id: 'session.new', category: 'session', defaults: ['mod+n', 'shift+n'] },
   { id: 'session.newWindow', category: 'session', defaults: ['mod+shift+n'] },
-  // ⌃Tab / ⌃⇧Tab — the universal tab-cycle chord. Literally Control, not Cmd
+  // ⌃Tab / ⌃⇧Tab; the universal tab-cycle chord. Literally Control, not Cmd
   // (macOS reserves Cmd+Tab for app switching); see `ctrl` in combo.ts.
   { id: 'session.next', category: 'session', defaults: ['ctrl+tab'] },
   { id: 'session.prev', category: 'session', defaults: ['ctrl+shift+tab'] },
@@ -91,7 +91,7 @@ export const KEYBIND_ACTIONS: readonly KeybindActionMeta[] = [
   { id: 'view.toggleRightSidebar', category: 'view', defaults: ['mod+j'] },
   { id: 'view.showFiles', category: 'view', defaults: [] },
   { id: 'view.showTerminal', category: 'view', defaults: TERMINAL_TOGGLE_DEFAULTS },
-  // ⌘\ — the backslash reads like a mirror line flipping the layout.
+  // ⌘\; the backslash reads like a mirror line flipping the layout.
   { id: 'view.flipPanes', category: 'view', defaults: ['mod+\\'] },
   { id: 'appearance.toggleMode', category: 'view', defaults: ['shift+x'] },
   { id: 'keybinds.openPanel', category: 'view', defaults: ['mod+/'] }

@@ -230,6 +230,7 @@ TIPS = [
     "keprix mcp opens an interactive picker of Nous-approved MCPs you can install in one keystroke.",
     "keprix mcp catalog lists Nous-approved MCP servers shipped with the repo.",
     "keprix mcp install <name> installs a catalog entry, prompts for credentials, and lets you pick which of its tools to enable.",
+    "After adding Notion from /admin/mcp, click Connect or run `keprix mcp login notion`.",
     "MCP servers are configured in config.yaml — both stdio and HTTP transports supported.",
     "Per-server tool filtering: tools.include whitelists and tools.exclude blacklists specific tools.",
     "MCP servers auto-generate toolsets at runtime — keprix tools can toggle them per platform.",

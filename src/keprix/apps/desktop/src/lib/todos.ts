@@ -74,7 +74,7 @@ export function todosFromMessageContent(content: unknown): null | TodoItem[] {
   return latest
 }
 
-/** Current todo state for a whole transcript — the last list wins. */
+/** Current todo state for a whole transcript; the last list wins. */
 export function latestSessionTodos(messages: readonly { parts?: unknown }[]): null | TodoItem[] {
   for (let i = messages.length - 1; i >= 0; i -= 1) {
     const todos = todosFromMessageContent(messages[i]?.parts)

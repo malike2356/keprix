@@ -49,7 +49,7 @@ const normalizeMode = (value: string | null): ThemeMode =>
   value === 'light' || value === 'dark' || value === 'system' ? value : 'light'
 
 // ─── Per-profile appearance persistence ─────────────────────────────────────
-// Skin and mode are each stored per profile. "default" isn't a real profile —
+// Skin and mode are each stored per profile. "default" isn't a real profile;
 // it *is* the legacy global slot, so it reads/writes the global directly. Named
 // profiles get their own entry and fall back to that global until assigned, so
 // unassigned profiles and pre-per-profile installs stay on the global value.
@@ -67,7 +67,7 @@ const profilePref = <T extends string>(record: string, legacy: string, normalize
 export const skinPref = profilePref(PROFILE_SKINS_KEY, SKIN_KEY, normalizeSkin)
 export const modePref = profilePref(PROFILE_MODES_KEY, MODE_KEY, normalizeMode)
 
-// Last active profile — lets the boot paint pick its appearance before the
+// Last active profile; lets the boot paint pick its appearance before the
 // gateway reports which profile actually launched.
 const readBootProfileKey = () => normalizeProfileKey(storedString(LAST_PROFILE_KEY))
 const rememberActiveProfileKey = (profile: string) => persistString(LAST_PROFILE_KEY, profile)
@@ -227,7 +227,7 @@ function applyTheme(theme: DesktopTheme, mode: 'light' | 'dark') {
     foreground: c.foreground
   })
 
-  // Raw (non-JSON) keys read by the inline pre-paint script in index.html —
+  // Raw (non-JSON) keys read by the inline pre-paint script in index.html;
   // they let a brand-new window paint the themed background on its very first
   // frame, before this module has even loaded.
   try {

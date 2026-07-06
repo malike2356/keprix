@@ -65,7 +65,7 @@ describe('sudo prompt store', () => {
   it('clears only when the request id matches the in-flight prompt', () => {
     setSudoRequest({ requestId: 'abc', sessionId: 's1' })
 
-    // A stale clear for a different request must NOT drop the live prompt —
+    // A stale clear for a different request must NOT drop the live prompt;
     // otherwise a late response to a prior sudo ask would dismiss the current
     // one and leave the agent blocked.
     clearSudoRequest('s1', 'stale')

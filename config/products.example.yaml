@@ -1,0 +1,49 @@
+# Keprix products registry (example). Copy to config/products.yaml and enable products.
+#
+# No product-specific logic belongs in Keprix core. Enable products here or via:
+#   KEPRIX_ENABLED_PRODUCTS=abbis_borehole,compass_compliance
+#   KEPRIX_PRODUCTS_CONFIG=/path/to/products.yaml
+#
+# Per-product env flags (e.g. COMPASS_ENABLED) also enable a product when set true.
+
+version: 1
+
+defaults:
+  regulated_domains:
+    - healthcare
+    - legal
+    - finance
+    - safety
+    - construction
+
+products:
+  abbis_borehole:
+    display_name: "AbbiS Borehole Advisor"
+    enabled: false
+    domain_packs:
+      - borehole_drilling
+    domain_intents:
+      - config/domain_intents/borehole_drilling.yaml
+    glossaries:
+      - config/domain_glossaries/borehole_drilling_ghana_v1.yaml
+    playbook_localization:
+      - config/playbook_localization/ghana_borehole_advisor.yaml
+    voice_categories:
+      - config/voice_categories/borehole_drilling.yaml
+    regulated_domains:
+      - borehole_drilling
+
+  compass_compliance:
+    display_name: "COMPASS Clinical Safety"
+    enabled: false
+    env_flag: COMPASS_ENABLED
+    audit_domain_pack: compass-compliance
+    domain_packs:
+      - compass-compliance
+    feature_flags:
+      compass_compliance: true
+
+  scout:
+    display_name: "Scout"
+    enabled: false
+    extension_name: scout

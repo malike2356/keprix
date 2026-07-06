@@ -1,0 +1,24 @@
+name: invoice-review
+version: 1.0.0
+display_name: Invoice Review
+description: Extracts line items and flags anomalies from invoice text.
+category: finance
+icon: receipt
+runtime: agent
+required_env:
+  - KEPRIX_DEFAULT_PROVIDER
+tools:
+  - tools/extract.yaml
+inputs:
+  - id: invoice_text
+    label: Invoice text
+    type: textarea
+    required: true
+    placeholder: Paste invoice text or line items
+outputs:
+  - id: markdown
+    type: markdown
+eval_suite: evals/basic.yaml
+billing:
+  tier: pro
+  meter: runs_per_month

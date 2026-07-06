@@ -242,7 +242,7 @@ class TypedAgent(Generic[DepsT]):
         tool_kwargs: dict[str, Any] | None = None,
     ) -> AgentRun:
         """Synchronous wrapper around run()."""
-        return asyncio.get_event_loop().run_until_complete(
+        return asyncio.run(
             self.run(
                 query,
                 deps=deps,

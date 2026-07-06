@@ -12,7 +12,7 @@ test('cleanStaleAppOutDir removes a populated unpacked directory', () => {
     const appOutDir = path.join(tempRoot, 'linux-unpacked')
     fs.mkdirSync(appOutDir, { recursive: true })
     // Reproduce the corrupted partial state: license + payload present,
-    // electron binary missing — exactly what trips the ENOENT rename.
+    // electron binary missing; exactly what trips the ENOENT rename.
     fs.writeFileSync(path.join(appOutDir, 'LICENSE.electron.txt'), 'x', 'utf8')
     fs.writeFileSync(path.join(appOutDir, 'resources.pak'), 'x', 'utf8')
     fs.mkdirSync(path.join(appOutDir, 'resources'), { recursive: true })

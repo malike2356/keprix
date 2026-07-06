@@ -296,7 +296,7 @@ spec:
 **NGINX configuration**:
 ```nginx
 upstream tensorrt_llm {
-    least_conn;  # Route to least busy server
+    least_conn; # Route to least busy server
     server trtllm-1:8000 max_fails=3 fail_timeout=30s;
     server trtllm-2:8000 max_fails=3 fail_timeout=30s;
     server trtllm-3:8000 max_fails=3 fail_timeout=30s;
@@ -306,7 +306,7 @@ server {
     listen 80;
     location / {
         proxy_pass http://tensorrt_llm;
-        proxy_read_timeout 300s;  # Long timeout for slow generations
+        proxy_read_timeout 300s; # Long timeout for slow generations
         proxy_connect_timeout 10s;
     }
 }
@@ -452,7 +452,7 @@ curl http://localhost:9090/metrics | grep active_requests
 
 **NGINX config**:
 ```nginx
-proxy_read_timeout 600s;  # 10 minutes for very long generations
+proxy_read_timeout 600s; # 10 minutes for very long generations
 proxy_send_timeout 600s;
 ```
 

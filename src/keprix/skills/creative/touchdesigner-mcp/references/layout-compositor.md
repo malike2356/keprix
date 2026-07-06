@@ -1,6 +1,6 @@
 # Layout Compositor Reference
 
-Patterns for building modular multi-panel grids — useful for HUD interfaces, data dashboards, and multi-source visual composites.
+Patterns for building modular multi-panel grids; useful for HUD interfaces, data dashboards, and multi-source visual composites.
 
 ## Layout Approaches
 
@@ -14,7 +14,7 @@ Patterns for building modular multi-panel grids — useful for HUD interfaces, d
 
 ## layoutTOP
 
-Built-in grid compositor — fastest path for uniform tile grids.
+Built-in grid compositor; fastest path for uniform tile grids.
 
 ```python
 layout = root.create(layoutTOP, 'layout1')
@@ -64,9 +64,9 @@ over1.par.topy2 = 512
 
 ```glsl
 out vec4 fragColor;
-uniform vec2 uGridDivisions;   // e.g. vec2(3, 2) for 3 cols, 2 rows
-uniform float uLineWidth;      // pixels
-uniform vec4 uLineColor;       // e.g. vec4(0.0, 1.0, 0.8, 0.6) for cyan
+uniform vec2 uGridDivisions; // e.g. vec2(3, 2) for 3 cols, 2 rows
+uniform float uLineWidth; // pixels
+uniform vec4 uLineColor; // e.g. vec4(0.0, 1.0, 0.8, 0.6) for cyan
 
 void main() {
     vec2 res = uTDOutputInfo.res.zw;
@@ -103,12 +103,12 @@ Each visual element lives in its own `baseCOMP` as a reusable `.tox`:
 ### Standard Interface
 ```
 inputs:
-  - in_audio   (CHOP)  — audio envelope / beat data
-  - in_data    (CHOP)  — optional data stream
-  - in_control (CHOP)  — intensity, color, speed params
+  - in_audio   (CHOP); audio envelope / beat data
+  - in_data    (CHOP); optional data stream
+  - in_control (CHOP); intensity, color, speed params
 
 outputs:
-  - out_top    (TOP)   — rendered element
+  - out_top    (TOP); rendered element
 ```
 
 ### Network Structure

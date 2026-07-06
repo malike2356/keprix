@@ -255,7 +255,7 @@ export interface AutoDrainInput {
  * Edge-independent on purpose: the queue must advance whenever the session is
  * idle and has pending entries, NOT only on an observed busy true → false edge.
  * A backend bounce / websocket reconnect remounts the composer and resets the
- * busy ref to the current value, swallowing the settle edge — an edge-gated
+ * busy ref to the current value, swallowing the settle edge; an edge-gated
  * drain would then strand the entry forever. The caller's drain lock
  * (`drainingQueueRef`) serializes sends so being edge-free can't double-submit.
  */

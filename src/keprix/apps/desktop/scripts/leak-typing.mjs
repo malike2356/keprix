@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Leak-detection harness — measure detached DOM, listener count, and FiberNode
+// Leak-detection harness; measure detached DOM, listener count, and FiberNode
 // growth as a function of keystrokes typed.
 //
 // Workflow:
@@ -60,7 +60,7 @@ function connect(url) {
         pending.delete(m.id)
         m.error ? p.rej(new Error(m.error.message)) : p.res(m.result)
       } else if (m.method) {
-        ;(events.get(m.method) ?? []).forEach(h => h(m.params))
+;(events.get(m.method) ?? []).forEach(h => h(m.params))
       }
     })
   })

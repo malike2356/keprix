@@ -2,8 +2,8 @@
 
 Registry and ABC for every inference provider Keprix knows about.
 
-Each provider is declared once as a `ProviderProfile`. Every other layer —
-auth resolution, transport kwargs, model listing, runtime routing — reads from
+Each provider is declared once as a `ProviderProfile`. Every other layer;
+auth resolution, transport kwargs, model listing, runtime routing; reads from
 these profiles instead of maintaining its own parallel data.
 
 ---
@@ -33,7 +33,7 @@ layer reads from it:
 
 - `keprix_cli/auth.py` extends `PROVIDER_REGISTRY` with every api-key
   profile it sees (skipping `copilot`, `kimi-coding`, `kimi-coding-cn`,
-  `zai`, `openrouter`, `custom` — those need bespoke token resolution).
+  `zai`, `openrouter`, `custom`; those need bespoke token resolution).
 - `keprix_cli/models.py` extends `CANONICAL_PROVIDERS` and calls
   `profile.fetch_models()` inside `provider_model_ids()`.
 - `keprix_cli/doctor.py` adds a `/models` health check for each
@@ -56,7 +56,7 @@ layer reads from it:
 
 ## Adding a provider
 
-See `plugins/model-providers/README.md` — drop a new directory there (or
+See `plugins/model-providers/README.md`; drop a new directory there (or
 under `$KEPRIX_HOME/plugins/model-providers/` for a private plugin).
 
 ---
@@ -65,11 +65,11 @@ under `$KEPRIX_HOME/plugins/model-providers/` for a private plugin).
 
 | Hook | Purpose |
 |------|---------|
-| `get_hostname()` | URL-based detection — default derives from `base_url`. |
+| `get_hostname()` | URL-based detection; default derives from `base_url`. |
 | `prepare_messages(msgs)` | Provider-specific message preprocessing (Qwen normalises to list-of-parts, injects `cache_control`). |
 | `build_extra_body(**ctx)` | Provider-specific `extra_body` (OpenRouter provider prefs, Gemini `thinking_config`). |
-| `build_api_kwargs_extras(**ctx)` | `(extra_body_additions, top_level_kwargs)` — Kimi puts reasoning_effort top-level, Qwen splits `enable_thinking`/`thinking_budget`. |
-| `fetch_models(*, api_key)` | Live catalog fetch — default hits `{models_url or base_url}/models` with Bearer auth. Override for no-REST providers (Bedrock), OAuth catalogs (Anthropic), or public catalogs (OpenRouter). |
+| `build_api_kwargs_extras(**ctx)` | `(extra_body_additions, top_level_kwargs)`; Kimi puts reasoning_effort top-level, Qwen splits `enable_thinking`/`thinking_budget`. |
+| `fetch_models(*, api_key)` | Live catalog fetch; default hits `{models_url or base_url}/models` with Bearer auth. Override for no-REST providers (Bedrock), OAuth catalogs (Anthropic), or public catalogs (OpenRouter). |
 
 ---
 

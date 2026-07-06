@@ -512,13 +512,13 @@ wandb.log({
 ### 3. Use Descriptive Names
 
 ```python
-# ✅ Good: Descriptive run names
+# Done:  Good: Descriptive run names
 wandb.init(
     project="nlp-classification",
     name="bert-base-lr0.001-bs32-epoch10"
 )
 
-# ❌ Bad: Generic names
+# Failed:  Bad: Generic names
 wandb.init(project="nlp", name="run1")
 ```
 

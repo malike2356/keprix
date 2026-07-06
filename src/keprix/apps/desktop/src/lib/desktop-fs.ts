@@ -82,7 +82,7 @@ export async function desktopGitRoot(path: string): Promise<string | null> {
 
 // Worktree detection runs against the LOCAL filesystem (the electron main
 // process). For a remote backend the session cwds live on another machine, so
-// we can't resolve them here — callers fall back to the path-name heuristic.
+// we can't resolve them here; callers fall back to the path-name heuristic.
 export async function desktopWorktrees(cwds: string[]): Promise<Record<string, HermesWorktreeInfo | null>> {
   if (isDesktopFsRemoteMode()) {
     return {}

@@ -1,0 +1,32 @@
+name: Issue needs reproduction
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  issues: write
+
+jobs:
+  needs-repro:
+    if: contains(github.event.issue.labels.*.name, 'bug')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.issue.body || "";
+            const hasSteps = /steps to reproduce/i.test(body) && body.trim().length > 120;
+            if (hasSteps) {
+              return;
+            }
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: [
+                "Thanks for the report.",
+                "Could you add a minimal reproduction case?",
+                "See the bug report template for the fields we need (steps, expected vs actual, version, environment)."
+              ].join(" ")
+            });

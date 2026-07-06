@@ -1,0 +1,4 @@
+name: extract
+description: Parse invoice line items and totals from pasted text
+risk: low
+approval_required: false

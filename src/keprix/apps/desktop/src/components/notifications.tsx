@@ -69,7 +69,7 @@ export function NotificationStack() {
 
   // Portaled to <body> with a z above the Radix dialog layer (overlay z-[120],
   // content z-[130]). Without the portal the stack lives inside the React root
-  // subtree, which any body-level dialog/overlay portal paints over — so a
+  // subtree, which any body-level dialog/overlay portal paints over; so a
   // success toast fired while a dialog is open (or over an OverlayView page)
   // was invisible. The titlebar-height var only exists inside the app shell
   // scope, so fall back to its constant (34px) when mounted on <body>.

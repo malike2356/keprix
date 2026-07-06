@@ -52,7 +52,7 @@ optional_env:
     prompt: "Allowed room IDs (comma-separated)"
     password: false
   - name: LINE_ALLOW_ALL_USERS
-    description: "Allow any LINE user to talk to the bot (dev only — disables allowlist)"
+    description: "Allow any LINE user to talk to the bot (dev only; disables allowlist)"
     prompt: "Allow all users? (true/false)"
     password: false
   - name: LINE_HOME_CHANNEL

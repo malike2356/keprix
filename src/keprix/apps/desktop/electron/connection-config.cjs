@@ -6,7 +6,7 @@
  * auth-mode classification, and the auth-mode coercion rules.
  *
  * Kept standalone (no `require('electron')`) so it can be unit-tested with
- * `node --test` — same pattern as backend-probes.cjs / bootstrap-platform.cjs.
+ * `node --test`; same pattern as backend-probes.cjs / bootstrap-platform.cjs.
  * main.cjs requires these and wires them into the electron-coupled IPC layer.
  *
  * Background on the two auth models a remote gateway can use:
@@ -28,12 +28,12 @@
 //     Max-Age tracks the access-token TTL, so the cookie jar drops it the
 //     instant the AT expires.
 //   - hermes_session_rt: the OAuth refresh token. Long-lived (24h rotating,
-//     reuse-detected — Portal NAS #293 / hermes #37247). When the AT cookie
+//     reuse-detected; Portal NAS #293 / hermes #37247). When the AT cookie
 //     has lapsed but the RT cookie is still present, the gateway middleware
 //     transparently rotates a fresh AT on the next authenticated request
 //     (POST /api/auth/ws-ticket), so the session is still LIVE even with no
 //     AT cookie. A liveness check that looked only at the AT cookie would
-//     force a needless full re-login every ~15 min — hence cookiesHaveLiveSession.
+//     force a needless full re-login every ~15 min; hence cookiesHaveLiveSession.
 const AT_COOKIE_VARIANTS = ['__Host-hermes_session_at', '__Secure-hermes_session_at', 'hermes_session_at']
 const RT_COOKIE_VARIANTS = ['__Host-hermes_session_rt', '__Secure-hermes_session_rt', 'hermes_session_rt']
 
@@ -95,7 +95,7 @@ function buildGatewayWsUrlWithTicket(baseUrl, ticket) {
  * The oauth-mint-failure throw is the important case: the real boot path
  * (resolveRemoteBackend in main.cjs) treats a mint failure as a hard
  * "session expired" auth error and refuses to connect. Swallowing it here
- * would re-introduce the exact false-positive this test exists to catch —
+ * would re-introduce the exact false-positive this test exists to catch;
  * HTTP /api/status passes, the test reports "reachable", then the renderer
  * can't authenticate /api/ws and boot dies with "Could not connect".
  *
@@ -237,7 +237,7 @@ function resolveAuthMode(inputAuthMode, existingAuthMode) {
  *
  * Note: this is AT-only. A session whose AT cookie has lapsed but whose RT
  * cookie is still alive is STILL connectable (the gateway refreshes the AT on
- * the next request) — use `cookiesHaveLiveSession` for a connectivity/display
+ * the next request); use `cookiesHaveLiveSession` for a connectivity/display
  * check. `cookiesHaveSession` remains exported for callers that specifically
  * need to know whether an unexpired access token is present right now.
  */
@@ -248,7 +248,7 @@ function cookiesHaveSession(cookies) {
 
 /**
  * True if the cookie jar holds a credential that can yield an authenticated
- * request — EITHER a live access-token cookie OR a refresh-token cookie. The
+ * request; EITHER a live access-token cookie OR a refresh-token cookie. The
  * RT cookie outlives the AT cookie (24h vs ~15min), and the gateway middleware
  * transparently rotates a fresh AT from the RT on the next authenticated
  * request. Gating connectivity on the AT alone would force a full IDP

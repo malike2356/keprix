@@ -1,4 +1,4 @@
-# GRPO (Group Relative Policy Optimization) — Deep Guide
+# GRPO (Group Relative Policy Optimization); Deep Guide
 
 Expert-level patterns, critical insights, and production-ready workflows for fine-tuning language models with custom reward functions using TRL's `GRPOTrainer`. This is the deep reference for the GRPO workflow summarized in the main skill.
 
@@ -21,7 +21,7 @@ Use GRPO when you need to:
 ### 1. GRPO algorithm fundamentals
 
 **Key mechanism:**
-- Generates **multiple completions** per prompt (group size: 4–16)
+- Generates **multiple completions** per prompt (group size: 4-16)
 - Compares completions within each group using reward functions
 - Updates policy to favor higher-rewarded responses relative to the group
 
@@ -42,18 +42,18 @@ For each prompt p:
 ### 2. Reward function design philosophy
 
 **Golden rules:**
-1. **Compose multiple reward functions** — each handles one aspect (format, correctness, style)
-2. **Scale rewards appropriately** — higher weight = stronger signal
-3. **Use incremental rewards** — partial credit for partial compliance
-4. **Test rewards independently** — debug each reward function in isolation
+1. **Compose multiple reward functions**; each handles one aspect (format, correctness, style)
+2. **Scale rewards appropriately**; higher weight = stronger signal
+3. **Use incremental rewards**; partial credit for partial compliance
+4. **Test rewards independently**; debug each reward function in isolation
 
 **Reward function types:**
 
 | Type | Use Case | Example Weight |
 |------|----------|----------------|
 | **Correctness** | Verifiable tasks (math, code) | 2.0 (highest) |
-| **Format** | Strict structure enforcement | 0.5–1.0 |
-| **Length** | Encourage verbosity/conciseness | 0.1–0.5 |
+| **Format** | Strict structure enforcement | 0.5-1.0 |
+| **Length** | Encourage verbosity/conciseness | 0.1-0.5 |
 | **Style** | Penalize unwanted patterns | −0.5 to 0.5 |
 
 ## Implementation workflow
@@ -96,7 +96,7 @@ def prepare_dataset(raw_data):
 
 **Pro tips:**
 - Use one-shot or few-shot examples in the system prompt for complex formats
-- Keep prompts concise (max_prompt_length: 256–512 tokens)
+- Keep prompts concise (max_prompt_length: 256-512 tokens)
 - Validate data quality before training (garbage in = garbage out)
 
 ### Step 2: Reward function implementation
@@ -162,7 +162,7 @@ def incremental_format_reward(completions, **kwargs):
     return rewards
 ```
 
-**Critical insight:** Combine 3–5 reward functions for robust training. Order matters less than diversity of signals.
+**Critical insight:** Combine 3-5 reward functions for robust training. Order matters less than diversity of signals.
 
 ### Step 3: Training configuration
 
@@ -186,7 +186,7 @@ training_args = GRPOConfig(
     gradient_accumulation_steps=4,  # Effective batch = 4
 
     # GRPO-specific
-    num_generations=8,            # Group size: 8–16 recommended
+    num_generations=8,            # Group size: 8-16 recommended
     max_prompt_length=256,
     max_completion_length=512,
 
@@ -245,7 +245,7 @@ model_name = "Qwen/Qwen2.5-1.5B-Instruct"
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
     torch_dtype=torch.bfloat16,
-    attn_implementation="flash_attention_2",  # 2–3× faster
+    attn_implementation="flash_attention_2",  # 2-3× faster
     device_map="auto",
 )
 
@@ -281,7 +281,7 @@ trainer.train()
 trainer.save_model("final_model")
 ```
 
-**Unsloth setup (2–3× faster)**
+**Unsloth setup (2-3× faster)**
 ```python
 from unsloth import FastLanguageModel
 
@@ -310,16 +310,16 @@ trainer.train()
 ## Critical training insights
 
 ### 1. Loss behavior (EXPECTED pattern)
-- **Loss starts near 0 and INCREASES during training** — this is CORRECT
+- **Loss starts near 0 and INCREASES during training**; this is CORRECT
 - Loss measures KL divergence from initial policy; the model is learning (diverging from original behavior to optimize rewards)
 - **Monitor reward metrics, not loss, for progress**
 
 ### 2. Reward tracking
 
 Key metrics to watch:
-- `reward` — average across all completions
-- `reward_std` — diversity within groups (should remain > 0)
-- `kl` — KL divergence from reference (should grow moderately)
+- `reward`; average across all completions
+- `reward_std`; diversity within groups (should remain > 0)
+- `kl`; KL divergence from reference (should grow moderately)
 
 **Healthy pattern:**
 ```
@@ -332,8 +332,8 @@ Step   Reward    Reward_Std   KL
 
 **Warning signs:**
 - `reward_std` → 0 (model collapsing to a single response)
-- `kl` exploding (> 0.5) — diverging too much, reduce LR
-- Reward stuck — reward functions too harsh or model capacity issue
+- `kl` exploding (> 0.5); diverging too much, reduce LR
+- Reward stuck; reward functions too harsh or model capacity issue
 
 ### 3. Common pitfalls and solutions
 
@@ -446,7 +446,7 @@ print(result[0]['generated_text'])
 - [ ] Monitor reward progression (should increase)
 - [ ] Check `reward_std` (should stay > 0.1)
 - [ ] Watch for OOM errors (reduce batch size if needed)
-- [ ] Sample generations every 50–100 steps
+- [ ] Sample generations every 50-100 steps
 - [ ] Validate format compliance on holdout set
 
 **After training:**
@@ -459,11 +459,11 @@ print(result[0]['generated_text'])
 ## Troubleshooting
 
 ### Debugging workflow
-1. **Isolate reward functions** — test each independently
-2. **Check data distribution** — ensure diversity in prompts
-3. **Reduce complexity** — start with single reward, add gradually
-4. **Monitor generations** — print samples every N steps
-5. **Validate extraction logic** — ensure answer parsing works
+1. **Isolate reward functions**; test each independently
+2. **Check data distribution**; ensure diversity in prompts
+3. **Reduce complexity**; start with single reward, add gradually
+4. **Monitor generations**; print samples every N steps
+5. **Validate extraction logic**; ensure answer parsing works
 
 ### Quick debug reward
 ```python
@@ -481,10 +481,10 @@ trainer.generate_completions(dataset[:1])
 ## Template
 
 A production-ready training script lives at **`../templates/basic_grpo_training.py`**. It uses Qwen 2.5-1.5B-Instruct with LoRA and three reward functions (incremental format, strict format, correctness) on GSM8K. Copy and adapt:
-1. `get_dataset()` — swap in your data loader
-2. Reward functions — tune to your task
-3. `SYSTEM_PROMPT` — match your output format
-4. `GRPOConfig` — adjust hyperparameters for your GPU
+1. `get_dataset()`; swap in your data loader
+2. Reward functions; tune to your task
+3. `SYSTEM_PROMPT`; match your output format
+4. `GRPOConfig`; adjust hyperparameters for your GPU
 
 ## References and resources
 
@@ -497,8 +497,8 @@ A production-ready training script lives at **`../templates/basic_grpo_training.
 
 ## Critical reminders
 
-- **Loss goes UP during training** — this is normal (it's KL divergence)
-- **Use 3–5 reward functions** — single rewards often fail
-- **Test rewards before training** — debug each function independently
-- **Monitor `reward_std`** — should stay > 0.1 (avoid mode collapse)
-- **Start with `num_generations=4–8`** — scale up if GPU allows
+- **Loss goes UP during training**; this is normal (it's KL divergence)
+- **Use 3-5 reward functions**; single rewards often fail
+- **Test rewards before training**; debug each function independently
+- **Monitor `reward_std`**; should stay > 0.1 (avoid mode collapse)
+- **Start with `num_generations=4-8`**; scale up if GPU allows

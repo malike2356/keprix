@@ -750,6 +750,66 @@ def cmd_mcp_login(args):
         _error(f"Authentication failed: {exc}")
 
 
+def begin_mcp_oauth_authorization(name: str, config: dict) -> dict:
+    """Start OAuth for an MCP server and return the authorization URL.
+
+    Runs the probe flow in a background thread so the browser callback can
+    complete after the API returns the URL to the frontend.
+    """
+    import threading
+
+    if config.get("auth") != "oauth":
+        raise ValueError(f"Server '{name}' is not configured for OAuth")
+    url = config.get("url")
+    if not url:
+        raise ValueError(f"Server '{name}' has no URL")
+
+    if _oauth_tokens_present(name):
+        return {
+            "ok": True,
+            "message": "Already connected",
+            "oauth_connected": True,
+        }
+
+    try:
+        from tools.mcp_oauth_manager import get_manager
+
+        get_manager().remove(name)
+    except Exception as exc:
+        logger.debug("Could not clear OAuth cache for '%s': %s", name, exc)
+
+    import tools.mcp_oauth as oauth_mod
+
+    original_redirect = oauth_mod._redirect_handler
+    captured: dict = {}
+    url_ready = threading.Event()
+
+    async def api_redirect_handler(authorization_url: str) -> None:
+        captured["authorization_url"] = authorization_url
+        url_ready.set()
+
+    oauth_mod._redirect_handler = api_redirect_handler
+
+    def _probe_background() -> None:
+        try:
+            _probe_single_server(name, config)
+        except Exception as exc:
+            logger.debug("Background OAuth probe for '%s' ended: %s", name, exc)
+        finally:
+            oauth_mod._redirect_handler = original_redirect
+
+    threading.Thread(target=_probe_background, daemon=True).start()
+
+    if not url_ready.wait(timeout=90):
+        oauth_mod._redirect_handler = original_redirect
+        raise TimeoutError(
+            "Timed out waiting for OAuth authorization URL. "
+            "Try `keprix mcp login " + name + "` from the CLI."
+        )
+
+    return {"authorization_url": captured["authorization_url"]}
+
+
 # ─── keprix mcp configure ────────────────────────────────────────────────────
 
 def cmd_mcp_configure(args):

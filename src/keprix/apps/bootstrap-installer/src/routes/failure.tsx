@@ -16,7 +16,7 @@ interface FailureProps {
 }
 
 /*
- * Failure screen. Same hero treatment as Welcome/Success — the wordmark
+ * Failure screen. Same hero treatment as Welcome/Success; the wordmark
  * carries the brand, so we keep it across every terminal state.
  *
  * The actual error message lives below in muted text. Two clear

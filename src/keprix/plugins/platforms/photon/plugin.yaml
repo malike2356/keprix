@@ -6,7 +6,7 @@ description: >
   Photon Spectrum gateway adapter for Keprix.
   Connects to iMessage (and other Spectrum interfaces) through Photon's
   managed Spectrum platform. Both directions run over the `spectrum-ts`
-  SDK's long-lived gRPC stream via a small supervised Node sidecar —
+  SDK's long-lived gRPC stream via a small supervised Node sidecar;
   inbound messages arrive on the SDK's `app.messages` stream (no webhook,
   no public URL, no signing secret), and outbound messages are sent over
   the same sidecar.
@@ -55,7 +55,7 @@ optional_env:
     prompt: "Allowed users (comma-separated)"
     password: false
   - name: PHOTON_ALLOW_ALL_USERS
-    description: "Allow any sender to trigger the bot (dev only — disables allowlist)"
+    description: "Allow any sender to trigger the bot (dev only; disables allowlist)"
     prompt: "Allow all users? (true/false)"
     password: false
   - name: PHOTON_REQUIRE_MENTION
@@ -79,10 +79,10 @@ optional_env:
     prompt: "Enable Spectrum telemetry? (true/false)"
     password: false
   - name: PHOTON_MARKDOWN
-    description: "Send agent replies as markdown — iMessage renders it natively, other Spectrum platforms degrade to plain text (true/false, default true)"
+    description: "Send agent replies as markdown; iMessage renders it natively, other Spectrum platforms degrade to plain text (true/false, default true)"
     prompt: "Render replies as markdown? (true/false)"
     password: false
   - name: PHOTON_REACTIONS
-    description: "Tapback 👀/👍/👎 on messages as processing status and route tapbacks on bot messages to the agent (true/false, default false)"
+    description: "Tapback // on messages as processing status and route tapbacks on bot messages to the agent (true/false, default false)"
     prompt: "Enable reaction tapbacks? (true/false)"
     password: false

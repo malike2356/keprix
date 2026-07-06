@@ -17,7 +17,7 @@ afterEach(() => {
   vi.resetModules()
 })
 
-describe('comboFromEvent — ctrl as a distinct modifier on macOS', () => {
+describe('comboFromEvent; ctrl as a distinct modifier on macOS', () => {
   it('reports Control+Tab as "ctrl+tab" on macOS (not Cmd)', async () => {
     const { comboFromEvent } = await loadCombo('MacIntel')
 
@@ -58,7 +58,7 @@ describe('canonicalizeCombo', () => {
   })
 })
 
-describe('formatCombo — honest Control labels', () => {
+describe('formatCombo; honest Control labels', () => {
   it('renders the Control glyph on macOS', async () => {
     const { formatCombo } = await loadCombo('MacIntel')
 

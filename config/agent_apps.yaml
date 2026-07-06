@@ -1,0 +1,35 @@
+# Agent Apps product limits and feature flags.
+# Copy or merge into billing plan feature_flags for production billing enforcement.
+
+features:
+  agent_apps.enabled: true
+  agent_apps.marketplace: true
+  agent_apps.pro_templates: false
+  agent_apps.scheduled: false
+  agent_apps.webhooks: false
+  agent_apps.publish: false
+
+limits:
+  agent_apps.max_installed:
+    community: 3
+    pro: 10
+    team: 50
+    enterprise: 9999
+  agent_apps.max_runs_per_month:
+    community: 50
+    pro: 500
+    team: 5000
+    enterprise: 999999
+  agent_apps.max_scheduled:
+    pro: 5
+    team: 25
+    enterprise: 999
+
+retention:
+  run_history_days: 30
+
+permissions:
+  defaults:
+    network: true
+    email_read: false
+    filesystem: true

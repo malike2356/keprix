@@ -26,7 +26,7 @@ describe('resolveUpdateCopy', () => {
   it('no changelog (pip/non-git backend): degrades honestly, still names backend target in title', () => {
     const r = resolveUpdateCopy({ target: 'backend', shownItems: 0, copy })
     expect(r.title).toBe('Backend update available')
-    // Body must NOT pretend there are notes — it states they're unavailable.
+    // Body must NOT pretend there are notes; it states they're unavailable.
     expect(r.body).toBe(copy.availableBodyNoChangelog)
   })
 

@@ -54,9 +54,9 @@ import { DeleteProfileDialog } from '../../profiles/delete-profile-dialog'
 import { RenameProfileDialog } from '../../profiles/rename-profile-dialog'
 import { PROFILES_ROUTE } from '../../routes'
 
-const RAIL_GAP = 4 // px — matches gap-1 between squares.
+const RAIL_GAP = 4 // px; matches gap-1 between squares.
 
-// easeOutBack — a little overshoot so squares spring into their new slot rather
+// easeOutBack; a little overshoot so squares spring into their new slot rather
 // than sliding in flat. Neighbors reflow on RAIL_TRANSITION; the dragged square
 // glides between snapped cells on the snappier DRAG_TRANSITION.
 const SPRING = 'cubic-bezier(0.34, 1.56, 0.64, 1)'
@@ -82,7 +82,7 @@ const stepThroughCells: Modifier = ({ containerNodeRect, draggingNodeRect, trans
 
 // Arc-Spaces-style profile rail at the sidebar foot: a default↔all toggle pinned
 // left, the colored named profiles scrolling between, and Manage pinned right.
-// The active profile pops in its own color — the "where am I" cue. Single-
+// The active profile pops in its own color; the "where am I" cue. Single-
 // profile users see the "+" (create their first profile) and the Manage
 // overflow (edit the default profile's SOUL.md); the colored named squares
 // and the default↔all toggle only appear once a second profile exists.
@@ -344,10 +344,10 @@ interface ProfileSquareProps {
 }
 
 // Hold this long without moving (a drag would have started first) to open the
-// color picker — the "hard press" gesture, distinct from tap-to-select.
+// color picker; the "hard press" gesture, distinct from tap-to-select.
 const LONG_PRESS_MS = 450
 
-// A profile *is* its colored square — no icon-button chrome. Soft profile-tint
+// A profile *is* its colored square; no icon-button chrome. Soft profile-tint
 // fill + the initial in the full color; the active one pops to full opacity with
 // a color ring. These pack tightly so the rail reads as a strip of profiles,
 // drag-sort to reorder (a tap below the drag threshold still selects), and
@@ -413,7 +413,7 @@ function ProfileSquare({ active, color, label, onDelete, onRecolor, onRename, on
                       boxShadow: [ring, lift].filter(Boolean).join(', ') || undefined,
                       color: color ?? undefined,
                       // Glide the dragged square between snapped cells with a little
-                      // overshoot (no scale — the overflow-x strip would clip it).
+                      // overshoot (no scale; the overflow-x strip would clip it).
                       transform: base,
                       transition: isDragging ? DRAG_TRANSITION : transition
                     }}
@@ -463,13 +463,13 @@ function ProfileSquare({ active, color, label, onDelete, onRecolor, onRename, on
         </TooltipProvider>
 
         {/* The rail sits at the very bottom, so pad off the chrome (esp. the
-            statusbar) — Radix then flips the menu up instead of squishing it. */}
+            statusbar); Radix then flips the menu up instead of squishing it. */}
         <ContextMenuContent
           aria-label={p.actionsFor(label)}
           className="w-40"
           collisionPadding={{ bottom: 44, left: 8, right: 8, top: 8 }}
-          // Menu close refocuses the trigger — which doubles as the popover
-          // anchor — so the picker reads it as focus-outside and dies on open.
+          // Menu close refocuses the trigger; which doubles as the popover
+          // anchor; so the picker reads it as focus-outside and dies on open.
           // Suppress the refocus and the picker survives.
           onCloseAutoFocus={event => event.preventDefault()}
         >

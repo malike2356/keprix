@@ -18,7 +18,7 @@ import { ArrowRight } from 'lucide-react'
 export default function Welcome() {
   return (
     <div className="hermes-fade-in flex h-full flex-col items-center justify-center gap-10 px-12 py-10">
-      {/* Hero — same recipe the desktop's chat/intro.tsx uses */}
+      {/* Hero; same recipe the desktop's chat/intro.tsx uses */}
       <div className="w-full max-w-2xl min-w-0 text-center">
         <p
           className="fit-text mx-auto mb-4 w-full font-['Collapse'] font-bold uppercase leading-[0.9] tracking-[0.08em] text-midground mix-blend-plus-lighter dark:text-foreground/90"
@@ -38,7 +38,7 @@ export default function Welcome() {
 
         <p className="m-0 text-center text-base leading-normal tracking-tight text-muted-foreground">
           The agent that grows with you. We&rsquo;ll set things up in the
-          background &mdash; takes a few minutes.
+          background; takes a few minutes.
         </p>
       </div>
 

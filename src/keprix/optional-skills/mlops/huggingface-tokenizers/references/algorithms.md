@@ -133,7 +133,7 @@ tokenizer.pre_tokenizer = ByteLevel()
 tokenizer.decoder = ByteLevelDecoder()
 
 # This handles ALL possible characters, including emojis
-text = "Hello 🌍 世界"
+text = "Hello  世界"
 tokens = tokenizer.encode(text).tokens
 ```
 
@@ -580,7 +580,7 @@ Vocabulary: ['Hello', 'hello', 'HELLO', 'world', 'WORLD']
 ```python
 tokenizer.pre_tokenizer = ByteLevel()
 
-"Hello 🌍 👋" → byte-level representation (always works)
+"Hello  " → byte-level representation (always works)
 ```
 
 **Unicode normalization**:

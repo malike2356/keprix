@@ -82,12 +82,12 @@ model = whisper.load_model("turbo")  # Fastest, good quality
 
 | Model | Parameters | English-only | Multilingual | Speed | VRAM |
 |-------|------------|--------------|--------------|-------|------|
-| tiny | 39M | ✓ | ✓ | ~32x | ~1 GB |
-| base | 74M | ✓ | ✓ | ~16x | ~1 GB |
-| small | 244M | ✓ | ✓ | ~6x | ~2 GB |
-| medium | 769M | ✓ | ✓ | ~2x | ~5 GB |
-| large | 1550M | ✗ | ✓ | 1x | ~10 GB |
-| turbo | 809M | ✗ | ✓ | ~8x | ~6 GB |
+| tiny | 39M |  |  | ~32x | ~1 GB |
+| base | 74M |  |  | ~16x | ~1 GB |
+| small | 244M |  |  | ~6x | ~2 GB |
+| medium | 769M |  |  | ~2x | ~5 GB |
+| large | 1550M |  |  | 1x | ~10 GB |
+| turbo | 809M |  |  | ~8x | ~6 GB |
 
 **Recommendation**: Use `turbo` for best speed/quality, `base` for prototyping
 

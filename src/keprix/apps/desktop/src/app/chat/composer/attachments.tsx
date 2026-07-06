@@ -62,7 +62,7 @@ function AttachmentPill({ attachment, onRemove }: { attachment: ComposerAttachme
         throw new Error(c.couldNotPreview(attachment.label))
       }
 
-      // We already hold the image bytes (the card thumbnail) — render those
+      // We already hold the image bytes (the card thumbnail); render those
       // directly so a screenshot/clipboard image previews even when its only
       // on-disk copy is a transient path the renderer can't re-read.
       const withBytes =

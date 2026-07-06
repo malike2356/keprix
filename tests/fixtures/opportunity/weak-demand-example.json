@@ -1,0 +1,11 @@
+{
+  "title": "Weak niche with no evidence",
+  "niche": "obscure hobby market xyz",
+  "market": "unknown",
+  "goal": "Test blocking weak opportunities",
+  "geography": null,
+  "buyer_type": null,
+  "research_depth": "quick",
+  "scenario": "weak_blocked",
+  "expect_asset_factory_blocked": true
+}

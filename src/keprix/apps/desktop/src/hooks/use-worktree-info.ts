@@ -55,7 +55,7 @@ export function useWorktreeInfo(sessions: SessionInfo[], enabled: boolean): Work
         setMap(next)
       })
       .catch(() => {
-        // Bridge unavailable / probe failed — leave cwds unresolved so the
+        // Bridge unavailable / probe failed; leave cwds unresolved so the
         // heuristic fallback handles them.
       })
 

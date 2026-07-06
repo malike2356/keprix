@@ -11,7 +11,7 @@ import type { HermesConnection } from '@/global'
  * Resolution rules:
  *
  * - OAuth: the fresh mint is the *only* viable URL. If it fails, do NOT fall
- *   back to `conn.wsUrl` — that ticket is dead and the connect is guaranteed to
+ *   back to `conn.wsUrl`; that ticket is dead and the connect is guaranteed to
  *   fail with an opaque "connection closed" error. Instead, let the mint error
  *   propagate so the caller can surface the gateway's reauth message
  *   ("session has expired… Sign in again").
@@ -26,7 +26,7 @@ import type { HermesConnection } from '@/global'
  */
 export interface ResolveGatewayWsUrlDeps {
   /** `window.hermesDesktop.getGatewayWsUrl`, if the preload exposes it. The
-   *  optional profile selects which backend to mint for — critical when swapping
+   *  optional profile selects which backend to mint for; critical when swapping
    *  to a pooled profile, since the default mint resolves the primary backend. */
   getGatewayWsUrl?: (profile?: null | string) => Promise<string>
 }

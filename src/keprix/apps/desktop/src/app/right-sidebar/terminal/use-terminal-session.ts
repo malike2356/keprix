@@ -184,7 +184,7 @@ function collectDroppedPaths(t: DataTransfer): string[] {
       }
     }
   } catch {
-    // Malformed in-app drag payload — fall through to OS files.
+    // Malformed in-app drag payload; fall through to OS files.
   }
 
   const getPath = window.hermesDesktop?.getPathForFile
@@ -232,7 +232,7 @@ function quotePathForShell(path: string, shellName: string): string {
 
 export function useTerminalSession({ cwd, onAddSelectionToChat }: UseTerminalSessionOptions) {
   // Key off renderedMode (the painted surface type), not resolvedMode (the
-  // clicked switch) — a skin can keep a light surface in "dark" mode, and we
+  // clicked switch); a skin can keep a light surface in "dark" mode, and we
   // must match the surface or the ANSI palette inverts against it. themeName
   // re-resolves the canvas surface on skin switches (same mode, new tint).
   const { renderedMode, theme, themeName } = useTheme()
@@ -261,8 +261,8 @@ export function useTerminalSession({ cwd, onAddSelectionToChat }: UseTerminalSes
   }, [onAddSelectionToChat])
 
   // Live selection at call time. A redraw-heavy TUI (spinners, clocks) outruns
-  // onSelectionChange, so trust xterm directly — fall back to the native
-  // selection — rather than the cached ref / React state.
+  // onSelectionChange, so trust xterm directly; fall back to the native
+  // selection; rather than the cached ref / React state.
   const readSelection = useCallback(
     () => termRef.current?.getSelection() || window.getSelection()?.toString() || '',
     []
@@ -293,7 +293,7 @@ export function useTerminalSession({ cwd, onAddSelectionToChat }: UseTerminalSes
     triggerHaptic('selection')
   }, [])
 
-  // Always listen — gating on the React selection state misses selections the
+  // Always listen; gating on the React selection state misses selections the
   // TUI redraw races. Only swallow ⌘/Ctrl+L when there's text to send, else it
   // must reach the shell as clear-screen.
   useEffect(() => {
@@ -344,13 +344,13 @@ export function useTerminalSession({ cwd, onAddSelectionToChat }: UseTerminalSes
       letterSpacing: 0,
       lineHeight: 1.12,
       // Full-screen TUIs (hermes --tui, vim) grab the mouse, so a plain drag
-      // can't select — ⌥-drag (macOS) / Shift-drag (else) forces a native
+      // can't select; ⌥-drag (macOS) / Shift-drag (else) forces a native
       // selection over mouse-mode apps, which ⌘/Ctrl+L then sends to chat.
       macOptionClickForcesSelection: true,
       macOptionIsMeta: true,
       // VS Code/Cursor's secret sauce: terminal.integrated.minimumContrastRatio
       // defaults to 4.5 there. xterm defaults to 1 (off), which paints the raw
-      // saturated ANSI palette — vivid green/cyan on white reads as candy.
+      // saturated ANSI palette; vivid green/cyan on white reads as candy.
       // Clamping to 4.5:1 darkens/lightens foregrounds against the background
       // at render time, matching the muted ink-like look of their terminal.
       minimumContrastRatio: 4.5,
@@ -498,7 +498,7 @@ export function useTerminalSession({ cwd, onAddSelectionToChat }: UseTerminalSes
       }
     }
 
-    // Coalesce ResizeObserver bursts through rAF — running fit.fit()
+    // Coalesce ResizeObserver bursts through rAF; running fit.fit()
     // synchronously while sibling panes are mid-transition (e.g. file browser
     // collapsing to 0px) crashes the WebGL renderer mid texture-atlas rebuild.
     let pendingFrame = 0
@@ -531,7 +531,7 @@ export function useTerminalSession({ cwd, onAddSelectionToChat }: UseTerminalSes
       const id = sessionIdRef.current
 
       if (id) {
-        // Once the user submits a line, real output may follow — stop the
+        // Once the user submits a line, real output may follow; stop the
         // pristine-prompt gap cleanup so we never clear command scrollback.
         if (promptPristine && data.includes('\r')) {
           promptPristine = false
@@ -625,7 +625,7 @@ export function useTerminalSession({ cwd, onAddSelectionToChat }: UseTerminalSes
 
     // fonts.ready settles only already-requested faces; the regular (400),
     // bold (700) and italic aren't asked for until styled output paints (past
-    // atlas init), so warm them up front — otherwise the WebGL atlas bakes a
+    // atlas init), so warm them up front; otherwise the WebGL atlas bakes a
     // fallback face and the terminal renders thin until a repaint.
     const warm = document.fonts?.load
       ? Promise.allSettled(['400', '700', 'italic 400'].map(v => document.fonts.load(`${v} 11px 'JetBrains Mono'`)))

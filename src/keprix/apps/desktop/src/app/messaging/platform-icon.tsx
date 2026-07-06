@@ -18,8 +18,8 @@ import { Globe, Link as LinkIcon, MessageSquareText } from '@/lib/icons'
 import { cn } from '@/lib/utils'
 
 // We render simpleicons.org brand glyphs for platforms whose owners publish a
-// usable mark (telegram, discord, matrix, ...). A few brands — Slack, Dingtalk,
-// Feishu, WeCom — have been removed from Simple Icons at the brand owner's
+// usable mark (telegram, discord, matrix, ...). A few brands; Slack, Dingtalk,
+// Feishu, WeCom; have been removed from Simple Icons at the brand owner's
 // request, so we fall back to a colored letter monogram for those.
 //
 // `iconColor` is the brand's hex from simpleicons.org so we can paint each
@@ -37,7 +37,7 @@ interface PlatformIconSpec {
 const PLATFORM_ICONS: Record<string, PlatformIconSpec> = {
   telegram: { Icon: SiTelegram, color: '#26A5E4', kind: 'brand' },
   discord: { Icon: SiDiscord, color: '#5865F2', kind: 'brand' },
-  // Slack removed from Simple Icons by Salesforce request — letter monogram.
+  // Slack removed from Simple Icons by Salesforce request; letter monogram.
   slack: { color: '#4A154B', kind: 'brand', monogram: 'S' },
   mattermost: { Icon: SiMattermost, color: '#0058CC', kind: 'brand' },
   matrix: { Icon: SiMatrix, color: '#000000', kind: 'brand' },

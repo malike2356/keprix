@@ -122,7 +122,7 @@ export function useStatusbarItems({
   // new-chat draft (no runtime session yet) we arm locally; the session-create
   // path applies it once the backend session exists.
   //
-  // Shift+click flips the GLOBAL approvals.mode instead — a persistent,
+  // Shift+click flips the GLOBAL approvals.mode instead; a persistent,
   // all-sessions/CLI/TUI/cron bypass that survives restarts.
   const toggleYolo = useCallback(
     async (modifiers?: StatusbarSelectModifiers) => {

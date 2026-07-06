@@ -107,7 +107,7 @@ type ThreadLoadingState = 'response' | 'session'
 
 interface MessageActionProps {
   messageId: string
-  /** Lazy accessor — reads the live message text at action time. Passing the
+  /** Lazy accessor; reads the live message text at action time. Passing the
    *  text itself as a prop forces the whole footer to re-render on every
    *  streaming delta flush (the text changes ~30×/s), which profiling showed
    *  was a large slice of per-token script time on long transcripts. */
@@ -253,13 +253,13 @@ const AssistantMessage: FC<{ onBranchInNewChat?: (messageId: string) => void }> 
   // selector here returns a value that stays referentially stable across
   // token flushes (booleans, status strings, '' while running), so the
   // 30 Hz delta stream only re-renders the markdown part and the tiny
-  // StreamStallIndicator leaf — not the footer/preview/root subtree.
+  // StreamStallIndicator leaf; not the footer/preview/root subtree.
   const messageStatus = useAuiState(s => s.message.status?.type)
   const isRunning = messageStatus === 'running'
   const isPlaceholder = useAuiState(s => s.message.status?.type === 'running' && s.message.content.length === 0)
   const hasVisibleText = useAuiState(s => contentHasVisibleText(s.message.content))
 
-  // Preview targets only materialize once the turn completes — while running
+  // Preview targets only materialize once the turn completes; while running
   // the selector returns '' (stable), so per-token flushes skip the regex
   // scan and the re-render it would cause.
   const completedText = useAuiState(s =>
@@ -337,7 +337,7 @@ const StatusRow: FC<{ children: ReactNode; label: string } & React.ComponentProp
   </div>
 )
 
-// Fixed label while auto-compaction runs — decoupled from backend status text.
+// Fixed label while auto-compaction runs; decoupled from backend status text.
 const COMPACTION_LABEL = 'Summarizing thread'
 
 const CompactionHint: FC = () => (
@@ -522,7 +522,7 @@ const ThinkingDisclosure: FC<{
       {open && (
         <div
           className={cn(
-            // Body sits flush with the "Thinking" header — no left indent —
+            // Body sits flush with the "Thinking" header; no left indent;
             // and inherits the disclosure-level opacity fade defined in
             // styles.css (~0.67 at rest, 1 on hover/focus).
             'mt-0.5 w-full min-w-0 max-w-full overflow-hidden wrap-anywhere pb-1',
@@ -558,7 +558,7 @@ const ReasoningAccordionGroup: FC<{ children?: ReactNode; endIndex: number; star
         .some(p => p?.type === 'reasoning' && p.status?.type !== 'complete')
   )
 
-  // A reasoning group with no actual text is pure noise — drop the whole
+  // A reasoning group with no actual text is pure noise; drop the whole
   // "Thinking" disclosure rather than leave an empty header eating a row. This
   // applies live too: encrypted/spinner-coerced reasoning (Opus reasoning max)
   // never carries visible text, and the bottom-of-thread loader already signals
@@ -807,7 +807,7 @@ function StickyHumanMessageContainer({ attachments, children }: { attachments?: 
 //
 // no-drag: sticky bubbles park at --sticky-human-top (~4px), sliding under the
 // titlebar's [-webkit-app-region:drag] strips (app-shell.tsx). Electron resolves
-// drag regions at the compositor level — z-index and pointer-events don't help —
+// drag regions at the compositor level; z-index and pointer-events don't help;
 // so without the carve-out, clicking a stuck bubble drags the window instead of
 // opening the edit composer.
 const USER_BUBBLE_BASE_CLASS =
@@ -900,7 +900,7 @@ const UserMessage: FC<{
       return
     }
 
-    // Prefer the size the ResizeObserver already computed — reading
+    // Prefer the size the ResizeObserver already computed; reading
     // `scrollHeight` outside RO timing forces a synchronous layout, and with
     // many user bubbles observed at once those reads interleave with the
     // style write below into a read-write-read reflow cascade.
@@ -914,7 +914,7 @@ const UserMessage: FC<{
     lastClampHeightRef.current = fullHeight
 
     // Line-height is stable for the life of the bubble (font settings don't
-    // change under it) — resolve the computed style once.
+    // change under it); resolve the computed style once.
     if (!lineHeightRef.current) {
       const styles = getComputedStyle(inner)
       lineHeightRef.current = parseFloat(styles.lineHeight) || 1.5 * parseFloat(styles.fontSize) || 20
@@ -926,7 +926,7 @@ const UserMessage: FC<{
 
   useResizeObserver(measureClamp, clampInnerRef)
 
-  // Injected background-process notification, not a human prompt — render the
+  // Injected background-process notification, not a human prompt; render the
   // compact system-style notice (after all hooks above have run).
   if (PROCESS_NOTIFICATION_RE.test(messageText.trim())) {
     return (
@@ -944,7 +944,7 @@ const UserMessage: FC<{
   const isLatestUser = messageId === latestUserId
   const showStop = isLatestUser && threadRunning && Boolean(onCancel)
   // Restore (re-run this exact prompt) is available everywhere the Stop button
-  // isn't — including mid-stream on older prompts, since the action interrupts
+  // isn't; including mid-stream on older prompts, since the action interrupts
   // the live turn before rewinding.
   const showRestore = !showStop && Boolean(onRestoreToMessage) && hasBody
 
@@ -985,7 +985,7 @@ const UserMessage: FC<{
         <ActionBarPrimitive.Root className="relative w-full max-w-full" data-slot="aui_user-bubble-actions">
           <div className="human-message-with-todos-wrapper flex w-full flex-col gap-0">
             <div className="relative w-full">
-              {/* Always editable — clicking opens the edit composer even while a
+              {/* Always editable; clicking opens the edit composer even while a
                   turn streams; sending the edit reverts (interrupt + rewind). */}
               <ActionBarPrimitive.Edit asChild>
                 <button
@@ -1302,8 +1302,8 @@ const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sessionId }
     setTrigger(detected)
 
     // Only reset the highlight when the trigger actually changed (opened, or
-    // the query/kind differs). Re-detecting the *same* trigger — e.g. on a
-    // caret move (mouseup) or a stray refresh — must preserve the user's
+    // the query/kind differs). Re-detecting the *same* trigger; e.g. on a
+    // caret move (mouseup) or a stray refresh; must preserve the user's
     // current selection instead of snapping back to the first item.
     if (detected?.kind !== trigger?.kind || detected?.query !== trigger?.query) {
       setTriggerActive(0)
@@ -1423,16 +1423,16 @@ const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sessionId }
     [cwd, insertRefStrings]
   )
 
-  // OS/Finder drops carry an absolute path on THIS machine — the gateway can't
+  // OS/Finder drops carry an absolute path on THIS machine; the gateway can't
   // read it in remote mode, and an image needs its bytes uploaded for vision.
   // Stage each through the same file.attach/image.attach_bytes pipeline the main
-  // composer uses, then insert the *gateway-side* ref the agent can resolve —
+  // composer uses, then insert the *gateway-side* ref the agent can resolve;
   // never the raw local path (the MahmoudR remote-attach bug, which the main
   // composer fixes but this edit composer used to reproduce).
   const uploadOsDropRefs = useCallback(
     async (osDrops: ReturnType<typeof extractDroppedFiles>): Promise<InlineRefInput[]> => {
       if (!gateway || !sessionId) {
-        // No session to stage into — best-effort inline refs (matches old path).
+        // No session to stage into; best-effort inline refs (matches old path).
         return droppedFileInlineRefs(osDrops, cwd)
       }
 
@@ -1660,7 +1660,7 @@ const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sessionId }
   const handleKeyUp = () => {
     // If this keyup belongs to a key the open trigger popover already consumed
     // in keydown (Arrow/Enter/Tab/Escape), skip the refresh. Those keys never
-    // edit text, and for Escape the keydown already closed the menu — a refresh
+    // edit text, and for Escape the keydown already closed the menu; a refresh
     // here would re-detect the still-present `/` and instantly reopen it. We
     // read a ref set during keydown rather than `trigger`, because by keyup
     // time React has re-rendered and `trigger` may already be null.

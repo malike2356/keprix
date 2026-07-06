@@ -72,11 +72,11 @@ export function SidebarSessionRow({
   const age = formatAge(session.last_active || session.started_at, r)
   const handleLabel = `Reorder ${title}`
   // A handed-off session's live source is local, but it originated on a
-  // messaging platform — surface that origin as a small badge so e.g. a
+  // messaging platform; surface that origin as a small badge so e.g. a
   // Telegram thread continued here still reads as Telegram.
   const handoffSource = handoffOriginSource(session.handoff_state, session.handoff_platform)
   const handoffLabel = handoffSource ? sessionSourceLabel(handoffSource) ?? handoffSource : null
-  // Subscribe per-row (the leaf) instead of drilling a set through the list —
+  // Subscribe per-row (the leaf) instead of drilling a set through the list;
   // the atom is tiny and rarely non-empty. True when a clarify prompt in this
   // session is waiting on the user.
   const needsInput = useStore($attentionSessionIds).includes(session.id)
@@ -104,7 +104,7 @@ export function SidebarSessionRow({
         data-working={isWorking ? 'true' : undefined}
         draggable
         onDragStart={event => {
-          // Reorder drags belong to dnd-kit (the grab handle) — cancel the
+          // Reorder drags belong to dnd-kit (the grab handle); cancel the
           // native drag so the two DnD systems don't fight.
           if ((event.target as HTMLElement).closest('[data-reorder-handle]')) {
             event.preventDefault()
@@ -136,7 +136,7 @@ export function SidebarSessionRow({
             }
 
             // ⌘-click (mac) / ⌃-click (win/linux) pops the chat into its own
-            // window — the universal "open in a new window" gesture. Archive
+            // window; the universal "open in a new window" gesture. Archive
             // lives in the row's ⋯ and right-click menus. Falls through to a
             // normal resume when standalone windows aren't available (web embed).
             if ((event.metaKey || event.ctrlKey) && canOpenSessionWindow()) {

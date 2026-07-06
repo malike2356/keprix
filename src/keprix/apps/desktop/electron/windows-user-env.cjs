@@ -5,7 +5,7 @@
 //
 // A GUI app launched from Explorer inherits the environment block captured at
 // login, so a variable set via `setx` AFTER login is invisible in process.env
-// even though a fresh shell — and the Hermes CLI — sees it immediately. The
+// even though a fresh shell; and the Hermes CLI; sees it immediately. The
 // desktop's HERMES_HOME resolution relies on process.env, so that stale-snapshot
 // gap silently sends the backend to the default %LOCALAPPDATA%\hermes. Reading
 // the live registry value closes the gap. See #45471.
@@ -60,7 +60,7 @@ function readWindowsUserEnvVar(
       timeout: 5000
     })
   } catch {
-    // `reg` missing, or value absent (reg exits 1) — caller falls back.
+    // `reg` missing, or value absent (reg exits 1); caller falls back.
     return null
   }
   const raw = parseRegQueryValue(stdout, name)

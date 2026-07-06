@@ -1,7 +1,7 @@
 # Design System: Airtable
 
 
-> **Keprix — Implementation Notes**
+> **Keprix; Implementation Notes**
 >
 > The original site uses proprietary fonts. For self-contained HTML output, use these CDN substitutes:
 > - **Primary:** `Inter` | **Mono:** `system monospace stack`
@@ -21,8 +21,8 @@ Airtable's website is a clean, enterprise-friendly platform that communicates "s
 - White canvas with deep navy text (`#181d26`)
 - Airtable Blue (`#1b61c9`) as primary CTA and link color
 - Haas + Haas Groot Disp dual font system
-- Positive letter-spacing on body text (0.08px–0.28px)
-- 12px radius buttons, 16px–32px for cards
+- Positive letter-spacing on body text (0.08px-0.28px)
+- 12px radius buttons, 16px-32px for cards
 - Multi-layer blue-tinted shadow: `rgba(45,127,249,0.28) 0px 1px 3px`
 - Semantic theme tokens: `--theme_*` CSS variable naming
 
@@ -62,13 +62,13 @@ Airtable's website is a clean, enterprise-friendly platform that communicates "s
 | Display Hero | Haas | 48px | 400 | 1.15 | normal |
 | Display Bold | Haas Groot Disp | 48px | 900 | 1.50 | normal |
 | Section Heading | Haas | 40px | 400 | 1.25 | normal |
-| Sub-heading | Haas | 32px | 400–500 | 1.15–1.25 | normal |
-| Card Title | Haas | 24px | 400 | 1.20–1.30 | 0.12px |
-| Feature | Haas | 20px | 400 | 1.25–1.50 | 0.1px |
+| Sub-heading | Haas | 32px | 400-500 | 1.15-1.25 | normal |
+| Card Title | Haas | 24px | 400 | 1.20-1.30 | 0.12px |
+| Feature | Haas | 20px | 400 | 1.25-1.50 | 0.1px |
 | Body | Haas | 18px | 400 | 1.35 | 0.18px |
-| Body Medium | Haas | 16px | 500 | 1.30 | 0.08–0.16px |
-| Button | Haas | 16px | 500 | 1.25–1.30 | 0.08px |
-| Caption | Haas | 14px | 400–500 | 1.25–1.35 | 0.07–0.28px |
+| Body Medium | Haas | 16px | 500 | 1.30 | 0.08-0.16px |
+| Button | Haas | 16px | 500 | 1.25-1.30 | 0.08px |
+| Caption | Haas | 14px | 400-500 | 1.25-1.35 | 0.07-0.28px |
 
 ## 4. Component Stylings
 
@@ -77,11 +77,11 @@ Airtable's website is a clean, enterprise-friendly platform that communicates "s
 - **White**: white bg, `#181d26` text, 12px radius, 1px border white
 - **Cookie Consent**: `#1b61c9` bg, 2px radius (sharp)
 
-### Cards: `1px solid #e0e2e6`, 16px–24px radius
+### Cards: `1px solid #e0e2e6`, 16px-24px radius
 ### Inputs: Standard Haas styling
 
 ## 5. Layout
-- Spacing: 1–48px (8px base)
+- Spacing: 1-48px (8px base)
 - Radius: 2px (small), 12px (buttons), 16px (cards), 24px (sections), 32px (large), 50% (circles)
 
 ## 6. Depth
@@ -93,7 +93,7 @@ Airtable's website is a clean, enterprise-friendly platform that communicates "s
 ### Don't: Skip positive letter-spacing, use heavy shadows
 
 ## 8. Responsive Behavior
-Breakpoints: 425–1664px (23 breakpoints)
+Breakpoints: 425-1664px (23 breakpoints)
 
 ## 9. Agent Prompt Guide
 - Text: Deep Navy (`#181d26`)

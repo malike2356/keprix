@@ -17,7 +17,7 @@
 //     [--no-heap]                # skip heap snapshots
 //     [--seconds=N]              # idle-record for N seconds instead of typing
 //
-// Zero deps — uses Node 24's global WebSocket + fetch.
+// Zero deps; uses Node 24's global WebSocket + fetch.
 
 import { writeFileSync } from 'node:fs'
 
@@ -80,7 +80,7 @@ function connect(url) {
         pending.delete(m.id)
         m.error ? p.rej(new Error(m.error.message)) : p.res(m.result)
       } else if (m.method) {
-        ;(events.get(m.method) ?? []).forEach(h => h(m.params))
+;(events.get(m.method) ?? []).forEach(h => h(m.params))
       }
     })
   })
@@ -99,7 +99,7 @@ async function captureHeap(cdp, path) {
 async function focusComposer(cdp) {
   // Focus the rich-input contentEditable. RICH_INPUT_SLOT is the data-slot
   // value used by the composer's editable div. If focus fails (no composer
-  // mounted yet — disabled state, etc.) the script logs and continues; the
+  // mounted yet; disabled state, etc.) the script logs and continues; the
   // profile will still show idle behavior.
   const result = await cdp.send('Runtime.evaluate', {
     expression: `
@@ -136,7 +136,7 @@ function genText(n) {
 }
 
 async function dispatchChar(cdp, ch) {
-  // For printable chars, char + keypress is enough — Electron treats it as text input
+  // For printable chars, char + keypress is enough; Electron treats it as text input
   // and the contentEditable input event fires. For Enter / Space we could add
   // specials; this run is one long line.
   await cdp.send('Input.dispatchKeyEvent', {
@@ -176,14 +176,14 @@ async function main() {
 
   if (HEAP) await captureHeap(cdp, `${OUT}.before.heapsnapshot`)
 
-  // 1ms sampling — fine enough for per-frame React work.
+  // 1ms sampling; fine enough for per-frame React work.
   await cdp.send('Profiler.setSamplingInterval', { interval: 1000 })
 
   let typedText = ''
   if (!IDLE_SECONDS) {
     const focused = await focusComposer(cdp)
     if (!focused) {
-      log('aborting — composer not focusable. Make sure the app is past the boot screen.')
+      log('aborting; composer not focusable. Make sure the app is past the boot screen.')
       cdp.close()
       process.exit(3)
     }
@@ -193,7 +193,7 @@ async function main() {
   await cdp.send('Profiler.start')
 
   if (IDLE_SECONDS) {
-    banner(`IDLE recording for ${IDLE_SECONDS}s — DO NOT TOUCH`)
+    banner(`IDLE recording for ${IDLE_SECONDS}s; DO NOT TOUCH`)
     await new Promise(r => setTimeout(r, IDLE_SECONDS * 1000))
   } else {
     banner(`TYPING ${typedText.length} chars @ ${CPS} cps (≈${(typedText.length / CPS).toFixed(1)}s)`)
@@ -204,7 +204,7 @@ async function main() {
     await new Promise(r => setTimeout(r, 500))
   }
 
-  banner('STOP — saving profile')
+  banner('STOP; saving profile')
   const { profile } = await cdp.send('Profiler.stop')
   writeFileSync(`${OUT}.cpuprofile`, JSON.stringify(profile))
   log(`cpu profile → ${OUT}.cpuprofile (${(JSON.stringify(profile).length / 1024 / 1024).toFixed(1)} MB)`)

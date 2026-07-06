@@ -1,0 +1,26 @@
+id: dataset_to_report
+name: Dataset to Report
+description: End-to-end path from dataset import through analysis artifacts to a draft report.
+domain: generic
+steps:
+  - id: import_dataset
+    title: Import dataset
+    action: dataset.import
+    risk: low
+  - id: create_codebook
+    title: Create codebook
+    action: dataset.codebook
+    risk: low
+  - id: descriptive_stats
+    title: Generate descriptive statistics
+    action: stats.descriptive
+    risk: medium
+  - id: notebook_run
+    title: Run notebook analysis
+    action: notebook.execute
+    risk: high
+    requires_review: true
+  - id: generate_report
+    title: Generate report draft
+    action: report.generate
+    risk: medium

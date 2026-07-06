@@ -1313,6 +1313,26 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
     job_id = job["id"]
     job_name = str(job.get("name") or job.get("prompt") or job_id or "cron job")
 
+    if job.get("job_type") == "agent_app_run":
+        try:
+            from keprix.agent_apps.automation import execute_agent_app_job
+
+            payload = job.get("payload") or {}
+            result = execute_agent_app_job(payload)
+            output = str(result.get("result", {}).get("output", ""))
+            now_iso = _keprix_now().strftime("%Y-%m-%d %H:%M:%S")
+            doc = (
+                f"# Agent app run: {payload.get('app_name', job_name)}\n\n"
+                f"**Job ID:** {job_id}\n"
+                f"**Run Time:** {now_iso}\n\n"
+                f"{output}\n"
+            )
+            return True, doc, output, None
+        except Exception as exc:
+            err = str(exc)
+            logger.error("Job '%s' agent_app_run failed: %s", job_id, err)
+            return False, "", "", err
+
     # ---------------------------------------------------------------
     # no_agent short-circuit — the script IS the job, no LLM involvement.
     # ---------------------------------------------------------------

@@ -29,7 +29,7 @@ import type { ToolPart } from './tool-fallback-model'
 // modal overlay.
 //
 // Binding is POSITIONAL, not command-matched: the desktop `tool.start` payload
-// carries no structured args (only tool_id/name/context — see
+// carries no structured args (only tool_id/name/context; see
 // tui_gateway/server.py::_on_tool_start), so we cannot join the approval to the
 // row by command string. But `approval.request` only ever fires from the
 // `terminal` / `execute_code` guards and the agent thread blocks on exactly one
@@ -64,7 +64,7 @@ const ApprovalBar: FC<{ request: ApprovalRequest }> = ({ request }) => {
   // The pending tool row only shows a single truncated line of the command, and
   // a pending row can't be expanded (no result yet), so the full command was
   // previously only reachable via the "Always allow" modal. Let the user reveal
-  // it inline instead — "expand, Run" (2 clicks) rather than the modal dance.
+  // it inline instead; "expand, Run" (2 clicks) rather than the modal dance.
   const [showCommand, setShowCommand] = useState(false)
   const busy = submitting !== null
   // false when the backend won't honor a permanent allow (tirith warning) → hide "Always allow".
@@ -158,7 +158,7 @@ const ApprovalBar: FC<{ request: ApprovalRequest }> = ({ request }) => {
                 <DropdownMenuItem
                   onSelect={() => {
                     // Defer one tick so the menu fully unmounts before the dialog
-                    // mounts — otherwise Radix's focus-return races the dialog and
+                    // mounts; otherwise Radix's focus-return races the dialog and
                     // dismisses it via onInteractOutside.
                     setTimeout(() => setConfirmAlways(true), 0)
                   }}

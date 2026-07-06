@@ -8,7 +8,7 @@ Extended constraint library beyond the core set in SKILL.md. Load these when the
 The project works when you can use what you made to give something to somebody else.
 
 **Make a way to communicate:**
-The project works when you can hold a conversation with someone else using what you created. Not chat — something weirder.
+The project works when you can hold a conversation with someone else using what you created. Not chat; something weirder.
 
 **Write a love letter:**
 To a person, a programming language, a game, a place, a tool. On paper, in code, in music, in light. Mail it.

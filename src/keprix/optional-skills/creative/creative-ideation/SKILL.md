@@ -1,6 +1,6 @@
 ---
 name: ideation
-title: Creative Ideation — Constraint-Driven Project Generation
+title: Creative Ideation; Constraint-Driven Project Generation
 description: "Generate project ideas via creative constraints."
 version: 1.0.0
 author: SHL0MS
@@ -23,10 +23,10 @@ Generate project ideas through creative constraints. Constraint + direction = cr
 
 ## How It Works
 
-1. **Pick a constraint** from the library below — random, or matched to the user's domain/mood
-2. **Interpret it broadly** — a coding prompt can become a hardware project, an art prompt can become a CLI tool
+1. **Pick a constraint** from the library below; random, or matched to the user's domain/mood
+2. **Interpret it broadly**; a coding prompt can become a hardware project, an art prompt can become a CLI tool
 3. **Generate 3 concrete project ideas** that satisfy the constraint
-4. **If they pick one, build it** — create the project, write the code, ship it
+4. **If they pick one, build it**; create the project, write the code, ship it
 
 ## The Rule
 
@@ -60,7 +60,7 @@ A deep idea, lazily executed. The concept should be brilliant. The implementatio
 ### For Makers & Artists
 
 **Blatantly copy something:**
-Pick something you admire — a tool, an artwork, an interface. Recreate it from scratch. The learning is in the gap between your version and theirs.
+Pick something you admire; a tool, an artwork, an interface. Recreate it from scratch. The learning is in the gap between your version and theirs.
 
 **One million of something:**
 One million is both a lot and not that much. One million pixels is a 1MB photo. One million API calls is a Tuesday. One million of anything becomes interesting at scale.
@@ -91,7 +91,7 @@ See `references/full-prompt-library.md` for 30+ additional constraints across co
 
 | User says | Pick from |
 |-----------|-----------|
-| "I want to build something" (no direction) | Random — any constraint |
+| "I want to build something" (no direction) | Random; any constraint |
 | "I'm learning [language]" | Blatantly copy something, Automate the annoying thing |
 | "I want something weird" | Hostile UI, Frankenstein week, Start at the punchline |
 | "I want something useful" | Solve your own itch, The CLI that should exist, Automate the annoying thing |
@@ -110,15 +110,15 @@ See `references/full-prompt-library.md` for 30+ additional constraints across co
 
 1. **[One-line pitch]**
    [2-3 sentences: what you'd build and why it's interesting]
-   ⏱ [weekend / week / month] • 🔧 [stack]
+   ⏱ [weekend / week / month] •  [stack]
 
 2. **[One-line pitch]**
    [2-3 sentences]
-   ⏱ ... • 🔧 ...
+   ⏱ ... •  ...
 
 3. **[One-line pitch]**
    [2-3 sentences]
-   ⏱ ... • 🔧 ...
+   ⏱ ... •  ...
 ```
 
 ## Example
@@ -129,23 +129,23 @@ See `references/full-prompt-library.md` for 30+ additional constraints across co
 
 ### Ideas
 
-1. **`git whatsup` — show what happened while you were away**
+1. **`git whatsup`; show what happened while you were away**
    Compares your last active commit to HEAD and summarizes what changed,
    who committed, and what PRs merged. Like a morning standup from your repo.
-   ⏱ weekend • 🔧 Python, GitPython, click
+   ⏱ weekend •  Python, GitPython, click
 
-2. **`explain 503` — HTTP status codes for humans**
+2. **`explain 503`; HTTP status codes for humans**
    Pipe any status code or error message and get a plain-English explanation
    with common causes and fixes. Pulls from a curated database, not an LLM.
-   ⏱ weekend • 🔧 Rust or Go, static dataset
+   ⏱ weekend •  Rust or Go, static dataset
 
-3. **`deps why <package>` — why is this in my dependency tree**
+3. **`deps why <package>`; why is this in my dependency tree**
    Traces a transitive dependency back to the direct dependency that pulled
    it in. Answers "why do I have 47 copies of lodash" in one command.
-   ⏱ weekend • 🔧 Node.js, npm/yarn lockfile parsing
+   ⏱ weekend •  Node.js, npm/yarn lockfile parsing
 ```
 
-After the user picks one, start building — create the project, write the code, iterate.
+After the user picks one, start building; create the project, write the code, iterate.
 
 ## Attribution
 

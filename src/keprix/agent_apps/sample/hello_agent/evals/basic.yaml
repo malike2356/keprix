@@ -1,0 +1,7 @@
+cases:
+  - name: greets user
+    input: world
+    expect_contains: Hello
+  - name: echoes input
+    input: keprix
+    expect_contains: keprix

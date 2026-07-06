@@ -420,12 +420,12 @@ model = outlines.models.openai("gpt-3.5-turbo")
 
 | Feature | Transformers | llama.cpp | vLLM | OpenAI |
 |---------|-------------|-----------|------|--------|
-| Structured Generation | ✅ Full | ✅ Full | ✅ Full | ⚠️ Limited |
-| FSM Optimization | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No |
-| GPU Support | ✅ Yes | ✅ Yes | ✅ Yes | N/A |
-| Multi-GPU | ✅ Yes | ✅ Yes | ✅ Yes | N/A |
-| Quantization | ✅ Yes | ✅ Yes | ✅ Yes | N/A |
-| High Throughput | ⚠️ Medium | ⚠️ Medium | ✅ Excellent | ⚠️ API-limited |
+| Structured Generation | Done:  Full | Done:  Full | Done:  Full | WARNING:  Limited |
+| FSM Optimization | Done:  Yes | Done:  Yes | Done:  Yes | Failed:  No |
+| GPU Support | Done:  Yes | Done:  Yes | Done:  Yes | N/A |
+| Multi-GPU | Done:  Yes | Done:  Yes | Done:  Yes | N/A |
+| Quantization | Done:  Yes | Done:  Yes | Done:  Yes | N/A |
+| High Throughput | WARNING:  Medium | WARNING:  Medium | Done:  Excellent | WARNING:  API-limited |
 | Setup Difficulty | Easy | Medium | Medium | Easy |
 | Cost | Hardware | Hardware | Hardware | API usage |
 

@@ -1,0 +1,24 @@
+policies:
+  terms_of_use:
+    version: "2025-09-01"
+    title: "Terms of Use"
+    summary: "By using this system you agree to use it lawfully and not attempt to extract or misuse data held by others."
+    full_text_url: "/legal/terms"
+    requires_re_acceptance: true
+    active: true
+
+  privacy_policy:
+    version: "2025-09-01"
+    title: "Privacy Policy"
+    summary: "We store data you provide to operate the service. See the full policy for details."
+    full_text_url: "/legal/privacy"
+    requires_re_acceptance: true
+    active: true
+
+  data_processing_agreement:
+    version: "2025-09-01"
+    title: "Data Processing Agreement"
+    summary: "Required for organisations processing personal data. This agreement defines our roles as processor and your role as controller."
+    full_text_url: "/legal/dpa"
+    requires_re_acceptance: true
+    active: true

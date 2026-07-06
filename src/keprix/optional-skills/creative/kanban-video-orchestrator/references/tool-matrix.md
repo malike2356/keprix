@@ -1,4 +1,4 @@
-# Tool Matrix — Skills + Toolsets per Role
+# Tool Matrix; Skills + Toolsets per Role
 
 Maps each role archetype to the Keprix skills it should `always_load` and the
 toolsets it needs. Only references skills that ship in the public keprix
@@ -11,13 +11,13 @@ called from the terminal toolset; they don't appear in `always_load`.
 
 | Skill | What it does | Best fit for |
 |-------|--------------|--------------|
-| `ascii-video` | Production pipeline for ASCII art video — generative, audio-reactive, video-to-ASCII | Renderer for ASCII / terminal / retro pixel content; cinematographer for ASCII projects |
+| `ascii-video` | Production pipeline for ASCII art video; generative, audio-reactive, video-to-ASCII | Renderer for ASCII / terminal / retro pixel content; cinematographer for ASCII projects |
 | `ascii-art` | Static ASCII art generation | Concept artist for ASCII style frames; secondary tool for ASCII renderer |
-| `manim-video` | Manim CE animations — math, algorithms, 3Blue1Brown-style explainers | Renderer for math, algorithm walkthroughs, technical concept explainers |
-| `p5js` | p5.js sketches — generative art, shaders, interactive, 3D | Renderer for generative art, particle systems, organic motion, web-canvas content |
+| `manim-video` | Manim CE animations; math, algorithms, 3Blue1Brown-style explainers | Renderer for math, algorithm walkthroughs, technical concept explainers |
+| `p5js` | p5.js sketches; generative art, shaders, interactive, 3D | Renderer for generative art, particle systems, organic motion, web-canvas content |
 | `comfyui` | Generate images, video, audio with ComfyUI workflows (image-to-image, image-to-video, etc.) | image-generator, image-to-video-generator, or general renderer for AI-generated content |
-| `touchdesigner-mcp` | Control a running TouchDesigner instance — real-time visuals, audio-reactive installation art, VJ | Renderer for real-time/audio-reactive content; installation art; live performance |
-| `blender-mcp` *(optional)* | Control Blender 4.3+ via MCP — 3D modeling, animation, rendering | Renderer for 3D scenes, photoreal environments, character animation |
+| `touchdesigner-mcp` | Control a running TouchDesigner instance; real-time visuals, audio-reactive installation art, VJ | Renderer for real-time/audio-reactive content; installation art; live performance |
+| `blender-mcp` *(optional)* | Control Blender 4.3+ via MCP; 3D modeling, animation, rendering | Renderer for 3D scenes, photoreal environments, character animation |
 | `pixel-art` | Pixel art with era palettes (NES, Game Boy, PICO-8) | Renderer for retro game aesthetic; concept artist for pixel-style frames |
 | `baoyu-comic` | Knowledge-comic generation (educational, biography, tutorial) | Renderer for comic-style narrative; explainer in panel form |
 | `baoyu-infographic` | Infographic generation | Renderer for data-driven explainer scenes |
@@ -45,7 +45,7 @@ called from the terminal toolset; they don't appear in `always_load`.
 | `songwriting-and-ai-music` | Songwriting craft + Suno prompt patterns | Music supervisor when commissioning a track via Suno |
 | `heartmula` | Open-source music generation (Apache-2.0, Suno-like) | Music supervisor generating bespoke tracks without external APIs |
 | `songsee` | Spectrograms, mel/chroma/MFCC of audio files | Music supervisor analyzing tracks; foley-designer designing to a beat; editor visualizing a mix |
-| `spotify` | Spotify control — play, search, queue, manage playlists | Music supervisor sourcing existing tracks; reference research |
+| `spotify` | Spotify control; play, search, queue, manage playlists | Music supervisor sourcing existing tracks; reference research |
 | `youtube-content` | Fetch transcripts + transform to chapters/summaries/posts | Documentary cut, content adaptation, research for explainers |
 | `gif-search` | Find existing GIFs | Editor / concept artist sourcing references |
 | `gifs` | GIF tooling | Masterer producing GIF deliverables |
@@ -55,10 +55,10 @@ called from the terminal toolset; they don't appear in `always_load`.
 | Skill | What it does | When to load |
 |-------|--------------|--------------|
 | `kanban-orchestrator` | Decomposition playbook + anti-temptation rules for orchestrator profiles | Director only |
-| `kanban-worker` | Pitfalls, examples, edge cases for kanban workers (deeper than auto-injected guidance) | Any profile — load when handling tricky multi-step workflows |
+| `kanban-worker` | Pitfalls, examples, edge cases for kanban workers (deeper than auto-injected guidance) | Any profile; load when handling tricky multi-step workflows |
 
 The kanban plugin auto-injects baseline orchestration guidance into every
-worker's system prompt — the `kanban_create` fan-out pattern, claim/handoff
+worker's system prompt; the `kanban_create` fan-out pattern, claim/handoff
 lifecycle, and the "decompose, don't execute" rule for orchestrators.
 `kanban-orchestrator` and `kanban-worker` are deeper playbooks loaded when a
 profile needs them.
@@ -84,13 +84,13 @@ them directly.
 
 ## Built-in Keprix tools for media review
 
-These are native Keprix tools — not invoked via terminal but through their own
+These are native Keprix tools; not invoked via terminal but through their own
 toolsets. Enable them per-profile by adding the toolset to the profile config.
 
 | Tool | Toolset | What it does | Profile that uses it |
 |------|---------|--------------|----------------------|
-| `video_analyze` | `video` (opt-in — `keprix tools enable video`) | Native video understanding — sends full clip to a multimodal LLM (Gemini via OpenRouter) for review without frame extraction. Supports mp4, webm, mov, avi, mkv. 50 MB cap. Model: `AUXILIARY_VIDEO_MODEL` env → `AUXILIARY_VISION_MODEL` fallback. | reviewer, cinematographer, editor |
-| `vision_analyze` | `vision` (core — enabled by default) | Image/frame analysis — review stills, thumbnails, exported frames. Already available to all profiles without opt-in. | reviewer, cinematographer, concept-artist |
+| `video_analyze` | `video` (opt-in; `keprix tools enable video`) | Native video understanding; sends full clip to a multimodal LLM (Gemini via OpenRouter) for review without frame extraction. Supports mp4, webm, mov, avi, mkv. 50 MB cap. Model: `AUXILIARY_VIDEO_MODEL` env → `AUXILIARY_VISION_MODEL` fallback. | reviewer, cinematographer, editor |
+| `vision_analyze` | `vision` (core; enabled by default) | Image/frame analysis; review stills, thumbnails, exported frames. Already available to all profiles without opt-in. | reviewer, cinematographer, concept-artist |
 
 ## Standard toolset configurations per role
 
@@ -121,7 +121,7 @@ skills:
     - humanizer            # post-process scripts to strip AI-tells
 ```
 
-No terminal — writers don't need it.
+No terminal; writers don't need it.
 
 ### concept-artist
 
@@ -165,8 +165,8 @@ toolsets:
   - kanban
   - terminal
   - file
-  - video               # video_analyze — review full clips natively
-  - vision              # vision_analyze — review stills / exported frames
+  - video               # video_analyze; review full clips natively
+  - vision              # vision_analyze; review stills / exported frames
 skills:
   always_load:
     - kanban-worker
@@ -193,7 +193,7 @@ skills:
     # - ascii-video               (renderer-ascii)
     # - manim-video               (renderer-manim)
     # - p5js                      (renderer-p5js)
-    # - comfyui                   (renderer-comfyui — img/video AI gen)
+    # - comfyui                   (renderer-comfyui; img/video AI gen)
     # - touchdesigner-mcp         (renderer-touchdesigner)
     # - blender-mcp               (renderer-3d)
     # - pixel-art                 (renderer-pixel)
@@ -203,10 +203,10 @@ skills:
 
 For external-API renderers (image-to-video-generator using Runway, voice-talent
 using ElevenLabs, renderer-motion-graphics using Remotion), `always_load` only
-contains `kanban-worker` — the role's work is API-driven and the API key +
+contains `kanban-worker`; the role's work is API-driven and the API key +
 terminal commands suffice.
 
-For multi-skill renderer setups (rare — usually one variant per skill is
+For multi-skill renderer setups (rare; usually one variant per skill is
 cleaner) use `--skill <name>` on individual `kanban_create` calls to override
 which skill loads for that specific task.
 
@@ -257,8 +257,8 @@ toolsets:
   - kanban
   - terminal
   - file
-  - video              # video_analyze — editor reviews assembled cuts natively
-  - vision             # vision_analyze — spot-check frames
+  - video              # video_analyze; editor reviews assembled cuts natively
+  - vision             # vision_analyze; spot-check frames
 skills:
   always_load:
     - kanban-worker
@@ -274,8 +274,8 @@ toolsets:
   - kanban
   - terminal           # for media inspection (ffprobe, etc.)
   - file
-  - video              # video_analyze — review full clips natively
-  - vision             # vision_analyze — review stills / exported frames
+  - video              # video_analyze; review full clips natively
+  - vision             # vision_analyze; review stills / exported frames
 skills:
   always_load:
     - kanban-worker

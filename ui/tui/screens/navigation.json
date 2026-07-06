@@ -1,0 +1,29 @@
+{
+  "product": "Keprix",
+  "screens": [
+    "dashboard",
+    "jobs",
+    "providers",
+    "tools",
+    "data_imports",
+    "research_runs",
+    "approvals",
+    "logs",
+    "system_health"
+  ],
+  "navigation_groups": [
+    "workspace",
+    "apps",
+    "data",
+    "research",
+    "automations",
+    "commerce",
+    "security",
+    "admin"
+  ],
+  "contract_endpoint": "/api/ui/contract",
+  "keybindings": {
+    "command_palette": "ctrl+k",
+    "quit": "ctrl+q"
+  }
+}

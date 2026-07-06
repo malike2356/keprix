@@ -104,11 +104,11 @@ describe('preprocessMarkdown', () => {
 
   it('demotes title/url blocks wrapped in malformed inline fences', () => {
     const input = [
-      '**🚢 TOMORROW (Fajardo, crystal clear cays, pickup avail):**',
+      '** TOMORROW (Fajardo, crystal clear cays, pickup avail):**',
       '',
-      'Icacos Full-Day Catamaran — 6hr, $140, small group, pickup```',
+      'Icacos Full-Day Catamaran; 6hr, $140, small group, pickup```',
       'https://www.getyourguide.com/fajardo-l882/from-fajardo-icacos-island-full-day-catamaran-trip-t19891/',
-      '```Sail Getaway Luxury Cat (Cordillera Cays, water slide, unlimited rum) — 6hr, $195```',
+      '```Sail Getaway Luxury Cat (Cordillera Cays, water slide, unlimited rum); 6hr, $195```',
       'https://www.getyourguide.com/fajardo-l882/icacos-all-inclusive-sailing-catamaran-beach-and-snorkel-t466138/'
     ].join('\n')
 
@@ -126,10 +126,10 @@ describe('preprocessMarkdown', () => {
 
   it('autolinks urls glued to prices and removes orphan fence tails', () => {
     const input = [
-      '**🐢 TODAY (from San Juan, no driving):**',
+      '** TODAY (from San Juan, no driving):**',
       '',
-      'Sea Turtles & Manatees Snorkel + Free Rum — 1.5hr,',
-      '~$56```https://www.getyourguide.com/san-juan-puerto-rico-l355/san-juan-snorkel-sea-turtles-manatees-free-video-rum-t879147/ Old San Juan Sunset Cruise w/ Drinks + Hotel Pickup — 1.5hr, ~$99 (drinks, no snorkel)```',
+      'Sea Turtles & Manatees Snorkel + Free Rum; 1.5hr,',
+      '~$56```https://www.getyourguide.com/san-juan-puerto-rico-l355/san-juan-snorkel-sea-turtles-manatees-free-video-rum-t879147/ Old San Juan Sunset Cruise w/ Drinks + Hotel Pickup; 1.5hr, ~$99 (drinks, no snorkel)```',
       'https://www.getyourguide.com/en-gb/san-juan-puerto-rico-l355/san-juan-old-san-juan-sunset-cruise-with-drinks-transfer-t405191/'
     ].join('\n')
 
@@ -140,7 +140,7 @@ describe('preprocessMarkdown', () => {
     // so they don't get parsed as math delimiters by remark-math (we
     // enable singleDollarTextMath, which would otherwise greedy-match
     // `$56...$99` as one big inline math span). The escape is invisible
-    // to the user — `\$` renders as a literal `$` in the final output.
+    // to the user; `\$` renders as a literal `$` in the final output.
     expect(output).toContain(
       '~\\$56<https://www.getyourguide.com/san-juan-puerto-rico-l355/san-juan-snorkel-sea-turtles-manatees-free-video-rum-t879147/> Old San Juan Sunset Cruise'
     )
@@ -151,12 +151,12 @@ describe('preprocessMarkdown', () => {
 
   it('demotes url-only fenced blocks to clickable markdown links', () => {
     const input = [
-      'Sea Turtles & Manatees Snorkel + Free Rum — 1.5hr, ~$56',
+      'Sea Turtles & Manatees Snorkel + Free Rum; 1.5hr, ~$56',
       '```',
       'https://www.getyourguide.com/san-juan-puerto-rico-l355/san-juan-snorkel-sea-turtles-manatees-free-video-rum-t879147/',
       '```',
       '',
-      'Old San Juan Sunset Cruise w/ Drinks + Hotel Pickup — 1.5hr, ~$99',
+      'Old San Juan Sunset Cruise w/ Drinks + Hotel Pickup; 1.5hr, ~$99',
       '```',
       'https://www.getyourguide.com/en-gb/san-juan-puerto-rico-l355/san-juan-old-san-juan-sunset-cruise-with-drinks-transfer-t405191/',
       '```'

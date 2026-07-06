@@ -1587,6 +1587,13 @@ def init_agent(
     )
     agent._user_turn_count = 0
 
+    try:
+        from keprix.mutation.hook import install_tool_miss_hook_on_agent
+
+        install_tool_miss_hook_on_agent(agent)
+    except Exception as _mutation_hook_err:
+        _ra().logger.debug("mutation tool miss hook not installed: %s", _mutation_hook_err)
+
     # Cumulative token usage for the session
     agent.session_prompt_tokens = 0
     agent.session_completion_tokens = 0

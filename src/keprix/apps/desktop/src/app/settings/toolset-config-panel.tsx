@@ -178,7 +178,7 @@ interface PostSetupRunnerProps {
 /**
  * Runs a provider's post-setup install hook (npm / pip / binary) via the
  * `/api/tools/toolsets/{name}/post-setup` spawn-action and tails the resulting
- * log inline — the GUI equivalent of the install step `hermes tools` runs
+ * log inline; the GUI equivalent of the install step `hermes tools` runs
  * after you pick a backend that needs extra dependencies.
  */
 function PostSetupRunner({ toolset, postSetupKey, onComplete }: PostSetupRunnerProps) {
@@ -205,7 +205,7 @@ function PostSetupRunner({ toolset, postSetupKey, onComplete }: PostSetupRunnerP
 
       // The spawn endpoint reports ok:false if it couldn't launch the action
       // (e.g. unknown key, server-side spawn failure). Don't poll a status
-      // that will never exist — surface the failure and stop.
+      // that will never exist; surface the failure and stop.
       if (!started.ok) {
         notifyError(new Error('spawn failed'), copy.postSetupFailed(postSetupKey))
 

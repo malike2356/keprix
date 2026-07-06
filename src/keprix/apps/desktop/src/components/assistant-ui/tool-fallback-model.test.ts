@@ -39,7 +39,7 @@ describe('buildToolView terminal exit-code status', () => {
     buildToolView(part({ result, toolName: 'terminal' }), '')
 
   // A non-zero exit code with real output is not a failure (grep no-match,
-  // diff differences, piped commands surfacing the last stage's code, etc.) —
+  // diff differences, piped commands surfacing the last stage's code, etc.);
   // it should render as success so the card isn't painted red.
   it('treats non-zero exit with output as success', () => {
     expect(terminal({ exit_code: 7, output: 'node ... 5174 (LISTEN)' }).status).toBe('success')

@@ -21,13 +21,13 @@ The goal is to preserve Claude Design's useful design behavior and taste while r
 
 ## When To Use This Skill vs `popular-web-designs` vs `design-md`
 
-Keprix has three design-related skills under `skills/creative/`. They do different jobs — load the right one (or combine them):
+Keprix has three design-related skills under `skills/creative/`. They do different jobs; load the right one (or combine them):
 
 | Skill | What it gives you | Use when the user wants... |
 |---|---|---|
-| **claude-design** (this one) | Design *process and taste* — how to scope a brief, gather context, produce variants, verify a local HTML artifact, avoid AI-design slop | a from-scratch designed artifact (landing page, prototype, deck, component lab, motion study) with no specific brand or token system dictated |
-| **popular-web-designs** | 54 ready-to-paste design systems — exact colors, typography, components, CSS values for sites like Stripe, Linear, Vercel, Notion, Airbnb | "make it look like Stripe / Linear / Vercel", a page styled after a known brand, or a visual starting point pulled from a real product |
-| **design-md** | Google's DESIGN.md spec format — author/validate/diff/export design-token files, WCAG contrast checking, Tailwind/DTCG export | a formal, persistent, machine-readable design-system *spec file* (tokens + rationale) that lives in a repo and gets consumed by agents over time |
+| **claude-design** (this one) | Design *process and taste*; how to scope a brief, gather context, produce variants, verify a local HTML artifact, avoid AI-design slop | a from-scratch designed artifact (landing page, prototype, deck, component lab, motion study) with no specific brand or token system dictated |
+| **popular-web-designs** | 54 ready-to-paste design systems; exact colors, typography, components, CSS values for sites like Stripe, Linear, Vercel, Notion, Airbnb | "make it look like Stripe / Linear / Vercel", a page styled after a known brand, or a visual starting point pulled from a real product |
+| **design-md** | Google's DESIGN.md spec format; author/validate/diff/export design-token files, WCAG contrast checking, Tailwind/DTCG export | a formal, persistent, machine-readable design-system *spec file* (tokens + rationale) that lives in a repo and gets consumed by agents over time |
 
 Rule of thumb:
 
@@ -303,7 +303,7 @@ Requirements:
 
 Do not hand-wave a deck as markdown bullets. Create a designed artifact if asked for a deck.
 
-Use 1–2 background colors max unless the brand system requires more.
+Use 1-2 background colors max unless the brand system requires more.
 
 Keep slides sparse. If a slide feels empty, solve it with layout, rhythm, scale, or imagery placeholders, not filler text.
 
@@ -323,9 +323,9 @@ If the prototype is meant to model a product flow, design the flow, not just the
 
 When exploring, default to at least three options:
 
-1. **Conservative** — closest to existing patterns / lowest risk
-2. **Strong-fit** — best interpretation of the brief
-3. **Divergent** — more novel, useful for discovering taste boundaries
+1. **Conservative**; closest to existing patterns / lowest risk
+2. **Strong-fit**; best interpretation of the brief
+3. **Divergent**; more novel, useful for discovering taste boundaries
 
 Variations can explore:
 

@@ -12,7 +12,7 @@ const NEAR_BOTTOM_PX = 24
 /**
  * Tiny read-only terminal viewer: monospace, non-wrapping (long lines scroll
  * horizontally), vertical scroll past `max-h`. Jumps to the bottom on mount,
- * then tails — sticking to the bottom as `text` grows, but only when the user
+ * then tails; sticking to the bottom as `text` grows, but only when the user
  * is already near the bottom so scrolling up to read earlier output isn't
  * interrupted.
  *

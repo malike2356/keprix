@@ -14,7 +14,7 @@
  * Those two paths use different processes, transports, and credentials, and the
  * server applies extra guards to the WS upgrade that the HTTP status route never
  * sees (Host/Origin checks, ws-ticket/token auth, peer-IP checks). So a gateway
- * can pass the HTTP status check yet reject the WebSocket — which surfaces to
+ * can pass the HTTP status check yet reject the WebSocket; which surfaces to
  * the user as a green "Test remote" followed by an opaque "Could not connect to
  * Hermes gateway" on the boot overlay.
  *
@@ -79,7 +79,7 @@ function probeGatewayWebSocket(wsUrl, options = {}) {
       try {
         socket?.close?.()
       } catch {
-        // ignore — best effort teardown
+        // ignore; best effort teardown
       }
       resolve(result)
     }
@@ -105,7 +105,7 @@ function probeGatewayWebSocket(wsUrl, options = {}) {
     }
 
     const onMessage = () => {
-      // Any frame means the gateway accepted us and is talking — unambiguous
+      // Any frame means the gateway accepted us and is talking; unambiguous
       // success, no need to wait out the grace window.
       finish({ ok: true })
     }

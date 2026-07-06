@@ -1,0 +1,15 @@
+@config "../../tailwind.voice.config.ts";
+
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
+.kp-voice-root {
+  --kp-voice-text: var(--kp-text-primary);
+  --kp-voice-text-muted: color-mix(in srgb, var(--kp-text-primary) 70%, transparent);
+  --kp-voice-text-faint: color-mix(in srgb, var(--kp-text-primary) 30%, transparent);
+  --kp-voice-hover: color-mix(in srgb, var(--kp-text-primary) 10%, transparent);
+  --kp-voice-bar-active: color-mix(in srgb, var(--kp-text-primary) 50%, transparent);
+  --kp-voice-bar-idle: color-mix(in srgb, var(--kp-text-primary) 10%, transparent);
+  --kp-voice-indicator: var(--kp-text-primary);
+}

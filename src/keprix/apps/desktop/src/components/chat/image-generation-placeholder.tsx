@@ -37,7 +37,7 @@ const parseColor = (value: string, fallback: Rgb): Rgb => {
     return { r: Number(rgb[1]), g: Number(rgb[2]), b: Number(rgb[3]) }
   }
 
-  // Chromium serialises `color-mix(in srgb, …)` as `color(srgb r g b / a)` with 0–1 floats.
+  // Chromium serialises `color-mix(in srgb, …)` as `color(srgb r g b / a)` with 0-1 floats.
   const srgb = v.match(/color\(\s*srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i)
 
   return srgb
@@ -93,7 +93,7 @@ type Theme = Record<keyof typeof FALLBACKS, Rgb>
 const TOKENS = Object.keys(FALLBACKS) as (keyof typeof FALLBACKS)[]
 
 // `--dt-*` resolve through `var()` chains into `color-mix()`, which
-// getPropertyValue hands back verbatim — unreadable. Bouncing each token through
+// getPropertyValue hands back verbatim; unreadable. Bouncing each token through
 // a probe's `color` lets the browser compute it to a concrete color we can
 // parse, so the canvas tracks the live theme instead of a hardcoded fallback.
 const readTheme = (probe: HTMLElement): Theme =>

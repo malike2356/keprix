@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#0f172a"/>
+  <rect x="40" y="40" width="720" height="60" rx="8" fill="#1e293b"/>
+  <text x="60" y="78" fill="#f8fafc" font-family="system-ui,sans-serif" font-size="22" font-weight="600">Agent Apps</text>
+  <rect x="40" y="120" width="220" height="120" rx="8" fill="#1e293b"/>
+  <rect x="280" y="120" width="220" height="120" rx="8" fill="#1e293b"/>
+  <rect x="520" y="120" width="220" height="120" rx="8" fill="#1e293b"/>
+  <text x="60" y="155" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="14">Daily Standup</text>
+  <text x="300" y="155" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="14">Research Brief</text>
+  <text x="540" y="155" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="14">Invoice Review</text>
+  <text x="400" y="400" fill="#64748b" font-family="system-ui,sans-serif" font-size="16" text-anchor="middle">Agent Apps hub screenshot placeholder</text>
+</svg>

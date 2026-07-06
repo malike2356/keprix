@@ -62,7 +62,7 @@ function connect(url) {
         pending.delete(m.id)
         m.error ? p.rej(new Error(m.error.message)) : p.res(m.result)
       } else if (m.method) {
-        ;(events.get(m.method) ?? []).forEach(h => h(m.params))
+;(events.get(m.method) ?? []).forEach(h => h(m.params))
       }
     })
   })

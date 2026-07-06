@@ -1,6 +1,6 @@
 ---
 name: comps-analysis
-description: Build comparable company analysis in Excel — operating metrics, valuation multiples, statistical benchmarking vs peer sets. Pairs with excel-author. Use for public-company valuation, IPO pricing, sector benchmarking, or outlier detection.
+description: Build comparable company analysis in Excel; operating metrics, valuation multiples, statistical benchmarking vs peer sets. Pairs with excel-author. Use for public-company valuation, IPO pricing, sector benchmarking, or outlier detection.
 version: 1.0.0
 author: Anthropic (adapted by Nous Research)
 license: Apache-2.0
@@ -13,13 +13,13 @@ metadata:
 
 ## Environment
 
-This skill assumes **headless openpyxl** — you are producing an .xlsx file on disk.
+This skill assumes **headless openpyxl**; you are producing an .xlsx file on disk.
 Follow the `excel-author` skill's conventions for cell coloring, formulas, named ranges, and sensitivity tables.
 Recalculate before delivery: `python /path/to/excel-author/scripts/recalc.py ./out/model.xlsx`.
 
 # Comparable Company Analysis
 
-## ⚠️ CRITICAL: Data Source Priority (READ FIRST)
+## WARNING:  CRITICAL: Data Source Priority (READ FIRST)
 
 **ALWAYS follow this data source hierarchy:**
 
@@ -72,12 +72,12 @@ Start with headers that force strategic thinking about what matters, input clean
 
 ---
 
-## ⚠️ CRITICAL: Formulas Over Hardcodes + Step-by-Step Verification
+## WARNING:  CRITICAL: Formulas Over Hardcodes + Step-by-Step Verification
 
 **Formulas, not hardcodes:**
-- Every derived value (margin, multiple, statistic) MUST be an Excel formula referencing input cells — never a pre-computed number pasted in
+- Every derived value (margin, multiple, statistic) MUST be an Excel formula referencing input cells; never a pre-computed number pasted in
 - When using Python/openpyxl to build the sheet: write `cell.value = "=E7/C7"` (formula string), NOT `cell.value = 0.687` (computed result)
-- The only hardcoded values should be raw input data (revenue, EBITDA, share price, etc.) — and every one of those gets a cell comment with its source
+- The only hardcoded values should be raw input data (revenue, EBITDA, share price, etc.); and every one of those gets a cell comment with its source
 - Why: the model must update automatically when an input changes. A hardcoded margin is a silent bug waiting to happen.
 
 **Verify step-by-step with the user:**
@@ -85,7 +85,7 @@ Start with headers that force strategic thinking about what matters, input clean
 - After entering raw inputs → show the user the input block and confirm sources/periods before building formulas
 - After building operating metrics formulas → show the calculated margins and sanity-check with the user before moving to valuation
 - After building valuation multiples → show the multiples and confirm they look reasonable before adding statistics
-- Do NOT build the entire sheet end-to-end and then present it — catch errors early by confirming each section
+- Do NOT build the entire sheet end-to-end and then present it; catch errors early by confirming each section
 
 ---
 
@@ -113,8 +113,8 @@ Row 3: As of [Period] | All figures in [USD Millions/Billions] except per-share 
 - **Font size**: 11pt for data cells, 12pt for headers
 - **Bold text**: Section headers, company names, statistic labels
 
-**Default Color & Shading — Professional Blue/Grey Palette (minimal is better):**
-- **Keep it restrained** — only blues and greys. Do NOT introduce greens, oranges, reds, or multiple accent colors. A clean comps sheet uses 3-4 colors total.
+**Default Color & Shading; Professional Blue/Grey Palette (minimal is better):**
+- **Keep it restrained**; only blues and greys. Do NOT introduce greens, oranges, reds, or multiple accent colors. A clean comps sheet uses 3-4 colors total.
 - **Section headers** (e.g., "OPERATING STATISTICS & FINANCIAL METRICS"):
   - Dark blue background (`#1F4E79` or `#17365D` navy)
   - White bold text
@@ -367,15 +367,15 @@ If you have more than 15 metrics, you're probably including noise. Edit ruthless
 - **Size-efficiency trade-off**: Larger companies often have better margins (scale benefits)
 
 ### Common Mistakes to Avoid
-❌ Mixing market cap and enterprise value in formulas
-❌ Using different time periods for numerator and denominator (LTM vs quarterly)
-❌ Hardcoding numbers into formulas instead of cell references
-❌ **Hard-coded inputs without cell comments citing the source OR explaining the assumption**
-❌ Missing hyperlinks to SEC filings or data sources when available
-❌ Including too many metrics without clear purpose
-❌ Including non-comparable companies (different business models)
-❌ Using outdated data without disclosure
-❌ Calculating averages of percentages incorrectly (should be median)
+Failed:  Mixing market cap and enterprise value in formulas
+Failed:  Using different time periods for numerator and denominator (LTM vs quarterly)
+Failed:  Hardcoding numbers into formulas instead of cell references
+Failed:  **Hard-coded inputs without cell comments citing the source OR explaining the assumption**
+Failed:  Missing hyperlinks to SEC filings or data sources when available
+Failed:  Including too many metrics without clear purpose
+Failed:  Including non-comparable companies (different business models)
+Failed:  Using outdated data without disclosure
+Failed:  Calculating averages of percentages incorrectly (should be median)
 
 ---
 
@@ -542,19 +542,19 @@ Add if relevant: Asset Turnover, Inventory Turns, Backlog
 ## Section 10: Red Flags & Warning Signs
 
 ### Data Quality Issues
-🚩 Inconsistent time periods (mixing quarterly and annual)  
-🚩 Missing data without explanation  
-🚩 Significant differences between data sources (>10% variance)
+ Inconsistent time periods (mixing quarterly and annual)  
+ Missing data without explanation  
+ Significant differences between data sources (>10% variance)
 
 ### Valuation Red Flags
-🚩 Negative EBITDA companies being valued on EBITDA multiples (use revenue multiples instead)  
-🚩 P/E ratios >100x without hypergrowth story  
-🚩 Margins that don't make sense for the industry
+ Negative EBITDA companies being valued on EBITDA multiples (use revenue multiples instead)  
+ P/E ratios >100x without hypergrowth story  
+ Margins that don't make sense for the industry
 
 ### Comparability Issues
-🚩 Different fiscal year ends (causes timing problems)  
-🚩ixing pure-play and conglomerates  
-🚩 Materially different business models labeled as "comps"
+ Different fiscal year ends (causes timing problems)  
+ixing pure-play and conglomerates  
+ Materially different business models labeled as "comps"
 
 **When in doubt, exclude the company.** Better to have 3 perfect comps than 6 questionable ones.
 
@@ -645,11 +645,11 @@ After completing a comp analysis, ask:
 The best comp analyses evolve with each iteration. Save templates, learn from feedback, and refine the structure based on what decision-makers actually use.
 
 
-## Data sources — MCP first, web fallback
+## Data sources; MCP first, web fallback
 
 Many passages below say "use the S&P Kensho MCP / Daloopa MCP / FactSet MCP". Those are commercial financial-data MCPs from the original Cowork plugin context. In Keprix:
 
-- **If you have any structured financial-data MCP configured** (Keprix supports MCP — see `native-mcp` skill), prefer it for point-in-time comps, precedent transactions, and filings.
+- **If you have any structured financial-data MCP configured** (Keprix supports MCP; see `native-mcp` skill), prefer it for point-in-time comps, precedent transactions, and filings.
 - **Otherwise**, fall back to:
   - `web_search` / `web_extract` against SEC EDGAR (`https://www.sec.gov/cgi-bin/browse-edgar`) for US filings
   - Company IR pages for press releases, earnings decks

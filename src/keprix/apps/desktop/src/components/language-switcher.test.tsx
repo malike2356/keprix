@@ -7,7 +7,7 @@ import { type I18nConfigClient, I18nProvider } from '@/i18n'
 import { LanguageSwitcher } from './language-switcher'
 
 // cmdk (the searchable list) wires a ResizeObserver and scrolls the active
-// item into view — neither exists in jsdom. Stub them, matching the polyfill
+// item into view; neither exists in jsdom. Stub them, matching the polyfill
 // idiom in tool-approval-group.test.tsx.
 class TestResizeObserver {
   observe() {}

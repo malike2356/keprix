@@ -1,0 +1,34 @@
+name: productivity_notion_trello
+version: "1"
+category: tool_routing
+description: Smoke checks for Notion/Trello integration wiring (mocked backends).
+min_pass_rate: 1.0
+max_cost_usd: 0.02
+max_runtime_ms: 15000
+tasks:
+  - id: route_live_edit_to_mcp
+    input: "User wants to create a Trello card in chat and mcp_trello tools are available"
+    description: Prefer MCP tools when the trello server is connected
+    expect_contains: mcp_trello
+    mock_output: "Use mcp_trello_create_card (or equivalent mcp_trello_* tool) when the trello MCP server is connected."
+    metadata:
+      wiring_check: routing_mcp_live
+    max_runtime_ms: 5000
+
+  - id: route_search_to_rag
+    input: "User wants to search indexed Notion handbook content without live API calls"
+    description: Prefer RAG pipeline query with source_types notion
+    expect_contains: rag-pipeline
+    mock_output: "POST /api/rag-pipeline/query with source_types [notion] after ingest via /api/rag-pipeline/ingest/notion."
+    metadata:
+      wiring_check: routing_rag_search
+    max_runtime_ms: 5000
+
+  - id: route_fallback_to_skill
+    input: "User wants to list Trello boards but no MCP server is configured"
+    description: Fall back to trello skill and terminal curl
+    expect_contains: trello
+    mock_output: "Load the trello skill and call GET /members/me/boards via curl with TRELLO_API_KEY and TRELLO_TOKEN."
+    metadata:
+      wiring_check: routing_skill_fallback
+    max_runtime_ms: 5000

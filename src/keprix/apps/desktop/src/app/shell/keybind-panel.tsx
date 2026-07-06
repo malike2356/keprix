@@ -105,7 +105,7 @@ export function KeybindPanel() {
   )
 }
 
-// Collapsible category header — chevron fades in on hover, rotates when open
+// Collapsible category header; chevron fades in on hover, rotates when open
 // (matches the sessions sidebar section pattern).
 function CategoryHeader({ label, onToggle, open }: { label: string; onToggle: () => void; open: boolean }) {
   return (
@@ -158,7 +158,7 @@ function KeybindRow({ action }: { action: KeybindActionMeta }) {
         </span>
       )}
 
-      {/* Click the caps to rebind — the on-screen editor does the same thing. */}
+      {/* Click the caps to rebind; the on-screen editor does the same thing. */}
       <button
         aria-label={k.rebind}
         className="flex shrink-0 items-center gap-1 rounded-lg outline-none"

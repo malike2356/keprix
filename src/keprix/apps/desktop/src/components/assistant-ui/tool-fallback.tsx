@@ -144,7 +144,7 @@ function ToolGlyph({ copy, icon, status }: { copy: ToolStatusCopy; icon?: string
 }
 
 // Which status (if any) should pre-empt the tool's icon in the leading
-// slot. Success is silent — the row reads as "done" without a checkmark.
+// slot. Success is silent; the row reads as "done" without a checkmark.
 function leadingStatus(isPending: boolean, status: ToolStatus): ToolStatus | undefined {
   if (isPending) {
     return 'running'
@@ -208,7 +208,7 @@ function ToolEntry({ part }: ToolEntryProps) {
   const isPending = messageRunning && part.result === undefined
   const canDismiss = !isPending && !embedded
   // Only animate entries that mount while their message is actively
-  // streaming — historical sessions mount with `messageRunning === false`,
+  // streaming; historical sessions mount with `messageRunning === false`,
   // so they paint statically without a settle cascade. The wrapping group
   // handles its own enter animation, so embedded children skip it.
   const enterRef = useEnterAnimation(messageRunning && !embedded, `tool-entry:${disclosureId}`)
@@ -294,7 +294,7 @@ function ToolEntry({ part }: ToolEntryProps) {
   // Once a turn has settled, a hover/focus-revealed dismiss lets the user clear
   // a completed/failed row that would otherwise sit at the tail of the chat.
   // It goes in the in-flow `action` slot (not `trailing`) so it can't overlap
-  // the disclosure caret's hit-target — see the comment above `trailing`.
+  // the disclosure caret's hit-target; see the comment above `trailing`.
   const dismissAction = canDismiss ? (
     <Tip label={statusCopy.dismiss}>
       <Button
@@ -402,7 +402,7 @@ function ToolEntry({ part }: ToolEntryProps) {
               ) : null
             ) : view.stdout || view.stderr ? (
               // Stdout + stderr split: render both as labeled blocks. stderr
-              // is intentionally NOT painted destructive — many CLIs log
+              // is intentionally NOT painted destructive; many CLIs log
               // informational output there.
               <div className="max-w-full text-xs leading-relaxed text-(--ui-text-secondary)">
                 {view.detailLabel && <p className={TOOL_SECTION_LABEL_CLASS}>{view.detailLabel}</p>}
@@ -470,7 +470,7 @@ function ToolEntry({ part }: ToolEntryProps) {
  *
  * So we never group: each tool is a standalone row, and the wrapper just lays
  * its children out on the tight `--tool-row-gap` rhythm. One range or ten,
- * fragmented or consecutive, the result is pixel-identical — a tight, stable
+ * fragmented or consecutive, the result is pixel-identical; a tight, stable
  * stack. The wrapper stays a single `<div>` of stable identity so children
  * never remount as the range grows mid-stream. `ToolEmbedContext` is false so
  * every row owns its own chrome (timer / preview / copy / inline approval).
@@ -497,7 +497,7 @@ export const ToolGroupSlot: FC<PropsWithChildren<{ endIndex: number; startIndex:
 }
 
 /**
- * Per-tool fallback. Now strictly returns a single ToolEntry — the
+ * Per-tool fallback. Now strictly returns a single ToolEntry; the
  * grouping decision lives in ToolGroupSlot above, so this never swaps
  * its return type and the underlying ToolEntry stays mounted across
  * group-shape changes.

@@ -88,11 +88,48 @@ class TestMcpEndpoints:
             "/api/mcp/servers/nope/enabled", json={"enabled": True}
         ).status_code == 404
 
+    def test_update_stdio_preserves_auto_spawned(self):
+        self.client.post(
+            "/api/mcp/servers",
+            json={
+                "name": "fs",
+                "command": "npx",
+                "args": ["-y", "pkg"],
+                "env": {"API_KEY": "secret-value"},
+            },
+        )
+        from keprix_cli.config import load_config, save_config
+
+        cfg = load_config()
+        cfg["mcp_servers"]["fs"]["auto_spawned"] = True
+        save_config(cfg)
+
+        r = self.client.put(
+            "/api/mcp/servers/fs",
+            json={
+                "name": "fs",
+                "command": "npx",
+                "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
+                "env": {"API_KEY": "***"},
+            },
+        )
+        assert r.status_code == 200
+        assert r.json()["transport"] == "stdio"
+        assert r.json()["auto_spawned"] is True
+
+        from keprix_cli.mcp_config import _get_mcp_servers
+
+        saved = _get_mcp_servers()["fs"]
+        assert saved["args"] == ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+        assert saved["env"]["API_KEY"] == "secret-value"
+
     def test_catalog_lists_entries(self):
         r = self.client.get("/api/mcp/catalog")
         assert r.status_code == 200
         body = r.json()
         assert "entries" in body and "diagnostics" in body
+        assert "catalog" in body
+        assert len(body["catalog"]) == 17
         # The shipped optional-mcps/ catalog has at least one entry; each must
         # carry the install/enabled status fields the UI relies on.
         for e in body["entries"]:

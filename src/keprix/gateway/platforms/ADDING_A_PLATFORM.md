@@ -16,12 +16,12 @@ status display, gateway setup, and more.
 
 **Optional hooks cover the edges most adapters need:**
 
-- `env_enablement_fn: () -> Optional[dict]` — seeds `PlatformConfig.extra`
+- `env_enablement_fn: () -> Optional[dict]`; seeds `PlatformConfig.extra`
   (and an optional `home_channel` dict) from env vars BEFORE the adapter is
   constructed.  Without this, env-only setups don't surface in
   `keprix gateway status` or `get_connected_platforms()` until the SDK
   instantiates.
-- `apply_yaml_config_fn: (yaml_cfg, platform_cfg) -> Optional[dict]` —
+- `apply_yaml_config_fn: (yaml_cfg, platform_cfg) -> Optional[dict]`;
   translate this platform's `config.yaml` keys into env vars and/or seed
   `PlatformConfig.extra` directly.  Lets a plugin own its YAML schema
   instead of growing core `gateway/config.py` boilerplate per platform.
@@ -29,7 +29,7 @@ status display, gateway setup, and more.
   preserve env > YAML precedence); the returned dict is merged into
   `PlatformConfig.extra`.  Called during `load_gateway_config()` after
   the generic shared-key loop and before `_apply_env_overrides()`.
-- `cron_deliver_env_var: str` — name of the `*_HOME_CHANNEL` env var.  When
+- `cron_deliver_env_var: str`; name of the `*_HOME_CHANNEL` env var.  When
   set, `deliver=<name>` cron jobs route to this var without editing
   `cron/scheduler.py`'s hardcoded sets.
 - `standalone_sender_fn: async (...) -> dict`: out-of-process delivery
@@ -37,7 +37,7 @@ status display, gateway setup, and more.
   `deliver=<name>` job fires correctly but the actual send returns
   `No live adapter for platform '<name>'`.  Pair with `cron_deliver_env_var`
   for end-to-end cron support.  See the docsite for the signature.
-- `plugin.yaml` `requires_env` / `optional_env` rich-dict entries —
+- `plugin.yaml` `requires_env` / `optional_env` rich-dict entries;
   auto-populate `OPTIONAL_ENV_VARS` in `keprix_cli/config.py` so the setup
   wizard surfaces proper descriptions, prompts, password flags, and URLs.
 
@@ -53,19 +53,19 @@ state machine, `interrupt_session_activity` override for `/stop`
 orphans) and the developer-guide page for the prose walkthrough.
 
 **Sibling adapters that share behavior.** When a single platform has
-two transport modes the user picks between — unofficial vs official
-APIs, polling vs websocket, library A vs library B — the right
+two transport modes the user picks between; unofficial vs official
+APIs, polling vs websocket, library A vs library B; the right
 structure is two adapters that share a behavior mixin. WhatsApp does
 this: `gateway/platforms/whatsapp.py` (Baileys bridge) and
 `gateway/platforms/whatsapp_cloud.py` (Meta Cloud API) both inherit
 from `WhatsAppBehaviorMixin` in `gateway/platforms/whatsapp_common.py`.
 The mixin owns gating, allow-lists, mention parsing, broadcast
-filters, and the WhatsApp-flavored markdown conversion — everything
+filters, and the WhatsApp-flavored markdown conversion; everything
 that's platform-protocol-agnostic. Each adapter owns its transport.
 Both register distinct `Platform.*` enum values so the gateway can run
 both simultaneously against different phone numbers. The mixin must
-come **first** in the bases list — `class WhatsAppAdapter(Mixin,
-BasePlatformAdapter)` — so the mixin's `format_message` overrides
+come **first** in the bases list; `class WhatsAppAdapter(Mixin,
+BasePlatformAdapter)`; so the mixin's `format_message` overrides
 `BasePlatformAdapter`'s generic default.
 
 See `plugins/platforms/irc/`, `plugins/platforms/teams/`, and
@@ -78,7 +78,7 @@ plugin guide with code examples and hook documentation.
 ## Built-in Path (Core Contributors Only)
 
 Checklist for integrating a platform directly into the Keprix core.
-Use this as a reference when building a built-in adapter — every item here
+Use this as a reference when building a built-in adapter; every item here
 is a real integration point. Missing any of them will cause broken
 functionality, missing features, or inconsistent behavior.
 
@@ -121,7 +121,7 @@ If your platform supports interactive button/menu messages, implement these for 
 | `send_slash_confirm(chat_id, title, message, session_key, confirm_id, ...)` | Render slash-command confirmations (e.g. `/reload-mcp`) as Once/Always/Cancel buttons. Inbound dispatch routes to `tools.slash_confirm.resolve`. |
 | `send_model_picker(...)` | Interactive `/model` picker. Used by Telegram and Discord. |
 
-See `gateway/platforms/telegram.py`, `discord.py`, and `whatsapp_cloud.py` for reference implementations. The button-callback id convention (`cl:<id>:<idx>`, `appr:<id>:<choice>`, `sc:<choice>:<id>`) is shared across adapters — match it so the gateway-side resolvers work without modification.
+See `gateway/platforms/telegram.py`, `discord.py`, and `whatsapp_cloud.py` for reference implementations. The button-callback id convention (`cl:<id>:<idx>`, `appr:<id>:<choice>`, `sc:<choice>:<id>`) is shared across adapters; match it so the gateway-side resolvers work without modification.
 
 ### Required function
 
@@ -285,7 +285,7 @@ elif platform == Platform.YOUR_PLATFORM:
     return await _send_your_platform(pconfig, chat_id, message)
 ```
 
-Implement `_send_your_platform()` — a standalone async function that sends
+Implement `_send_your_platform()`; a standalone async function that sends
 a single message without requiring the full adapter (for use by cron jobs
 and the send_message tool outside the gateway process).
 
@@ -332,7 +332,7 @@ Add to the `_PLATFORMS` list:
 {
     "key": "your_platform",
     "label": "Your Platform",
-    "emoji": "📱",
+    "emoji": "",
     "token_var": "YOUR_PLATFORM_TOKEN",
     "setup_instructions": [...],
     "vars": [...],
@@ -362,7 +362,7 @@ identifiers are masked in ALL log output, not just your adapter's logs.
 |------|---------------|
 | `README.md` | Platform list in feature table + documentation table |
 | `AGENTS.md` | Gateway description + env var config section |
-| `website/docs/user-guide/messaging/<platform>.md` | **NEW** — Full setup guide (see existing platform docs for template) |
+| `website/docs/user-guide/messaging/<platform>.md` | **NEW**; Full setup guide (see existing platform docs for template) |
 | `website/docs/user-guide/messaging/index.md` | Architecture diagram, toolset table, security examples, Next Steps links |
 | `website/docs/reference/environment-variables.md` | All env vars for the platform |
 
@@ -399,5 +399,5 @@ python -m pytest tests/ -q
 # Grep for your platform name to find any missed integration points
 grep -r "telegram\|discord\|whatsapp\|slack" gateway/ tools/ agent/ cron/ keprix_cli/ toolsets.py \
   --include="*.py" -l | sort -u
-# Check each file in the output — if it mentions other platforms but not yours, you missed it
+# Check each file in the output; if it mentions other platforms but not yours, you missed it
 ```

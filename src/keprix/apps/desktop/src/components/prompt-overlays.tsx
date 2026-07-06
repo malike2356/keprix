@@ -22,15 +22,15 @@ import { $secretRequest, $sudoRequest, clearSecretRequest, clearSudoRequest } fr
 
 // Renders the modal mid-turn prompts the gateway raises and waits on: sudo
 // password and skill secret capture. (Dangerous-command / execute_code approval
-// is rendered INLINE on the pending tool row instead — see
-// components/assistant-ui/tool-approval.tsx — so it reads like an inline "Run"
+// is rendered INLINE on the pending tool row instead; see
+// components/assistant-ui/tool-approval.tsx; so it reads like an inline "Run"
 // affordance rather than a blocking modal.) Each Python-side caller blocks the
 // agent thread until the matching `*.respond` RPC lands; without a renderer the
-// agent stalls until its timeout and the tool is BLOCKED (the bug this fixes —
+// agent stalls until its timeout and the tool is BLOCKED (the bug this fixes;
 // desktop handled clarify.request but not these). Any close path (Esc, backdrop
 // click) funnels through Radix's single `onOpenChange(false)` and maps to a
 // refusal, so silence is never mistaken for consent, matching the TUI. We
-// deliberately do NOT add onEscapeKeyDown / onInteractOutside handlers — they'd
+// deliberately do NOT add onEscapeKeyDown / onInteractOutside handlers; they'd
 // fire a second `*.respond` alongside onOpenChange (double-send) or block the
 // backdrop-dismiss path.
 

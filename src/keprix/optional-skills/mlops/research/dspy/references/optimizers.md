@@ -509,21 +509,21 @@ else:
 ### 1. Overfitting to Training Data
 
 ```python
-# ❌ Bad: Too many demos
+# Failed:  Bad: Too many demos
 optimizer = BootstrapFewShot(max_bootstrapped_demos=20)  # Overfits!
 
-# ✅ Good: Moderate demos
+# Done:  Good: Moderate demos
 optimizer = BootstrapFewShot(max_bootstrapped_demos=3-5)
 ```
 
 ### 2. Metric Doesn't Match Task
 
 ```python
-# ❌ Bad: Binary metric for nuanced task
+# Failed:  Bad: Binary metric for nuanced task
 def bad_metric(example, pred, trace=None):
     return example.answer == pred.answer  # Too strict!
 
-# ✅ Good: Graded metric
+# Done:  Good: Graded metric
 def good_metric(example, pred, trace=None):
     return f1_score(example.answer, pred.answer)  # Allows partial credit
 ```
@@ -531,20 +531,20 @@ def good_metric(example, pred, trace=None):
 ### 3. Insufficient Training Data
 
 ```python
-# ❌ Bad: Too little data
+# Failed:  Bad: Too little data
 trainset = data[:5]  # Not enough!
 
-# ✅ Good: Sufficient data
+# Done:  Good: Sufficient data
 trainset = data[:50]  # Better
 ```
 
 ### 4. No Validation Set
 
 ```python
-# ❌ Bad: Optimizing on test set
+# Failed:  Bad: Optimizing on test set
 optimizer.compile(module, trainset=testset)  # Cheating!
 
-# ✅ Good: Proper splits
+# Done:  Good: Proper splits
 optimizer.compile(module, trainset=trainset, valset=valset)
 evaluator(optimized, devset=testset)
 ```

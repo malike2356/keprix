@@ -69,7 +69,7 @@ export function TitlebarControls({ leftTools = [], tools = [], onOpenSettings }:
   // Each titlebar button controls the pane physically on its side, so a flip
   // swaps which pane each one toggles. Default: sessions left, file browser
   // right. Flipped: file browser left, sessions right. Sidebar toggles never
-  // carry an active highlight — they're plain show/hide affordances.
+  // carry an active highlight; they're plain show/hide affordances.
   const fileBrowserEdge = { open: fileBrowserOpen, toggle: toggleFileBrowserOpen }
   const sessionsEdge = { open: sidebarOpen, toggle: toggleSidebarOpen }
   const leftEdge = panesFlipped ? fileBrowserEdge : sessionsEdge
@@ -108,7 +108,7 @@ export function TitlebarControls({ leftTools = [], tools = [], onOpenSettings }:
     }
   }
 
-  // Static system tools — always pinned to the screen's right edge.
+  // Static system tools; always pinned to the screen's right edge.
   const systemTools: TitlebarTool[] = [
     {
       active: hapticsMuted,
@@ -139,7 +139,7 @@ export function TitlebarControls({ leftTools = [], tools = [], onOpenSettings }:
 
   // While a full-screen overlay (settings, command center, …) is open it should
   // visually own the window. These control clusters are `fixed` at a higher
-  // z-index than the overlay card, so they'd otherwise bleed over it — hide them
+  // z-index than the overlay card, so they'd otherwise bleed over it; hide them
   // and let the overlay's own chrome (close button, drag region) take over.
   if (isOverlayView(appViewForPath(location.pathname))) {
     return null
@@ -197,7 +197,7 @@ export function TitlebarControls({ leftTools = [], tools = [], onOpenSettings }:
 }
 
 function TitlebarToolButton({ navigate, tool }: { navigate: ReturnType<typeof useNavigate>; tool: TitlebarTool }) {
-  // Titlebar actions never show an active background — state reads from the
+  // Titlebar actions never show an active background; state reads from the
   // icon itself (e.g. the mute/unmute glyph). aria-pressed still carries it
   // for a11y.
   const className = cn(titlebarButtonClass, 'bg-transparent select-none', tool.className)

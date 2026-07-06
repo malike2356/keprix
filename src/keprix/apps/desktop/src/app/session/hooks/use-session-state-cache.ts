@@ -136,7 +136,7 @@ export function useSessionStateCache({
 
     // `preserveLocalAssistantErrors` always returns a fresh array, so publishing
     // it unconditionally puts a new `$messages` reference on the store every
-    // flush — including the periodic `session.info` heartbeats that don't touch
+    // flush; including the periodic `session.info` heartbeats that don't touch
     // the transcript. That churns ChatView → runtimeMessageRepository → the
     // assistant-ui runtime → the virtualizer, which re-measures and visibly
     // jerks the scroll position while the user is reading. Skip the publish when
@@ -163,7 +163,7 @@ export function useSessionStateCache({
       // Only the currently-viewed session may stage into the shared `$messages`
       // view. A background session (e.g. one still busy and emitting stream /
       // error updates after the user toggled away) must update its own cache
-      // entry but never the view — otherwise its messages clobber the
+      // entry but never the view; otherwise its messages clobber the
       // foreground transcript and appear to "bleed" into every other session.
       // The flush below also re-checks the active id, but staging here is what
       // prevents a background write from overwriting an already-pending
@@ -180,7 +180,7 @@ export function useSessionStateCache({
       // now waiting on the user) MUST reach the view immediately. Electron
       // throttles `requestAnimationFrame` to ~0 while the window is
       // backgrounded, occluded, or unfocused, so an RAF-deferred flush can be
-      // stranded in `pendingViewStateRef` indefinitely — that's the "new chat
+      // stranded in `pendingViewStateRef` indefinitely; that's the "new chat
       // stuck on Thinking until I refocus / F5" bug. Flush these synchronously
       // (cancelling any in-flight RAF, since we're about to publish the latest
       // state anyway). The plain busy heartbeat stays RAF-batched: that

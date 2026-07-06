@@ -18,7 +18,7 @@ export const NATIVE_NOTIFICATION_KINDS: readonly NativeNotificationKind[] = [
   'backgroundDone'
 ]
 
-// Blocking prompts — surface even while focused if they're for another session.
+// Blocking prompts; surface even while focused if they're for another session.
 const ATTENTION_KINDS = new Set<NativeNotificationKind>(['approval', 'input'])
 
 export interface NativeNotificationPrefs {
@@ -119,7 +119,7 @@ function shouldFire(kind: NativeNotificationKind, sessionId?: null | string): bo
     return isBackgrounded() || (Boolean(sessionId) && sessionId !== $activeSessionId.get())
   }
 
-  // Completion kinds: only the active session, only while away — so a busy
+  // Completion kinds: only the active session, only while away; so a busy
   // gateway (messaging, kanban, cron) can't spam a toast per background session.
   return isBackgrounded() && Boolean(sessionId) && sessionId === $activeSessionId.get()
 }
@@ -164,7 +164,7 @@ export function dispatchNativeNotification(input: NativeNotificationInput): void
 }
 
 // Resolve a pending approval from a notification button, mirroring the in-app
-// Run/Reject bar. Keyed by session id — a background approval has no local guard.
+// Run/Reject bar. Keyed by session id; a background approval has no local guard.
 export async function respondToApprovalAction(sessionId: null | string, actionId: string): Promise<void> {
   const choice = actionId === 'approve' ? 'once' : actionId === 'reject' ? 'deny' : null
 
@@ -186,7 +186,7 @@ export async function respondToApprovalAction(sessionId: null | string, actionId
   }
 }
 
-// Settings "send test" — bypasses gating. Returns whether the OS accepted it so
+// Settings "send test"; bypasses gating. Returns whether the OS accepted it so
 // the panel can flag a silent permission failure instead of looking dead.
 export async function sendTestNativeNotification(title: string, body: string): Promise<boolean> {
   const bridge = window.hermesDesktop

@@ -100,10 +100,10 @@ const API_KEY_OPTIONS: ApiKeyOption[] = [
 
 // Build the FULL API-key provider catalog from the backend model options so the
 // onboarding / Providers key form lists every `api_key` provider `hermes model`
-// knows about — not just the hand-curated five. Curated entries keep their
+// knows about; not just the hand-curated five. Curated entries keep their
 // richer copy + placeholders and float to the top (recommended defaults); every
 // other api_key provider is appended with a generic "paste {KEY}" affordance.
-// OAuth / external providers are intentionally excluded here — they go through
+// OAuth / external providers are intentionally excluded here; they go through
 // the OAuth picker / sign-in flow, not a pasted key.
 function useApiKeyCatalog(): ApiKeyOption[] {
   const [rows, setRows] = useState<ModelOptionProvider[]>([])
@@ -111,7 +111,7 @@ function useApiKeyCatalog(): ApiKeyOption[] {
   useEffect(() => {
     let cancelled = false
 
-    // Best-effort — on failure the curated defaults still render. Wrapped in
+    // Best-effort; on failure the curated defaults still render. Wrapped in
     // Promise.resolve().then so a synchronous throw (e.g. no desktop bridge in
     // tests) is funneled into the same .catch instead of escaping.
     void Promise.resolve()
@@ -122,7 +122,7 @@ function useApiKeyCatalog(): ApiKeyOption[] {
         }
       })
       .catch(() => {
-        // Ignore — fall back to the curated API_KEY_OPTIONS only.
+        // Ignore; fall back to the curated API_KEY_OPTIONS only.
       })
 
     return () => {
@@ -207,7 +207,7 @@ export function DesktopOnboardingOverlay({ enabled, onCompleted, requestGateway 
   )
 
   // Cinematic exit on "Begin": dissolve the panel + overlay (revealing the chat
-  // behind), THEN finalize so the unmount lands after the fade — mirrors the
+  // behind), THEN finalize so the unmount lands after the fade; mirrors the
   // connecting overlay's exit choreography instead of cutting instantly.
   const [leaving, setLeaving] = useState(false)
 
@@ -258,7 +258,7 @@ export function DesktopOnboardingOverlay({ enabled, onCompleted, requestGateway 
       clearPendingProviderOAuth()
       void startProviderOAuth(provider, ctx)
     } else if (onboarding.providers.length > 0) {
-      // The list loaded but the id isn't a real provider — drop the stale
+      // The list loaded but the id isn't a real provider; drop the stale
       // hand-off. An empty list means the fetch isn't ready yet, so keep it
       // and let a later refresh retry.
       clearPendingProviderOAuth()
@@ -275,14 +275,14 @@ export function DesktopOnboardingOverlay({ enabled, onCompleted, requestGateway 
   }
 
   // The user chose "I'll choose a provider later" on first run. Stay out of the
-  // way on every subsequent launch — they re-enter via Settings → Providers
+  // way on every subsequent launch; they re-enter via Settings → Providers
   // (manual mode), which sets manual=true and bypasses this gate.
   if (onboarding.firstRunSkipped && !onboarding.manual) {
     return null
   }
 
   const { flow } = onboarding
-  // Show the launch reason only when it's a meaningful, caller-supplied prompt —
+  // Show the launch reason only when it's a meaningful, caller-supplied prompt;
   // suppress the generic defaults (useless noise) and provider-setup errors
   // (those are surfaced by FlowPanel, not as a banner).
   const rawReason = onboarding.reason?.trim() || null
@@ -296,12 +296,12 @@ export function DesktopOnboardingOverlay({ enabled, onCompleted, requestGateway 
       : null
 
   // In manual mode the app is already configured, so the flow is "ready"
-  // immediately — no runtime gate needed. Otherwise wait for the readiness
+  // immediately; no runtime gate needed. Otherwise wait for the readiness
   // check (configured === false) before showing the picker.
   const ready = onboarding.manual || (enabled && onboarding.configured === false)
   const showPicker = flow.status === 'idle' || flow.status === 'success'
   // The final "you're in" screen drops the card chrome and floats centered on
-  // the surface — same bare, cinematic treatment as the connecting overlay.
+  // the surface; same bare, cinematic treatment as the connecting overlay.
   const bare = ready && !showPicker && flow.status === 'confirming_model'
 
   return (
@@ -422,7 +422,7 @@ const persistShowAll = (value: boolean) => {
   try {
     window.localStorage.setItem(SHOW_ALL_KEY, value ? '1' : '0')
   } catch {
-    // localStorage unavailable — degrade silently.
+    // localStorage unavailable; degrade silently.
   }
 
   return value
@@ -467,7 +467,7 @@ export function Picker({ ctx }: { ctx: OnboardingContext }) {
   const featured = ordered.find(p => p.id === FEATURED_ID) ?? null
   const rest = featured ? ordered.filter(p => p.id !== FEATURED_ID) : ordered
   // Collapse the secondary providers behind a disclosure only when Nous
-  // Portal is present to anchor the choice — otherwise show the full list.
+  // Portal is present to anchor the choice; otherwise show the full list.
   const collapsible = Boolean(featured) && rest.length > 0
   const showRest = !collapsible || showAll
 
@@ -499,7 +499,7 @@ export function Picker({ ctx }: { ctx: OnboardingContext }) {
       <div className="flex items-center justify-between gap-3 pt-1">
         {/* First run only: let the user defer the choice and land in the app.
             In manual mode the overlay already has a close affordance, so the
-            "choose later" escape would be redundant — hide it. */}
+            "choose later" escape would be redundant; hide it. */}
         {manual ? <span /> : <ChooseLaterLink />}
         <Button
           className="-mr-2 font-medium"
@@ -515,7 +515,7 @@ export function Picker({ ctx }: { ctx: OnboardingContext }) {
   )
 }
 
-// "I'll choose a provider later" — dismisses the first-run picker and persists
+// "I'll choose a provider later"; dismisses the first-run picker and persists
 // the skip so it never re-nags. The user connects a provider any time from
 // Settings → Providers. Rendered only on the unconfigured first-run flow.
 function ChooseLaterLink() {
@@ -703,7 +703,7 @@ export function ApiKeyForm({
   // When set, surface the backend's redacted value (e.g. "sk-12…wxyz") as the
   // placeholder so users can eyeball that the right key is in place.
   const currentRedacted = alreadySet ? (redactedValue?.(option.envKey) ?? null) : null
-  // Only require a non-empty value — no length/format validation, so a short
+  // Only require a non-empty value; no length/format validation, so a short
   // or unusual key can't block the user from continuing.
   const canSave = value.trim().length >= 1
   const optionCopy = t.onboarding.apiKeyOptions[option.id]
@@ -949,7 +949,7 @@ function Step({ children, title }: { children: React.ReactNode; title: string })
   )
 }
 
-// Device-code display: OTP-style — each character in its own readonly cell.
+// Device-code display: OTP-style; each character in its own readonly cell.
 // The whole row is the copy button (no side button, no checkmark); on copy the
 // cells flash emerald for feedback. Dashes render as quiet separators.
 function DeviceCode({ code, copied, onCopy }: { code: string; copied: boolean; onCopy: () => void }) {
@@ -965,7 +965,7 @@ function DeviceCode({ code, copied, onCopy }: { code: string; copied: boolean; o
       {[...code].map((ch, i) =>
         ch === '-' || ch === ' ' ? (
           <span className="w-1.5 text-center text-lg text-muted-foreground" key={i}>
-            –
+            -
           </span>
         ) : (
           <span
@@ -1035,7 +1035,7 @@ const pickGlyph = () => SCRAMBLE_GLYPHS[(Math.random() * SCRAMBLE_GLYPHS.length)
 const DECODE_TAIL = 4
 
 // Renders text where cuneiform scramble-glyphs are dropped to a smaller em-size
-// (resolved Latin chars stay full size) — keeps the easter-egg glyphs subtle.
+// (resolved Latin chars stay full size); keeps the easter-egg glyphs subtle.
 function GlyphText({ text }: { text: string }) {
   return (
     <>
@@ -1063,7 +1063,7 @@ function useDecoded(text: string): string {
     }
 
     // Each WORD keeps its head static and only churns its tail (last few chars),
-    // resolving left-to-right across all tails — same anchor-the-prefix trick the
+    // resolving left-to-right across all tails; same anchor-the-prefix trick the
     // connecting overlay uses ("CONN" static, "ECTING" churns), applied per word
     // so both the provider and "CONNECTED" decode and time stays constant.
     const chars = [...text]
@@ -1201,7 +1201,7 @@ function ConfirmingModelPanel({
   // Local state controls whether the model picker dialog is open.
   // We reuse the existing ModelPickerDialog component (the same picker
   // available from the chat shell) rather than building an inline
-  // dropdown — gives us search, multi-provider listing if relevant, and
+  // dropdown; gives us search, multi-provider listing if relevant, and
   // a familiar UI for users who'll see this picker again later.
   const [pickerOpen, setPickerOpen] = useState(false)
 
@@ -1282,7 +1282,7 @@ function ConfirmingModelPanel({
         UNDER the onboarding overlay (z-1300) and breaks pointer events.
         Bump it above with z-[1310] so the picker sits on top of the
         onboarding panel. The dialog's own dim-backdrop layer stays at
-        its default z-120 — the onboarding overlay is already dimming
+        its default z-120; the onboarding overlay is already dimming
         the rest of the screen, so we don't want a second backdrop.
       */}
       <ModelPickerDialog

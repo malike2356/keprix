@@ -1,0 +1,14 @@
+{
+  "description": "Next.js app with @keprix-ai/sdk and domain registration",
+  "files": [
+    "package.json",
+    "tsconfig.json",
+    "next.config.mjs",
+    "src/keprix/client.ts",
+    "src/keprix/domains.ts",
+    "src/app/layout.tsx",
+    "src/app/page.tsx",
+    ".env.example",
+    "README.md"
+  ]
+}

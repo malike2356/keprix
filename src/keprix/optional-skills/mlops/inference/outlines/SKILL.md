@@ -518,14 +518,14 @@ model = outlines.models.vllm(
 ### 1. Use Specific Types
 
 ```python
-# ✅ Good: Specific types
+# Done:  Good: Specific types
 class Product(BaseModel):
     name: str
     price: float  # Not str
     quantity: int  # Not str
     in_stock: bool  # Not str
 
-# ❌ Bad: Everything as string
+# Failed:  Bad: Everything as string
 class Product(BaseModel):
     name: str
     price: str  # Should be float
@@ -537,13 +537,13 @@ class Product(BaseModel):
 ```python
 from pydantic import Field
 
-# ✅ Good: With constraints
+# Done:  Good: With constraints
 class User(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     age: int = Field(ge=0, le=120)
     email: str = Field(pattern=r"^[\w\.-]+@[\w\.-]+\.\w+$")
 
-# ❌ Bad: No constraints
+# Failed:  Bad: No constraints
 class User(BaseModel):
     name: str
     age: int
@@ -553,7 +553,7 @@ class User(BaseModel):
 ### 3. Use Enums for Categories
 
 ```python
-# ✅ Good: Enum for fixed set
+# Done:  Good: Enum for fixed set
 class Priority(str, Enum):
     LOW = "low"
     MEDIUM = "medium"
@@ -563,7 +563,7 @@ class Task(BaseModel):
     title: str
     priority: Priority
 
-# ❌ Bad: Free-form string
+# Failed:  Bad: Free-form string
 class Task(BaseModel):
     title: str
     priority: str  # Can be anything
@@ -572,14 +572,14 @@ class Task(BaseModel):
 ### 4. Provide Context in Prompts
 
 ```python
-# ✅ Good: Clear context
+# Done:  Good: Clear context
 prompt = """
 Extract product information from the following text.
 Text: iPhone 15 Pro costs $999 and is currently in stock.
 Product:
 """
 
-# ❌ Bad: Minimal context
+# Failed:  Bad: Minimal context
 prompt = "iPhone 15 Pro costs $999 and is currently in stock."
 ```
 
@@ -588,7 +588,7 @@ prompt = "iPhone 15 Pro costs $999 and is currently in stock."
 ```python
 from typing import Optional
 
-# ✅ Good: Optional fields for incomplete data
+# Done:  Good: Optional fields for incomplete data
 class Article(BaseModel):
     title: str  # Required
     author: Optional[str] = None  # Optional
@@ -602,13 +602,13 @@ class Article(BaseModel):
 
 | Feature | Outlines | Instructor | Guidance | LMQL |
 |---------|----------|------------|----------|------|
-| Pydantic Support | ✅ Native | ✅ Native | ❌ No | ❌ No |
-| JSON Schema | ✅ Yes | ✅ Yes | ⚠️ Limited | ✅ Yes |
-| Regex Constraints | ✅ Yes | ❌ No | ✅ Yes | ✅ Yes |
-| Local Models | ✅ Full | ⚠️ Limited | ✅ Full | ✅ Full |
-| API Models | ⚠️ Limited | ✅ Full | ✅ Full | ✅ Full |
-| Zero Overhead | ✅ Yes | ❌ No | ⚠️ Partial | ✅ Yes |
-| Automatic Retrying | ❌ No | ✅ Yes | ❌ No | ❌ No |
+| Pydantic Support | Done:  Native | Done:  Native | Failed:  No | Failed:  No |
+| JSON Schema | Done:  Yes | Done:  Yes | WARNING:  Limited | Done:  Yes |
+| Regex Constraints | Done:  Yes | Failed:  No | Done:  Yes | Done:  Yes |
+| Local Models | Done:  Full | WARNING:  Limited | Done:  Full | Done:  Full |
+| API Models | WARNING:  Limited | Done:  Full | Done:  Full | Done:  Full |
+| Zero Overhead | Done:  Yes | Failed:  No | WARNING:  Partial | Done:  Yes |
+| Automatic Retrying | Failed:  No | Done:  Yes | Failed:  No | Failed:  No |
 | Learning Curve | Low | Low | Low | High |
 
 **When to choose Outlines:**

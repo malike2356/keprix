@@ -34,7 +34,7 @@ export function ContextMenu({
   const c = t.composer
   // Prompt snippets used to be a Radix submenu. That submenu didn't open
   // reliably when the parent menu was positioned at the bottom of the
-  // window (composer "+" anchor), so we promoted it to a real Dialog —
+  // window (composer "+" anchor), so we promoted it to a real Dialog;
   // easier to grow with search / descriptions, and no positioning math.
   const [snippetsOpen, setSnippetsOpen] = useState(false)
 

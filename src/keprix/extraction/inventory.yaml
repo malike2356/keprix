@@ -1,0 +1,304 @@
+features:
+  - id: legacy-memory-rag
+    name: pgvector RAG and hybrid search
+    subsystem: memory
+    owner: platform
+    source_path: memory/db.ts
+    target_prompt: "06"
+    classification: public_core
+    dependencies: [postgres, pgvector]
+    data_touched: [workspace embeddings, episodic memory]
+    secrets_touched: [database credentials via vault]
+    tenant_scope: single-tenant self-host
+    rebuild_plan: Rebuild Keprix memory backends with MIT schema; no legacy tenant tables copied.
+    test_mapping: tests/memory/
+    doc_mapping: docs/memory/
+
+  - id: legacy-credentials-vault
+    name: Credential vault and redaction
+    subsystem: credentials
+    owner: platform
+    source_path: credentials/credential-store.ts
+    target_prompt: "08"
+    classification: public_core
+    dependencies: [encryption at rest]
+    data_touched: [vault items, provider keys]
+    secrets_touched: [master key, API keys]
+    tenant_scope: operator-scoped
+    rebuild_plan: Port vault behavior into Keprix vault module; never call remote licence key services.
+    test_mapping: tests/security/test_vault.py
+    doc_mapping: docs/developer-identity.md
+
+  - id: legacy-workspace-docs
+    name: Workspace documents, notes, calendar
+    subsystem: workspace
+    owner: platform
+    source_path: conversations
+    target_prompt: "10"
+    classification: public_core
+    dependencies: [sqlite or postgres]
+    data_touched: [documents, notes, calendar events]
+    secrets_touched: []
+    tenant_scope: workspace-local
+    rebuild_plan: Rebuild workspace routes and UI under Keprix branding; reference layouts only.
+    test_mapping: tests/workspace/
+    doc_mapping: frontend/src/app/(workspace)/
+
+  - id: legacy-provider-router
+    name: Provider router and cost tracking
+    subsystem: gateway
+    owner: platform
+    source_path: gateway
+    target_prompt: "04"
+    classification: public_core
+    dependencies: [LLM providers]
+    data_touched: [usage metrics]
+    secrets_touched: [provider API keys in vault]
+    tenant_scope: operator-scoped
+    rebuild_plan: Extend Keprix router with Legacy platform cost lessons; MIT-only providers config.
+    test_mapping: tests/agent/
+    doc_mapping: docs/providers/
+
+  - id: legacy-public-api
+    name: REST and WebSocket API with observability
+    subsystem: api
+    owner: platform
+    source_path: public-api
+    target_prompt: "18"
+    classification: public_core
+    dependencies: [fastapi, tracing]
+    data_touched: [request logs, traces]
+    secrets_touched: [API tokens]
+    tenant_scope: operator-scoped
+    rebuild_plan: Keep OpenAPI-first Keprix API; adopt observability patterns without Legacy platform ops routes.
+    test_mapping: tests/api/
+    doc_mapping: docs/api/
+
+  - id: legacy-skills-packs
+    name: Skills and plugin packs
+    subsystem: skills
+    owner: platform
+    source_path: skills/pack-manifests.ts
+    target_prompt: "36"
+    classification: public_core
+    dependencies: [hub registry]
+    data_touched: [installed packs]
+    secrets_touched: []
+    tenant_scope: workspace-local
+    rebuild_plan: Ship Keprix Hub with manifest validation; community packs MIT-licensed.
+    test_mapping: tests/hub/
+    doc_mapping: docs/hub/README.md
+
+  - id: legacy-channels
+    name: Multi-channel gateway adapters
+    subsystem: channels
+    owner: platform
+    source_path: channels/channel-router.ts
+    target_prompt: "11"
+    classification: public_optional
+    dependencies: [discord, slack, email adapters]
+    data_touched: [channel credentials, message history]
+    secrets_touched: [OAuth tokens]
+    tenant_scope: workspace-local
+    rebuild_plan: Port adapter behavior as optional connectors; no hosted relay dependency.
+    test_mapping: tests/contacts/
+    doc_mapping: docs/integrations/
+
+  - id: legacy-research-tools
+    name: Research and statistical tooling
+    subsystem: tools
+    owner: platform
+    source_path: tools/research
+    target_prompt: "74"
+    classification: public_optional
+    dependencies: [R, PSPP, jamovi bridges]
+    data_touched: [datasets, analysis outputs]
+    secrets_touched: []
+    tenant_scope: workspace-local
+    rebuild_plan: Rebuild research workspace with self-hosted executors; no customer datasets copied.
+    test_mapping: tests/research/
+    doc_mapping: frontend/src/app/(workspace)/research/
+
+  - id: legacy-mcp-registry
+    name: MCP and integration registry
+    subsystem: mcp
+    owner: platform
+    source_path: mcp
+    target_prompt: "17"
+    classification: public_optional
+    dependencies: [MCP servers]
+    data_touched: [tool registry]
+    secrets_touched: [server credentials]
+    tenant_scope: workspace-local
+    rebuild_plan: Reuse MCP protocol contracts; rebuild registry under Keprix admin tools UI.
+    test_mapping: tests/mcp/
+    doc_mapping: frontend/src/app/(workspace)/dashboard/tools/
+
+  - id: managed-stripe-billing
+    name: Managed SaaS Stripe checkout and subscriptions
+    subsystem: billing
+    owner: managed-saas
+    source_path: billing/managed-stripe-checkout.ts
+    target_prompt: ""
+    classification: paid_managed
+    dependencies: [stripe, managed-plan-gates]
+    data_touched: [subscriptions, invoices]
+    secrets_touched: [stripe live keys]
+    tenant_scope: multi-tenant SaaS
+    rebuild_plan: Do not port. Keprix has no managed billing. Optional webhook stub only for integrators.
+    test_mapping: ""
+    doc_mapping: BRAND-BOUNDARY.md
+
+  - id: managed-plan-gates
+    name: Managed SaaS plan tier feature gates
+    subsystem: billing
+    owner: managed-saas
+    source_path: billing/managed-plan-gates.ts
+    target_prompt: ""
+    classification: paid_managed
+    dependencies: [managed-subscription-store]
+    data_touched: [plan entitlements]
+    secrets_touched: []
+    tenant_scope: multi-tenant SaaS
+    rebuild_plan: Replace with local feature flags only; no remote licence validation.
+    test_mapping: tests/legal/
+    doc_mapping: docs/developer-identity.md
+
+  - id: managed-hire-workers
+    name: Managed SaaS AI employee hire and workers UI
+    subsystem: managed-product
+    owner: managed-saas
+    source_path: app/(workspace)/managed/managed SaaSHireClient.tsx
+    target_prompt: ""
+    classification: paid_managed
+    dependencies: [managed-api, billing]
+    data_touched: [worker configs, schedules]
+    secrets_touched: []
+    tenant_scope: multi-tenant SaaS
+    rebuild_plan: Do not port UI. Keprix uses agent apps and playbooks instead.
+    test_mapping: ""
+    doc_mapping: product/boundaries/managed-saas-to-keprix-map.md
+
+  - id: managed-keys-service
+    name: Managed SaaS Keys and remote key service
+    subsystem: keys
+    owner: managed-saas
+    source_path: hosted/cloudflare-saas.ts
+    target_prompt: ""
+    classification: unsafe_or_private
+    dependencies: [remote key server]
+    data_touched: [licence records]
+    secrets_touched: [signing keys, customer keys]
+    tenant_scope: global SaaS
+    rebuild_plan: ""
+    test_mapping: ""
+    doc_mapping: docs/developer-identity.md
+    rejected_reason: Remote licence validation is commercial-only and forbidden on Keprix surfaces.
+
+  - id: managed-governance-provisioning
+    name: Managed SaaS Governance provider subscription provisioning
+    subsystem: billing
+    owner: managed-saas
+    source_path: billing/managed-governance-provisioning.ts
+    target_prompt: "38"
+    classification: governance_enterprise
+    dependencies: [governance connector, billing]
+    data_touched: [governance workspace bindings]
+    secrets_touched: [governance API keys]
+    tenant_scope: per-customer SaaS
+    rebuild_plan: Gate behind optional Keprix Governance provider connector; never bundle Governance provider with Keprix.
+    test_mapping: tests/governance/
+    doc_mapping: product/boundaries/enterprise-gates.md
+
+  - id: managed-governance-dashboard
+    name: Managed SaaS governance and trust dashboard
+    subsystem: managed-product
+    owner: managed-saas
+    source_path: app/(workspace)/managed/governance
+    target_prompt: "38"
+    classification: governance_enterprise
+    dependencies: [governance policies, kill switch]
+    data_touched: [audit events, policy state]
+    secrets_touched: [governance API keys]
+    tenant_scope: per-customer SaaS
+    rebuild_plan: Surface governance only at /settings/governance when Governance provider is connected and paid.
+    test_mapping: tests/governance/
+    doc_mapping: frontend/src/app/(workspace)/settings/governance/
+
+  - id: legacy-trust-attestation
+    name: Blockchain trust attestation
+    subsystem: security
+    owner: platform
+    source_path: security/behavior-proof.test.ts
+    target_prompt: ""
+    classification: unsafe_or_private
+    dependencies: [chain anchoring]
+    data_touched: [attestation proofs]
+    secrets_touched: [signing material]
+    tenant_scope: enterprise
+    rebuild_plan: ""
+    test_mapping: ""
+    doc_mapping: product/boundaries/rejected-features.md
+    rejected_reason: Enterprise attestation chain is not part of MIT self-host scope.
+
+  - id: legacy-ops-secrets
+    name: Production ops secrets reload
+    subsystem: ops
+    owner: platform
+    source_path: ops/secrets-reload.ts
+    target_prompt: ""
+    classification: unsafe_or_private
+    dependencies: [hosted infra]
+    data_touched: [runtime secrets]
+    secrets_touched: [all production secrets]
+    tenant_scope: infrastructure
+    rebuild_plan: ""
+    test_mapping: ""
+    doc_mapping: product/boundaries/rejected-features.md
+    rejected_reason: Internal operational runbooks and live secret reload are not ported.
+
+  - id: legacy-customer-tenant-store
+    name: Multi-tenant white-label customer store
+    subsystem: hosted
+    owner: managed-saas
+    source_path: workers/managed-subscription-store.ts
+    target_prompt: ""
+    classification: unsafe_or_private
+    dependencies: [postgres tenant isolation]
+    data_touched: [customer PII, tenant records]
+    secrets_touched: [per-tenant credentials]
+    tenant_scope: multi-tenant SaaS
+    rebuild_plan: ""
+    test_mapping: ""
+    doc_mapping: product/boundaries/rejected-features.md
+    rejected_reason: Customer data and private tenant records must never be copied into Keprix.
+
+  - id: legacy-agent-core
+    name: Legacy platform agent conversation loop
+    subsystem: agents
+    owner: platform
+    source_path: agents/legacy-agent.ts
+    target_prompt: "03"
+    classification: public_core
+    dependencies: [agent spine, tools]
+    data_touched: [sessions, tool calls]
+    secrets_touched: [vault-backed tool credentials]
+    tenant_scope: workspace-local
+    rebuild_plan: Keprix agent spine with Legacy platform discipline patterns only.
+    test_mapping: tests/agent/
+    doc_mapping: planning/prompts/00a-product-vision-and-agent-consolidation-map.md
+
+  - id: managed-analytics
+    name: Managed SaaS managed analytics dashboard
+    subsystem: analytics
+    owner: managed-saas
+    source_path: analytics/managed-analytics-router.ts
+    target_prompt: "54"
+    classification: paid_managed
+    dependencies: [hosted analytics store]
+    data_touched: [usage aggregates]
+    secrets_touched: []
+    tenant_scope: multi-tenant SaaS
+    rebuild_plan: Rebuild self-hosted analytics workspace in Keprix without Managed SaaS aggregate backend.
+    test_mapping: tests/workspace/test_analytics_workspace.py
+    doc_mapping: frontend/src/app/(workspace)/analytics/

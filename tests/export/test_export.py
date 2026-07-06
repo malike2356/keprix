@@ -67,6 +67,18 @@ def test_export_document_includes_cover_in_html() -> None:
     assert "Compliance Report" in result["content"]
 
 
+def test_export_document_includes_cover_in_pdf() -> None:
+    result = export_document(
+        title="Covered Doc",
+        content="## Section\n\nContent here.",
+        format="pdf",
+        include_cover=True,
+        cover_data={"document_type": "Deep Research Report", "document_id": "rsch-cover01"},
+        html_template="research",
+    )
+    assert result["content"][:4] == b"%PDF"
+
+
 # ---- Signatory block ----
 
 def test_signatory_html_contains_reviewer_and_decision() -> None:

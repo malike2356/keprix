@@ -1,0 +1,13 @@
+name: data_analysis_basics
+version: "1"
+category: data_analysis
+min_pass_rate: 0.9
+tasks:
+  - id: compute_mean
+    input: "Compute mean of sample column"
+    expect_contains: "mean"
+    mock_output: "mean=42.0 for column income"
+  - id: chart_generated
+    input: "Plot histogram for age column"
+    expect_contains: "histogram"
+    mock_output: "histogram saved to artifacts/age.png"

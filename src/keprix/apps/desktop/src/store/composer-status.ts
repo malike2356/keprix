@@ -8,7 +8,7 @@ import { dispatchNativeNotification } from './native-notifications'
 import { $subagentsBySession, type SubagentProgress } from './subagents'
 import { $todosBySession } from './todos'
 
-/** Composer status stack feed — merged todos, subagents, background per session. */
+/** Composer status stack feed; merged todos, subagents, background per session. */
 export type StatusItemState = 'done' | 'failed' | 'running'
 export type StatusItemType = 'background' | 'subagent' | 'todo'
 
@@ -20,7 +20,7 @@ export interface ComposerStatusItem {
   id: string
   /** background process: captured stdout/stderr tail for the inline viewer. */
   output?: string
-  /** subagent: its own stored session id — row click opens that session window
+  /** subagent: its own stored session id; row click opens that session window
    *  (livestreamed by the gateway's child-session mirror). */
   sessionId?: string
   state: StatusItemState
@@ -221,7 +221,7 @@ export async function refreshBackgroundProcesses(sid: string): Promise<void> {
 
     reconcileBackgroundProcesses(sid, result?.processes ?? [])
   } catch {
-    // Transient socket loss — the next trigger (event or poll) retries.
+    // Transient socket loss; the next trigger (event or poll) retries.
   }
 }
 

@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=77.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "keprix-sdk"
+version = "1.0.0"
+description = "Keprix App Foundation SDK for natural-language CRUD integrations"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+  "httpx>=0.28.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

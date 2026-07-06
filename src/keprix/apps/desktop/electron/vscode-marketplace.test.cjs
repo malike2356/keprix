@@ -6,7 +6,7 @@ const test = require('node:test')
 const { __testing, extractThemes, readCentralDirectory } = require('./vscode-marketplace.cjs')
 
 // Build a minimal zip with stored (uncompressed) entries so the test controls
-// the bytes exactly — exercises the central-directory reader + theme extraction
+// the bytes exactly; exercises the central-directory reader + theme extraction
 // without a deflate dependency.
 function makeZip(entries) {
   const locals = []

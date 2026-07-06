@@ -3,10 +3,10 @@
  *
  * Why: the default `@streamdown/math` plugin runs `rehype-katex` on every
  * markdown commit. During streaming, that means each new token re-runs
- * KaTeX on EVERY math node in the message — including equations that
+ * KaTeX on EVERY math node in the message; including equations that
  * haven't changed since the last token. For math-heavy responses (a
  * model deriving an equation step-by-step) this becomes a major source
- * of jank: 20 unchanged equations each pay ~5–20ms of katex.renderToString
+ * of jank: 20 unchanged equations each pay ~5-20ms of katex.renderToString
  * work per token, adding up to hundreds of ms of CPU bound work that
  * delays the next streaming update.
  *
@@ -24,7 +24,7 @@
  * moves between messages (e.g., re-rendering a session).
  *
  * Compatibility: the produced hast structure matches what `rehype-katex`
- * itself produces — we use the same `hast-util-from-html-isomorphic`
+ * itself produces; we use the same `hast-util-from-html-isomorphic`
  * fragment parsing and the same parent-splice semantics, including the
  * `<pre>`-walk-up for display mode. Drop-in replacement for the math
  * slot in streamdown's PluginConfig.
@@ -64,7 +64,7 @@ interface MathPluginConfig {
   errorColor?: string
 }
 
-/** Cached rendered hast — children to splice into the math node's parent. */
+/** Cached rendered hast; children to splice into the math node's parent. */
 type CachedRender = ElementContent[]
 
 const CACHE_LIMIT = 512
@@ -146,7 +146,7 @@ function renderMath(
         throwOnError: false
       })
     } catch {
-      // Last-resort fallback — render the source text inside a styled span
+      // Last-resort fallback; render the source text inside a styled span
       // so the user at least sees what was supposed to be there. Mirrors
       // rehype-katex's own escape hatch.
       return [
@@ -205,7 +205,7 @@ function createMemoizedRehypeKatex(options: KatexMemoOptions = {}): Pluggable {
           displayMode = true
         }
 
-        // No parent means the math node is at the root — there's nothing
+        // No parent means the math node is at the root; there's nothing
         // to splice into, so bail. This shouldn't happen for properly
         // nested markdown but is the same defensive guard rehype-katex has.
         if (!parent) {
@@ -223,9 +223,9 @@ function createMemoizedRehypeKatex(options: KatexMemoOptions = {}): Pluggable {
 
         // Splice CLONES of the cached children into the parent. Reusing
         // the same node instances across renders would let downstream
-        // rehype plugins or toJsxRuntime mutate the cached subtree —
+        // rehype plugins or toJsxRuntime mutate the cached subtree;
         // breaking the next cache hit. structuredClone is ~100µs per
-        // equation, well below the ~5–20ms katex.renderToString cost
+        // equation, well below the ~5-20ms katex.renderToString cost
         // we're avoiding.
         const clonedChildren = cached.map(child => structuredClone(child))
         const index = parent.children.indexOf(scope as ElementContent)

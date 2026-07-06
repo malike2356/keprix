@@ -13,7 +13,7 @@ Comprehensive reference for Absorption, Distribution, Metabolism, Excretion, and
 | H-Bond Donors (HBD) | ≤ 5 |
 | H-Bond Acceptors (HBA) | ≤ 10 |
 
-Reference: Lipinski et al., Adv. Drug Deliv. Rev. 23, 3–25 (1997).
+Reference: Lipinski et al., Adv. Drug Deliv. Rev. 23, 3-25 (1997).
 
 ### Veber's Oral Bioavailability Rules
 
@@ -22,14 +22,14 @@ Reference: Lipinski et al., Adv. Drug Deliv. Rev. 23, 3–25 (1997).
 | TPSA | ≤ 140 Å² |
 | Rotatable Bonds | ≤ 10 |
 
-Reference: Veber et al., J. Med. Chem. 45, 2615–2623 (2002).
+Reference: Veber et al., J. Med. Chem. 45, 2615-2623 (2002).
 
 ### CNS Penetration (BBB)
 
 | Property | CNS-Optimal |
 |----------|-------------|
 | MW | ≤ 400 Da |
-| LogP | 1–3 |
+| LogP | 1-3 |
 | TPSA | < 90 Å² |
 | HBD | ≤ 3 |
 
@@ -45,7 +45,7 @@ Reference: Veber et al., J. Med. Chem. 45, 2615–2623 (2002).
 
 ## hERG Cardiac Toxicity Risk
 
-Structural alerts: basic nitrogen (pKa 7–9) + aromatic ring + hydrophobic moiety, LogP > 3.5 + basic amine.
+Structural alerts: basic nitrogen (pKa 7-9) + aromatic ring + hydrophobic moiety, LogP > 3.5 + basic amine.
 
 Mitigation: reduce basicity, introduce polar groups, break planarity.
 

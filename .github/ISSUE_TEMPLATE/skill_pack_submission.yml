@@ -1,0 +1,51 @@
+name: Skill Pack Submission
+description: Submit a community skill or plugin pack.
+title: "[Skill Pack]: "
+labels: ["skill-pack"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Pack name
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What the pack does
+    validations:
+      required: true
+
+  - type: input
+    id: source
+    attributes:
+      label: GitHub repo or attachment URL
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - productivity
+        - research
+        - cyber
+        - communication
+        - data
+        - other
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: quality
+    attributes:
+      label: Quality checklist
+      options:
+        - label: The pack includes a README
+          required: true
+        - label: The pack includes tests or a manual test plan
+          required: true
+        - label: No remote licence key is required (Keprix has none)
+          required: true

@@ -11,7 +11,7 @@ import { Thread } from './thread'
 
 // Regression coverage for the "approval must never be buried" bug. Tools now
 // render as a flat list (no collapsible "N steps" group), so a pending tool's
-// inline ApprovalBar is always in the visual flow — never inside a `hidden`
+// inline ApprovalBar is always in the visual flow; never inside a `hidden`
 // body. These assert the bar shows only when an approval is live and is never
 // trapped under a `hidden` ancestor.
 
@@ -231,7 +231,7 @@ describe('flat tool list approval surfacing', () => {
     await waitFor(() => {
       const bar = container.querySelector('[data-slot="tool-approval-inline"]')
       expect(bar).not.toBeNull()
-      // Flat rows live directly in the flow — nothing should ever wrap the bar
+      // Flat rows live directly in the flow; nothing should ever wrap the bar
       // in a `hidden` subtree.
       expect(bar?.closest('[hidden]')).toBeNull()
     })
@@ -253,7 +253,7 @@ describe('flat tool list approval surfacing', () => {
 
   it('keeps a dismissed row hidden after a remount (virtualization)', async () => {
     // The thread virtualizes, so a row's component unmounts/remounts as it
-    // scrolls. Dismissal must persist across that — component-local state would
+    // scrolls. Dismissal must persist across that; component-local state would
     // forget it and the row would pop back. Simulate the remount by unmounting
     // and rendering the same message fresh.
     const first = render(<GroupHarness message={completedOnlyMessage()} />)

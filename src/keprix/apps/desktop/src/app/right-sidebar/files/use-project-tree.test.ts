@@ -13,7 +13,7 @@ beforeEach(() => {
   $connection.set(null)
   resetProjectTreeState()
   readDir.mockReset()
-  ;(window as unknown as { hermesDesktop: { readDir: typeof readDir } }).hermesDesktop = { readDir }
+;(window as unknown as { hermesDesktop: { readDir: typeof readDir } }).hermesDesktop = { readDir }
 })
 
 afterEach(() => {
@@ -124,7 +124,7 @@ describe('useProjectTree', () => {
       }
       throw new Error(`unexpected path ${path}`)
     })
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = { gitRoot, readDir, readFileDataUrl }
+;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = { gitRoot, readDir, readFileDataUrl }
 
     $connection.set({ baseUrl: 'local-a', mode: 'local' } as never)
     await expect(readProjectDir('/repo/src', '/repo')).resolves.toMatchObject({
@@ -187,7 +187,7 @@ describe('useProjectTree', () => {
       resolveChildren?.(ok([{ name: 'a.ts', path: '/p/src/a.ts', isDirectory: false }]))
     })
 
-    // Mount load + a single folder fetch — duplicates were dropped.
+    // Mount load + a single folder fetch; duplicates were dropped.
     expect(readDir).toHaveBeenCalledTimes(2)
   })
 
@@ -228,7 +228,7 @@ describe('useProjectTree', () => {
       if (path === '/home/me/projects') return ok([{ name: 'repo', path: '/home/me/projects/repo', isDirectory: true }])
       throw new Error(`unexpected path ${path}`)
     })
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = { readDir, sanitizeWorkspaceCwd }
+;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = { readDir, sanitizeWorkspaceCwd }
 
     const { result } = renderHook(() => useProjectTree('/deleted/worktree'))
 
@@ -243,7 +243,7 @@ describe('useProjectTree', () => {
   it('keeps the root error when sanitize offers no usable fallback', async () => {
     const sanitizeWorkspaceCwd = vi.fn(async () => ({ cwd: '/deleted/worktree', sanitized: false }))
     readDir.mockResolvedValue({ entries: [], error: 'ENOENT' })
-    ;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = { readDir, sanitizeWorkspaceCwd }
+;(window as unknown as { hermesDesktop: unknown }).hermesDesktop = { readDir, sanitizeWorkspaceCwd }
 
     const { result } = renderHook(() => useProjectTree('/deleted/worktree'))
 

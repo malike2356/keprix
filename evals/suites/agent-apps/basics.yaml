@@ -1,0 +1,55 @@
+name: agent_apps_basics
+version: "1"
+category: tool_routing
+description: Smoke checks for Agent Apps catalog, install, run, usage, and billing gates.
+min_pass_rate: 1.0
+max_cost_usd: 0.05
+max_runtime_ms: 30000
+tasks:
+  - id: catalog_lists_templates
+    input: "List built-in marketplace templates"
+    description: Catalog API exposes daily-standup and at least three templates
+    expect_contains: daily-standup
+    metadata:
+      wiring_check: catalog_lists_templates
+    max_runtime_ms: 5000
+
+  - id: install_daily_standup
+    input: "Install the Daily Standup template"
+    description: Registry install from catalog template succeeds
+    expect_contains: daily-standup
+    metadata:
+      wiring_check: install_daily_standup
+    max_runtime_ms: 5000
+
+  - id: readiness_endpoint
+    input: "GET readiness for daily-standup"
+    description: Readiness endpoint returns structured state
+    expect_contains: ready
+    metadata:
+      wiring_check: readiness_endpoint
+    max_runtime_ms: 5000
+
+  - id: run_returns_output
+    input: "POST run for daily-standup with mocked LLM output"
+    description: Run endpoint returns output payload
+    expect_contains: output
+    metadata:
+      wiring_check: run_returns_output
+    max_runtime_ms: 8000
+
+  - id: usage_endpoint
+    input: "GET /api/agent-apps/usage"
+    description: Usage summary includes runs_this_month
+    expect_contains: runs_this_month
+    metadata:
+      wiring_check: usage_endpoint
+    max_runtime_ms: 5000
+
+  - id: billing_402_on_limit
+    input: "Run when plan limit exceeded returns 402 upgrade payload"
+    description: Structured 402 with upgrade_url when entitlement blocks run
+    expect_contains: upgrade_url
+    metadata:
+      wiring_check: billing_402_on_limit
+    max_runtime_ms: 5000

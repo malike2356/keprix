@@ -1,4 +1,4 @@
-# ☤ ASCII Video
+#  ASCII Video
 
 Renders any content as colored ASCII character video. Audio, video, images, text, or pure math in, MP4/GIF/PNG sequence out. Full RGB color per character cell, 1080p 24fps default. No GPU.
 
@@ -61,7 +61,7 @@ Each sorted dark-to-bright, each a different visual texture. Validated against t
 | Block elements | ` ░▒▓█▄▀▐▌` | Chunky, digital |
 | Braille | ` ⠁⠂⠃...⠿` | Fine-grained pointillism |
 | Dots | ` ⋅∘∙●◉◎` | Smooth, organic |
-| Stars | ` ·✧✦✩✨★✶` | Sparkle, celestial |
+| Stars | ` ·` | Sparkle, celestial |
 | Half-fills | ` ◔◑◕◐◒◓◖◗◙` | Directional fill progression |
 | Crosshatch | ` ▣▤▥▦▧▨▩` | Hatched density ramp |
 | Math | ` ·∘∙•°±×÷≈≠≡∞∫∑Ω` | Scientific, abstract |
@@ -69,10 +69,10 @@ Each sorted dark-to-bright, each a different visual texture. Validated against t
 | Katakana | ` ·ｦｧｨｩｪｫｬｭ...` | Matrix rain |
 | Greek | ` αβγδεζηθ...ω` | Classical, academic |
 | Runes | ` ᚠᚢᚦᚱᚷᛁᛇᛒᛖᛚᛞᛟ` | Mystical, ancient |
-| Alchemical | ` ☉☽♀♂♃♄♅♆♇` | Esoteric |
+| Alchemical | ` ` | Esoteric |
 | Arrows | ` ←↑→↓↔↕↖↗↘↙` | Directional, kinetic |
-| Music | ` ♪♫♬♩♭♮♯○●` | Musical |
-| Project-specific | ` .·~=≈∞⚡☿✦★⊕◊◆▲▼●■` | Themed per project |
+| Music | ` ○●` | Musical |
+| Project-specific | ` .·~=≈∞⊕◊◆▲▼●■` | Themed per project |
 
 Custom palettes are built per project to match the content.
 
@@ -123,8 +123,8 @@ Value fields are the core visual building blocks. Each produces a 2D float array
 | Field | Description |
 |-------|-------------|
 | Value noise | Smooth organic noise, no axis-alignment artifacts |
-| fBM | Fractal Brownian Motion — octaved noise for clouds, terrain, smoke |
-| Domain warp | Inigo Quilez technique — fBM-driven coordinate distortion for flowing organic forms |
+| fBM | Fractal Brownian Motion; octaved noise for clouds, terrain, smoke |
+| Domain warp | Inigo Quilez technique; fBM-driven coordinate distortion for flowing organic forms |
 | Voronoi | Moving seed points with distance, edge, and cell-ID output modes |
 
 ### Simulation-based (4)
@@ -133,7 +133,7 @@ Value fields are the core visual building blocks. Each produces a 2D float array
 |-------|-------------|
 | Reaction-diffusion | Gray-Scott with 7 presets: coral, spots, worms, labyrinths, mitosis, pulsating, chaos |
 | Cellular automata | Game of Life + 4 rule variants with analog fade trails |
-| Strange attractors | Clifford, De Jong, Bedhead — iterated point systems binned to density fields |
+| Strange attractors | Clifford, De Jong, Bedhead; iterated point systems binned to density fields |
 | Temporal noise | 3D noise that morphs in-place without directional drift |
 
 ### SDF-based
@@ -166,7 +166,7 @@ UV-space transforms applied before effect evaluation: rotate, scale, skew, tile 
 
 ## Temporal coherence
 
-10 easing functions (linear, quad, cubic, expo, elastic, bounce — in/out/in-out). Keyframe interpolation with eased transitions. Value field morphing (smooth crossfade between fields). Value field sequencing (cycle through fields with crossfade). Temporal noise (3D noise evolving smoothly in-place).
+10 easing functions (linear, quad, cubic, expo, elastic, bounce; in/out/in-out). Keyframe interpolation with eased transitions. Value field morphing (smooth crossfade between fields). Value field sequencing (cycle through fields with crossfade). Temporal noise (3D noise evolving smoothly in-place).
 
 ## Shader pipeline
 
@@ -201,7 +201,7 @@ UV-space transforms applied before effect evaluation: rotate, scale, skew, tile 
 
 20 pixel blend modes for layering canvases: normal, add, subtract, multiply, screen, overlay, softlight, hardlight, difference, exclusion, colordodge, colorburn, linearlight, vividlight, pin_light, hard_mix, lighten, darken, grain_extract, grain_merge. Both sRGB and linear-light blending supported.
 
-**Feedback buffer.** Temporal recursion — each frame blends with a transformed version of the previous frame. 7 spatial transforms: zoom, shrink, rotate CW/CCW, shift up/down, mirror. Optional per-frame hue shift for rainbow trails. Configurable decay, blend mode, and opacity per scene.
+**Feedback buffer.** Temporal recursion; each frame blends with a transformed version of the previous frame. 7 spatial transforms: zoom, shrink, rotate CW/CCW, shift up/down, mirror. Optional per-frame hue shift for rainbow trails. Configurable decay, blend mode, and opacity per scene.
 
 **Masking.** 16 mask types for spatial compositing: shape masks (circle, rect, ring, gradients), procedural masks (any value field as a mask, text stencils), animated masks (iris open/close, wipe, dissolve), boolean operations (union, intersection, subtraction, invert).
 
@@ -283,8 +283,8 @@ Auto-detects CPU count, RAM, platform, ffmpeg. Adapts worker count, resolution, 
 
 ## Projects built with this
 
-✦ 85-second highlight reel. 15 scenes (14×5s + 15s crescendo finale), randomized order, directional parameter arcs, layer hierarchy composition. Showcases the full effect vocabulary: fBM, voronoi fragmentation, reaction-diffusion, cellular automata, dual counter-rotating spirals, wave collision, domain warping, tunnel descent, kaleidoscope symmetry, boid flocking, fire simulation, glitch corruption, and a 7-layer crescendo buildup.
+ 85-second highlight reel. 15 scenes (14×5s + 15s crescendo finale), randomized order, directional parameter arcs, layer hierarchy composition. Showcases the full effect vocabulary: fBM, voronoi fragmentation, reaction-diffusion, cellular automata, dual counter-rotating spirals, wave collision, domain warping, tunnel descent, kaleidoscope symmetry, boid flocking, fire simulation, glitch corruption, and a 7-layer crescendo buildup.
 
-✦ Audio-reactive music visualizer. 3.5 min, 8 sections with distinct effects, beat-triggered particles and glitch, cycling palettes.
+ Audio-reactive music visualizer. 3.5 min, 8 sections with distinct effects, beat-triggered particles and glitch, cycling palettes.
 
-✦ TTS narrated testimonial video. 23 quotes, per-quote ElevenLabs voices, background music at 15% wide stereo, per-clip re-rendering for iterative editing.
+ TTS narrated testimonial video. 23 quotes, per-quote ElevenLabs voices, background music at 15% wide stereo, per-clip re-rendering for iterative editing.

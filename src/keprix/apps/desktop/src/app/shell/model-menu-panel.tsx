@@ -152,7 +152,7 @@ export function ModelMenuPanel({ gateway, onSelectModel, requestGateway }: Model
                 // -fast variant carries the same param support as its base.
                 const caps = group.provider.capabilities?.[family.id]
 
-                // Single source of truth for the active row's fast state — keeps
+                // Single source of truth for the active row's fast state; keeps
                 // the row label in lock-step with the submenu's Fast toggle and
                 // handles the standalone `-fast` id case.
                 const fastControl = resolveFastControl(
@@ -263,7 +263,7 @@ function groupModels(
       // Search spans every family, regardless of visibility.
       shown = new Set(allFamilies.filter(matches).map(family => family.id))
     } else if (visible) {
-      // User has customized which models show — honor their selection exactly.
+      // User has customized which models show; honor their selection exactly.
       shown = new Set(
         allFamilies.filter(family => visible.has(modelVisibilityKey(provider.slug, family.id))).map(family => family.id)
       )
@@ -272,7 +272,7 @@ function groupModels(
       shown = new Set(allFamilies.slice(0, DEFAULT_VISIBLE_PER_PROVIDER).map(family => family.id))
     }
 
-    // Always include the active model — but keep every row in the provider's
+    // Always include the active model; but keep every row in the provider's
     // stable curated order (filter `allFamilies`, never reorder), so selecting
     // a model can't shuffle the list.
     const activeId =

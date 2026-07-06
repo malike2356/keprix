@@ -82,7 +82,7 @@ function pluckVoice(ac: AudioContext, master: GainNode, t0: number, spec: PluckS
   osc.stop(end + 0.02)
 }
 
-// Slow-swell harmonic bloom — the dreamy tail after the pluck.
+// Slow-swell harmonic bloom; the dreamy tail after the pluck.
 function bloomVoice(ac: AudioContext, master: GainNode, t0: number, spec: BloomSpec) {
   const osc = ac.createOscillator()
   const env = ac.createGain()
@@ -150,7 +150,7 @@ function airPuff(ac: AudioContext, master: GainNode, t0: number, spec: AirPuffSp
   source.stop(end + 0.02)
 }
 
-// Filtered noise sweep — soft send / whoosh gestures.
+// Filtered noise sweep; soft send / whoosh gestures.
 function whooshVoice(ac: AudioContext, master: GainNode, t0: number, spec: WhooshSpec) {
   const source = noiseSource(ac, 0.4)
   const filter = ac.createBiquadFilter()
@@ -174,7 +174,7 @@ function whooshVoice(ac: AudioContext, master: GainNode, t0: number, spec: Whoos
   source.stop(end + 0.02)
 }
 
-// Pitch-sweep chirp — modem / sci-fi gestures.
+// Pitch-sweep chirp; modem / sci-fi gestures.
 function sweepVoice(ac: AudioContext, master: GainNode, t0: number, spec: SweepSpec) {
   const osc = ac.createOscillator()
   const env = ac.createGain()
@@ -230,7 +230,7 @@ export interface CompletionSoundVariant {
 }
 
 // Note frequencies (equal temperament). Everything lives in a low-mid register
-// (C3–C5) so the chimes feel warm and "appy" rather than bright and arcade-y.
+// (C3-C5) so the chimes feel warm and "appy" rather than bright and arcade-y.
 const A2 = 110
 const A3 = 220
 const A4 = 440

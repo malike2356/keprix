@@ -17,7 +17,7 @@ vi.mock('@/hermes', () => ({
 }))
 
 // The active id the desktop holds is the *runtime* session id from
-// session.create — deliberately distinct from the stored DB id here, because
+// session.create; deliberately distinct from the stored DB id here, because
 // that mismatch is the bug: the REST renameSession endpoint resolves against
 // the stored sessions table and 404s on a runtime id. session.title accepts
 // the runtime id directly.
@@ -139,7 +139,7 @@ describe('usePromptActions /title', () => {
 
     await handle!.submitText('/title New title')
 
-    // Routes through session.title with the runtime session id — NOT the slash
+    // Routes through session.title with the runtime session id; NOT the slash
     // worker (slash.exec) and NOT the REST endpoint. This is the path that
     // resolves the runtime id and persists reliably across platforms.
     expect(requestGateway).toHaveBeenCalledWith('session.title', {
@@ -290,7 +290,7 @@ describe('usePromptActions submit / queue drain semantics', () => {
     await handle!.submitText('hello after a stop')
 
     // The optimistic seed must reset interrupted:false even though the prior
-    // session state had interrupted:true — otherwise the message stream drops
+    // session state had interrupted:true; otherwise the message stream drops
     // every delta of this brand-new turn.
     expect(seeds.length).toBeGreaterThan(0)
     expect(seeds.every(s => s.interrupted === false)).toBe(true)
@@ -436,7 +436,7 @@ describe('usePromptActions steerPrompt', () => {
     const accepted = await handle!.steerPrompt('  nudge the run  ')
 
     expect(accepted).toBe(true)
-    // Steer never starts a turn — it rides the live run via session.steer only.
+    // Steer never starts a turn; it rides the live run via session.steer only.
     expect(requestGateway).toHaveBeenCalledWith('session.steer', {
       session_id: RUNTIME_SESSION_ID,
       text: 'nudge the run'
@@ -613,7 +613,7 @@ describe('usePromptActions file attachment sync', () => {
 
   it('uploads file bytes via file.attach on a remote gateway and submits the rewritten ref', async () => {
     // Remote gateway can't read the client-disk path, so the desktop must upload
-    // the bytes and submit the workspace-relative ref the gateway hands back —
+    // the bytes and submit the workspace-relative ref the gateway hands back;
     // not the original /Users/... path (which would dead-end as "outside the
     // allowed workspace").
     $connection.set({ mode: 'remote' } as never)
@@ -659,7 +659,7 @@ describe('usePromptActions file attachment sync', () => {
     // Submit-layer contract: only attachments that carry a `path` are upload
     // candidates. A path-less ref (an @-mention/context ref or pasted text)
     // has no bytes to send, so syncAttachments leaves it untouched and the ref
-    // reaches the gateway as-is — correct for workspace-relative refs.
+    // reaches the gateway as-is; correct for workspace-relative refs.
     //
     // The MahmoudR drag-drop bug (a Finder PDF that became a local-path text
     // ref in remote mode) is fixed upstream at the DROP layer: OS drops now
@@ -676,7 +676,7 @@ describe('usePromptActions file attachment sync', () => {
       id: 'file:devis',
       kind: 'file',
       label: 'DEVIS_signed.pdf',
-      // NOTE: no `path` field — only the pre-baked local @file: ref.
+      // NOTE: no `path` field; only the pre-baked local @file: ref.
       refText: '@file:`/Users/mahmoud/Downloads/DEVIS_signed.pdf`'
     }
 
@@ -717,7 +717,7 @@ describe('usePromptActions file attachment sync', () => {
 
     expect(ok).toBe(true)
     expect(calls[0]?.method).toBe('file.attach')
-    // Local mode sends no data_url — the gateway shares this disk.
+    // Local mode sends no data_url; the gateway shares this disk.
     expect(calls[0]?.params).not.toHaveProperty('data_url')
     expect(calls[1]).toEqual({
       method: 'prompt.submit',
@@ -919,7 +919,7 @@ describe('usePromptActions sleep/wake session recovery', () => {
     )
 
     // With a null stored ref, the `&& selectedStoredSessionIdRef.current` guard
-    // short-circuits — no resume is attempted and the error surfaces normally.
+    // short-circuits; no resume is attempted and the error surfaces normally.
     expect(await handle!.submitText('message')).toBe(false)
     expect(calls).not.toContain('session.resume')
   })
@@ -935,8 +935,8 @@ describe('usePromptActions eager attachment upload (drop-time)', () => {
 
   it('uploads a dropped file the moment it lands (active session) and rewrites the chip with the gateway ref', async () => {
     // A Finder drop adds a chip with a local path but no attachedSessionId. With
-    // a session already open, the hook should stage it right away — so the send
-    // is instant and the card can show a spinner while bytes upload — instead of
+    // a session already open, the hook should stage it right away; so the send
+    // is instant and the card can show a spinner while bytes upload; instead of
     // waiting for submit.
     $connection.set({ mode: 'remote' } as never)
     const readFileDataUrl = vi.fn(async () => 'data:application/pdf;base64,JVBERi0=')

@@ -81,7 +81,7 @@ memo notes -ex                    # Export to HTML/Markdown
 
 - Cannot edit notes containing images or attachments
 - Interactive prompts require terminal access (use pty=true if needed)
-- macOS only — requires Apple Notes.app
+- macOS only; requires Apple Notes.app
 
 ## Rules
 

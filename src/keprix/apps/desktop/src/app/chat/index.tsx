@@ -112,7 +112,7 @@ function ChatHeader({
   const title = activeStoredSession ? sessionTitle(activeStoredSession) : 'New session'
 
   // Pins live on the durable lineage-root id, but selectedSessionId is the live
-  // (tip) id — resolve through the loaded row so the menu reflects the pin
+  // (tip) id; resolve through the loaded row so the menu reflects the pin
   // state after auto-compression rotates the id.
   const selectedIsPinned = activeStoredSession
     ? pinnedSessionIds.includes(sessionPinId(activeStoredSession))
@@ -166,7 +166,7 @@ interface ChatRuntimeBoundaryProps {
   onEdit: (message: AppendMessage) => Promise<void>
   onReload: (parentId: string | null) => Promise<void>
   onThreadMessagesChange: (messages: readonly ThreadMessage[]) => void
-  /** Route points at an unloaded session — render empty until resume swaps in
+  /** Route points at an unloaded session; render empty until resume swaps in
    *  the new transcript, so the previous session's messages don't linger. */
   suppressMessages: boolean
 }
@@ -179,7 +179,7 @@ const NO_MESSAGES: ChatMessage[] = []
  * Isolated from ChatView so the per-token delta flush (which replaces the
  * $messages atom ~30×/s during streaming) only re-renders this component and
  * the runtime provider. The children (Thread, ChatBar) are created by
- * ChatView, whose render output is stable across flushes — so React bails out
+ * ChatView, whose render output is stable across flushes; so React bails out
  * of re-rendering them by element identity and the stream's render cost stays
  * confined to the streaming message's own subtree.
  */
@@ -286,7 +286,7 @@ export function ChatView({
   const gatewayOpen = gatewayState === 'open'
   const introPersonality = useStore($introPersonality)
   const introSeed = useStore($introSeed)
-  // PERF: ChatView must not subscribe to $messages — the atom is replaced on
+  // PERF: ChatView must not subscribe to $messages; the atom is replaced on
   // every streaming delta flush (~30×/s) and a subscription here re-renders
   // the entire chat shell (header, chat bar, thread wrapper) per token. The
   // runtime that DOES need the messages lives in ChatRuntimeBoundary below;
@@ -303,14 +303,14 @@ export function ChatView({
   // waiting for the resume effect (which paints a frame later) to clear them.
   const routeSessionMismatch = isRoutedSessionView && routedSessionId !== selectedSessionId
 
-  // The compact new-session pop-out skips the wordmark/tagline intro — it's a
+  // The compact new-session pop-out skips the wordmark/tagline intro; it's a
   // scratch window, not the full-height empty state.
   const showIntro =
     !isSecondaryWindow() && freshDraftReady && !isRoutedSessionView && !selectedSessionId && !activeSessionId && messagesEmpty
 
   // Session is still loading if the route references a session we haven't
   // resumed yet. Once `activeSessionId` is set (runtime has resumed), the
-  // session exists — even if it has zero messages (a brand-new routed
+  // session exists; even if it has zero messages (a brand-new routed
   // session). The flicker where `busy` flips true briefly during hydrate
   // is handled by `threadLoadingState`'s last-visible-user gate.
   const loadingSession = isRoutedSessionView && (routeSessionMismatch || (messagesEmpty && !activeSessionId))
@@ -366,7 +366,7 @@ export function ChatView({
   // the gateway resolves directly, so they stay inline `@file:` refs. OS/Finder
   // drops carry absolute local paths that don't exist on a remote gateway (and
   // images need byte upload for vision), so route them through the attachment
-  // pipeline — otherwise the local path leaks into the prompt verbatim.
+  // pipeline; otherwise the local path leaks into the prompt verbatim.
   const onDropFiles = useCallback(
     (candidates: DroppedFile[]) => {
       const { inAppRefs, osDrops } = partitionDroppedFiles(candidates)

@@ -64,8 +64,8 @@ export function StatusbarControls({ className, leftItems = [], items = [], ...pr
       )}
       {...props}
     >
-      {/* `overflow-x-clip` (not `overflow-x-auto`) so a wide status item — for
-          example "Connecting…" on a fresh/untitled session — can't paint a
+      {/* `overflow-x-clip` (not `overflow-x-auto`) so a wide status item; for
+          example "Connecting…" on a fresh/untitled session; can't paint a
           horizontal scrollbar across the bottom of the window. Items already
           `truncate` their labels, so clipping is the right behavior. */}
       <div className="flex min-w-0 items-stretch gap-0.5 overflow-x-clip">

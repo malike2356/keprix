@@ -33,7 +33,7 @@ Usage:
     keprix honcho tokens --dialectic N     # Set dialectic result char cap
     keprix honcho identity                 # Show AI peer identity representation
     keprix honcho identity <file>          # Seed AI peer identity from a file (SOUL.md etc.)
-    keprix honcho migrate                  # Step-by-step migration guide: OpenClaw native → Keprix + Honcho
+    keprix honcho migrate                  # Step-by-step migration guide for legacy gateway installs
     keprix version             Show version
     keprix update              Update to latest version
     keprix uninstall           Uninstall Keprix
@@ -282,6 +282,7 @@ from keprix_cli.subcommands.security import build_security_parser
 from keprix_cli.subcommands.dump import build_dump_parser
 from keprix_cli.subcommands.debug import build_debug_parser
 from keprix_cli.subcommands.backup import build_backup_parser
+from keprix_cli.subcommands.usage import build_usage_parser, cmd_usage
 from keprix_cli.subcommands.import_cmd import build_import_cmd_parser
 from keprix_cli.subcommands.config import build_config_parser
 from keprix_cli.subcommands.version import build_version_parser
@@ -300,6 +301,26 @@ from keprix_cli.subcommands.pairing import build_pairing_parser
 from keprix_cli.subcommands.plugins import build_plugins_parser
 from keprix_cli.subcommands.mcp import build_mcp_parser
 from keprix_cli.subcommands.claw import build_claw_parser
+from keprix_cli.subcommands.self_config import build_self_config_parsers
+from keprix_cli.subcommands.sdk import build_sdk_parser
+from keprix_cli.subcommands.slash import build_slash_parser
+from keprix_cli.subcommands.coding import build_coding_parser
+from keprix_cli.subcommands.opportunity import build_opportunity_parser
+from keprix_cli.subcommands.mutation import build_mutation_parser
+from keprix_cli.subcommands.research import build_research_parser
+from keprix_cli.subcommands.builder import build_builder_parser
+from keprix_cli.subcommands.language import build_language_parser
+from keprix_cli.subcommands.agent_app import build_agent_app_parser
+from keprix_cli import self_config_commands
+from keprix_cli import sdk_commands
+from keprix_cli import slash_commands
+from keprix_cli import coding_commands
+from keprix_cli import opportunity_commands
+from keprix.mutation import cli_commands as mutation_pipeline_commands
+from keprix_cli import research_commands
+from keprix_cli import builder_commands
+from keprix_cli import language_commands
+from keprix_cli import agent_app_commands
 
 
 def _require_tty(command_name: str) -> None:
@@ -4248,8 +4269,9 @@ def cmd_import(args):
 
 
 def _print_version_info(*, check_updates: bool = True) -> None:
-    from keprix_cli.banner import format_banner_version_label
+    from keprix_cli.banner import format_banner_version_label, print_community_edition_banner
 
+    print_community_edition_banner()
     print(format_banner_version_label())
     print(f"Project: {PROJECT_ROOT}")
 
@@ -10955,7 +10977,8 @@ _BUILTIN_SUBCOMMANDS = frozenset(
     {
         "acp", "auth", "backup", "bundles", "checkpoints", "claw", "completion",
         "computer-use",
-        "config", "cron", "curator", "dashboard", "debug", "doctor",
+        "approve", "configure", "config", "cron", "curator", "dashboard", "debug", "doctor",
+        "health", "proposals", "reject", "repair", "rollback",
         "dump", "fallback", "gateway", "hooks", "import", "insights",
         "gui", "desktop", "kanban", "login", "logout", "logs", "lsp", "mcp", "memory", "migrate",
         "model", "pairing", "plugins", "portal", "postinstall", "profile", "proxy",
@@ -10963,6 +10986,7 @@ _BUILTIN_SUBCOMMANDS = frozenset(
         "send", "sessions", "setup",
         "skills", "slack", "status", "tools", "uninstall", "update",
         "version", "webhook", "whatsapp", "whatsapp-cloud", "chat", "secrets", "security",
+        "builder", "research", "coding", "opportunity",
         # Help-ish invocations — plugin commands not being listed in
         # top-level --help is an acceptable trade-off for skipping an
         # expensive eager import of every bundled plugin module.
@@ -11364,6 +11388,30 @@ def cmd_acp(args):
 
 def cmd_tools(args):
     action = getattr(args, "tools_action", None)
+    if action == "pending":
+        from keprix_cli.mutation_commands import cmd_tools_pending
+
+        return cmd_tools_pending(args)
+    if action == "history":
+        from keprix_cli.mutation_commands import cmd_tools_history
+
+        return cmd_tools_history(args)
+    if action == "show":
+        from keprix_cli.mutation_commands import cmd_tools_show
+
+        return cmd_tools_show(args)
+    if action == "approve":
+        from keprix_cli.mutation_commands import cmd_tools_approve
+
+        return cmd_tools_approve(args)
+    if action == "reject":
+        from keprix_cli.mutation_commands import cmd_tools_reject
+
+        return cmd_tools_reject(args)
+    if action == "delete-generated":
+        from keprix_cli.mutation_commands import cmd_tools_delete_generated
+
+        return cmd_tools_delete_generated(args)
     if action in {"list", "disable", "enable"}:
         from keprix_cli.tools_config import tools_disable_enable_command
 
@@ -11590,6 +11638,10 @@ def main():
         help="Skip the timestamped backup of config.yaml when applying",
     )
     migrate_xai.set_defaults(func=cmd_migrate_xai)
+
+    from keprix.backend.migration.cli import register_migrate_agent_subparsers
+
+    register_migrate_agent_subparsers(migrate_subparsers)
     migrate_parser.set_defaults(func=cmd_migrate)
 
     # =========================================================================
@@ -11706,6 +11758,104 @@ def main():
     build_doctor_parser(subparsers, cmd_doctor=cmd_doctor)
 
     # =========================================================================
+    # self-configuration commands (Prompt 16)
+    # =========================================================================
+    build_self_config_parsers(
+        subparsers,
+        cmd_configure=self_config_commands.cmd_configure,
+        cmd_health=self_config_commands.cmd_health,
+        cmd_proposals=self_config_commands.cmd_proposals,
+        cmd_approve=self_config_commands.cmd_approve,
+        cmd_reject=self_config_commands.cmd_reject,
+        cmd_repair=self_config_commands.cmd_repair,
+        cmd_rollback=self_config_commands.cmd_rollback,
+    )
+
+    build_sdk_parser(
+        subparsers,
+        cmd_list=sdk_commands.cmd_sdk_list,
+        cmd_show=sdk_commands.cmd_sdk_show,
+        cmd_unregister=sdk_commands.cmd_sdk_unregister,
+        cmd_test=sdk_commands.cmd_sdk_test,
+    )
+
+    build_slash_parser(
+        subparsers,
+        cmd_list=slash_commands.cmd_slash_list,
+        cmd_run=slash_commands.cmd_slash_run,
+    )
+
+    build_coding_parser(
+        subparsers,
+        cmd_profiles=coding_commands.cmd_coding_profiles,
+        cmd_run=coding_commands.cmd_coding_run,
+    )
+
+    build_opportunity_parser(
+        subparsers,
+        cmd_new=opportunity_commands.cmd_opportunity_new,
+        cmd_run=opportunity_commands.cmd_opportunity_run,
+        cmd_phase=opportunity_commands.cmd_opportunity_phase,
+        cmd_status=opportunity_commands.cmd_opportunity_status,
+        cmd_artifact=opportunity_commands.cmd_opportunity_artifact,
+        cmd_approve=opportunity_commands.cmd_opportunity_approve,
+    )
+
+    build_mutation_parser(
+        subparsers,
+        cmd_list=mutation_pipeline_commands.cmd_mutation_list,
+        cmd_approve=mutation_pipeline_commands.cmd_mutation_approve,
+        cmd_reject=mutation_pipeline_commands.cmd_mutation_reject,
+        cmd_rollback=mutation_pipeline_commands.cmd_mutation_rollback,
+        cmd_synthesize=mutation_pipeline_commands.cmd_mutation_synthesize,
+        cmd_stats=mutation_pipeline_commands.cmd_mutation_stats,
+        cmd_code_request=mutation_pipeline_commands.cmd_mutation_code_request,
+        cmd_code_list=mutation_pipeline_commands.cmd_mutation_code_list,
+        cmd_code_diff=mutation_pipeline_commands.cmd_mutation_code_diff,
+        cmd_code_approve=mutation_pipeline_commands.cmd_mutation_code_approve,
+        cmd_code_reject=mutation_pipeline_commands.cmd_mutation_code_reject,
+        cmd_code_rollback=mutation_pipeline_commands.cmd_mutation_code_rollback,
+    )
+
+    build_research_parser(
+        subparsers,
+        cmd_list=research_commands.cmd_research_list,
+        cmd_run=research_commands.cmd_research_run,
+        cmd_projects=research_commands.cmd_research_projects,
+    )
+
+    build_builder_parser(
+        subparsers,
+        cmd_list=builder_commands.cmd_builder_list,
+        cmd_analyse=builder_commands.cmd_builder_analyse,
+        cmd_build=builder_commands.cmd_builder_build,
+        cmd_scaffold=builder_commands.cmd_builder_scaffold,
+        cmd_status=builder_commands.cmd_builder_status,
+        cmd_logs=builder_commands.cmd_builder_logs,
+        cmd_deploy=builder_commands.cmd_builder_deploy,
+    )
+
+    build_language_parser(
+        subparsers,
+        cmd_detect=language_commands.cmd_language_detect,
+        cmd_translate=language_commands.cmd_language_translate,
+        cmd_transcribe=language_commands.cmd_language_transcribe,
+        cmd_flywheel_export=language_commands.cmd_language_flywheel_export,
+    )
+
+    build_agent_app_parser(
+        subparsers,
+        cmd_list=agent_app_commands.cmd_agent_app_list,
+        cmd_validate=agent_app_commands.cmd_agent_app_validate,
+        cmd_install=agent_app_commands.cmd_agent_app_install,
+        cmd_run=agent_app_commands.cmd_agent_app_run,
+        cmd_eval=agent_app_commands.cmd_agent_app_eval,
+        cmd_bundle=agent_app_commands.cmd_agent_app_bundle,
+        cmd_create=agent_app_commands.cmd_agent_app_create,
+        cmd_catalog_list=agent_app_commands.cmd_agent_app_catalog_list,
+    )
+
+    # =========================================================================
     # security command — on-demand supply-chain audit
     # =========================================================================
     # security command  (parser built in keprix_cli/subcommands/security.py)
@@ -11726,6 +11876,11 @@ def main():
     # backup command  (parser built in keprix_cli/subcommands/backup.py)
     # =========================================================================
     build_backup_parser(subparsers, cmd_backup=cmd_backup)
+
+    # =========================================================================
+    # usage command  (parser built in keprix_cli/subcommands/usage.py)
+    # =========================================================================
+    build_usage_parser(subparsers, cmd_usage=cmd_usage)
 
     # =========================================================================
     # checkpoints command

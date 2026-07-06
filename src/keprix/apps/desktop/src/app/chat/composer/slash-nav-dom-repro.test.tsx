@@ -143,7 +143,7 @@ async function flush() {
   })
 }
 
-describe('slash menu navigation — real DOM keydown+keyup', () => {
+describe('slash menu navigation; real DOM keydown+keyup', () => {
   it('cycles through ALL items and Esc closes (and stays closed)', async () => {
     vi.useRealTimers()
     let latest = { active: 0, items: [] as readonly Unstable_TriggerItem[], open: false }

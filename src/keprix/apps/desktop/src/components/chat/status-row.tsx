@@ -16,7 +16,7 @@ interface StatusRowProps {
 }
 
 /**
- * Shared row chrome for everything in the composer status stack — status items
+ * Shared row chrome for everything in the composer status stack; status items
  * (subagents, background) AND queued prompts. Fixed height, a leading glyph
  * slot, flexible content, and a trailing actions slot that reveals on hover.
  * Hover background matches the session sidebar. Consumers fill the three slots;

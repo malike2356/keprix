@@ -1,0 +1,17 @@
+{
+  "product": "Keprix",
+  "navigation_groups": [
+    "workspace",
+    "apps",
+    "data",
+    "research",
+    "automations",
+    "commerce",
+    "security",
+    "admin"
+  ],
+  "layout": "bottom-tabs-with-drawer",
+  "primary_tabs": ["chat", "approvals", "notifications", "launcher"],
+  "contract_endpoint": "/api/ui/contract",
+  "status_vocabulary": "ui/design-system/tokens/status.json"
+}

@@ -1,0 +1,159 @@
+site_name: Keprix Documentation
+site_description: Self-hosted AI agent OS, Community Edition
+# Canonical URL for MkDocs; internal nav links stay relative. Override at build time via DOCS_SITE_URL.
+site_url: http://127.0.0.1:3000/guide/
+repo_url: https://github.com/malike2356/keprix
+edit_uri: edit/main/docs/
+
+docs_dir: docs
+site_dir: frontend/public/guide
+
+exclude_docs: |
+  internal/
+  README.md
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep purple
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep purple
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to dark mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - toc.follow
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+      fallback_to_build_date: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Quickstart: getting-started/quickstart.md
+      - Manual install: getting-started/manual-install.md
+      - Cloud deploy: getting-started/cloud-deploy.md
+      - First run: getting-started/first-run.md
+      - Authentication: getting-started/authentication.md
+      - Developer mode: getting-started/developer-mode.md
+      - Migration: features/migration.md
+  - Configuration:
+      - Environment variables: configuration/environment-variables.md
+      - Docker Compose: configuration/docker-compose.md
+      - LLM providers: configuration/llm-providers.md
+      - Developer identity: configuration/developer-identity.md
+      - Localization: features/localization.md
+  - Workspace:
+      - Overview: features/workspace.md
+      - Chat: features/chat.md
+      - Documents: features/documents.md
+      - Notes: features/notes.md
+      - Tasks: features/tasks.md
+      - Calendar: features/calendar.md
+      - Email: features/email.md
+      - Contacts: features/contacts.md
+      - Gallery: features/gallery.md
+      - Memory and RAG: features/memory.md
+      - Voice: features/voice.md
+      - Settings: features/settings.md
+      - Notifications: features/notifications.md
+      - Project builder: features/project-builder.md
+  - Apps and research:
+      - Skills and plugins: features/skills.md
+      - Hub and domain packs: features/hub-and-packs.md
+      - Deep research: features/research.md
+      - RAG pipelines: features/rag-pipelines.md
+      - Compare models: features/compare-models.md
+      - Opportunity engine: opportunity-engine.md
+      - Opportunity approval: opportunity-engine-approval-policy.md
+      - Opportunity integrations: opportunity-engine-integrations.md
+      - Opportunity examples: opportunity-engine-examples.md
+      - Local models: features/local-models.md
+      - Analytics workspace: features/analytics-workspace.md
+  - Developer platform: features/developer-platform.md
+  - Automations:
+      - Agent and Mutation Engine: features/agent.md
+      - Agent runtime internals: features/agent-runtime.md
+      - Self-coding agent: features/self-coding-agent.md
+      - Playbooks: features/playbooks.md
+      - Agent Studio: features/agent-studio.md
+      - Agent Apps: features/agent-apps.md
+      - Agent teams: features/agent-teams.md
+      - Cron jobs: features/cron-jobs.md
+      - Built-in tools: features/tools.md
+      - Messaging channels: features/messaging.md
+      - Evals: features/evals.md
+  - Security:
+      - Architecture: security/architecture.md
+      - Privacy and data handling: security/privacy.md
+      - Vault: security/vault.md
+      - Governance: security/governance.md
+      - Review gateway: security/review-gateway.md
+      - Audit log: security/audit-log.md
+      - Hardening: security/hardening.md
+  - Integrations:
+      - MCP: integrations/mcp.md
+      - Notion and Trello: integrations/productivity-notion-trello.md
+      - ACP: integrations/acp.md
+      - Mobile: integrations/mobile.md
+      - SDK: integrations/sdk.md
+      - OpenAI-compatible API: integrations/openai-api.md
+      - Scout: integrations/scout.md
+      - Petraclus: integrations/petraclus.md
+  - Operations:
+      - Admin dashboard: operations/admin-dashboard.md
+      - Changelog automation: operations/changelog-automation.md
+      - Loading states (skeleton UI): frontend/loading-states.md
+      - Control center: features/control-center.md
+      - Hot backup: operations/backup.md
+      - Data planes: operations/data-planes.md
+  - Community:
+      - Acknowledgments: community/acknowledgments.md
+      - Contributing: community/contributing.md
+      - Code of conduct: community/code-of-conduct.md
+      - Issue types: community/issue-types.md
+      - Skill packs: community/packs.md
+      - Good first issues: community/good-first-issues.md
+      - Discussions: community/discussions.md
+      - Labels: community/labels.md
+  - Product boundaries:
+      - Commercial products: product-boundaries/commercial-products.md
+      - Petraclus boundary: product-boundaries/petraclus.md
+      - What Keprix is not: product-boundaries/what-keprix-is-not.md
+  - Reference:
+      - REST API: reference/api.md
+      - CLI: reference/cli.md
+      - Changelog: reference/changelog.md
+      - License: reference/license.md
+  - Meta:
+      - Documentation roadmap: DOCUMENTATION_ROADMAP.md

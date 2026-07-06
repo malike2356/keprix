@@ -50,9 +50,9 @@ explicitly allowlisted set.
 
 Two Docker networks:
 
-- **`internal`** — no default route, no internet access. The agent, dashboard,
+- **`internal`**; no default route, no internet access. The agent, dashboard,
   and gateway run here.
-- **`egress`** — has internet access. Only services that need to reach external
+- **`egress`**; has internet access. Only services that need to reach external
   APIs are attached to this network.
 
 The gateway service is dual-homed (attached to both networks) so it can
@@ -190,6 +190,6 @@ docker compose exec gateway \
 
 ## Related
 
-- [SECURITY.md](../../SECURITY.md) — Keprix trust model and vulnerability reporting
-- [Terminal backends](../../README.md) — sandboxed execution targets
-- [docker-compose.yml](../../docker-compose.yml) — default compose configuration
+- [SECURITY.md](../../SECURITY.md); Keprix trust model and vulnerability reporting
+- [Terminal backends](../../README.md); sandboxed execution targets
+- [docker-compose.yml](../../docker-compose.yml); default compose configuration

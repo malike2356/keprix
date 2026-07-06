@@ -1,0 +1,19 @@
+{
+  "name": "workspace-starter",
+  "version": "1.0.0",
+  "type": "app_template",
+  "author": "Keprix",
+  "license": "MIT",
+  "description": "Minimal workspace app template with documents, notes, and tasks folders.",
+  "permissions": ["filesystem:write"],
+  "files": ["template/README.md", "template/documents/.gitkeep", "template/notes/.gitkeep"],
+  "dependencies": [],
+  "setup_requirements": ["create workspace directories"],
+  "data_touched": ["workspace/documents", "workspace/notes"],
+  "network_hosts": [],
+  "risk_level": "low",
+  "uninstall_plan": ["remove template directory"],
+  "tests": [],
+  "trust_label": "official",
+  "review_score": 4.2
+}

@@ -15,7 +15,7 @@ function setup() {
 
 ```javascript
 function draw() {
-  translate(-width/2, -height/2);  // shift origin to top-left
+  translate(-width/2, -height/2); // shift origin to top-left
   // Now coordinates work like P2D
 }
 ```
@@ -23,13 +23,13 @@ function draw() {
 ## 3D Primitives
 
 ```javascript
-box(w, h, d);             // rectangular prism
+box(w, h, d); // rectangular prism
 sphere(radius, detailX, detailY);
 cylinder(radius, height, detailX, detailY);
 cone(radius, height, detailX, detailY);
 torus(radius, tubeRadius, detailX, detailY);
-plane(width, height);     // flat rectangle
-ellipsoid(rx, ry, rz);    // stretched sphere
+plane(width, height); // flat rectangle
+ellipsoid(rx, ry, rz); // stretched sphere
 ```
 
 ### 3D Transforms
@@ -63,7 +63,7 @@ camera(
 
 ```javascript
 function draw() {
-  orbitControl();  // mouse drag to rotate, scroll to zoom
+  orbitControl(); // mouse drag to rotate, scroll to zoom
   box(200);
 }
 ```
@@ -83,11 +83,11 @@ function setup() {
 // Camera methods
 cam.setPosition(x, y, z);
 cam.lookAt(x, y, z);
-cam.move(dx, dy, dz);      // relative to camera orientation
-cam.pan(angle);              // horizontal rotation
-cam.tilt(angle);             // vertical rotation
-cam.roll(angle);             // z-axis rotation
-cam.slerp(otherCam, t);     // smooth interpolation between cameras
+cam.move(dx, dy, dz); // relative to camera orientation
+cam.pan(angle); // horizontal rotation
+cam.tilt(angle); // vertical rotation
+cam.roll(angle); // z-axis rotation
+cam.slerp(otherCam, t); // smooth interpolation between cameras
 ```
 
 ### Perspective and Orthographic
@@ -107,19 +107,19 @@ ortho(-width/2, width/2, -height/2, height/2, 0, 2000);
 
 ```javascript
 // Ambient (uniform, no direction)
-ambientLight(50, 50, 50);     // dim fill light
+ambientLight(50, 50, 50); // dim fill light
 
 // Directional (parallel rays, like sun)
-directionalLight(255, 255, 255, 0, -1, 0);  // color + direction
+directionalLight(255, 255, 255, 0, -1, 0); // color + direction
 
 // Point (radiates from position)
-pointLight(255, 200, 150, 200, -300, 400);   // color + position
+pointLight(255, 200, 150, 200, -300, 400); // color + position
 
 // Spot (cone from position toward target)
 spotLight(255, 255, 255,       // color
           0, -300, 300,         // position
           0, 1, -1,             // direction
-          PI / 4, 5);           // angle, concentration
+          PI / 4, 5); // angle, concentration
 
 // Image-based lighting
 imageLight(myHDRI);
@@ -135,7 +135,7 @@ lights();
 
 ```javascript
 function setupLighting() {
-  ambientLight(30, 30, 40);                    // dim blue fill
+  ambientLight(30, 30, 40); // dim blue fill
 
   // Key light (main, warm)
   directionalLight(255, 240, 220, -1, -1, -1);
@@ -151,7 +151,7 @@ function setupLighting() {
 ## Materials
 
 ```javascript
-// Normal material (debug — colors from surface normals)
+// Normal material (debug; colors from surface normals)
 normalMaterial();
 
 // Ambient (responds only to ambientLight)
@@ -162,8 +162,8 @@ emissiveMaterial(255, 0, 100);
 
 // Specular (shiny reflections)
 specularMaterial(255);
-shininess(50);                // 1-200 (higher = tighter highlight)
-metalness(100);               // 0-200 (metallic reflection)
+shininess(50); // 1-200 (higher = tighter highlight)
+metalness(100); // 0-200 (metallic reflection)
 
 // Fill works too (no lighting response)
 fill(255, 0, 0);
@@ -177,9 +177,9 @@ function preload() { img = loadImage('texture.jpg'); }
 
 function draw() {
   texture(img);
-  textureMode(NORMAL);  // UV coords 0-1
+  textureMode(NORMAL); // UV coords 0-1
   // textureMode(IMAGE); // UV coords in pixels
-  textureWrap(REPEAT);  // or CLAMP, MIRROR
+  textureWrap(REPEAT); // or CLAMP, MIRROR
   box(200);
 }
 ```
@@ -204,7 +204,7 @@ function setup() {
 }
 
 function draw() {
-  model(myShape);  // renders once-built geometry efficiently
+  model(myShape); // renders once-built geometry efficiently
 }
 ```
 
@@ -218,7 +218,7 @@ beginGeometry();
   sphere(30);
 let geo = endGeometry();
 
-model(geo);  // reuse
+model(geo); // reuse
 ```
 
 ### Manual Geometry (p5.Geometry)
@@ -292,7 +292,7 @@ function draw() {
 
 ### createFilterShader (Post-Processing)
 
-Simpler — only needs a fragment shader. Automatically gets the canvas as a texture.
+Simpler; only needs a fragment shader. Automatically gets the canvas as a texture.
 
 ```javascript
 let blurShader;
@@ -335,8 +335,8 @@ function draw() {
 myShader.setUniform('uTime', millis() / 1000.0);
 myShader.setUniform('uResolution', [width, height]);
 myShader.setUniform('uMouse', [mouseX / width, mouseY / height]);
-myShader.setUniform('uTexture', myGraphics);  // pass p5.Graphics as texture
-myShader.setUniform('uValue', 0.5);           // float
+myShader.setUniform('uTexture', myGraphics); // pass p5.Graphics as texture
+myShader.setUniform('uValue', 0.5); // float
 myShader.setUniform('uColor', [1.0, 0.0, 0.5, 1.0]); // vec4
 ```
 

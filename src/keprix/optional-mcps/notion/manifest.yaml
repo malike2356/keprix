@@ -1,0 +1,19 @@
+# Nous-approved MCP catalog entry.
+# Presence in this directory = approval. Merged via PR review.
+manifest_version: 1
+
+name: notion
+description: Official Notion hosted MCP (OAuth). Read and write pages and databases.
+source: https://developers.notion.com/guides/mcp/get-started-with-mcp
+
+transport:
+  type: http
+  url: https://mcp.notion.com/mcp
+
+auth:
+  type: oauth
+
+post_install: |
+  Run `keprix mcp login notion` to complete OAuth in your browser.
+  Start a new Keprix chat session so Notion tools load.
+  For headless automation, use catalog key `notion-token` instead.

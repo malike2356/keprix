@@ -140,7 +140,7 @@ const DirectiveIcon: FC<{ type: string }> = ({ type }) => (
   </svg>
 )
 
-/** Shared chip styling — used by both the rendered <DirectiveChip> and the
+/** Shared chip styling; used by both the rendered <DirectiveChip> and the
  * raw HTML composer chips in `rich-editor.ts`. Neutral subtle wash + plain
  * muted-foreground text so chips read as quiet tags on any bubble color. */
 export const DIRECTIVE_CHIP_CLASS =
@@ -212,7 +212,7 @@ export const hermesDirectiveFormatter: Unstable_DirectiveFormatter = {
 
     // Live-completion items carry the gateway's original `text` field via metadata.
     if (rawText) {
-      // Palette starters (`@file:` with empty value) — insert verbatim so the
+      // Palette starters (`@file:` with empty value); insert verbatim so the
       // user can keep typing the path inline.
       if (rawText.endsWith(':') && !insertId) {
         return rawText
@@ -223,7 +223,7 @@ export const hermesDirectiveFormatter: Unstable_DirectiveFormatter = {
         return rawText
       }
 
-      // Typed references with a value — quote when needed.
+      // Typed references with a value; quote when needed.
       const kindMatch = rawText.match(/^@([^:]+):/)
       const kind = kindMatch?.[1] ?? item.type
 
@@ -309,7 +309,7 @@ function shortLabel(type: HermesRefType, id: string): string {
     }
   }
 
-  // `@session:<profile>/<id>` — show a short id; the composer chip carries the
+  // `@session:<profile>/<id>`; show a short id; the composer chip carries the
   // friendly title, but once sent the wire form only has the id.
   if (type === 'session') {
     const sid = id.split('/').filter(Boolean).pop() || id
@@ -364,7 +364,7 @@ export const DirectiveText: TextMessagePartComponent = ({ text }: TextMessagePar
   <DirectiveContent text={text ?? ''} />
 )
 
-/** Image refs render as a thumbnail rather than a chip — matches how persisted
+/** Image refs render as a thumbnail rather than a chip; matches how persisted
  * messages render after the backend embeds the data URL, so the UX is stable
  * across initial send and refresh. */
 const DirectiveImage: FC<{ id: string; label: string }> = ({ id, label }) => {
@@ -379,7 +379,7 @@ const DirectiveImage: FC<{ id: string; label: string }> = ({ id, label }) => {
 
     let alive = true
 
-    // Remote gateway: the image lives on the gateway's disk, not ours — fetch
+    // Remote gateway: the image lives on the gateway's disk, not ours; fetch
     // it over the authenticated API. Local: read it straight off this disk.
     const load =
       window.hermesDesktop && isRemoteGateway()

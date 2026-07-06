@@ -51,24 +51,24 @@ Classic European comic style originating from Hergé's Tintin. Characterized by 
 
 ## Quality Markers
 
-- ✓ Clean, uniform line weight throughout
-- ✓ Flat colors without gradients
-- ✓ Detailed backgrounds, stylized characters
-- ✓ Clear panel borders and reading flow
-- ✓ Hand-drawn text style
-- ✓ Proper perspective in environments
+-  Clean, uniform line weight throughout
+-  Flat colors without gradients
+-  Detailed backgrounds, stylized characters
+-  Clear panel borders and reading flow
+-  Hand-drawn text style
+-  Proper perspective in environments
 
 ## Compatibility
 
 | Tone | Fit | Notes |
 |------|-----|-------|
-| neutral | ✓✓ | Classic combination |
-| warm | ✓✓ | Nostalgic stories |
-| dramatic | ✓ | Works with high contrast |
-| vintage | ✓ | Period pieces |
-| romantic | ✗ | Style mismatch |
-| energetic | ✓ | Lighter stories |
-| action | ✗ | Lacks dynamic lines |
+| neutral |  | Classic combination |
+| warm |  | Nostalgic stories |
+| dramatic |  | Works with high contrast |
+| vintage |  | Period pieces |
+| romantic |  | Style mismatch |
+| energetic |  | Lighter stories |
+| action |  | Lacks dynamic lines |
 
 ## Best For
 

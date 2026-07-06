@@ -1,0 +1,19 @@
+{
+  "name": "webhook-bridge",
+  "version": "1.0.0",
+  "type": "connector_pack",
+  "author": "Keprix",
+  "license": "MIT",
+  "description": "Sample connector manifest for outbound webhook integrations.",
+  "permissions": ["network:egress"],
+  "files": ["connector/connector.yaml"],
+  "dependencies": [],
+  "setup_requirements": ["configure webhook URL in workspace settings"],
+  "data_touched": [],
+  "network_hosts": ["api.example.com"],
+  "risk_level": "medium",
+  "uninstall_plan": ["remove connector/connector.yaml"],
+  "tests": [],
+  "trust_label": "official",
+  "review_score": 4.0
+}

@@ -53,7 +53,7 @@ python3 ../scripts/check_deps.py wan_video_t2v.json
   mask as a single-channel image or as a normal RGB where red==intensity.
 
 - **Denoise strength** in img2img: `0.0` = output identical to input,
-  `1.0` = ignore input entirely. Sweet spot is usually 0.4–0.7.
+  `1.0` = ignore input entirely. Sweet spot is usually 0.4-0.7.
 
 - **Flux Dev** needs ~24 GB VRAM in its base form. The `flux1-dev-fp8.safetensors`
   variant (already on Comfy Cloud) cuts that roughly in half.
@@ -81,6 +81,6 @@ python3 ../scripts/run_workflow.py \
 ```
 
 The `ckpt_name`, `vae_name`, `lora_name`, `unet_name`, etc. are all exposed
-as controllable parameters by `extract_schema.py` — discover what's installed
+as controllable parameters by `extract_schema.py`; discover what's installed
 with `comfy model list` (local) or `curl /api/experiment/models/checkpoints`
 (cloud).

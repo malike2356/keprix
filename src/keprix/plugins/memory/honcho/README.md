@@ -23,7 +23,7 @@ echo "HONCHO_API_KEY=***" >> ~/.keprix/.env
 ```
 
 > `keprix honcho setup` also works, but only **after** Honcho is the active
-> memory provider — the `honcho` subcommand is registered for the active
+> memory provider; the `honcho` subcommand is registered for the active
 > provider only. On a fresh install, use `keprix memory setup honcho`.
 
 ## Architecture Overview
@@ -34,14 +34,14 @@ Context is injected into the **user message** at API-call time (not the system p
 
 Two independent layers, each on its own cadence:
 
-**Layer 1 — Base context** (refreshed every `contextCadence` turns):
-1. **SESSION SUMMARY** — from `session.context(summary=True)`, placed first
-2. **User Representation** — Honcho's evolving model of the user
-3. **User Peer Card** — key facts snapshot
-4. **AI Self-Representation** — Honcho's model of the AI peer
-5. **AI Identity Card** — AI peer facts
+**Layer 1; Base context** (refreshed every `contextCadence` turns):
+1. **SESSION SUMMARY**; from `session.context(summary=True)`, placed first
+2. **User Representation**; Honcho's evolving model of the user
+3. **User Peer Card**; key facts snapshot
+4. **AI Self-Representation**; Honcho's model of the AI peer
+5. **AI Identity Card**; AI peer facts
 
-**Layer 2 — Dialectic supplement** (fired every `dialecticCadence` turns):
+**Layer 2; Dialectic supplement** (fired every `dialecticCadence` turns):
 Multi-pass `.chat()` reasoning about the user, appended after base context.
 
 Both layers are joined, then truncated to fit `contextTokens` budget via `_truncate_to_budget` (tokens × 4 chars, word-boundary safe).
@@ -53,11 +53,11 @@ Dialectic pass 0 automatically selects its prompt based on session state:
 - **Cold** (no base context cached): "Who is this person? What are their preferences, goals, and working style? Focus on facts that would help an AI assistant be immediately useful."
 - **Warm** (base context exists): "Given what's been discussed in this session so far, what context about this user is most relevant to the current conversation? Prioritize active context over biographical facts."
 
-Not configurable — determined automatically.
+Not configurable; determined automatically.
 
 ### Dialectic Depth (Multi-Pass Reasoning)
 
-`dialecticDepth` (1–3, clamped) controls how many `.chat()` calls fire per dialectic cycle:
+`dialecticDepth` (1-3, clamped) controls how many `.chat()` calls fire per dialectic cycle:
 
 | Depth | Passes | Behavior |
 |-------|--------|----------|
@@ -81,9 +81,9 @@ Override with `dialecticDepthLevels`: an explicit array of reasoning level strin
 
 | Knob | Controls | Type |
 |------|----------|------|
-| `dialecticCadence` | How often — minimum turns between dialectic firings | int |
-| `dialecticDepth` | How many — passes per firing (1–3) | int |
-| `dialecticReasoningLevel` | How hard — reasoning ceiling per `.chat()` call | string |
+| `dialecticCadence` | How often; minimum turns between dialectic firings | int |
+| `dialecticDepth` | How many; passes per firing (1-3) | int |
+| `dialecticReasoningLevel` | How hard; reasoning ceiling per `.chat()` call | string |
 
 ### Input Sanitization
 
@@ -95,7 +95,7 @@ Five bidirectional tools. All accept an optional `peer` parameter (`"user"` or `
 
 | Tool | LLM call? | Description |
 |------|-----------|-------------|
-| `honcho_profile` | No | Peer card — key facts snapshot |
+| `honcho_profile` | No | Peer card; key facts snapshot |
 | `honcho_search` | No | Semantic search over stored context (800 tok default, 2000 max) |
 | `honcho_context` | No | Full session context: summary, representation, card, messages |
 | `honcho_reasoning` | Yes | LLM-synthesized answer via dialectic `.chat()` |
@@ -123,22 +123,22 @@ For every key, resolution order is: **host block > root > env var > default**.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `apiKey` | string | — | API key. Falls back to `HONCHO_API_KEY` env var |
-| `baseUrl` | string | — | Base URL for self-hosted Honcho. Local URLs auto-skip API key auth |
+| `apiKey` | string |; | API key. Falls back to `HONCHO_API_KEY` env var |
+| `baseUrl` | string |; | Base URL for self-hosted Honcho. Local URLs auto-skip API key auth |
 | `environment` | string | `"production"` | SDK environment mapping |
 | `enabled` | bool | auto | Master toggle. Auto-enables when `apiKey` or `baseUrl` present |
-| `workspace` | string | host key | Honcho workspace ID. Shared environment — all profiles in the same workspace can see the same user identity and related memories |
-| `peerName` | string | — | User peer identity |
+| `workspace` | string | host key | Honcho workspace ID. Shared environment; all profiles in the same workspace can see the same user identity and related memories |
+| `peerName` | string |; | User peer identity |
 | `aiPeer` | string | host key | AI peer identity |
 
 ### Identity Mapping (Gateway Multi-User)
 
-In gateway deployments (Telegram, Discord, Slack, etc.) each user arrives with a platform-native runtime ID (Telegram UID, Discord snowflake, Slack user). These three keys control how those runtime IDs map to Honcho peers. The resolver is config-driven and deterministic — no automatic merging or runtime inference.
+In gateway deployments (Telegram, Discord, Slack, etc.) each user arrives with a platform-native runtime ID (Telegram UID, Discord snowflake, Slack user). These three keys control how those runtime IDs map to Honcho peers. The resolver is config-driven and deterministic; no automatic merging or runtime inference.
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `pinUserPeer` | bool | `false` | When `true`, every gateway runtime user collapses to `peerName`. Single-operator deployments where you want all your platforms (and any other users) to share one peer |
-| `userPeerAliases` | object | `{}` | Map of runtime IDs to peer IDs (`{"7654321": "alice"}`). Many-to-one is the intended pattern — alias all your runtime IDs to one peer name. One-to-many is not supported; one runtime ID resolves to exactly one peer |
+| `userPeerAliases` | object | `{}` | Map of runtime IDs to peer IDs (`{"7654321": "alice"}`). Many-to-one is the intended pattern; alias all your runtime IDs to one peer name. One-to-many is not supported; one runtime ID resolves to exactly one peer |
 | `runtimePeerPrefix` | string | `""` | Prepended to unknown runtime IDs to namespace them (e.g. `"telegram_"` → `telegram_7654321`). Used only when no alias matches. Prevents collisions between platforms whose runtime IDs share the same shape |
 
 > **Deprecated:** `pinPeerName` is a legacy alias for `pinUserPeer`, still read for back-compat (`pinUserPeer` wins where both are set). `keprix honcho setup` migrates it onto `pinUserPeer` on touch and never writes it.
@@ -155,19 +155,19 @@ In gateway deployments (Telegram, Discord, Slack, etc.) each user arrives with a
 7. session-key fallback          → no config either
 ```
 
-**Why no `pinAiPeer`?** The AI peer is already pinned by construction — `aiPeer` is the only AI-side identity setting and the resolver never overrides it. Only the user-side peer has the runtime-vs-config tension that `pinUserPeer` resolves.
+**Why no `pinAiPeer`?** The AI peer is already pinned by construction; `aiPeer` is the only AI-side identity setting and the resolver never overrides it. Only the user-side peer has the runtime-vs-config tension that `pinUserPeer` resolves.
 
 **Host vs root semantics.** All three keys are accepted at both root and `hosts.<host>` levels. Host-level wins. For maps and prefixes, host-level *replaces* the root value as a whole (not merge), so a host can intentionally own its identity universe or wipe it with `userPeerAliases: {}` / `runtimePeerPrefix: ""`.
 
-**Setup — gateway identity tree.** `keprix honcho setup` only asks about identity mapping when it detects a connected gateway platform (it inspects the gateway config; off-gateway the step is skipped because these keys do nothing without a runtime user ID). When it runs, it asks *who talks to this gateway?* and derives the keys:
+**Setup; gateway identity tree.** `keprix honcho setup` only asks about identity mapping when it detects a connected gateway platform (it inspects the gateway config; off-gateway the step is skipped because these keys do nothing without a runtime user ID). When it runs, it asks *who talks to this gateway?* and derives the keys:
 
-- **just me** → `pinUserPeer: true`. Every non-agent gateway user collapses to `peerName`; the pin overrides all aliases, so pick this only when no user-side identity needs its own peer. Personal use where you connect Keprix to your own Telegram/Discord/etc. If separate agents reach the gateway and each needs a distinct peer, do **not** pin — leave `pinUserPeer: false` and map them via `userPeerAliases` (the `[e]` editor).
+- **just me** → `pinUserPeer: true`. Every non-agent gateway user collapses to `peerName`; the pin overrides all aliases, so pick this only when no user-side identity needs its own peer. Personal use where you connect Keprix to your own Telegram/Discord/etc. If separate agents reach the gateway and each needs a distinct peer, do **not** pin; leave `pinUserPeer: false` and map them via `userPeerAliases` (the `[e]` editor).
 - **me + other people, pooled** → `pinUserPeer: false` + `userPeerAliases` mapping your runtime IDs to `peerName`. You stay on the shared history; everyone else gets their own peer.
 - **me + other people / only other people** → `pinUserPeer: false`, optional `runtimePeerPrefix`. Each runtime user → own peer. For bots serving many humans.
 
 Pick **[e]** at the prompt to set the three keys directly instead of going through the tree.
 
-**Un-pinning (single → per-user).** Flipping `pinUserPeer` from `true` to `false` does not migrate data. Memory accumulated under `peerName` while pinned stays there; runtime users now resolve to fresh, empty peers. To preserve your own continuity, choose the **pooled** path — alias your runtime IDs back to `peerName` so your turns keep landing on the pooled history while other users get their own peers. The wizard offers this steer automatically when it detects you're un-pinning a previously pinned profile.
+**Un-pinning (single → per-user).** Flipping `pinUserPeer` from `true` to `false` does not migrate data. Memory accumulated under `peerName` while pinned stays there; runtime users now resolve to fresh, empty peers. To preserve your own continuity, choose the **pooled** path; alias your runtime IDs back to `peerName` so your turns keep landing on the pooled history while other users get their own peers. The wizard offers this steer automatically when it detects you're un-pinning a previously pinned profile.
 
 ### Memory & Recall
 
@@ -175,7 +175,7 @@ Pick **[e]** at the prompt to set the three keys directly instead of going throu
 |-----|------|---------|-------------|
 | `recallMode` | string | `"hybrid"` | `"hybrid"` (auto-inject + tools), `"context"` (auto-inject only, tools hidden), `"tools"` (tools only, no injection). Legacy `"auto"` → `"hybrid"` |
 | `observationMode` | string | `"directional"` | Preset: `"directional"` (all on) or `"unified"` (shared pool). Use `observation` object for granular control |
-| `observation` | object | — | Per-peer observation config (see Observation section) |
+| `observation` | object |; | Per-peer observation config (see Observation section) |
 
 ### Write Behavior
 
@@ -194,7 +194,7 @@ Pick **[e]** at the prompt to set the three keys directly instead of going throu
 
 #### Session Name Resolution
 
-The Honcho session name determines which conversation bucket memory lands in. Resolution follows a priority chain — first match wins:
+The Honcho session name determines which conversation bucket memory lands in. Resolution follows a priority chain; first match wins:
 
 | Priority | Source | Example session name |
 |----------|--------|---------------------|
@@ -212,14 +212,14 @@ If `sessionPeerPrefix` is `true`, the peer name is prepended: `alice-keprix`.
 
 #### What each strategy produces
 
-- **`per-directory`** — basename of `$PWD`. Opening keprix in `~/code/myapp` and `~/code/other` gives two separate sessions. Same directory = same session across runs.
-- **`per-repo`** — git root directory name. All subdirectories within a repo share one session. Falls back to `per-directory` if not inside a git repo.
-- **`per-session`** — Keprix session ID (timestamp + hex). Every `keprix` invocation starts a fresh Honcho session. Falls back to `per-directory` if no session ID is available.
-- **`global`** — workspace name. One session for everything. Memory accumulates across all directories and runs.
+- **`per-directory`**; basename of `$PWD`. Opening keprix in `~/code/myapp` and `~/code/other` gives two separate sessions. Same directory = same session across runs.
+- **`per-repo`**; git root directory name. All subdirectories within a repo share one session. Falls back to `per-directory` if not inside a git repo.
+- **`per-session`**; Keprix session ID (timestamp + hex). Every `keprix` invocation starts a fresh Honcho session. Falls back to `per-directory` if no session ID is available.
+- **`global`**; workspace name. One session for everything. Memory accumulates across all directories and runs.
 
 ### Multi-Profile Pattern
 
-Multiple Keprix profiles can share one workspace while maintaining separate AI identities. Config resolution is **host block > root > env var > default** — host blocks inherit from root, so shared settings only need to be declared once:
+Multiple Keprix profiles can share one workspace while maintaining separate AI identities. Config resolution is **host block > root > env var > default**; host blocks inherit from root, so shared settings only need to be declared once:
 
 ```json
 {
@@ -249,8 +249,8 @@ Host key is derived from the active Keprix profile: `keprix` (default) or `kepri
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
-| `dialecticDepth` | int | `1` | Passes per dialectic cycle (1–3, clamped). 1=single query, 2=audit+synthesis, 3=audit+synthesis+reconciliation |
-| `dialecticDepthLevels` | array | — | Optional array of reasoning level strings per pass. Overrides proportional defaults. Example: `["minimal", "low", "medium"]` |
+| `dialecticDepth` | int | `1` | Passes per dialectic cycle (1-3, clamped). 1=single query, 2=audit+synthesis, 3=audit+synthesis+reconciliation |
+| `dialecticDepthLevels` | array |; | Optional array of reasoning level strings per pass. Overrides proportional defaults. Example: `["minimal", "low", "medium"]` |
 | `dialecticReasoningLevel` | string | `"low"` | Base reasoning level for `.chat()`: `"minimal"`, `"low"`, `"medium"`, `"high"`, `"max"` |
 | `dialecticDynamic` | bool | `true` | When `true`, model can override reasoning level per-call via `honcho_reasoning` tool. When `false`, always uses `dialecticReasoningLevel` |
 | `dialecticMaxChars` | int | `600` | Max chars of dialectic result injected into system prompt |
@@ -270,7 +270,7 @@ Host key is derived from the active Keprix profile: `keprix` (default) or `kepri
 | `contextCadence` | int | `1` | Minimum turns between base context refreshes (session summary + representation + card) |
 | `dialecticCadence` | int | `1` | Minimum turns between dialectic `.chat()` firings |
 | `injectionFrequency` | string | `"every-turn"` | `"every-turn"` or `"first-turn"` (inject context on the first user message only, skip from turn 2 onward) |
-| `reasoningLevelCap` | string | — | Hard cap on reasoning level: `"minimal"`, `"low"`, `"medium"`, `"high"` |
+| `reasoningLevelCap` | string |; | Hard cap on reasoning level: `"minimal"`, `"low"`, `"medium"`, `"high"` |
 
 ### Observation (Granular)
 
@@ -314,7 +314,7 @@ Presets:
 
 | Command | Description |
 |---------|-------------|
-| `keprix memory setup honcho` | Configure Honcho directly — works on a fresh install |
+| `keprix memory setup honcho` | Configure Honcho directly; works on a fresh install |
 | `keprix honcho setup` | Interactive setup wizard (only registered once Honcho is the active provider; redirects to `keprix memory setup`) |
 | `keprix honcho status` | Show resolved config for active profile |
 | `keprix honcho enable` / `disable` | Toggle Honcho for active profile |

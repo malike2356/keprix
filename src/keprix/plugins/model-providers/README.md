@@ -22,7 +22,7 @@ plugins/model-providers/
 imported and expected to call `providers.register_provider(profile)`.
 
 User plugins at `$KEPRIX_HOME/plugins/model-providers/<name>/` override
-bundled plugins of the same name — last-writer-wins in
+bundled plugins of the same name; last-writer-wins in
 `register_provider()`. Drop a file there to replace a built-in.
 
 ## Adding a new provider
@@ -64,7 +64,7 @@ chat_completions transport all auto-wire from the registry.
 ## Non-trivial profiles
 
 Override the `ProviderProfile` hooks in a subclass for per-provider
-quirks — see `plugins/model-providers/openrouter/__init__.py` for
+quirks; see `plugins/model-providers/openrouter/__init__.py` for
 `build_extra_body` and `build_api_kwargs_extras` examples, and
 `plugins/model-providers/gemini/__init__.py` for `thinking_config`
 translation.

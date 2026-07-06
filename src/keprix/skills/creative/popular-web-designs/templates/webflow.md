@@ -1,7 +1,7 @@
 # Design System: Webflow
 
 
-> **Keprix — Implementation Notes**
+> **Keprix; Implementation Notes**
 >
 > The original site uses proprietary fonts. For self-contained HTML output, use these CDN substitutes:
 > - **Primary:** `Inter` | **Mono:** `system monospace stack`
@@ -20,11 +20,11 @@ Webflow's website is a visually rich, tool-forward platform that communicates "d
 **Key Characteristics:**
 - White canvas with near-black (`#080808`) text
 - Webflow Blue (`#146ef5`) as primary brand + interactive color
-- WF Visual Sans Variable — custom variable font with weight 500–600
+- WF Visual Sans Variable; custom variable font with weight 500-600
 - Rich secondary palette: purple `#7a3dff`, pink `#ed52cb`, green `#00d722`, orange `#ff6b00`, yellow `#ffae13`, red `#ee1d36`
-- Conservative 4px–8px border-radius — sharp, not rounded
+- Conservative 4px-8px border-radius; sharp, not rounded
 - Multi-layer shadow stacks (5-layer cascading shadows)
-- Uppercase labels: 10px–15px, weight 500–600, wide letter-spacing (0.6px–1.5px)
+- Uppercase labels: 10px-15px, weight 500-600, wide letter-spacing (0.6px-1.5px)
 - translate(6px) hover animation on buttons
 
 ## 2. Color Palette & Roles
@@ -64,14 +64,14 @@ Webflow's website is a visually rich, tool-forward platform that communicates "d
 | Display Hero | 80px | 600 | 1.04 | -0.8px | |
 | Section Heading | 56px | 600 | 1.04 | normal | |
 | Sub-heading | 32px | 500 | 1.30 | normal | |
-| Feature Title | 24px | 500–600 | 1.30 | normal | |
-| Body | 20px | 400–500 | 1.40–1.50 | normal | |
-| Body Standard | 16px | 400–500 | 1.60 | -0.16px | |
+| Feature Title | 24px | 500-600 | 1.30 | normal | |
+| Body | 20px | 400-500 | 1.40-1.50 | normal | |
+| Body Standard | 16px | 400-500 | 1.60 | -0.16px | |
 | Button | 16px | 500 | 1.60 | -0.16px | |
 | Uppercase Label | 15px | 500 | 1.30 | 1.5px | uppercase |
-| Caption | 14px | 400–500 | 1.40–1.60 | normal | |
+| Caption | 14px | 400-500 | 1.40-1.60 | normal | |
 | Badge Uppercase | 12.8px | 550 | 1.20 | normal | uppercase |
-| Micro Uppercase | 10px | 500–600 | 1.30 | 1px | uppercase |
+| Micro Uppercase | 10px | 500-600 | 1.30 | 1px | uppercase |
 | Code: Inconsolata (companion monospace font)
 
 ## 4. Component Stylings
@@ -81,18 +81,18 @@ Webflow's website is a visually rich, tool-forward platform that communicates "d
 - White circle: 50% radius, white bg
 - Blue badge: `#146ef5` bg, 4px radius, weight 550
 
-### Cards: `1px solid #d8d8d8`, 4px–8px radius
+### Cards: `1px solid #d8d8d8`, 4px-8px radius
 ### Badges: Blue-tinted bg at 10% opacity, 4px radius
 
 ## 5. Layout
 - Spacing: fractional scale (1px, 2.4px, 3.2px, 4px, 5.6px, 6px, 7.2px, 8px, 9.6px, 12px, 16px, 24px)
-- Radius: 2px, 4px, 8px, 50% — conservative, sharp
+- Radius: 2px, 4px, 8px, 50%; conservative, sharp
 - Breakpoints: 479px, 768px, 992px
 
 ## 6. Depth: 5-layer cascading shadow system
 
 ## 7. Do's and Don'ts
-- Do: Use WF Visual Sans Variable at 500–600. Blue (#146ef5) for CTAs. 4px radius. translate(6px) hover.
+- Do: Use WF Visual Sans Variable at 500-600. Blue (#146ef5) for CTAs. 4px radius. translate(6px) hover.
 - Don't: Round beyond 8px for functional elements. Use secondary colors on primary CTAs.
 
 ## 8. Responsive: 479px, 768px, 992px

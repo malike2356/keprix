@@ -1,0 +1,25 @@
+id: obsidian_research_map
+name: Obsidian Research Map
+description: Index a vault, surface clusters and orphans, and publish a research map note.
+domain: generic
+steps:
+  - id: index_vault
+    title: Index vault
+    action: obsidian.index_vault
+    risk: low
+  - id: note_clusters
+    title: Identify note clusters
+    action: obsidian.note_clusters
+    risk: low
+  - id: orphan_notes
+    title: Find orphan notes
+    action: obsidian.orphan_notes
+    risk: low
+  - id: link_claims
+    title: Link sources to claims
+    action: evidence.link_sources
+    risk: medium
+  - id: research_map
+    title: Generate research map note
+    action: obsidian.research_map
+    risk: low

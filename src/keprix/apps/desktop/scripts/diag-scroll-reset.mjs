@@ -8,7 +8,7 @@
 // auto`, and the thread renders items in natural document flow (padding
 // spacers, NOT transforms). When an item above the viewport is measured by
 // @tanstack/react-virtual (its real height differs a lot from the 220px
-// estimate) — or when Shiki/images/fonts reflow it — TWO mechanisms both
+// estimate); or when Shiki/images/fonts reflow it; TWO mechanisms both
 // adjust scrollTop for the same delta: TanStack's measurement compensation AND
 // the browser's native scroll anchoring. The double-correction lurches the
 // view. A mouse wheel's coarse, discrete notches mount/measure several
@@ -184,7 +184,7 @@ function analyze(label, data) {
     prev = s
   }
   console.log(`\n── ${label} ──`)
-  console.log(`  devicePixelRatio:     ${dpr}${Number.isInteger(dpr) ? '' : '  (fractional — Windows scaling, worsens rounding jitter)'}`)
+  console.log(`  devicePixelRatio:     ${dpr}${Number.isInteger(dpr) ? '' : '  (fractional; Windows scaling, worsens rounding jitter)'}`)
   console.log(`  tracked turn index:   ${anchorIndex}`)
   console.log(`  rAF frames:           ${samples.length}`)
   console.log(`  scrollTop writes:     ${writes.length}   (TanStack measurement corrections)`)

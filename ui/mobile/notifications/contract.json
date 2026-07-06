@@ -1,0 +1,7 @@
+{
+  "inbox_endpoint": "/api/notifications/inbox",
+  "preferences_endpoint": "/api/notifications/preferences",
+  "mark_read_endpoint": "/api/notifications/inbox/{notification_id}/read",
+  "mark_all_read_endpoint": "/api/notifications/inbox/read-all",
+  "unread_count_field": "unread_count"
+}

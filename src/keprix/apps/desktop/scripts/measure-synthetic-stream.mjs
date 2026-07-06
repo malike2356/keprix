@@ -10,7 +10,7 @@
 //   1) rAF frame intervals (long-frame histogram; >33ms = perceived jank, >100ms = bad)
 //   2) PerformanceObserver `longtask` entries (task >50ms blocks input)
 //   3) MutationObserver: per-message mutation count & inter-mutation latency
-//   4) Optional: typing latency overlay — typing into composer while streaming
+//   4) Optional: typing latency overlay; typing into composer while streaming
 //
 // Output is plain text suitable for terminal + a JSON sidecar for diffing across runs.
 
@@ -83,7 +83,7 @@ async function main() {
   // Sanity check driver is loaded.
   const probeOk = await cdp.eval('!!window.__PERF_DRIVE__ && !!window.__PERF_DRIVE__.stream')
   if (!probeOk) {
-    console.error('__PERF_DRIVE__ not on window — did you reload the renderer after editing perf-probe.tsx?')
+    console.error('__PERF_DRIVE__ not on window; did you reload the renderer after editing perf-probe.tsx?')
     cdp.close()
     process.exit(2)
   }
@@ -131,7 +131,7 @@ async function main() {
       }
       window.__MO__.arm = arm
 
-      // Optional: typing observer — fires keystroke timings if asked.
+      // Optional: typing observer; fires keystroke timings if asked.
       window.__TYP__ = { times: [], stop: false, lastKey: 0 }
       return 'recorders armed'
     })()

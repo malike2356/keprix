@@ -54,7 +54,7 @@ describe('browseBackward', () => {
   })
 
   it('uses caller-provided history, not a mirrored ring', () => {
-    // The store never owns the ring — the caller passes it every press.
+    // The store never owns the ring; the caller passes it every press.
     // If the ring changes between presses (e.g. a new message was sent),
     // the next press sees the updated ring and the cursor continues
     // from where it was within it.

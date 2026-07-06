@@ -26,7 +26,7 @@ function makeFakeWs() {
       instances.push(this)
     }
     addEventListener(type, fn) {
-      ;(this.listeners[type] ||= []).push(fn)
+;(this.listeners[type] ||= []).push(fn)
     }
     close() {
       this.closed = true

@@ -95,10 +95,10 @@ describe('settings helpers', () => {
   describe('stripToolsetLabel', () => {
     it('removes leading emoji prefixes from registry labels', () => {
       expect(stripToolsetLabel('⏰ Cron Jobs')).toBe('Cron Jobs')
-      expect(stripToolsetLabel('⚡ Code Execution')).toBe('Code Execution')
-      expect(stripToolsetLabel('❓ Clarifying Questions')).toBe('Clarifying Questions')
-      expect(stripToolsetLabel('🌐 Browser Automation')).toBe('Browser Automation')
-      expect(stripToolsetLabel('🎨 Image Generation')).toBe('Image Generation')
+      expect(stripToolsetLabel(' Code Execution')).toBe('Code Execution')
+      expect(stripToolsetLabel(' Clarifying Questions')).toBe('Clarifying Questions')
+      expect(stripToolsetLabel(' Browser Automation')).toBe('Browser Automation')
+      expect(stripToolsetLabel(' Image Generation')).toBe('Image Generation')
     })
 
     it('leaves plain titles unchanged', () => {
@@ -136,7 +136,7 @@ describe('settings helpers', () => {
     })
   })
 
-  describe('enumOptionsFor — backend selector dropdowns', () => {
+  describe('enumOptionsFor; backend selector dropdowns', () => {
     const config: HermesConfigRecord = {}
 
     it('renders a dropdown for the TTS provider including xAI (Grok)', () => {

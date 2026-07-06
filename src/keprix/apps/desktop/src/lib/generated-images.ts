@@ -73,7 +73,7 @@ export function generatedImageEchoSources(parts: readonly ToolLike[]): string[] 
 
 /** Strip a generated image out of prose so it only ever shows in the tool slot.
  *  Once a generation succeeded (`sources` is non-empty) we drop every embedded
- *  image and media link from that message — the model frequently restates the
+ *  image and media link from that message; the model frequently restates the
  *  remote URL while the result holds the local path, so matching the exact
  *  source is not enough. Bare occurrences of the known paths/URLs are removed
  *  too. Surrounding prose is preserved. */

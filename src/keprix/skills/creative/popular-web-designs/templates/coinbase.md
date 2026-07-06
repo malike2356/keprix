@@ -1,7 +1,7 @@
 # Design System: Coinbase
 
 
-> **Keprix — Implementation Notes**
+> **Keprix; Implementation Notes**
 >
 > The original site uses proprietary fonts. For self-contained HTML output, use these CDN substitutes:
 > - **Primary:** `DM Sans` | **Mono:** `system monospace stack`
@@ -15,7 +15,7 @@
 
 ## 1. Visual Theme & Atmosphere
 
-Coinbase's website is a clean, trustworthy crypto platform that communicates financial reliability through a blue-and-white binary palette. The design uses Coinbase Blue (`#0052ff`) — a deep, saturated blue — as the singular brand accent against white and near-black surfaces. The proprietary font family includes CoinbaseDisplay for hero headlines, CoinbaseSans for UI text, CoinbaseText for body reading, and CoinbaseIcons for iconography — a comprehensive four-font system.
+Coinbase's website is a clean, trustworthy crypto platform that communicates financial reliability through a blue-and-white binary palette. The design uses Coinbase Blue (`#0052ff`); a deep, saturated blue; as the singular brand accent against white and near-black surfaces. The proprietary font family includes CoinbaseDisplay for hero headlines, CoinbaseSans for UI text, CoinbaseText for body reading, and CoinbaseIcons for iconography; a comprehensive four-font system.
 
 The button system uses a distinctive 56px radius for pill-shaped CTAs with hover transitions to a lighter blue (`#578bfa`). The design alternates between white content sections and dark (`#0a0b0d`, `#282b31`) feature sections, creating a professional, financial-grade interface.
 
@@ -24,9 +24,9 @@ The button system uses a distinctive 56px radius for pill-shaped CTAs with hover
 - Four-font proprietary family: Display, Sans, Text, Icons
 - 56px radius pill buttons with blue hover transition
 - Near-black (`#0a0b0d`) dark sections + white light sections
-- 1.00 line-height on display headings — ultra-tight
+- 1.00 line-height on display headings; ultra-tight
 - Cool gray secondary surface (`#eef0f3`) with blue tint
-- `text-transform: lowercase` on some button labels — unusual
+- `text-transform: lowercase` on some button labels; unusual
 
 ## 2. Color Palette & Roles
 
@@ -48,10 +48,10 @@ The button system uses a distinctive 56px radius for pill-shaped CTAs with hover
 ## 3. Typography Rules
 
 ### Font Families
-- **Display**: `CoinbaseDisplay` — hero headlines
-- **UI / Sans**: `CoinbaseSans` — buttons, headings, nav
-- **Body**: `CoinbaseText` — reading text
-- **Icons**: `CoinbaseIcons` — icon font
+- **Display**: `CoinbaseDisplay`; hero headlines
+- **UI / Sans**: `CoinbaseSans`; buttons, headings, nav
+- **Body**: `CoinbaseText`; reading text
+- **Icons**: `CoinbaseIcons`; icon font
 
 ### Hierarchy
 
@@ -68,7 +68,7 @@ The button system uses a distinctive 56px radius for pill-shaped CTAs with hover
 | Body | CoinbaseText | 18px | 400 | 1.56 | Standard reading |
 | Body Small | CoinbaseText | 16px | 400 | 1.50 | Secondary reading |
 | Button | CoinbaseSans | 16px | 600 | 1.20 | +0.16px tracking |
-| Caption | CoinbaseSans | 14px | 600–700 | 1.50 | Metadata |
+| Caption | CoinbaseSans | 14px | 600-700 | 1.50 | Metadata |
 | Small | CoinbaseSans | 13px | 600 | 1.23 | Tags |
 
 ## 4. Component Stylings
@@ -90,7 +90,7 @@ The button system uses a distinctive 56px radius for pill-shaped CTAs with hover
 - Background: transparent
 
 ### Cards & Containers
-- Radius: 8px–40px range
+- Radius: 8px-40px range
 - Borders: `1px solid rgba(91,97,110,0.2)`
 
 ## 5. Layout Principles
@@ -100,16 +100,16 @@ The button system uses a distinctive 56px radius for pill-shaped CTAs with hover
 - Scale: 1px, 3px, 4px, 5px, 6px, 8px, 10px, 12px, 15px, 16px, 20px, 24px, 25px, 32px, 48px
 
 ### Border Radius Scale
-- Small (4px–8px): Article links, small cards
-- Standard (12px–16px): Cards, menus
-- Large (24px–32px): Feature containers
+- Small (4px-8px): Article links, small cards
+- Standard (12px-16px): Cards, menus
+- Large (24px-32px): Feature containers
 - XL (40px): Large buttons/containers
 - Pill (56px): Primary CTAs
 - Full (100000px): Maximum pill
 
 ## 6. Depth & Elevation
 
-Minimal shadow system — depth from color contrast between dark/light sections.
+Minimal shadow system; depth from color contrast between dark/light sections.
 
 ## 7. Do's and Don'ts
 
@@ -120,8 +120,8 @@ Minimal shadow system — depth from color contrast between dark/light sections.
 - Alternate dark (#0a0b0d) and white sections
 
 ### Don't
-- Don't use the blue decoratively — it's functional only
-- Don't use sharp corners on CTAs — 56px minimum
+- Don't use the blue decoratively; it's functional only
+- Don't use sharp corners on CTAs; 56px minimum
 
 ## 8. Responsive Behavior
 

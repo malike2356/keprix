@@ -1,0 +1,21 @@
+name: coding_basics
+version: "1"
+category: code_generation
+min_pass_rate: 0.9
+max_cost_usd: 0.05
+max_runtime_ms: 30000
+tasks:
+  - id: write_function
+    input: "Write a Python function to reverse a string"
+    expect_contains: "def "
+    mock_output: "def reverse_string(value: str) -> str:\n    return value[::-1]"
+    required_artifacts:
+      - "code_patch"
+    mock_artifacts:
+      - "code_patch"
+    max_runtime_ms: 8000
+  - id: fix_bug
+    input: "Fix off-by-one error in loop"
+    expect_contains: "range"
+    mock_output: "Use range(len(items)) instead of range(len(items) + 1)."
+    max_runtime_ms: 8000

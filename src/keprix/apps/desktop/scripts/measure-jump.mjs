@@ -58,7 +58,7 @@ for (const c of text) {
 }
 await new Promise(r => setTimeout(r, 300))
 
-// Set up sampling — sample scroll position every animation frame
+// Set up sampling; sample scroll position every animation frame
 await evalP(`(() => {
   const v = document.querySelector('[data-slot="aui_thread-viewport"]')
   window.__jumpSamples = []

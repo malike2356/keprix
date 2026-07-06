@@ -12,7 +12,12 @@ from pydantic import BaseModel, Field
 from keprix.privacy.consent import get_consent_store
 from keprix.privacy.dsar import get_dsar_store
 from keprix.privacy.erasure import erase_user_data
-from keprix.privacy.retention import apply_retention_policies, get_last_retention_run
+from keprix.privacy.retention import (
+    apply_retention_policies,
+    get_last_retention_run,
+    get_retention_policies,
+    set_retention_policy,
+)
 from keprix.security.audit import hash_ip
 
 router = APIRouter(prefix="/api/privacy", tags=["privacy"])
@@ -38,6 +43,11 @@ class ErasureBody(BaseModel):
     dry_run: bool = False
 
 
+class RetentionBody(BaseModel):
+    retain_days: int = Field(..., ge=-1)
+    action: str = Field(default="anonymise")
+
+
 @router.post("/consent")
 async def record_consent(body: ConsentBody, request: Request) -> dict[str, Any]:
     user = _user_id(request)
@@ -61,6 +71,19 @@ async def list_consents(request: Request) -> dict[str, Any]:
 async def create_dsar(body: DsarBody, request: Request) -> dict[str, Any]:
     user = _user_id(request)
     row = get_dsar_store().create(user_id=user, request_type=body.request_type)
+    from keprix.governance.audit_events import emit_audit_event
+
+    workspace_id = request.headers.get("x-workspace-id", "default").strip() or "default"
+    await emit_audit_event(
+        "gdpr_dsar_requested",
+        workspace_id=workspace_id,
+        actor_type="user",
+        actor_id=user,
+        summary="Data subject access request created",
+        subject_type="dsar",
+        subject_id=str(row.get("id")),
+        severity="notice",
+    )
     return {"request": row}
 
 
@@ -96,6 +119,27 @@ async def erase_data(body: ErasureBody, request: Request) -> dict[str, Any]:
         raise HTTPException(400, "Set confirm=true to erase data")
     user = _user_id(request)
     return await erase_user_data(user, scope=body.scope, dry_run=body.dry_run)
+
+
+@router.get("/retention")
+async def list_retention_policies() -> dict[str, Any]:
+    return {
+        "policies": get_retention_policies(),
+        "last_retention_run": get_last_retention_run(),
+    }
+
+
+@router.put("/retention/{data_category}")
+async def update_retention_policy(data_category: str, body: RetentionBody) -> dict[str, Any]:
+    try:
+        row = set_retention_policy(
+            data_category,
+            retain_days=body.retain_days,
+            action=body.action,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"ok": True, "policy": row}
 
 
 @router.post("/retention/run")

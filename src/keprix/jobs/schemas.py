@@ -1,0 +1,14 @@
+"""Job queue schemas."""
+
+from __future__ import annotations
+
+from enum import StrEnum
+
+
+class JobStatus(StrEnum):
+    PENDING = "pending"
+    CLAIMED = "claimed"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    DEAD_LETTER = "dead_letter"

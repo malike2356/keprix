@@ -65,7 +65,7 @@ function detectRemoteDisplay(options = {}) {
   if (platform === 'linux') {
     // X11 forwarding sets DISPLAY to "<host>:N" (e.g. "localhost:10.0"); a
     // local X server is ":0"/":1" with no host part before the colon.
-    // NB: WSLg deliberately isn't treated as remote — it reports
+    // NB: WSLg deliberately isn't treated as remote; it reports
     // GPU-accelerated vGPU surfaces locally and doesn't show the flicker.
     const display = String(env.DISPLAY || '')
     if (display.includes(':') && display.split(':')[0]) {

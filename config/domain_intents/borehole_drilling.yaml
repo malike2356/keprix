@@ -1,0 +1,58 @@
+intents:
+  - name: request_drilling_quote
+    domain: borehole_drilling
+    description: The user wants a price estimate or quote for drilling a new borehole.
+    keyword_triggers:
+      all:
+        - borehole
+      any:
+        - quote
+        - price
+        - cost
+        - drill
+    heuristic_extractors:
+      location_description: location_near
+      depth_target_metres: depth_metres
+    entities:
+      - name: location_description
+        type: string
+        required: true
+        description: Village, district, region, or GPS location
+        example_values:
+          - near Tamale
+          - Ashanti Region
+          - Kumasi Metropolitan
+      - name: depth_target_metres
+        type: number
+        required: true
+        description: Expected or required depth of the borehole in metres
+      - name: community_size_households
+        type: number
+        required: false
+        description: Number of households the borehole will serve
+      - name: casing_type
+        type: enum
+        required: false
+        enum_values:
+          - PVC
+          - steel
+          - unknown
+        description: Type of casing material
+      - name: pump_required
+        type: boolean
+        required: false
+      - name: budget_range
+        type: string
+        required: false
+      - name: urgency
+        type: enum
+        required: false
+        enum_values:
+          - urgent
+          - normal
+          - planning_only
+    follow_up_template: "To give you a quote, I need: {missing_fields}. Please provide these."
+    examples:
+      - Me pe borehole quote for my village near Kumasi
+      - How much will it cost to drill in Tamale?
+      - I want a borehole quote near Tamale

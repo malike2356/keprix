@@ -646,12 +646,12 @@ class ValidatedUser(BaseModel):
 ### 1. Clear Field Descriptions
 
 ```python
-# ❌ Bad: Vague
+# Failed:  Bad: Vague
 class Product(BaseModel):
     name: str
     price: float
 
-# ✅ Good: Descriptive
+# Done:  Good: Descriptive
 class Product(BaseModel):
     name: str = Field(description="Product name from the text")
     price: float = Field(description="Price in USD, without currency symbol")
@@ -660,7 +660,7 @@ class Product(BaseModel):
 ### 2. Use Appropriate Validation
 
 ```python
-# ✅ Good: Constrain values
+# Done:  Good: Constrain values
 class Rating(BaseModel):
     score: int = Field(ge=1, le=5, description="Rating from 1 to 5 stars")
     review: str = Field(min_length=10, description="Review text, at least 10 chars")
@@ -685,7 +685,7 @@ Example format:
 ### 4. Use Enums for Fixed Categories
 
 ```python
-# ✅ Good: Enum ensures valid values
+# Done:  Good: Enum ensures valid values
 class Status(str, Enum):
     PENDING = "pending"
     APPROVED = "approved"
@@ -710,11 +710,11 @@ class PartialData(BaseModel):
 
 | Feature | Instructor | Manual JSON | LangChain | DSPy |
 |---------|------------|-------------|-----------|------|
-| Type Safety | ✅ Yes | ❌ No | ⚠️ Partial | ✅ Yes |
-| Auto Validation | ✅ Yes | ❌ No | ❌ No | ⚠️ Limited |
-| Auto Retry | ✅ Yes | ❌ No | ❌ No | ✅ Yes |
-| Streaming | ✅ Yes | ❌ No | ✅ Yes | ❌ No |
-| Multi-Provider | ✅ Yes | ⚠️ Manual | ✅ Yes | ✅ Yes |
+| Type Safety | Done:  Yes | Failed:  No | WARNING:  Partial | Done:  Yes |
+| Auto Validation | Done:  Yes | Failed:  No | Failed:  No | WARNING:  Limited |
+| Auto Retry | Done:  Yes | Failed:  No | Failed:  No | Done:  Yes |
+| Streaming | Done:  Yes | Failed:  No | Done:  Yes | Failed:  No |
+| Multi-Provider | Done:  Yes | WARNING:  Manual | Done:  Yes | Done:  Yes |
 | Learning Curve | Low | Low | Medium | High |
 
 **When to choose Instructor:**

@@ -66,7 +66,7 @@ test('resolveRemovableAppPath finds the .app bundle on macOS', () => {
 })
 
 test('resolveRemovableAppPath: dev-run .app resolves (safety is shouldRemoveAppBundle, not null)', () => {
-  // A dev run from node_modules' Electron DOES resolve to a .app — the real
+  // A dev run from node_modules' Electron DOES resolve to a .app; the real
   // dev-run safety gate is shouldRemoveAppBundle(isPackaged=false,...), not a
   // null return here. This test documents that contract.
   assert.equal(

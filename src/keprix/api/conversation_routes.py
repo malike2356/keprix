@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Any, AsyncIterator
@@ -13,24 +14,18 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from keprix.agent.keprix.mutation import get_mutation_engine
-from keprix.agent.keprix.store import get_generated_tool_store
 from keprix.auth.dependencies import get_current_user, require_admin
 from keprix.keys.local_access import effective_access_level
-from keprix.scout.kill_relay import agent_stop_requested, tools_disabled, workspace_locked
-from keprix.scout.policy_receiver import get_policy_registry
+from keprix.governance.kill_relay import agent_stop_requested, workspace_locked
 from keprix.workspace.core.exceptions import NotFoundError
 from keprix.workspace.repository import workspace_repo
 from keprix.workspace.schemas import SessionRename
 
-router = APIRouter(tags=["conversations"])
+from keprix.agent.keprix.chat_mutation_bridge import maybe_run_mutation_for_chat
+from keprix.api.chat_inference import list_available_models, stream_chat_completion
 
-AVAILABLE_MODELS = [
-    {"id": "anthropic:claude-sonnet-4-6", "provider": "anthropic", "name": "claude-sonnet-4-6"},
-    {"id": "openai:gpt-4.1", "provider": "openai", "name": "gpt-4.1"},
-    {"id": "google:gemini-2.5-pro", "provider": "google", "name": "gemini-2.5-pro"},
-    {"id": "groq:llama-3.3-70b", "provider": "groq", "name": "llama-3.3-70b"},
-    {"id": "ollama:llama3.2", "provider": "ollama", "name": "llama3.2"},
-]
+router = APIRouter(tags=["conversations"])
+logger = logging.getLogger(__name__)
 
 
 class CreateConversationBody(BaseModel):
@@ -99,13 +94,6 @@ def _is_owner(user: dict[str, Any]) -> bool:
     return effective_access_level() in {"developer", "admin", "owner"}
 
 
-def _demo_stream_keywords(lowered: str) -> bool:
-    return any(
-        token in lowered
-        for token in ("tool", "read", "code", "file", "synth", "mutation", "```")
-    )
-
-
 async def _agent_reply_text(*, user_text: str, user_id: str) -> str:
     from keprix.interfaces.interface_registry import InterfaceKind, get_interface_registry
 
@@ -126,10 +114,37 @@ async def _stream_assistant_reply(
     user_text: str,
     model: str | None,
     user_id: str,
+    history: list[dict[str, Any]] | None = None,
+    session_id: str | None = None,
 ) -> AsyncIterator[dict[str, Any]]:
     """Emit NDJSON stream events for the workspace chat UI."""
-    lowered = user_text.lower()
-    if user_text.strip().startswith("/") or not _demo_stream_keywords(lowered):
+    from keprix.interfaces.interface_registry import InterfaceKind, get_interface_registry
+    from keprix.interfaces.web_ui_stream import chat_gateway_stream_enabled
+    from keprix.interfaces.web_ui_stream_events import map_gateway_event_to_ndjson
+
+    if chat_gateway_stream_enabled():
+        logger.debug("routing chat turn through WEB_UI gateway stream (mutation bridge inside handler)")
+        registry = get_interface_registry()
+        async for gw_event in registry.dispatch_stream(
+            "default",
+            InterfaceKind.WEB_UI,
+            message=user_text,
+            user_id=user_id,
+            workspace_id="default",
+            channel_user_id=user_id,
+            session_id=session_id,
+            model=model,
+            history=history,
+        ):
+            if gw_event.event == "done":
+                continue
+            mapped = map_gateway_event_to_ndjson(gw_event)
+            yield mapped
+            if mapped.get("event") == "text_done":
+                return
+        return
+
+    if user_text.strip().startswith("/"):
         try:
             reply = await _agent_reply_text(user_text=user_text, user_id=user_id)
         except Exception:
@@ -141,88 +156,44 @@ async def _stream_assistant_reply(
             yield {"event": "text_done"}
             return
 
-    intro = (
-        f"I received your message using model `{model or 'default'}`. "
-        "Connect a full agent runtime for live inference."
-    )
-    words = intro.split(" ")
-    for word in words:
-        yield {"event": "text_delta", "content": f"{word} "}
-        await asyncio.sleep(0.03)
+    mutation_ran = False
+    from keprix.agent.keprix.mutation_hook import chat_mutation_sidecar_enabled
 
-    if "tool" in lowered or "read" in lowered:
-        if not tools_disabled() and not get_policy_registry().is_tool_blocked("read_file"):
-            yield {
-                "event": "tool_call",
-                "name": "read_file",
-                "input": {"path": "/workspace/example.txt"},
-                "status": "running",
-            }
-            await asyncio.sleep(0.2)
-            yield {
-                "event": "tool_call_update",
-                "name": "read_file",
-                "output": "Example file contents for preview.",
-                "status": "done",
-            }
+    if chat_mutation_sidecar_enabled():
+        async for event in maybe_run_mutation_for_chat(
+            user_text=user_text,
+            user_id=user_id,
+            channel="web_ui",
+            session_id=session_id,
+        ):
+            mutation_ran = True
+            yield event
+        if mutation_ran:
+            return
 
-    if "```" in user_text or "code" in lowered:
-        yield {
-            "event": "code",
-            "language": "python",
-            "content": "def hello(name: str) -> str:\n    return f'Hello, {name}'\n",
-        }
-
-    if "file" in lowered:
-        yield {
-            "event": "file",
-            "path": "/workspace/report-summary.md",
-            "action": "created",
-        }
-
-    if "synth" in lowered or "mutation" in lowered:
-        record = get_generated_tool_store().create(
-            task_that_triggered=user_text,
-            tool_name="fetch_stock_price",
-            tool_code=(
-                "import requests\n\n"
-                "def fetch_stock_price(symbol: str) -> float:\n"
-                "    return 227.42\n"
-            ),
-            skill_yaml=(
-                "name: fetch_stock_price\n"
-                "description: Fetch a stock price by symbol.\n"
-            ),
-            description="Fetch stock price via public API",
-            gap_description="No existing tool for stock quotes",
-            static_analysis={"safe": True, "violations": []},
-            sandbox_result={
-                "passed": True,
-                "output": "AAPL: 227.42",
-                "stderr": "",
-                "exit_code": 0,
-            },
-        )
-        sandbox = record.sandbox_result or {}
-        yield {
-            "event": "mutation",
-            "id": record.id,
-            "toolName": record.tool_name,
-            "approach": record.gap_description or record.description,
-            "code": record.tool_code,
-            "skillYaml": record.skill_yaml,
-            "sandboxResult": sandbox.get("output", ""),
-            "sandboxExitCode": sandbox.get("exit_code", 0),
-            "sandboxStderr": sandbox.get("stderr", ""),
-            "status": "pending",
-        }
-
-    yield {"event": "text_done"}
+    try:
+        async for delta in stream_chat_completion(
+            user_text=user_text,
+            model_id=model,
+            history=history,
+            user_id=user_id,
+            session_id=session_id,
+        ):
+            yield {"event": "text_delta", "content": delta}
+        yield {"event": "text_done"}
+        return
+    except Exception as exc:
+        error_text = f"Chat inference failed: {exc}"
+        for word in error_text.split(" "):
+            yield {"event": "text_delta", "content": f"{word} "}
+            await asyncio.sleep(0.01)
+        yield {"event": "text_done"}
+        return
 
 
 @router.get("/api/models/available")
 async def models_available(_user: dict = Depends(get_current_user)) -> dict[str, Any]:
-    return {"models": AVAILABLE_MODELS}
+    return {"models": list_available_models()}
 
 
 @router.get("/api/conversations")
@@ -283,13 +254,15 @@ async def send_message(
     user: dict = Depends(get_current_user),
 ) -> StreamingResponse:
     if workspace_locked():
-        raise HTTPException(status_code=423, detail="Workspace is read-only due to Scout governance")
+        raise HTTPException(status_code=423, detail="Workspace is read-only due to governance policy")
     if agent_stop_requested():
-        raise HTTPException(status_code=409, detail="Agent operations halted by Scout kill switch")
+        raise HTTPException(status_code=409, detail="Agent operations halted by governance kill switch")
     try:
-        workspace_repo.get_session(user, session_id)
+        session = workspace_repo.get_session(user, session_id)
     except NotFoundError:
         raise HTTPException(status_code=404, detail="Session not found") from None
+
+    history = session.get("messages") or []
 
     user_message = {
         "id": str(uuid.uuid4()),
@@ -308,6 +281,8 @@ async def send_message(
             user_text=body.content,
             model=body.model,
             user_id=str(user.get("id") or user.get("username") or "web"),
+            history=history,
+            session_id=session_id,
         ):
             if event.get("event") == "text_delta":
                 text_buffer += str(event.get("content") or "")
@@ -399,14 +374,46 @@ async def send_message(
 async def approve_mutation(
     record_id: str,
     channel: str = Query(default="web_ui"),
-    _admin: dict = Depends(require_admin),
+    session_id: str | None = Query(default=None),
+    user: dict = Depends(require_admin),
 ) -> dict[str, Any]:
     from dataclasses import asdict
 
-    record = await get_mutation_engine().approve(record_id, approver_id="admin", channel=channel)
-    if record is None:
+    from keprix.agent.keprix.mutation_wait import has_active_mutation_wait, signal_mutation_resolved
+
+    stream_waiting = has_active_mutation_wait(record_id)
+    result = await get_mutation_engine().approve(record_id, approver_id="admin", channel=channel)
+    if result is None:
         raise HTTPException(status_code=404, detail="Pending tool not found")
-    return asdict(record)
+
+    if stream_waiting:
+        await signal_mutation_resolved(record_id, "approved")
+
+    record = result.record
+    retry_message = result.retry_message
+    assistant_message: dict[str, Any] | None = None
+
+    if session_id and retry_message and not stream_waiting:
+        assistant_message = {
+            "id": str(uuid.uuid4()),
+            "role": "assistant",
+            "content": [{"type": "text", "content": retry_message}],
+            "createdAt": _iso_now(),
+        }
+        try:
+            workspace_repo.append_message(user, session_id, assistant_message)
+        except NotFoundError:
+            assistant_message = None
+
+    payload: dict[str, Any] = {
+        **asdict(record),
+        "record": asdict(record),
+        "retry_message": None if stream_waiting else retry_message,
+        "stream_waiting": stream_waiting,
+    }
+    if assistant_message is not None:
+        payload["message"] = assistant_message
+    return payload
 
 
 @router.post("/api/mutations/{record_id}/reject")
@@ -425,6 +432,10 @@ async def reject_mutation(
     )
     if record is None:
         raise HTTPException(status_code=404, detail="Pending tool not found")
+
+    from keprix.agent.keprix.mutation_wait import signal_mutation_resolved
+
+    await signal_mutation_resolved(record_id, "rejected")
     return asdict(record)
 
 

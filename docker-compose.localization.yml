@@ -1,0 +1,37 @@
+services:
+  seamless-m4t:
+    build: ./docker/seamless-m4t
+    ports:
+      - "7810:7810"
+    volumes:
+      - seamless_models:/root/.cache/huggingface
+    environment:
+      - SM4T_MODEL=seamlessM4T_v2_large
+      - SM4T_DEVICE=cpu
+      - SM4T_DTYPE=fp16
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7810/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nllb-200:
+    build: ./docker/nllb-200
+    ports:
+      - "7811:7811"
+    volumes:
+      - nllb_models:/root/.cache/huggingface
+    environment:
+      - NLLB_MODEL=facebook/nllb-200-distilled-600M
+      - NLLB_DEVICE=cpu
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7811/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  seamless_models:
+  nllb_models:

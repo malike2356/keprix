@@ -1,0 +1,4 @@
+cases:
+  - name: invoice smoke
+    input: INV-1001 Widget 2x 50.00
+    expect_contains: Invoice

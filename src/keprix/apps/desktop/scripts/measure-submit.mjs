@@ -12,7 +12,7 @@
 // Pre-condition: a session is loaded (load via click-session.mjs first).
 // Note: this DOES talk to the real gateway/agent, so each round triggers
 //       a real prompt submission. Don't run this on a live conversation
-//       you care about — use a throwaway session.
+//       you care about; use a throwaway session.
 
 import { writeFileSync } from 'node:fs'
 

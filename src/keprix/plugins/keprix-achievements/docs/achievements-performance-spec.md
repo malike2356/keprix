@@ -15,9 +15,9 @@ Observed on this machine/repo:
 - ~83 sessions
 - ~7,125 messages
 - ~3,623 tool calls
-- `evaluate_all()` ~13–16s per call
-- `/achievements` ~13–15s per call
-- `/overview` ~12–15s per call
+- `evaluate_all()` ~13-16s per call
+- `/achievements` ~13-15s per call
+- `/overview` ~12-15s per call
 - Overlap between endpoints increases perceived wait.
 
 Given current product direction, `/overview` and cross-tab top-banner slots are not needed.
@@ -93,7 +93,7 @@ Rules:
 
 ### Phase 1
 - In-memory cache + persisted snapshot file.
-- TTL: 60–180 seconds (configurable).
+- TTL: 60-180 seconds (configurable).
 - Single-flight dedupe for scan requests.
 - Persist plugin data under:
   - `~/.keprix/plugins/keprix-achievements/scan_snapshot.json`

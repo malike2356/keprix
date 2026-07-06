@@ -73,24 +73,24 @@ Traditional Chinese ink brush painting style adapted for comics. Combines callig
 
 ## Quality Markers
 
-- ✓ Dynamic brush stroke quality
-- ✓ Authentic ink wash atmosphere
-- ✓ High contrast compositions
-- ✓ Flowing movement in fabric/hair
-- ✓ Traditional aesthetic elements
-- ✓ Atmospheric depth
+-  Dynamic brush stroke quality
+-  Authentic ink wash atmosphere
+-  High contrast compositions
+-  Flowing movement in fabric/hair
+-  Traditional aesthetic elements
+-  Atmospheric depth
 
 ## Compatibility
 
 | Tone | Fit | Notes |
 |------|-----|-------|
-| neutral | ✓ | Contemplative stories |
-| warm | ✓ | Nostalgic, gentle |
-| dramatic | ✓✓ | High contrast |
-| vintage | ✓✓ | Historical pieces |
-| romantic | ✗ | Style mismatch |
-| energetic | ✗ | Too refined |
-| action | ✓✓ | Martial arts |
+| neutral |  | Contemplative stories |
+| warm |  | Nostalgic, gentle |
+| dramatic |  | High contrast |
+| vintage |  | Historical pieces |
+| romantic |  | Style mismatch |
+| energetic |  | Too refined |
+| action |  | Martial arts |
 
 ## Best For
 

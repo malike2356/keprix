@@ -20,7 +20,7 @@ export interface TerminalReadOptions {
 type Reader = (opts: TerminalReadOptions) => TerminalReadResult
 
 // The persistent terminal is a singleton (one xterm mounted forever), so a
-// module-level slot is enough — set while the session is live, cleared on
+// module-level slot is enough; set while the session is live, cleared on
 // dispose. The gateway `terminal.read.request` handler reads through this.
 let activeReader: Reader | null = null
 
@@ -44,7 +44,7 @@ export function makeTerminalReader(term: Terminal): Reader {
     const lines: string[] = []
 
     // translateToString(true) right-trims and resolves wide chars, dropping SGR
-    // colors — exactly what the agent wants.
+    // colors; exactly what the agent wants.
     for (let i = from; i < to; i += 1) {
       lines.push(buf.getLine(i)?.translateToString(true) ?? '')
     }

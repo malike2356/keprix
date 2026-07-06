@@ -12,7 +12,7 @@ const INLINE_CODE_SPLIT_RE = /(`[^`\n]+`)/g
 // abuts markdown emphasis with no separating space (e.g. `**label: https://x**`,
 // a very common LLM pattern) doesn't swallow the trailing `**` into the href.
 // `*` is never meaningful in a real URL path, and GFM's own autolink extension
-// likewise strips trailing emphasis/punctuation — so dropping it here is safe
+// likewise strips trailing emphasis/punctuation; so dropping it here is safe
 // and keeps the emphasis run intact. Other trailing punctuation is still peeled
 // off by the final `[^\s<>"'`*.,;:!?]` class.
 const RAW_URL_RE = /https?:\/\/[^\s<>"'`*]+[^\s<>"'`*.,;:!?]/g
@@ -23,7 +23,7 @@ const CITATION_MARKER_RE = /(?<=[\p{L}\p{N})\].,!?:;"'”’])\[(?:\d+(?:\s*,\s*
 
 /**
  * Returns true when `body` contains a line that's exactly `marker` (modulo
- * leading/trailing horizontal whitespace) — i.e. an unambiguous close fence
+ * leading/trailing horizontal whitespace); i.e. an unambiguous close fence
  * for an opening fence with the same marker.
  *
  * Implemented with string comparisons (not RegExp) so that input-derived
@@ -103,7 +103,7 @@ function scrubBacktickNoise(text: string): string {
   for (let pass = 0; pass < 2; pass += 1) {
     // Match EXACTLY 2 backticks (not part of a longer run) on each side.
     // Without the lookbehind/lookahead, two adjacent triple-backtick
-    // fences with only whitespace between them get spliced together —
+    // fences with only whitespace between them get spliced together;
     // e.g. ```bash\n...\n```\n\n```latex matches the regex's
     // last-2-of-bash-close + \n\n + first-2-of-latex-open and the
     // surrounding fence markers collapse into a single longer block,
@@ -257,12 +257,12 @@ function normalizeFenceBlocks(text: string): string {
       if (isLikelyProseFence(infoRaw, body)) {
         pushProseFence(out, indent, infoRaw, bodyLines)
       } else if (isMathFence(language)) {
-        // Streaming math fence — rewrite the language tag to "math".
+        // Streaming math fence; rewrite the language tag to "math".
         // remark-math + rehype-katex pick up ```math fenced blocks via
         // the language-math class on the resulting <code> element. We
         // keep the fence intact (instead of converting to $$..$$) so
         // any literal `$$` characters in the body don't collide with
-        // an outer math wrapper. No close emitted yet — streaming.
+        // an outer math wrapper. No close emitted yet; streaming.
         out.push(`${indent}${marker}math`)
         out.push(...bodyLines)
       } else {
@@ -281,7 +281,7 @@ function normalizeFenceBlocks(text: string): string {
     }
 
     if (isMathFence(language)) {
-      // Closed math fence — rewrite the language tag to "math" so
+      // Closed math fence; rewrite the language tag to "math" so
       // rehype-katex's language-math class detection picks it up.
       // Body stays untouched (no $$..$$ rewrite) so authors can write
       // arbitrary LaTeX including `$$display$$` markers without them
@@ -309,7 +309,7 @@ function normalizeFenceBlocks(text: string): string {
 // math (the standard LaTeX convention) instead of `$...$` / `$$...$$`.
 // remark-math only natively recognizes the dollar form, so we rewrite at
 // preprocess time. Done with simple non-greedy matches keyed on the
-// escaped-bracket sequences — these are rare enough in non-math content
+// escaped-bracket sequences; these are rare enough in non-math content
 // (you'd have to write a literal `\(` followed eventually by a literal
 // `\)` with NO interleaving newline-paragraph-break) that false positives
 // are extremely unlikely.
@@ -325,13 +325,13 @@ function rewriteLatexBracketDelimiters(text: string): string {
 // Escape `$<digit>` patterns so they don't get eaten as math delimiters.
 // Models commonly write currency amounts ($5, $19.99, $1,299) in prose.
 // With `singleDollarTextMath: true`, remark-math is greedy and matches
-// EVERY pair of `$`s — including the open of `$5` to the next `$10`,
+// EVERY pair of `$`s; including the open of `$5` to the next `$10`,
 // rendering "5 in my pocket and you have " as italicized math text.
 // The de-facto convention across math-supporting LLM UIs is to treat
 // `$` followed by a digit as currency rather than math, since math
 // expressions almost always start with a letter or `\command`. Trade-
 // off: a math expression like `$5x = 10$` would have its leading 5
-// escaped — annoying but rare. The escape `\$` survives to render as
+// escaped; annoying but rare. The escape `\$` survives to render as
 // a literal `$` in the final output.
 const CURRENCY_DOLLAR_RE = /(^|[^\\])\$(?=\d)/g
 
@@ -354,7 +354,7 @@ export function preprocessMarkdown(text: string): string {
       }
 
       // Whitespace-only segments (e.g. the `\n\n` between two adjacent
-      // fences) must NOT go through stripPreviewTargets — its internal
+      // fences) must NOT go through stripPreviewTargets; its internal
       // .trim() would collapse them to '' and glue the surrounding
       // fences together, producing things like ``````math which the
       // markdown parser then reads as a single 6-backtick block.

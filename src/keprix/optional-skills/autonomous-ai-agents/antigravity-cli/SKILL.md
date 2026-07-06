@@ -15,7 +15,7 @@ metadata:
 
 Operator guide for the Antigravity CLI, invoked as `agy`. Run all `agy`
 commands through the Keprix `terminal` tool; inspect its config and logs with
-`read_file`. This skill is reference + procedure — it does not wrap a network
+`read_file`. This skill is reference + procedure; it does not wrap a network
 API, so there is nothing to authenticate from Keprix itself.
 
 ## When to Use
@@ -27,11 +27,11 @@ API, so there is nothing to authenticate from Keprix itself.
 
 ## Mental model
 
-Antigravity has two layers — keep them distinct or the guidance will be wrong:
+Antigravity has two layers; keep them distinct or the guidance will be wrong:
 
-1. **Shell wrapper commands** — `agy help`, `agy install`, `agy plugin`,
+1. **Shell wrapper commands**; `agy help`, `agy install`, `agy plugin`,
    `agy update`, `agy changelog`. Run these through the `terminal` tool.
-2. **Interactive in-session slash commands** — `/config`, `/permissions`,
+2. **Interactive in-session slash commands**; `/config`, `/permissions`,
    `/skills`, `/agents`, etc. These only exist inside a running `agy` TUI
    session, not on the shell wrapper.
 
@@ -41,7 +41,7 @@ Antigravity has two layers — keep them distinct or the guidance will be wrong:
 
 - The `agy` binary on PATH. Verify through the `terminal` tool:
   `command -v agy && agy --version`.
-- No env vars or API keys required by this skill — Antigravity manages its own
+- No env vars or API keys required by this skill; Antigravity manages its own
   auth via the OS keyring / browser sign-in (see Authentication below).
 
 ## How to Run
@@ -61,7 +61,7 @@ skills use. For one-shot smoke tests and scripted prompts, prefer
 `agy --print` (non-interactive).
 
 To inspect Antigravity's own files, use `read_file` on the paths under Core
-paths below — do not `cat` them through the terminal.
+paths below; do not `cat` them through the terminal.
 
 ## Core paths
 
@@ -173,5 +173,5 @@ files with `read_file`):
 
 ## Support files
 
-- `references/cli-docs.md` — condensed notes from the getting-started, usage,
+- `references/cli-docs.md`; condensed notes from the getting-started, usage,
   and features docs.

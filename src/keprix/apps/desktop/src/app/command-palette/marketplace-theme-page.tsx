@@ -4,7 +4,7 @@
  * Browses the VS Code Marketplace for color themes: an empty query shows the
  * most-installed themes, typing runs a live (debounced) search against the
  * Marketplace. Selecting a row downloads + converts + installs it via the same
- * pipeline as the settings importer, then activates it — and stays open so the
+ * pipeline as the settings importer, then activates it; and stays open so the
  * user can grab several.
  */
 

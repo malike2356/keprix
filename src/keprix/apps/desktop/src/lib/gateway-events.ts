@@ -17,7 +17,7 @@ function asRecord(payload: unknown): Record<string, unknown> {
  *
  * Only `subagent.*` qualifies: it describes background/async work that must
  * never attach to whichever chat happens to be focused. Every other scoped
- * event — message/reasoning/thinking/tool/status/prompt — is, when unscoped,
+ * event; message/reasoning/thinking/tool/status/prompt; is, when unscoped,
  * the active turn's own output. The gateway always stamps a *background*
  * session's events with that session's id, so a missing id can only mean "the
  * focused turn". #42178 dropped those too, which silently swallowed the live

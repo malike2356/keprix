@@ -8,7 +8,7 @@ source: https://linear.app/docs/mcp
 
 # Linear ships a remote MCP server with native OAuth 2.1 + Dynamic Client
 # Registration over Streamable HTTP. Keprix's MCP client + mcp_oauth_manager
-# handle discovery, PKCE, token exchange, and refresh — nothing to install
+# handle discovery, PKCE, token exchange, and refresh; nothing to install
 # locally.
 transport:
   type: http
@@ -16,14 +16,14 @@ transport:
 
 auth:
   type: oauth
-  # No `provider:` — this is native MCP OAuth (case 1), not a third-party
+  # No `provider:`; this is native MCP OAuth (case 1), not a third-party
   # provider like Google. The MCP client triggers the browser flow on the
   # first probe / first connect.
 
 # Tool selection at install time:
 # Linear's MCP server exposes a moderate-sized tool surface (find/get/list +
 # create/update across issues/projects/comments). We leave `default_enabled`
-# unset so the install-time checklist starts with everything pre-checked —
+# unset so the install-time checklist starts with everything pre-checked;
 # users prune what they don't want.
 #
 # If you want to encode a curated subset here once it stabilizes, list the

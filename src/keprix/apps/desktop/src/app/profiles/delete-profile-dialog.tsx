@@ -45,14 +45,14 @@ export function DeleteProfileDialog({
 
         // Deleting the profile the live gateway is on strands it on a dead
         // backend. Capture that before the delete; reset *after* the host's
-        // onDeleted refresh so our reset is the last write — a refreshActiveProfile
+        // onDeleted refresh so our reset is the last write; a refreshActiveProfile
         // racing the (still-dying) backend can't clobber the pill back to it.
         const wasActive = normalizeProfileKey(profile.name) === normalizeProfileKey($activeGatewayProfile.get())
         await deleteProfile(profile.name)
         await onDeleted?.()
 
         if (wasActive) {
-          // Swap gateway/sidebar to default and set the pill now — the primary
+          // Swap gateway/sidebar to default and set the pill now; the primary
           // backend is always default, so this is correct, not just optimistic.
           selectProfile('default')
           setActiveProfile('default')

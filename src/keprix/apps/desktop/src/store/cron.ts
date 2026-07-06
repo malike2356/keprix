@@ -3,13 +3,13 @@ import { atom } from 'nanostores'
 import type { CronJob } from '@/types/hermes'
 
 // Cron *jobs* (not run sessions) power the sidebar "Cron jobs" section. Listing
-// the job — schedule, state, live next-run countdown — makes the job the
+// the job; schedule, state, live next-run countdown; makes the job the
 // first-class entity; its runs (sessions) resolve under it in the cron detail.
 export const $cronJobs = atom<CronJob[]>([])
 export const setCronJobs = (jobs: CronJob[]) => $cronJobs.set(jobs)
 
 // In-place edit so the cron overlay's mutations (create/edit/delete/pause/…)
-// land in the same atom the sidebar renders — no stale list until the next poll.
+// land in the same atom the sidebar renders; no stale list until the next poll.
 export const updateCronJobs = (fn: (jobs: CronJob[]) => CronJob[]) => $cronJobs.set(fn($cronJobs.get()))
 
 // One-shot focus target: clicking "Manage" on a job sets this, then opens the

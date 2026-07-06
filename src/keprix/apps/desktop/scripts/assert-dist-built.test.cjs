@@ -71,7 +71,7 @@ test('checkDistBuilt fails when assets/ has no JS bundle', () => {
   const { tempRoot, distDir } = makeDist(d => {
     fs.writeFileSync(path.join(d, 'index.html'), '<!doctype html>', 'utf8')
     fs.mkdirSync(path.join(d, 'assets'))
-    // CSS only, no JS — still a blank page at runtime.
+    // CSS only, no JS; still a blank page at runtime.
     fs.writeFileSync(path.join(d, 'assets', 'index-abc123.css'), 'body{}', 'utf8')
   })
   try {

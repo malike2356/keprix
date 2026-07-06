@@ -28,7 +28,7 @@ export const PROVIDER_VIEWS = ['accounts', 'keys'] as const
 
 export type ProviderView = (typeof PROVIDER_VIEWS)[number]
 
-// Group the env catalog by provider — one ListRow per vendor plus optional
+// Group the env catalog by provider; one ListRow per vendor plus optional
 // advanced overrides (base URL, region, etc.). Groups without a key field and
 // the "Other" bucket are skipped.
 function buildProviderKeyGroups(vars: Record<string, EnvVarInfo>): ProviderKeyGroup[] {
@@ -62,7 +62,7 @@ function buildProviderKeyGroups(vars: Record<string, EnvVarInfo>): ProviderKeyGr
     groups.push({
       // Advanced = the provider's non-key knobs (base URL, region, deployment).
       // Skip redundant alias key vars (e.g. ANTHROPIC_TOKEN vs ANTHROPIC_API_KEY)
-      // so we never render a second "Paste key" input — unless one is already
+      // so we never render a second "Paste key" input; unless one is already
       // set, in which case keep it visible so it stays clearable.
       advanced: entries
         .filter(([k, i]) => k !== primary[0] && (!isKeyVar(k, i) || i.is_set))
@@ -251,11 +251,11 @@ export function ProvidersSettings({ onViewChange, view }: ProvidersSettingsProps
   const [disconnecting, setDisconnecting] = useState<null | string>(null)
   // The onboarding overlay owns the OAuth flow. Watch its `manual` flag so we
   // re-read connection state when the user finishes (or dismisses) a sign-in
-  // they launched from this page — otherwise the cards keep their stale status.
+  // they launched from this page; otherwise the cards keep their stale status.
   const onboardingActive = useStore($desktopOnboarding).manual
 
   const refreshOAuthProviders = useCallback(async () => {
-    // OAuth providers are best-effort — a failure here just hides the panel.
+    // OAuth providers are best-effort; a failure here just hides the panel.
     const { providers } = await listOAuthProviders()
     setOauthProviders(providers)
   }, [])
@@ -275,7 +275,7 @@ export function ProvidersSettings({ onViewChange, view }: ProvidersSettingsProps
           setOauthProviders(providers)
         }
       } catch {
-        // Ignore — the OAuth panel just won't render.
+        // Ignore; the OAuth panel just won't render.
       }
     })()
 

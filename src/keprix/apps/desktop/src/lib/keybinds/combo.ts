@@ -6,7 +6,7 @@
 // mutates it ("shift+/" stays "shift+/" instead of becoming "shift+?").
 //
 // `ctrl` is physical Control, distinct from `mod`. It only matters on macOS,
-// where `mod` is Cmd and Cmd+Tab is OS-reserved — so `ctrl+tab` is literally
+// where `mod` is Cmd and Cmd+Tab is OS-reserved; so `ctrl+tab` is literally
 // Control+Tab. Off macOS, Control already *is* `mod`, so `canonicalizeCombo`
 // folds `ctrl` → `mod`.
 
@@ -159,7 +159,7 @@ function labelForMod(mod: string): string {
   return mod
 }
 
-// Per-key display tokens, e.g. ["⌘", "K"] on macOS, ["Ctrl", "K"] elsewhere —
+// Per-key display tokens, e.g. ["⌘", "K"] on macOS, ["Ctrl", "K"] elsewhere;
 // one cap per token for <KbdGroup>.
 export function comboTokens(combo: string): string[] {
   const parts = combo.split('+')

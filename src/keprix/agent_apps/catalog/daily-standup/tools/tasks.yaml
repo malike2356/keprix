@@ -1,0 +1,4 @@
+name: tasks
+description: Read open tasks from the workspace task list
+risk: low
+approval_required: false

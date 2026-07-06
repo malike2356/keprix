@@ -155,9 +155,9 @@ describe('ToolsetConfigPanel', () => {
     render(<ToolsetConfigPanel onConfiguredChange={vi.fn()} toolset="tts" />)
 
     // The active provider's env-var field only renders when it's the expanded
-    // one — so finding it proves ElevenLabs (not Edge TTS) was auto-expanded.
+    // one; so finding it proves ElevenLabs (not Edge TTS) was auto-expanded.
     expect(await screen.findByText('ELEVENLABS_API_KEY')).toBeTruthy()
-    // No provider selection was triggered — this is purely reflecting state.
+    // No provider selection was triggered; this is purely reflecting state.
     expect(selectToolsetProvider).not.toHaveBeenCalled()
   })
 
@@ -229,7 +229,7 @@ describe('ToolsetConfigPanel', () => {
         ]
       })
     )
-    // Spawn failed server-side — must NOT proceed to poll a non-existent action.
+    // Spawn failed server-side; must NOT proceed to poll a non-existent action.
     runToolsetPostSetup.mockResolvedValue({ ok: false, pid: 0, name: 'tools-post-setup' })
 
     const { ToolsetConfigPanel } = await import('./toolset-config-panel')

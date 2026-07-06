@@ -1,0 +1,26 @@
+name: research-brief
+version: 1.0.0
+display_name: Research Brief
+description: Turns a topic into a structured literature-style brief.
+category: research
+icon: science
+runtime: agent
+required_env:
+  - KEPRIX_DEFAULT_PROVIDER
+required_permissions:
+  - network
+tools:
+  - tools/research.yaml
+inputs:
+  - id: topic
+    label: Research topic
+    type: textarea
+    required: true
+    placeholder: e.g. federated learning in healthcare
+outputs:
+  - id: markdown
+    type: markdown
+eval_suite: evals/basic.yaml
+billing:
+  tier: pro
+  meter: runs_per_month

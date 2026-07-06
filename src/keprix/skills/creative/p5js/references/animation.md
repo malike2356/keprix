@@ -7,9 +7,9 @@
 ```javascript
 function draw() {
   // Called ~60 times/sec by default
-  // frameCount — integer, starts at 1
-  // deltaTime — ms since last frame (use for framerate-independent motion)
-  // millis() — ms since sketch start
+  // frameCount; integer, starts at 1
+  // deltaTime; ms since last frame (use for framerate-independent motion)
+  // millis(); ms since sketch start
 }
 ```
 
@@ -20,18 +20,18 @@ function draw() {
 x += speed;
 
 // Time-based (consistent speed regardless of framerate)
-x += speed * (deltaTime / 16.67);  // normalized to 60fps
+x += speed * (deltaTime / 16.67); // normalized to 60fps
 ```
 
 ### Normalized Time
 
 ```javascript
 // Progress from 0 to 1 over N seconds
-let duration = 5000;  // 5 seconds in ms
+let duration = 5000; // 5 seconds in ms
 let t = constrain(millis() / duration, 0, 1);
 
 // Looping progress (0 → 1 → 0 → 1...)
-let period = 3000;  // 3 second loop
+let period = 3000; // 3 second loop
 let t = (millis() % period) / period;
 
 // Ping-pong (0 → 1 → 0 → 1...)
@@ -44,7 +44,7 @@ let t = raw <= 1 ? raw : 2 - raw;
 ### Built-in Lerp
 
 ```javascript
-// Linear interpolation — smooth but mechanical
+// Linear interpolation; smooth but mechanical
 let x = lerp(startX, endX, t);
 
 // Map for non-0-1 ranges
@@ -86,7 +86,7 @@ function easeOutBounce(t) {
   else { t -= 2.625/2.75; return 7.5625 * t * t + 0.984375; }
 }
 
-// Smooth step (Hermite interpolation — great default)
+// Smooth step (Hermite interpolation; great default)
 function smoothstep(t) { return t * t * (3 - 2 * t); }
 
 // Smoother step (Ken Perlin)
@@ -108,7 +108,7 @@ let x = easedValue(100, 700, animStartTime, 2000, easeOutCubic);
 
 ## Spring Physics
 
-More natural than easing — responds to force, overshoots, settles.
+More natural than easing; responds to force, overshoots, settles.
 
 ```javascript
 class Spring {
@@ -319,7 +319,7 @@ function scaleReveal(t) {
 
 ```javascript
 // N elements appear one after another
-let staggerDelay = 100;  // ms between each
+let staggerDelay = 100; // ms between each
 for (let i = 0; i < elements.length; i++) {
   let itemStart = baseTime + i * staggerDelay;
   let t = constrain((millis() - itemStart) / 500, 0, 1);
@@ -334,14 +334,14 @@ for (let i = 0; i < elements.length; i++) {
 For frame-perfect export, use frame count instead of millis():
 
 ```javascript
-const TOTAL_FRAMES = 300;  // 10 seconds at 30fps
+const TOTAL_FRAMES = 300; // 10 seconds at 30fps
 const FPS = 30;
 
 function draw() {
-  let t = frameCount / TOTAL_FRAMES;  // 0 to 1 over full duration
+  let t = frameCount / TOTAL_FRAMES; // 0 to 1 over full duration
   if (t > 1) { noLoop(); return; }
 
-  // Use t for all animation timing — deterministic
+  // Use t for all animation timing; deterministic
   renderFrame(t);
 
   // Export
@@ -356,18 +356,18 @@ function draw() {
 Every scene in a multi-scene video needs fade-in and fade-out. Hard cuts between visually different generative scenes are jarring.
 
 ```javascript
-const SCENE_FRAMES = 150;  // 5 seconds at 30fps
-const FADE = 15;           // half-second fade
+const SCENE_FRAMES = 150; // 5 seconds at 30fps
+const FADE = 15; // half-second fade
 
 function draw() {
-  let lf = frameCount - 1;  // 0-indexed local frame
+  let lf = frameCount - 1; // 0-indexed local frame
   let t = lf / SCENE_FRAMES; // 0..1 normalized progress
 
   // Fade envelope: ramp up at start, ramp down at end
   let fade = 1;
   if (lf < FADE) fade = lf / FADE;
   if (lf > SCENE_FRAMES - FADE) fade = (SCENE_FRAMES - lf) / FADE;
-  fade = fade * fade * (3 - 2 * fade);  // smoothstep for organic feel
+  fade = fade * fade * (3 - 2 * fade); // smoothstep for organic feel
 
   // Apply fade to all visual output
   // Option 1: multiply alpha values by fade
@@ -406,7 +406,7 @@ Slowly change a parameter to show the algorithm evolving:
 
 ```javascript
 // Attractor with drifting parameters
-let a = -1.7 + sin(t * 0.5) * 0.2;  // oscillate around base value
+let a = -1.7 + sin(t * 0.5) * 0.2; // oscillate around base value
 let b = 1.3 + cos(t * 0.3) * 0.15;
 ```
 
@@ -417,8 +417,8 @@ Apply subtle zoom or rotation to the final image:
 ```javascript
 push();
 translate(width/2, height/2);
-scale(1 + t * 0.05);       // slow 5% zoom over scene duration
-rotate(t * 0.1);            // gentle rotation
+scale(1 + t * 0.05); // slow 5% zoom over scene duration
+rotate(t * 0.1); // gentle rotation
 translate(-width/2, -height/2);
 image(precomputedResult, 0, 0);
 pop();
@@ -434,6 +434,6 @@ image(staticResult, 0, 0);
 // Dynamic overlay
 for (let p of ambientParticles) {
   p.update();
-  p.display();  // slow-moving specks add life
+  p.display(); // slow-moving specks add life
 }
 ```

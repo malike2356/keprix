@@ -109,7 +109,7 @@ export function conflictsFor(actionId: string, combo: string): string[] {
 
 // ── Capture ─────────────────────────────────────────────────────────────────
 // `$capture` is the action currently listening for its next keypress (a panel
-// row armed for rebinding). Session-only — never persisted.
+// row armed for rebinding). Session-only; never persisted.
 
 export const $capture = atom<string | null>(null)
 

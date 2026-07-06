@@ -11,7 +11,7 @@ import { filePathFromMediaPath, gatewayMediaDataUrl, isRemoteGateway, mediaExter
 import { cn } from '@/lib/utils'
 
 // Aspect hint from the tool args sizes the frame *before* the image loads, so
-// the placeholder and the resolved image occupy the same box — no layout shift.
+// the placeholder and the resolved image occupy the same box; no layout shift.
 const ASPECT_HINTS: Record<string, number> = {
   landscape: 16 / 9,
   square: 1,

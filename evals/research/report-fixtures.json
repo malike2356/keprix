@@ -1,0 +1,8 @@
+{
+  "citation_key": "smith2023water",
+  "cited_claim": "Groundwater levels rose in Q1 [smith2023water].",
+  "uncited_factual_claim": "Groundwater levels rose by 12 percent in Q1.",
+  "marked_opinion": "[analysis] Demand may continue rising through Q2.",
+  "allowed_markers": ["[analysis]", "[generated opinion]", "[hypothesis]"],
+  "unsafe_note_patterns": ["<script>", "javascript:alert(1)", "file:///etc/passwd", "[[../secrets]]"]
+}

@@ -1,7 +1,7 @@
 # Design System: Miro
 
 
-> **Keprix — Implementation Notes**
+> **Keprix; Implementation Notes**
 >
 > The original site uses proprietary fonts. For self-contained HTML output, use these CDN substitutes:
 > - **Primary:** `Inter` | **Mono:** `system monospace stack`
@@ -15,7 +15,7 @@
 
 ## 1. Visual Theme & Atmosphere
 
-Miro's website is a clean, collaborative-tool-forward platform that communicates "visual thinking" through generous whitespace, pastel accent colors, and a confident geometric font. The design uses a predominantly white canvas with near-black text (`#1c1c1e`) and a distinctive pastel color palette — coral, rose, teal, orange, yellow, moss — each representing different collaboration contexts.
+Miro's website is a clean, collaborative-tool-forward platform that communicates "visual thinking" through generous whitespace, pastel accent colors, and a confident geometric font. The design uses a predominantly white canvas with near-black text (`#1c1c1e`) and a distinctive pastel color palette; coral, rose, teal, orange, yellow, moss; each representing different collaboration contexts.
 
 The typography uses Roobert PRO Medium as the primary display font with OpenType character variants (`"blwf", "cv03", "cv04", "cv09", "cv11"`) and negative letter-spacing (-1.68px at 56px). Noto Sans handles body text with its own stylistic set (`"liga" 0, "ss01", "ss04", "ss05"`). The design is built with Framer, giving it smooth animations and modern component patterns.
 
@@ -25,7 +25,7 @@ The typography uses Roobert PRO Medium as the primary display font with OpenType
 - Pastel accent palette: coral, rose, teal, orange, yellow, moss (light + dark pairs)
 - Blue 450 (`#5b76fe`) as primary interactive color
 - Success green (`#00b473`) for positive states
-- Generous border-radius: 8px–50px range
+- Generous border-radius: 8px-50px range
 - Framer-built with smooth motion patterns
 - Ring shadow border: `rgb(224,226,232) 0px 0px 0px 1px`
 
@@ -60,9 +60,9 @@ The typography uses Roobert PRO Medium as the primary display font with OpenType
 ## 3. Typography Rules
 
 ### Font Families
-- **Display**: `Roobert PRO Medium`, fallback: Placeholder — `"blwf", "cv03", "cv04", "cv09", "cv11"`
+- **Display**: `Roobert PRO Medium`, fallback: Placeholder; `"blwf", "cv03", "cv04", "cv09", "cv11"`
 - **Display Variants**: `Roobert PRO SemiBold`, `Roobert PRO SemiBold Italic`, `Roobert PRO`
-- **Body**: `Noto Sans` — `"liga" 0, "ss01", "ss04", "ss05"`
+- **Body**: `Noto Sans`; `"liga" 0, "ss01", "ss04", "ss05"`
 
 ### Hierarchy
 
@@ -74,7 +74,7 @@ The typography uses Roobert PRO Medium as the primary display font with OpenType
 | Sub-heading | Noto Sans | 22px | 400 | 1.35 | -0.44px |
 | Feature | Roobert PRO Medium | 18px | 600 | 1.35 | normal |
 | Body | Noto Sans | 18px | 400 | 1.45 | normal |
-| Body Standard | Noto Sans | 16px | 400–600 | 1.50 | -0.16px |
+| Body Standard | Noto Sans | 16px | 400-600 | 1.50 | -0.16px |
 | Button | Roobert PRO Medium | 17.5px | 700 | 1.29 | 0.175px |
 | Caption | Roobert PRO Medium | 14px | 400 | 1.71 | normal |
 | Small | Roobert PRO Medium | 12px | 400 | 1.15 | -0.36px |
@@ -87,16 +87,16 @@ The typography uses Roobert PRO Medium as the primary display font with OpenType
 - White circle: 50% radius, white bg with shadow
 - Blue primary (implied from interactive color)
 
-### Cards: 12px–24px radius, pastel backgrounds
+### Cards: 12px-24px radius, pastel backgrounds
 ### Inputs: white bg, `1px solid #e9eaef`, 8px radius, 16px padding
 
 ## 5. Layout Principles
-- Spacing: 1–24px base scale
-- Radius: 8px (buttons), 10px–12px (cards), 20px–24px (panels), 40px–50px (large containers)
+- Spacing: 1-24px base scale
+- Radius: 8px (buttons), 10px-12px (cards), 20px-24px (panels), 40px-50px (large containers)
 - Ring shadow: `rgb(224,226,232) 0px 0px 0px 1px`
 
 ## 6. Depth & Elevation
-Minimal — ring shadow + pastel surface contrast
+Minimal; ring shadow + pastel surface contrast
 
 ## 7. Do's and Don'ts
 ### Do

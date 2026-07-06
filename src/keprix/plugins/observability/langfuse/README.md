@@ -1,6 +1,6 @@
 # Langfuse Observability Plugin
 
-This plugin ships bundled with Keprix but is **opt-in** — it only loads when
+This plugin ships bundled with Keprix but is **opt-in**; it only loads when
 you explicitly enable it.
 
 ## Enable
@@ -26,7 +26,7 @@ KEPRIX_LANGFUSE_SECRET_KEY=sk-lf-...
 KEPRIX_LANGFUSE_BASE_URL=https://cloud.langfuse.com   # or your self-hosted URL
 ```
 
-Without the SDK or credentials the hooks no-op silently — the plugin fails
+Without the SDK or credentials the hooks no-op silently; the plugin fails
 open.
 
 ## Verify

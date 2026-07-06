@@ -45,7 +45,7 @@ interface ComposerStatusStackProps {
 
 /**
  * The status "sink" above the composer: one card (the queue's chrome) holding
- * every session-scoped status — subagents, background tasks, queue — grouped by
+ * every session-scoped status; subagents, background tasks, queue; grouped by
  * type and separated by light dividers. Collapses to nothing when empty.
  */
 export function ComposerStatusStack({ queue, sessionId }: ComposerStatusStackProps) {
@@ -130,8 +130,8 @@ export function ComposerStatusStack({ queue, sessionId }: ComposerStatusStackPro
   const stackRef = useRef<HTMLDivElement | null>(null)
 
   // The stack is out of flow (overlays the thread), so the composer's measured
-  // height never sees it. Publish our own measured height — bucketed like the
-  // composer's, to avoid style invalidation churn — so the thread's
+  // height never sees it. Publish our own measured height; bucketed like the
+  // composer's, to avoid style invalidation churn; so the thread's
   // last-message clearance can add it and the stack never hides messages.
   useLayoutEffect(() => {
     const root = document.documentElement
@@ -173,7 +173,7 @@ export function ComposerStatusStack({ queue, sessionId }: ComposerStatusStackPro
       // Sits above the composer (bottom-full), nudged down by the shell's 0.5rem
       // top pad (pt-2 on composer-root) plus 1px so its bottom edge overlaps the
       // composer surface's top border. z BELOW the surface (z-4) so the surface's
-      // top border paints over our transparent bottom border — one seam, no
+      // top border paints over our transparent bottom border; one seam, no
       // double line.
       className="absolute inset-x-0 bottom-full z-3 max-h-[40vh] translate-y-[calc(0.5rem+1px)] overflow-y-auto"
       onPointerDownCapture={() => blurComposerInput()}
@@ -181,8 +181,8 @@ export function ComposerStatusStack({ queue, sessionId }: ComposerStatusStackPro
     >
       {/* The card paints the shared --composer-fill (rest / scrolled / focused
           all match the composer surface by construction); on scroll we only
-          ghost the CONTENT — element opacity on the card would kill the blur.
-          Rounded top, square bottom; the bottom border is TRANSPARENT — the
+          ghost the CONTENT; element opacity on the card would kill the blur.
+          Rounded top, square bottom; the bottom border is TRANSPARENT; the
           composer surface's visible top border (which sits at a higher z) is the
           single shared seam, so the two read as one fused capsule. */}
       <div className={cn(composerDockCard('top'), 'mx-2 rounded-b-none border-b border-b-transparent pt-0.5 pb-1')}>

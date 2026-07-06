@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// set-exe-identity.cjs — stamp the Hermes icon + version metadata onto the
+// set-exe-identity.cjs; stamp the Hermes icon + version metadata onto the
 // built Hermes.exe using rcedit, completely decoupled from electron-builder's
 // signing path.
 //
@@ -9,7 +9,7 @@
 // flag is load-bearing: turning electron-builder's own exe-editing ON also
 // re-enables its signtool step, which fetches winCodeSign-2.6.0.7z, whose
 // macOS symlinks crash 7-Zip on non-admin Windows (no Developer Mode = no
-// SeCreateSymbolicLinkPrivilege). That is an unfixable dead end — we do NOT
+// SeCreateSymbolicLinkPrivilege). That is an unfixable dead end; we do NOT
 // try to extract winCodeSign.
 //
 // The cost of disabling signAndEditExecutable is that electron-builder also
@@ -21,8 +21,8 @@
 // HOW IT RUNS
 // -----------
 // Primarily as an electron-builder `afterPack` hook (scripts/after-pack.cjs),
-// so EVERY packed build — first install, `hermes desktop`, the installer's
-// --update rebuild, or a dev's manual `npm run pack` — gets a branded exe from
+// so EVERY packed build; first install, `hermes desktop`, the installer's
+// --update rebuild, or a dev's manual `npm run pack`; gets a branded exe from
 // one place. Previously this stamp lived only in install.ps1, so the update
 // path (which rebuilds via `hermes desktop --build-only`, never install.ps1)
 // shipped a stock "Electron" exe. Keeping it in afterPack closes that gap.
@@ -75,7 +75,7 @@ async function stampExeIdentity(exe, desktopRoot = path.resolve(__dirname, '..')
     }
   })
 
-  console.log('[set-exe-identity] done — Hermes icon + identity stamped')
+  console.log('[set-exe-identity] done; Hermes icon + identity stamped')
 }
 
 module.exports = { stampExeIdentity }

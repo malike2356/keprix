@@ -1,0 +1,5 @@
+name: welcome
+description: Welcome playbook for new users
+steps:
+  - greet user
+  - offer help

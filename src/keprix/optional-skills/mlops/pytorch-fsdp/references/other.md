@@ -106,11 +106,11 @@ The context manager requires each participating Joinable to call the method noti
 
 The context manager requires that all process_group attributes in the JoinHook objects are the same. If there are multiple JoinHook objects, then the device of the first is used. The process group and device information is used for checking for non- joined processes and for notifying processes to throw an exception if throw_on_early_termination is enabled, both of which using an all- reduce.
 
-joinables (List[Joinable]) – a list of the participating Joinable s; their hooks are iterated over in the given order.
+joinables (List[Joinable]) - a list of the participating Joinable s; their hooks are iterated over in the given order.
 
-enable (bool) – a flag enabling uneven input detection; setting to False disables the context manager’s functionality and should only be set when the user knows the inputs will not be uneven (default: True).
+enable (bool) - a flag enabling uneven input detection; setting to False disables the context manager’s functionality and should only be set when the user knows the inputs will not be uneven (default: True).
 
-throw_on_early_termination (bool) – a flag controlling whether to throw an exception upon detecting uneven inputs (default: False).
+throw_on_early_termination (bool) - a flag controlling whether to throw an exception upon detecting uneven inputs (default: False).
 
 Notifies the join context manager that the calling process has not yet joined.
 
@@ -120,7 +120,7 @@ This method should be called from a Joinable object before its per-iteration col
 
 Only the first Joinable object passed into the context manager performs the collective communications in this method, and for the others, this method is vacuous.
 
-joinable (Joinable) – the Joinable object calling this method.
+joinable (Joinable) - the Joinable object calling this method.
 
 An async work handle for the all-reduce meant to notify the context manager that the process has not yet joined if joinable is the first one passed into the context manager; None otherwise.
 
@@ -132,7 +132,7 @@ Return the device from which to perform collective communications needed by the 
 
 Return a JoinHook instance for the given Joinable.
 
-kwargs (dict) – a dict containing any keyword arguments to modify the behavior of the join hook at run time; all Joinable instances sharing the same join context manager are forwarded the same value for kwargs.
+kwargs (dict) - a dict containing any keyword arguments to modify the behavior of the join hook at run time; all Joinable instances sharing the same join context manager are forwarded the same value for kwargs.
 
 Returns the process group for the collective communications needed by the join context manager itself.
 
@@ -150,7 +150,7 @@ Call hook after all processes have joined.
 
 It is passed an additional bool argument is_last_joiner, which indicates if the rank is one of the last to join.
 
-is_last_joiner (bool) – True if the rank is one of the last to join; False otherwise.
+is_last_joiner (bool) - True if the rank is one of the last to join; False otherwise.
 
 ---
 
@@ -353,25 +353,25 @@ The current process group.
 
 Create a new process group with the given backend and options. This group is independent and will not be globally registered and thus not usable via the standard torch.distributed.* APIs.
 
-backend (str) – The backend to use for the process group.
+backend (str) - The backend to use for the process group.
 
-timeout (timedelta) – The timeout for collective operations.
+timeout (timedelta) - The timeout for collective operations.
 
-device (Union[str, device]) – The device to use for the process group.
+device (Union[str, device]) - The device to use for the process group.
 
-**kwargs (object) – All remaining arguments are passed to the backend constructor. See the backend specific documentation for details.
+**kwargs (object) - All remaining arguments are passed to the backend constructor. See the backend specific documentation for details.
 
 Context manager for process groups. Thread local method.
 
-pg (ProcessGroup) – The process group to use.
+pg (ProcessGroup) - The process group to use.
 
 Generator[None, None, None]
 
 Register a new process group backend.
 
-name (str) – The name of the backend.
+name (str) - The name of the backend.
 
-func (ProcessGroupFactory) – The function to create the process group.
+func (ProcessGroupFactory) - The function to create the process group.
 
 ---
 
@@ -429,11 +429,11 @@ This implementation represents the sharded parameters as DTensor s sharded on di
 
 Since grouping multiple tensors together for one collective is critical for communication efficiency, this implementation makes this grouping first class. Calling fully_shard() on module constructs one group that includes the parameters in module.parameters() except those already assigned to a group from an earlier call on a submodule. This means that fully_shard() should be called bottom-up on your model. Each group’s parameters are all-gathered in one collective, and its gradients are reduce-scattered in one collective. Partitioning the model into multiple groups (“layer by layer”) allows for peak memory savings and communication/computation overlap. Users generally should not call fully_shard() only on the topmost root module.
 
-module (Union[nn.Module, List[nn.Module]) – The module or modules to shard with FSDP and group together for communication.
+module (Union[nn.Module, List[nn.Module]) - The module or modules to shard with FSDP and group together for communication.
 
-mesh (Optional[DeviceMesh]) – This data parallel mesh defines the sharding and device. If 1D, then parameters are fully sharded across the 1D mesh (FSDP) with (Shard(0),) placement. If 2D, then parameters are sharded across the 1st dim and replicated across the 0th dim (HSDP) with (Replicate(), Shard(0)) placement. The mesh’s device type gives the device type used for communication; if a CUDA or CUDA-like device type, then we use the current device.
+mesh (Optional[DeviceMesh]) - This data parallel mesh defines the sharding and device. If 1D, then parameters are fully sharded across the 1D mesh (FSDP) with (Shard(0),) placement. If 2D, then parameters are sharded across the 1st dim and replicated across the 0th dim (HSDP) with (Replicate(), Shard(0)) placement. The mesh’s device type gives the device type used for communication; if a CUDA or CUDA-like device type, then we use the current device.
 
-reshard_after_forward (Optional[Union[bool, int]]) – This controls the parameter behavior after forward and can trade off memory and communication: If True, then this reshards parameters after forward and re-all-gathers in backward. If False, then this keeps the unsharded parameters in memory after forward and avoids the all-gather in backward. For best performance, we usually set False for the root module, because the root module is typically required immediately when the backward pass begins. If None, it is set to True for non-root modules and False for root modules. If an int, then this represents the world size to reshard to after forward. It should be a non-trivial divisor of the mesh shard dim size (i.e. excluding 1 and the dim size itself). A choice may be the intra-node size (e.g. torch.cuda.device_count()). This allows the all-gather in backward to be over a smaller world size at the cost of higher memory usage than setting to True. After forward, the parameters registered to the module depend on to this: The registered parameters are the sharded parameters if True; unsharded parameters if False; and the parameters resharded to the smaller mesh otherwise. To modify the parameters between forward and backward, the registered parameters must be the sharded parameters. For False or an int, this can be done by manually resharding via reshard().
+reshard_after_forward (Optional[Union[bool, int]]) - This controls the parameter behavior after forward and can trade off memory and communication: If True, then this reshards parameters after forward and re-all-gathers in backward. If False, then this keeps the unsharded parameters in memory after forward and avoids the all-gather in backward. For best performance, we usually set False for the root module, because the root module is typically required immediately when the backward pass begins. If None, it is set to True for non-root modules and False for root modules. If an int, then this represents the world size to reshard to after forward. It should be a non-trivial divisor of the mesh shard dim size (i.e. excluding 1 and the dim size itself). A choice may be the intra-node size (e.g. torch.cuda.device_count()). This allows the all-gather in backward to be over a smaller world size at the cost of higher memory usage than setting to True. After forward, the parameters registered to the module depend on to this: The registered parameters are the sharded parameters if True; unsharded parameters if False; and the parameters resharded to the smaller mesh otherwise. To modify the parameters between forward and backward, the registered parameters must be the sharded parameters. For False or an int, this can be done by manually resharding via reshard().
 
 This controls the parameter behavior after forward and can trade off memory and communication:
 
@@ -447,35 +447,35 @@ If an int, then this represents the world size to reshard to after forward. It s
 
 After forward, the parameters registered to the module depend on to this: The registered parameters are the sharded parameters if True; unsharded parameters if False; and the parameters resharded to the smaller mesh otherwise. To modify the parameters between forward and backward, the registered parameters must be the sharded parameters. For False or an int, this can be done by manually resharding via reshard().
 
-shard_placement_fn (Optional[Callable[[nn.Parameter], Optional[Shard]]]) – This callable can be used to override the sharding placement for a parameter to shard a parameter on a dimension other than dim-0. If this callable returns a Shard placement (not None), then FSDP will shard according to that placement (e.g. Shard(1)). If sharding on a nonzero dim, we currently require even sharding, i.e. the tensor dim size on that dim must be divisible by the FSDP shard mesh size.
+shard_placement_fn (Optional[Callable[[nn.Parameter], Optional[Shard]]]) - This callable can be used to override the sharding placement for a parameter to shard a parameter on a dimension other than dim-0. If this callable returns a Shard placement (not None), then FSDP will shard according to that placement (e.g. Shard(1)). If sharding on a nonzero dim, we currently require even sharding, i.e. the tensor dim size on that dim must be divisible by the FSDP shard mesh size.
 
-mp_policy (MixedPrecisionPolicy) – This controls the mixed precision policy, which offers parameter/reduction mixed precision for this module. See MixedPrecisionPolicy for details.
+mp_policy (MixedPrecisionPolicy) - This controls the mixed precision policy, which offers parameter/reduction mixed precision for this module. See MixedPrecisionPolicy for details.
 
-offload_policy (OffloadPolicy) – This controls the offloading policy, which offers parameter/gradient/optimizer state offloading. See OffloadPolicy and its subclasses for details.
+offload_policy (OffloadPolicy) - This controls the offloading policy, which offers parameter/gradient/optimizer state offloading. See OffloadPolicy and its subclasses for details.
 
-ignored_params (Optional[set[nn.Parameter]]) – Optional(Set[nn.Parameter]): The set of parameters to be ignored by FSDP. They will not be sharded, nor moved to the device during init, nor have their gradients reduced in backward.
+ignored_params (Optional[set[nn.Parameter]]) - Optional(Set[nn.Parameter]): The set of parameters to be ignored by FSDP. They will not be sharded, nor moved to the device during init, nor have their gradients reduced in backward.
 
 The module with FSDP applied (in-place).
 
 Reshards the module’s parameters, freeing the unsharded parameters if they are allocated and registering the sharded parameters to the module. This method is not recursive.
 
-hook (Callable[[torch.Tensor], None]) – User-defined all-reduce hook with expected signature hook(reduce_output: torch.Tensor) -> None where reduce_output is the reduce-scatter output if only using FSDP or the all-reduce output if using native HSDP.
+hook (Callable[[torch.Tensor], None]) - User-defined all-reduce hook with expected signature hook(reduce_output: torch.Tensor) -> None where reduce_output is the reduce-scatter output if only using FSDP or the all-reduce output if using native HSDP.
 
-stream (Optional[torch.cuda.Stream]) – Stream to run the all-reduce hook in. This should only be set if not using native HSDP. If using native HSDP, the hook will run in the internally defined all-reduce stream used by the native HSDP all-reduce.
+stream (Optional[torch.cuda.Stream]) - Stream to run the all-reduce hook in. This should only be set if not using native HSDP. If using native HSDP, the hook will run in the internally defined all-reduce stream used by the native HSDP all-reduce.
 
 Sets whether the temporary staging buffers used to send and receive data over collective communications should be allocated using the custom optimized allocator provided by the ProcessGroup itself (if any). This might allow the ProcessGroup to be more efficient. For example, when using NCCL, this enables it to leverage zero-copy transfers over SHARP (for NVLink and/or InfiniBand).
 
 This cannot be used together with set_custom_all_gather() or set_custom_reduce_scatter() as those APIs allow for finer-grained control over each communication, and this method cannot determine their staging buffer allocation strategy.
 
-enable (bool) – Whether to turn on ProcessGroup allocation.
+enable (bool) - Whether to turn on ProcessGroup allocation.
 
 Overrides the default all_gather communication behavior, to have better control over the communication and memory usage. See Comm and ReduceScatter for details.
 
-comm (AllGather) – Custom all-gather communication.
+comm (AllGather) - Custom all-gather communication.
 
 Overrides the default reduce_scatter communication behavior, to have better control over the communication and memory usage. See Comm and ReduceScatter for details.
 
-comm (ReduceScatter) – Custom reduce_scatter communication.
+comm (ReduceScatter) - Custom reduce_scatter communication.
 
 Sets whether to require the low-level collective communication primitives to exclusively use “sum”-type reductions, even if it comes at the cost of separate additional pre- or post-scaling operations. This is needed for example because NCCL currently supports zero-copy transfers only for this kind of collectives.
 
@@ -483,11 +483,11 @@ NB: for MTIA devices, this is always implicitly enabled.
 
 NB: if set_all_reduce_hook is used under FSDP setup, the caller needs to ensure the custom all-reduce across FSDP units follow this strategy as well, as FSDP can no longer automatically handle that.
 
-enable (bool) – Whether to only ever use ReduceOp.SUM for comms.
+enable (bool) - Whether to only ever use ReduceOp.SUM for comms.
 
 Sets a custom divide factor for the gradient reduction. This might use a custom reduce op using NCCL’s PreMulSum, which allows multiplying by the factor before reduction.
 
-factor (float) – Custom divide factor.
+factor (float) - Custom divide factor.
 
 Sets whether the next backward is the last one. On the last backward, FSDP waits on pending gradient reduction and clears internal data data structures for backward prefetching. This can be useful for microbatching.
 
@@ -495,19 +495,19 @@ Sets the FSDP modules for which this FSDP module should explicitly prefetch all-
 
 Passing a singleton list containing the previous FSDP module gives the same all-gather overlap behavior as the default overlap behavior. Passing a list with at least length two is required for more aggressive overlap and will use more reserved memory.
 
-modules (List[FSDPModule]) – FSDP modules to prefetch.
+modules (List[FSDPModule]) - FSDP modules to prefetch.
 
 Sets the FSDP modules for which this FSDP module should explicitly prefetch all-gathers in forward. The prefetching runs after this module’s all-gather copy-out.
 
 Passing a singleton list containing the next FSDP module gives the same all-gather overlap behavior as the default overlap behavior, except the prefetched all-gather is issued earlier from the CPU. Passing a list with at least length two is required for more aggressive overlap and will use more reserved memory.
 
-modules (List[FSDPModule]) – FSDP modules to prefetch.
+modules (List[FSDPModule]) - FSDP modules to prefetch.
 
 Sets a post-optimizer-step event for the root FSDP module to wait the all-gather streams on.
 
 By default, the root FSDP module waits the all-gather streams on the current stream to ensure that the optimizer step has finished before all-gathering. However, this may introduce false dependencies if there is unrelated computation after the optimizer step. This API allows the user to provide their own event to wait on. After the root waits on the event, the event is discarded, so this API should be called with a new event each iteration.
 
-event (torch.Event) – Event recorded after the optimizer step to wait all-gather streams on.
+event (torch.Event) - Event recorded after the optimizer step to wait all-gather streams on.
 
 Use set_gradient_divide_factor() instead
 
@@ -515,27 +515,27 @@ Sets if the module should all-reduce gradients. This can be used to implement gr
 
 Sets if the module should sync gradients. This can be used to implement gradient accumulation without communication. For HSDP, this controls both reduce-scatter and all-reduce together. This is the equivalence of no_sync in FSDP1.
 
-requires_gradient_sync (bool) – Whether to reduce gradients for the module’s parameters.
+requires_gradient_sync (bool) - Whether to reduce gradients for the module’s parameters.
 
-recurse (bool) – Whether to set for all FSDP submodules or just the passed-in module.
+recurse (bool) - Whether to set for all FSDP submodules or just the passed-in module.
 
 Sets if the module should reshard parameters after backward. This can be used during gradient accumulation to trade off higher memory for reduced communication since the unsharded parameters do not need to be re-all-gathered before the next forward.
 
-reshard_after_backward (bool) – Whether to reshard parameters after backward.
+reshard_after_backward (bool) - Whether to reshard parameters after backward.
 
-recurse (bool) – Whether to set for all FSDP submodules or just the passed-in module.
+recurse (bool) - Whether to set for all FSDP submodules or just the passed-in module.
 
 Sets if the module should reshard parameters after forward. This can be used to change the reshard_after_forward FSDP arg at runtime. For example, this can be used to set the FSDP root module’s value to True (since it is otherwise specially set to False), or it can set an FSDP module’s value to False for running evals and set back to True for training.
 
-reshard_after_forward (bool) – Whether to reshard parameters after forward.
+reshard_after_forward (bool) - Whether to reshard parameters after forward.
 
-recurse (bool) – Whether to set for all FSDP submodules or just the passed-in module.
+recurse (bool) - Whether to set for all FSDP submodules or just the passed-in module.
 
 Sets whether the FSDP module’s parameters need to be unsharded in backward. This can be used in expert cases when the user knows that all parameters in this FSDP module’s parameter group are not needed for backward computation (e.g. embedding).
 
 Unshards the module’s parameters by allocating memory and all-gathering the parameters. This method is not recursive. The unshard follows the MixedPrecisionPolicy, so it will all-gather following param_dtype if set.
 
-async_op (bool) – If True, then returns a UnshardHandle that has a wait() method to wait on the unshard op. If False, then returns None and waits on the handle inside this function.
+async_op (bool) - If True, then returns a UnshardHandle that has a wait() method to wait on the unshard op. If False, then returns None and waits on the handle inside this function.
 
 Optional[UnshardHandle]
 
@@ -549,27 +549,27 @@ Registers a method on module to be considered a forward method for FSDP.
 
 FSDP all-gathers parameters pre-forward and optionally frees parameters post-forward (depending on reshard_after_forward). FSDP only knows to do this for nn.Module.forward() by default. This function patches a user-specified method to run the pre/post-forward hooks before/after the method, respectively. If module is not an FSDPModule, then this is a no-op.
 
-module (nn.Module) – Module to register the forward method on.
+module (nn.Module) - Module to register the forward method on.
 
-method_name (str) – Name of the forward method.
+method_name (str) - Name of the forward method.
 
 This configures FSDP’s mixed precision. Unlike autocast, this applies mixed precision at the module level, not op level, which means low-precision activations are saved for backward and high-to-low-precision casts are incurred only at module boundaries.
 
 FSDP works well with module-level mixed precision since it keeps the high-precision sharded parameters in memory anyway. In other words, FSDP does not require any extra memory to keep a high-precision copy of the parameters for the optimizer step.
 
-param_dtype (Optional[torch.dtype]) – This specifies the dtype for the unsharded parameter and hence the dtype for forward/backward computation and the parameter all-gather. If this is None, then the unsharded parameter uses the original dtype. The optimizer step uses the sharded parameter in the original dtype. (Default: None)
+param_dtype (Optional[torch.dtype]) - This specifies the dtype for the unsharded parameter and hence the dtype for forward/backward computation and the parameter all-gather. If this is None, then the unsharded parameter uses the original dtype. The optimizer step uses the sharded parameter in the original dtype. (Default: None)
 
-reduce_dtype (Optional[torch.dtype]) – This specifies the dtype for gradient reduction (i.e. reduce-scatter or all-reduce). If this is None but param_dtype is not None, then the reduction uses the compute dtype. This can be used to run gradient reduction in full precision while using low precision for compute. If also gradient reduction is disabled via set_requires_gradient_sync(), then FSDP will accumulate gradients using reduce_dtype. (Default: None)
+reduce_dtype (Optional[torch.dtype]) - This specifies the dtype for gradient reduction (i.e. reduce-scatter or all-reduce). If this is None but param_dtype is not None, then the reduction uses the compute dtype. This can be used to run gradient reduction in full precision while using low precision for compute. If also gradient reduction is disabled via set_requires_gradient_sync(), then FSDP will accumulate gradients using reduce_dtype. (Default: None)
 
-output_dtype (Optional[torch.dtype]) – This specifies the dtype for casting floating-point forward outputs. This can be used to help implement cases where different modules have different mixed precision policies. (Default: None)
+output_dtype (Optional[torch.dtype]) - This specifies the dtype for casting floating-point forward outputs. This can be used to help implement cases where different modules have different mixed precision policies. (Default: None)
 
-cast_forward_inputs (bool) – This specifies whether FSDP should cast the forward’s floating-point input tensors to param_dtype or not.
+cast_forward_inputs (bool) - This specifies whether FSDP should cast the forward’s floating-point input tensors to param_dtype or not.
 
 This base class represents the policy of no offloading and is only used as the default value for the offload_policy arg.
 
 This offload policy offloads parameters, gradients, and optimizer states to CPU. Sharded parameters are copied host-to-device before all-gather. The all-gathered parameters are freed according to reshard_after_forward. Sharded gradients are copied device-to-host in backward, and the optimizer step runs on CPU with CPU optimizer states.
 
-pin_memory (bool) – Whether to pin sharded parameter and gradient memory. Pinning memory allows both more efficient H2D/D2H copies and for the copies to overlap with compute. However, the pinned memory cannot be used by other processes. Set this to False if you have insufficient CPU memory. (Default: True)
+pin_memory (bool) - Whether to pin sharded parameter and gradient memory. Pinning memory allows both more efficient H2D/D2H copies and for the copies to overlap with compute. However, the pinned memory cannot be used by other processes. Set this to False if you have insufficient CPU memory. (Default: True)
 
 ---
 
@@ -675,23 +675,23 @@ Specify init_method (a URL string) which indicates where/how to discover peers. 
 
 If neither is specified, init_method is assumed to be “env://”.
 
-backend (str or Backend, optional) – The backend to use. Depending on build-time configurations, valid values include mpi, gloo, nccl, ucc, xccl or one that is registered by a third-party plugin. Since 2.6, if backend is not provided, c10d will use a backend registered for the device type indicated by the device_id kwarg (if provided). The known default registrations today are: nccl for cuda, gloo for cpu, xccl for xpu. If neither backend nor device_id is provided, c10d will detect the accelerator on the run-time machine and use a backend registered for that detected accelerator (or cpu). This field can be given as a lowercase string (e.g., "gloo"), which can also be accessed via Backend attributes (e.g., Backend.GLOO). If using multiple processes per machine with nccl backend, each process must have exclusive access to every GPU it uses, as sharing GPUs between processes can result in deadlock or NCCL invalid usage. ucc backend is experimental. Default backend for the device can be queried with get_default_backend_for_device().
+backend (str or Backend, optional) - The backend to use. Depending on build-time configurations, valid values include mpi, gloo, nccl, ucc, xccl or one that is registered by a third-party plugin. Since 2.6, if backend is not provided, c10d will use a backend registered for the device type indicated by the device_id kwarg (if provided). The known default registrations today are: nccl for cuda, gloo for cpu, xccl for xpu. If neither backend nor device_id is provided, c10d will detect the accelerator on the run-time machine and use a backend registered for that detected accelerator (or cpu). This field can be given as a lowercase string (e.g., "gloo"), which can also be accessed via Backend attributes (e.g., Backend.GLOO). If using multiple processes per machine with nccl backend, each process must have exclusive access to every GPU it uses, as sharing GPUs between processes can result in deadlock or NCCL invalid usage. ucc backend is experimental. Default backend for the device can be queried with get_default_backend_for_device().
 
-init_method (str, optional) – URL specifying how to initialize the process group. Default is “env://” if no init_method or store is specified. Mutually exclusive with store.
+init_method (str, optional) - URL specifying how to initialize the process group. Default is “env://” if no init_method or store is specified. Mutually exclusive with store.
 
-world_size (int, optional) – Number of processes participating in the job. Required if store is specified.
+world_size (int, optional) - Number of processes participating in the job. Required if store is specified.
 
-rank (int, optional) – Rank of the current process (it should be a number between 0 and world_size-1). Required if store is specified.
+rank (int, optional) - Rank of the current process (it should be a number between 0 and world_size-1). Required if store is specified.
 
-store (Store, optional) – Key/value store accessible to all workers, used to exchange connection/address information. Mutually exclusive with init_method.
+store (Store, optional) - Key/value store accessible to all workers, used to exchange connection/address information. Mutually exclusive with init_method.
 
-timeout (timedelta, optional) – Timeout for operations executed against the process group. Default value is 10 minutes for NCCL and 30 minutes for other backends. This is the duration after which collectives will be aborted asynchronously and the process will crash. This is done since CUDA execution is async and it is no longer safe to continue executing user code since failed async NCCL operations might result in subsequent CUDA operations running on corrupted data. When TORCH_NCCL_BLOCKING_WAIT is set, the process will block and wait for this timeout.
+timeout (timedelta, optional) - Timeout for operations executed against the process group. Default value is 10 minutes for NCCL and 30 minutes for other backends. This is the duration after which collectives will be aborted asynchronously and the process will crash. This is done since CUDA execution is async and it is no longer safe to continue executing user code since failed async NCCL operations might result in subsequent CUDA operations running on corrupted data. When TORCH_NCCL_BLOCKING_WAIT is set, the process will block and wait for this timeout.
 
-group_name (str, optional, deprecated) – Group name. This argument is ignored
+group_name (str, optional, deprecated) - Group name. This argument is ignored
 
-pg_options (ProcessGroupOptions, optional) – process group options specifying what additional options need to be passed in during the construction of specific process groups. As of now, the only options we support is ProcessGroupNCCL.Options for the nccl backend, is_high_priority_stream can be specified so that the nccl backend can pick up high priority cuda streams when there’re compute kernels waiting. For other available options to config nccl, See https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/api/types.html#ncclconfig-t
+pg_options (ProcessGroupOptions, optional) - process group options specifying what additional options need to be passed in during the construction of specific process groups. As of now, the only options we support is ProcessGroupNCCL.Options for the nccl backend, is_high_priority_stream can be specified so that the nccl backend can pick up high priority cuda streams when there’re compute kernels waiting. For other available options to config nccl, See https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/api/types.html#ncclconfig-t
 
-device_id (torch.device | int, optional) – a single, specific device this process will work on, allowing for backend-specific optimizations. Currently this has two effects, only under NCCL: the communicator is immediately formed (calling ncclCommInit* immediately rather than the normal lazy call) and sub-groups will use ncclCommSplit when possible to avoid unnecessary overhead of group creation. If you want to know NCCL initialization error early, you can also use this field. If an int is provided, the API assumes that the accelerator type at compile time will be used.
+device_id (torch.device | int, optional) - a single, specific device this process will work on, allowing for backend-specific optimizations. Currently this has two effects, only under NCCL: the communicator is immediately formed (calling ncclCommInit* immediately rather than the normal lazy call) and sub-groups will use ncclCommSplit when possible to avoid unnecessary overhead of group creation. If you want to know NCCL initialization error early, you can also use this field. If an int is provided, the API assumes that the accelerator type at compile time will be used.
 
 To enable backend == Backend.MPI, PyTorch needs to be built from source on a system that supports MPI.
 
@@ -705,13 +705,13 @@ init_device_mesh follows SPMD programming model, meaning the same PyTorch Python
 
 If no process group is found, init_device_mesh will initialize distributed process group/groups required for distributed communications behind the scene.
 
-device_type (str) – The device type of the mesh. Currently supports: “cpu”, “cuda/cuda-like”, “xpu”. Passing in a device type with a GPU index, such as “cuda:0”, is not allowed.
+device_type (str) - The device type of the mesh. Currently supports: “cpu”, “cuda/cuda-like”, “xpu”. Passing in a device type with a GPU index, such as “cuda:0”, is not allowed.
 
-mesh_shape (Tuple[int]) – A tuple defining the dimensions of the multi-dimensional array describing the layout of devices.
+mesh_shape (Tuple[int]) - A tuple defining the dimensions of the multi-dimensional array describing the layout of devices.
 
-mesh_dim_names (Tuple[str], optional) – A tuple of mesh dimension names to assign to each dimension of the multi-dimensional array describing the layout of devices. Its length must match the length of mesh_shape. Each string in mesh_dim_names must be unique.
+mesh_dim_names (Tuple[str], optional) - A tuple of mesh dimension names to assign to each dimension of the multi-dimensional array describing the layout of devices. Its length must match the length of mesh_shape. Each string in mesh_dim_names must be unique.
 
-backend_override (Dict[int | str, tuple[str, Options] | str | Options], optional) – Overrides for some or all of the ProcessGroups that will be created for each mesh dimension. Each key can be either the index of a dimension or its name (if mesh_dim_names is provided). Each value can be a tuple containing the name of the backend and its options, or just one of these two components (in which case the other will be set to its default value).
+backend_override (Dict[int | str, tuple[str, Options] | str | Options], optional) - Overrides for some or all of the ProcessGroups that will be created for each mesh dimension. Each key can be either the index of a dimension or its name (if mesh_dim_names is provided). Each value can be a tuple containing the name of the backend and its options, or just one of these two components (in which case the other will be set to its default value).
 
 A DeviceMesh object representing the device layout.
 
@@ -731,7 +731,7 @@ The existence of TORCHELASTIC_RUN_ID environment variable is used as a proxy to 
 
 Return the default backend for the given device.
 
-device (Union[str, torch.device]) – The device to get the default backend for.
+device (Union[str, torch.device]) - The device to get the default backend for.
 
 The default backend for the given device as a lower case string.
 
@@ -781,19 +781,19 @@ Register a new backend with the given name and instantiating function.
 
 This class method is used by 3rd party ProcessGroup extension to register new backends.
 
-name (str) – Backend name of the ProcessGroup extension. It should match the one in init_process_group().
+name (str) - Backend name of the ProcessGroup extension. It should match the one in init_process_group().
 
-func (function) – Function handler that instantiates the backend. The function should be implemented in the backend extension and takes four arguments, including store, rank, world_size, and timeout.
+func (function) - Function handler that instantiates the backend. The function should be implemented in the backend extension and takes four arguments, including store, rank, world_size, and timeout.
 
-extended_api (bool, optional) – Whether the backend supports extended argument structure. Default: False. If set to True, the backend will get an instance of c10d::DistributedBackendOptions, and a process group options object as defined by the backend implementation.
+extended_api (bool, optional) - Whether the backend supports extended argument structure. Default: False. If set to True, the backend will get an instance of c10d::DistributedBackendOptions, and a process group options object as defined by the backend implementation.
 
-device (str or list of str, optional) – device type this backend supports, e.g. “cpu”, “cuda”, etc. If None, assuming both “cpu” and “cuda”
+device (str or list of str, optional) - device type this backend supports, e.g. “cpu”, “cuda”, etc. If None, assuming both “cpu” and “cuda”
 
 This support of 3rd party backend is experimental and subject to change.
 
 Return the backend of the given process group.
 
-group (ProcessGroup, optional) – The process group to work on. The default is the general main process group. If another specific group is specified, the calling process must be part of group.
+group (ProcessGroup, optional) - The process group to work on. The default is the general main process group. If another specific group is specified, the calling process must be part of group.
 
 The backend of the given process group as a lower case string.
 
@@ -801,13 +801,13 @@ Return the rank of the current process in the provided group, default otherwise.
 
 Rank is a unique identifier assigned to each process within a distributed process group. They are always consecutive integers ranging from 0 to world_size.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
 The rank of the process group -1, if not part of the group
 
 Return the number of processes in the current process group.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
 The world size of the process group -1, if not part of the group
 
@@ -833,17 +833,17 @@ When using async variants of torch.distributed communication APIs, a work object
 
 See Using multiple NCCL communicators concurrently <https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/communicators.html#using-multiple-nccl-communicators-concurrently> for more details.
 
-ranks (list[int]) – List of ranks of group members. If None, will be set to all ranks. Default is None.
+ranks (list[int]) - List of ranks of group members. If None, will be set to all ranks. Default is None.
 
-timeout (timedelta, optional) – see init_process_group for details and default value.
+timeout (timedelta, optional) - see init_process_group for details and default value.
 
-backend (str or Backend, optional) – The backend to use. Depending on build-time configurations, valid values are gloo and nccl. By default uses the same backend as the global group. This field should be given as a lowercase string (e.g., "gloo"), which can also be accessed via Backend attributes (e.g., Backend.GLOO). If None is passed in, the backend corresponding to the default process group will be used. Default is None.
+backend (str or Backend, optional) - The backend to use. Depending on build-time configurations, valid values are gloo and nccl. By default uses the same backend as the global group. This field should be given as a lowercase string (e.g., "gloo"), which can also be accessed via Backend attributes (e.g., Backend.GLOO). If None is passed in, the backend corresponding to the default process group will be used. Default is None.
 
-pg_options (ProcessGroupOptions, optional) – process group options specifying what additional options need to be passed in during the construction of specific process groups. i.e. for the nccl backend, is_high_priority_stream can be specified so that process group can pick up high priority cuda streams. For other available options to config nccl, See https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/api/types.html#ncclconfig-tuse_local_synchronization (bool, optional): perform a group-local barrier at the end of the process group creation. This is different in that non-member ranks don’t need to call into API and don’t join the barrier.
+pg_options (ProcessGroupOptions, optional) - process group options specifying what additional options need to be passed in during the construction of specific process groups. i.e. for the nccl backend, is_high_priority_stream can be specified so that process group can pick up high priority cuda streams. For other available options to config nccl, See https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/api/types.html#ncclconfig-tuse_local_synchronization (bool, optional): perform a group-local barrier at the end of the process group creation. This is different in that non-member ranks don’t need to call into API and don’t join the barrier.
 
-group_desc (str, optional) – a string to describe the process group.
+group_desc (str, optional) - a string to describe the process group.
 
-device_id (torch.device, optional) – a single, specific device to “bind” this process to, The new_group call will try to initialize a communication backend immediately for the device if this field is given.
+device_id (torch.device, optional) - a single, specific device to “bind” this process to, The new_group call will try to initialize a communication backend immediately for the device if this field is given.
 
 A handle of distributed group that can be given to collective calls or GroupMember.NON_GROUP_MEMBER if the rank is not part of ranks.
 
@@ -857,9 +857,9 @@ Translate a global rank into a group rank.
 
 global_rank must be part of group otherwise this raises RuntimeError.
 
-group (ProcessGroup) – ProcessGroup to find the relative rank.
+group (ProcessGroup) - ProcessGroup to find the relative rank.
 
-global_rank (int) – Global rank to query.
+global_rank (int) - Global rank to query.
 
 Group rank of global_rank relative to group
 
@@ -869,9 +869,9 @@ Translate a group rank into a global rank.
 
 group_rank must be part of group otherwise this raises RuntimeError.
 
-group (ProcessGroup) – ProcessGroup to find the global rank from.
+group (ProcessGroup) - ProcessGroup to find the global rank from.
 
-group_rank (int) – Group rank to query.
+group_rank (int) - Group rank to query.
 
 Global rank of group_rank relative to group
 
@@ -879,7 +879,7 @@ N.B. calling this function on the default process group returns identity
 
 Get all ranks associated with group.
 
-group (Optional[ProcessGroup]) – ProcessGroup to get all ranks from. If None, the default process group will be used.
+group (Optional[ProcessGroup]) - ProcessGroup to get all ranks from. If None, the default process group will be used.
 
 List of global ranks ordered by group rank.
 
@@ -893,9 +893,9 @@ DeviceMesh can also be used as a context manager when using together with DTenso
 
 DeviceMesh follows SPMD programming model, which means the same PyTorch Python program is running on all processes/ranks in the cluster. Therefore, users need to make sure the mesh array (which describes the layout of devices) should be identical across all ranks. Inconsistent mesh will lead to silent hang.
 
-device_type (str) – The device type of the mesh. Currently supports: “cpu”, “cuda/cuda-like”.
+device_type (str) - The device type of the mesh. Currently supports: “cpu”, “cuda/cuda-like”.
 
-mesh (ndarray) – A multi-dimensional array or an integer tensor describing the layout of devices, where the IDs are global IDs of the default process group.
+mesh (ndarray) - A multi-dimensional array or an integer tensor describing the layout of devices, where the IDs are global IDs of the default process group.
 
 A DeviceMesh object representing the device layout.
 
@@ -907,13 +907,13 @@ The constructed device mesh has number of dimensions equal to the number of grou
 
 If more than one group is passed, then the mesh and mesh_dim_names arguments are required. The order of the process groups passed in determines the topology of the mesh. For example, the first process group will be the 0th dimension of the DeviceMesh. The mesh tensor passed in must have the same number of dimensions as the number of process groups passed in, and the order of the dimensions in the mesh tensor must match the order in the process groups passed in.
 
-group (ProcessGroup or list[ProcessGroup]) – the existing ProcessGroup or a list of existing ProcessGroups.
+group (ProcessGroup or list[ProcessGroup]) - the existing ProcessGroup or a list of existing ProcessGroups.
 
-device_type (str) – The device type of the mesh. Currently supports: “cpu”, “cuda/cuda-like”. Passing in a device type with a GPU index, such as “cuda:0”, is not allowed.
+device_type (str) - The device type of the mesh. Currently supports: “cpu”, “cuda/cuda-like”. Passing in a device type with a GPU index, such as “cuda:0”, is not allowed.
 
-mesh (torch.Tensor or ArrayLike, optional) – A multi-dimensional array or an integer tensor describing the layout of devices, where the IDs are global IDs of the default process group. Default is None.
+mesh (torch.Tensor or ArrayLike, optional) - A multi-dimensional array or an integer tensor describing the layout of devices, where the IDs are global IDs of the default process group. Default is None.
 
-mesh_dim_names (tuple[str], optional) – A tuple of mesh dimension names to assign to each dimension of the multi-dimensional array describing the layout of devices. Its length must match the length of mesh_shape. Each string in mesh_dim_names must be unique. Default is None.
+mesh_dim_names (tuple[str], optional) - A tuple of mesh dimension names to assign to each dimension of the multi-dimensional array describing the layout of devices. Its length must match the length of mesh_shape. Each string in mesh_dim_names must be unique. Default is None.
 
 A DeviceMesh object representing the device layout.
 
@@ -927,17 +927,17 @@ Return the relative indices of this rank relative to all dimensions of the mesh.
 
 Returns the single ProcessGroup specified by mesh_dim, or, if mesh_dim is not specified and the DeviceMesh is 1-dimensional, returns the only ProcessGroup in the mesh.
 
-mesh_dim (str/python:int, optional) – it can be the name of the mesh dimension or the index
+mesh_dim (str/python:int, optional) - it can be the name of the mesh dimension or the index
 
-None. (of the mesh dimension. Default is) –
+None. (of the mesh dimension. Default is) -
 
 A ProcessGroup object.
 
 Returns the local rank of the given mesh_dim of the DeviceMesh.
 
-mesh_dim (str/python:int, optional) – it can be the name of the mesh dimension or the index
+mesh_dim (str/python:int, optional) - it can be the name of the mesh dimension or the index
 
-None. (of the mesh dimension. Default is) –
+None. (of the mesh dimension. Default is) -
 
 An integer denotes the local rank.
 
@@ -949,29 +949,29 @@ Send a tensor synchronously.
 
 tag is not supported with the NCCL backend.
 
-tensor (Tensor) – Tensor to send.
+tensor (Tensor) - Tensor to send.
 
-dst (int) – Destination rank on global process group (regardless of group argument). Destination rank should not be the same as the rank of the current process.
+dst (int) - Destination rank on global process group (regardless of group argument). Destination rank should not be the same as the rank of the current process.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-tag (int, optional) – Tag to match send with remote recv
+tag (int, optional) - Tag to match send with remote recv
 
-group_dst (int, optional) – Destination rank on group. Invalid to specify both dst and group_dst.
+group_dst (int, optional) - Destination rank on group. Invalid to specify both dst and group_dst.
 
 Receives a tensor synchronously.
 
 tag is not supported with the NCCL backend.
 
-tensor (Tensor) – Tensor to fill with received data.
+tensor (Tensor) - Tensor to fill with received data.
 
-src (int, optional) – Source rank on global process group (regardless of group argument). Will receive from any process if unspecified.
+src (int, optional) - Source rank on global process group (regardless of group argument). Will receive from any process if unspecified.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-tag (int, optional) – Tag to match recv with remote send
+tag (int, optional) - Tag to match recv with remote send
 
-group_src (int, optional) – Destination rank on group. Invalid to specify both src and group_src.
+group_src (int, optional) - Destination rank on group. Invalid to specify both src and group_src.
 
 Sender rank -1, if not part of the group
 
@@ -989,15 +989,15 @@ tag is not supported with the NCCL backend.
 
 Unlike send, which is blocking, isend allows src == dst rank, i.e. send to self.
 
-tensor (Tensor) – Tensor to send.
+tensor (Tensor) - Tensor to send.
 
-dst (int) – Destination rank on global process group (regardless of group argument)
+dst (int) - Destination rank on global process group (regardless of group argument)
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-tag (int, optional) – Tag to match send with remote recv
+tag (int, optional) - Tag to match send with remote recv
 
-group_dst (int, optional) – Destination rank on group. Invalid to specify both dst and group_dst
+group_dst (int, optional) - Destination rank on group. Invalid to specify both dst and group_dst
 
 A distributed request object. None, if not part of the group
 
@@ -1007,15 +1007,15 @@ tag is not supported with the NCCL backend.
 
 Unlike recv, which is blocking, irecv allows src == dst rank, i.e. recv from self.
 
-tensor (Tensor) – Tensor to fill with received data.
+tensor (Tensor) - Tensor to fill with received data.
 
-src (int, optional) – Source rank on global process group (regardless of group argument). Will receive from any process if unspecified.
+src (int, optional) - Source rank on global process group (regardless of group argument). Will receive from any process if unspecified.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-tag (int, optional) – Tag to match recv with remote send
+tag (int, optional) - Tag to match recv with remote send
 
-group_src (int, optional) – Destination rank on group. Invalid to specify both src and group_src.
+group_src (int, optional) - Destination rank on group. Invalid to specify both src and group_src.
 
 A distributed request object. None, if not part of the group
 
@@ -1023,17 +1023,17 @@ Sends picklable objects in object_list synchronously.
 
 Similar to send(), but Python objects can be passed in. Note that all objects in object_list must be picklable in order to be sent.
 
-object_list (List[Any]) – List of input objects to sent. Each object must be picklable. Receiver must provide lists of equal sizes.
+object_list (List[Any]) - List of input objects to sent. Each object must be picklable. Receiver must provide lists of equal sizes.
 
-dst (int) – Destination rank to send object_list to. Destination rank is based on global process group (regardless of group argument)
+dst (int) - Destination rank to send object_list to. Destination rank is based on global process group (regardless of group argument)
 
-group (Optional[ProcessGroup]) – (ProcessGroup, optional): The process group to work on. If None, the default process group will be used. Default is None.
+group (Optional[ProcessGroup]) - (ProcessGroup, optional): The process group to work on. If None, the default process group will be used. Default is None.
 
-device (torch.device, optional) – If not None, the objects are serialized and converted to tensors which are moved to the device before sending. Default is None.
+device (torch.device, optional) - If not None, the objects are serialized and converted to tensors which are moved to the device before sending. Default is None.
 
-group_dst (int, optional) – Destination rank on group. Must specify one of dst and group_dst but not both
+group_dst (int, optional) - Destination rank on group. Must specify one of dst and group_dst but not both
 
-use_batch (bool, optional) – If True, use batch p2p operations instead of regular send operations. This avoids initializing 2-rank communicators and uses existing entire group communicators. See batch_isend_irecv for usage and assumptions. Default is False.
+use_batch (bool, optional) - If True, use batch p2p operations instead of regular send operations. This avoids initializing 2-rank communicators and uses existing entire group communicators. See batch_isend_irecv for usage and assumptions. Default is False.
 
 For NCCL-based process groups, internal tensor representations of objects must be moved to the GPU device before communication takes place. In this case, the device used is given by torch.cuda.current_device() and it is the user’s responsibility to ensure that this is set so that each rank has an individual GPU, via torch.cuda.set_device().
 
@@ -1047,17 +1047,17 @@ Receives picklable objects in object_list synchronously.
 
 Similar to recv(), but can receive Python objects.
 
-object_list (List[Any]) – List of objects to receive into. Must provide a list of sizes equal to the size of the list being sent.
+object_list (List[Any]) - List of objects to receive into. Must provide a list of sizes equal to the size of the list being sent.
 
-src (int, optional) – Source rank from which to recv object_list. Source rank is based on global process group (regardless of group argument) Will receive from any rank if set to None. Default is None.
+src (int, optional) - Source rank from which to recv object_list. Source rank is based on global process group (regardless of group argument) Will receive from any rank if set to None. Default is None.
 
-group (Optional[ProcessGroup]) – (ProcessGroup, optional): The process group to work on. If None, the default process group will be used. Default is None.
+group (Optional[ProcessGroup]) - (ProcessGroup, optional): The process group to work on. If None, the default process group will be used. Default is None.
 
-device (torch.device, optional) – If not None, receives on this device. Default is None.
+device (torch.device, optional) - If not None, receives on this device. Default is None.
 
-group_src (int, optional) – Destination rank on group. Invalid to specify both src and group_src.
+group_src (int, optional) - Destination rank on group. Invalid to specify both src and group_src.
 
-use_batch (bool, optional) – If True, use batch p2p operations instead of regular send operations. This avoids initializing 2-rank communicators and uses existing entire group communicators. See batch_isend_irecv for usage and assumptions. Default is False.
+use_batch (bool, optional) - If True, use batch p2p operations instead of regular send operations. This avoids initializing 2-rank communicators and uses existing entire group communicators. See batch_isend_irecv for usage and assumptions. Default is False.
 
 Sender rank. -1 if rank is not part of the group. If rank is part of the group, object_list will contain the sent objects from src rank.
 
@@ -1073,7 +1073,7 @@ Send or Receive a batch of tensors asynchronously and return a list of requests.
 
 Process each of the operations in p2p_op_list and return the corresponding requests. NCCL, Gloo, and UCC backend are currently supported.
 
-p2p_op_list (list[torch.distributed.distributed_c10d.P2POp]) – A list of point-to-point operations(type of each operator is torch.distributed.P2POp). The order of the isend/irecv in the list matters and it needs to match with corresponding isend/irecv on the remote end.
+p2p_op_list (list[torch.distributed.distributed_c10d.P2POp]) - A list of point-to-point operations(type of each operator is torch.distributed.P2POp). The order of the isend/irecv in the list matters and it needs to match with corresponding isend/irecv on the remote end.
 
 A list of distributed request objects returned by calling the corresponding op in the op_list.
 
@@ -1087,17 +1087,17 @@ A class to build point-to-point operations for batch_isend_irecv.
 
 This class builds the type of P2P operation, communication buffer, peer rank, Process Group, and tag. Instances of this class will be passed to batch_isend_irecv for point-to-point communications.
 
-op (Callable) – A function to send data to or receive data from a peer process. The type of op is either torch.distributed.isend or torch.distributed.irecv.
+op (Callable) - A function to send data to or receive data from a peer process. The type of op is either torch.distributed.isend or torch.distributed.irecv.
 
-tensor (Tensor) – Tensor to send or receive.
+tensor (Tensor) - Tensor to send or receive.
 
-peer (int, optional) – Destination or source rank.
+peer (int, optional) - Destination or source rank.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-tag (int, optional) – Tag to match send with recv.
+tag (int, optional) - Tag to match send with recv.
 
-group_peer (int, optional) – Destination or source rank.
+group_peer (int, optional) - Destination or source rank.
 
 Every collective operation function supports the following two kinds of operations, depending on the setting of the async_op flag passed into the collective:
 
@@ -1117,15 +1117,15 @@ Broadcasts the tensor to the whole group.
 
 tensor must have the same number of elements in all processes participating in the collective.
 
-tensor (Tensor) – Data to be sent if src is the rank of current process, and tensor to be used to save received data otherwise.
+tensor (Tensor) - Data to be sent if src is the rank of current process, and tensor to be used to save received data otherwise.
 
-src (int) – Source rank on global process group (regardless of group argument).
+src (int) - Source rank on global process group (regardless of group argument).
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-async_op (bool, optional) – Whether this op should be an async op
+async_op (bool, optional) - Whether this op should be an async op
 
-group_src (int) – Source rank on group. Must specify one of group_src and src but not both.
+group_src (int) - Source rank on group. Must specify one of group_src and src but not both.
 
 Async work handle, if async_op is set to True. None, if not async_op or if not part of the group
 
@@ -1133,15 +1133,15 @@ Broadcasts picklable objects in object_list to the whole group.
 
 Similar to broadcast(), but Python objects can be passed in. Note that all objects in object_list must be picklable in order to be broadcasted.
 
-object_list (List[Any]) – List of input objects to broadcast. Each object must be picklable. Only objects on the src rank will be broadcast, but each rank must provide lists of equal sizes.
+object_list (List[Any]) - List of input objects to broadcast. Each object must be picklable. Only objects on the src rank will be broadcast, but each rank must provide lists of equal sizes.
 
-src (int) – Source rank from which to broadcast object_list. Source rank is based on global process group (regardless of group argument)
+src (int) - Source rank from which to broadcast object_list. Source rank is based on global process group (regardless of group argument)
 
-group (Optional[ProcessGroup]) – (ProcessGroup, optional): The process group to work on. If None, the default process group will be used. Default is None.
+group (Optional[ProcessGroup]) - (ProcessGroup, optional): The process group to work on. If None, the default process group will be used. Default is None.
 
-device (torch.device, optional) – If not None, the objects are serialized and converted to tensors which are moved to the device before broadcasting. Default is None.
+device (torch.device, optional) - If not None, the objects are serialized and converted to tensors which are moved to the device before broadcasting. Default is None.
 
-group_src (int) – Source rank on group. Must not specify one of group_src and src but not both.
+group_src (int) - Source rank on group. Must not specify one of group_src and src but not both.
 
 None. If rank is part of the group, object_list will contain the broadcasted objects from src rank.
 
@@ -1161,13 +1161,13 @@ After the call tensor is going to be bitwise identical in all processes.
 
 Complex tensors are supported.
 
-tensor (Tensor) – Input and output of the collective. The function operates in-place.
+tensor (Tensor) - Input and output of the collective. The function operates in-place.
 
-op (optional) – One of the values from torch.distributed.ReduceOp enum. Specifies an operation used for element-wise reductions.
+op (optional) - One of the values from torch.distributed.ReduceOp enum. Specifies an operation used for element-wise reductions.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-async_op (bool, optional) – Whether this op should be an async op
+async_op (bool, optional) - Whether this op should be an async op
 
 Async work handle, if async_op is set to True. None, if not async_op or if not part of the group
 
@@ -1175,17 +1175,17 @@ Reduces the tensor data across all machines.
 
 Only the process with rank dst is going to receive the final result.
 
-tensor (Tensor) – Input and output of the collective. The function operates in-place.
+tensor (Tensor) - Input and output of the collective. The function operates in-place.
 
-dst (int) – Destination rank on global process group (regardless of group argument)
+dst (int) - Destination rank on global process group (regardless of group argument)
 
-op (optional) – One of the values from torch.distributed.ReduceOp enum. Specifies an operation used for element-wise reductions.
+op (optional) - One of the values from torch.distributed.ReduceOp enum. Specifies an operation used for element-wise reductions.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-async_op (bool, optional) – Whether this op should be an async op
+async_op (bool, optional) - Whether this op should be an async op
 
-group_dst (int) – Destination rank on group. Must specify one of group_dst and dst but not both.
+group_dst (int) - Destination rank on group. Must specify one of group_dst and dst but not both.
 
 Async work handle, if async_op is set to True. None, if not async_op or if not part of the group
 
@@ -1193,13 +1193,13 @@ Gathers tensors from the whole group in a list.
 
 Complex and uneven sized tensors are supported.
 
-tensor_list (list[Tensor]) – Output list. It should contain correctly-sized tensors to be used for output of the collective. Uneven sized tensors are supported.
+tensor_list (list[Tensor]) - Output list. It should contain correctly-sized tensors to be used for output of the collective. Uneven sized tensors are supported.
 
-tensor (Tensor) – Tensor to be broadcast from current process.
+tensor (Tensor) - Tensor to be broadcast from current process.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-async_op (bool, optional) – Whether this op should be an async op
+async_op (bool, optional) - Whether this op should be an async op
 
 Async work handle, if async_op is set to True. None, if not async_op or if not part of the group
 
@@ -1207,13 +1207,13 @@ Gather tensors from all ranks and put them in a single output tensor.
 
 This function requires all tensors to be the same size on each process.
 
-output_tensor (Tensor) – Output tensor to accommodate tensor elements from all ranks. It must be correctly sized to have one of the following forms: (i) a concatenation of all the input tensors along the primary dimension; for definition of “concatenation”, see torch.cat(); (ii) a stack of all the input tensors along the primary dimension; for definition of “stack”, see torch.stack(). Examples below may better explain the supported output forms.
+output_tensor (Tensor) - Output tensor to accommodate tensor elements from all ranks. It must be correctly sized to have one of the following forms: (i) a concatenation of all the input tensors along the primary dimension; for definition of “concatenation”, see torch.cat(); (ii) a stack of all the input tensors along the primary dimension; for definition of “stack”, see torch.stack(). Examples below may better explain the supported output forms.
 
-input_tensor (Tensor) – Tensor to be gathered from current rank. Different from the all_gather API, the input tensors in this API must have the same size across all ranks.
+input_tensor (Tensor) - Tensor to be gathered from current rank. Different from the all_gather API, the input tensors in this API must have the same size across all ranks.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-async_op (bool, optional) – Whether this op should be an async op
+async_op (bool, optional) - Whether this op should be an async op
 
 Async work handle, if async_op is set to True. None, if not async_op or if not part of the group
 
@@ -1221,11 +1221,11 @@ Gathers picklable objects from the whole group into a list.
 
 Similar to all_gather(), but Python objects can be passed in. Note that the object must be picklable in order to be gathered.
 
-object_list (list[Any]) – Output list. It should be correctly sized as the size of the group for this collective and will contain the output.
+object_list (list[Any]) - Output list. It should be correctly sized as the size of the group for this collective and will contain the output.
 
-obj (Any) – Pickable Python object to be broadcast from current process.
+obj (Any) - Pickable Python object to be broadcast from current process.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used. Default is None.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used. Default is None.
 
 None. If the calling rank is part of this group, the output of the collective will be populated into the input object_list. If the calling rank is not part of the group, the passed in object_list will be unmodified.
 
@@ -1243,17 +1243,17 @@ Gathers a list of tensors in a single process.
 
 This function requires all tensors to be the same size on each process.
 
-tensor (Tensor) – Input tensor.
+tensor (Tensor) - Input tensor.
 
-gather_list (list[Tensor], optional) – List of appropriately, same-sized tensors to use for gathered data (default is None, must be specified on the destination rank)
+gather_list (list[Tensor], optional) - List of appropriately, same-sized tensors to use for gathered data (default is None, must be specified on the destination rank)
 
-dst (int, optional) – Destination rank on global process group (regardless of group argument). (If both dst and group_dst are None, default is global rank 0)
+dst (int, optional) - Destination rank on global process group (regardless of group argument). (If both dst and group_dst are None, default is global rank 0)
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-async_op (bool, optional) – Whether this op should be an async op
+async_op (bool, optional) - Whether this op should be an async op
 
-group_dst (int, optional) – Destination rank on group. Invalid to specify both dst and group_dst
+group_dst (int, optional) - Destination rank on group. Invalid to specify both dst and group_dst
 
 Async work handle, if async_op is set to True. None, if not async_op or if not part of the group
 
@@ -1263,15 +1263,15 @@ Gathers picklable objects from the whole group in a single process.
 
 Similar to gather(), but Python objects can be passed in. Note that the object must be picklable in order to be gathered.
 
-obj (Any) – Input object. Must be picklable.
+obj (Any) - Input object. Must be picklable.
 
-object_gather_list (list[Any]) – Output list. On the dst rank, it should be correctly sized as the size of the group for this collective and will contain the output. Must be None on non-dst ranks. (default is None)
+object_gather_list (list[Any]) - Output list. On the dst rank, it should be correctly sized as the size of the group for this collective and will contain the output. Must be None on non-dst ranks. (default is None)
 
-dst (int, optional) – Destination rank on global process group (regardless of group argument). (If both dst and group_dst are None, default is global rank 0)
+dst (int, optional) - Destination rank on global process group (regardless of group argument). (If both dst and group_dst are None, default is global rank 0)
 
-group (Optional[ProcessGroup]) – (ProcessGroup, optional): The process group to work on. If None, the default process group will be used. Default is None.
+group (Optional[ProcessGroup]) - (ProcessGroup, optional): The process group to work on. If None, the default process group will be used. Default is None.
 
-group_dst (int, optional) – Destination rank on group. Invalid to specify both dst and group_dst
+group_dst (int, optional) - Destination rank on group. Invalid to specify both dst and group_dst
 
 None. On the dst rank, object_gather_list will contain the output of the collective.
 
@@ -1291,17 +1291,17 @@ Each process will receive exactly one tensor and store its data in the tensor ar
 
 Complex tensors are supported.
 
-tensor (Tensor) – Output tensor.
+tensor (Tensor) - Output tensor.
 
-scatter_list (list[Tensor]) – List of tensors to scatter (default is None, must be specified on the source rank)
+scatter_list (list[Tensor]) - List of tensors to scatter (default is None, must be specified on the source rank)
 
-src (int) – Source rank on global process group (regardless of group argument). (If both src and group_src are None, default is global rank 0)
+src (int) - Source rank on global process group (regardless of group argument). (If both src and group_src are None, default is global rank 0)
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-async_op (bool, optional) – Whether this op should be an async op
+async_op (bool, optional) - Whether this op should be an async op
 
-group_src (int, optional) – Source rank on group. Invalid to specify both src and group_src
+group_src (int, optional) - Source rank on group. Invalid to specify both src and group_src
 
 Async work handle, if async_op is set to True. None, if not async_op or if not part of the group
 
@@ -1311,15 +1311,15 @@ Scatters picklable objects in scatter_object_input_list to the whole group.
 
 Similar to scatter(), but Python objects can be passed in. On each rank, the scattered object will be stored as the first element of scatter_object_output_list. Note that all objects in scatter_object_input_list must be picklable in order to be scattered.
 
-scatter_object_output_list (List[Any]) – Non-empty list whose first element will store the object scattered to this rank.
+scatter_object_output_list (List[Any]) - Non-empty list whose first element will store the object scattered to this rank.
 
-scatter_object_input_list (List[Any], optional) – List of input objects to scatter. Each object must be picklable. Only objects on the src rank will be scattered, and the argument can be None for non-src ranks.
+scatter_object_input_list (List[Any], optional) - List of input objects to scatter. Each object must be picklable. Only objects on the src rank will be scattered, and the argument can be None for non-src ranks.
 
-src (int) – Source rank from which to scatter scatter_object_input_list. Source rank is based on global process group (regardless of group argument). (If both src and group_src are None, default is global rank 0)
+src (int) - Source rank from which to scatter scatter_object_input_list. Source rank is based on global process group (regardless of group argument). (If both src and group_src are None, default is global rank 0)
 
-group (Optional[ProcessGroup]) – (ProcessGroup, optional): The process group to work on. If None, the default process group will be used. Default is None.
+group (Optional[ProcessGroup]) - (ProcessGroup, optional): The process group to work on. If None, the default process group will be used. Default is None.
 
-group_src (int, optional) – Source rank on group. Invalid to specify both src and group_src
+group_src (int, optional) - Source rank on group. Invalid to specify both src and group_src
 
 None. If rank is part of the group, scatter_object_output_list will have its first element set to the scattered object for this rank.
 
@@ -1333,27 +1333,27 @@ Calling scatter_object_list() with GPU tensors is not well supported and ineffic
 
 Reduces, then scatters a list of tensors to all processes in a group.
 
-output (Tensor) – Output tensor.
+output (Tensor) - Output tensor.
 
-input_list (list[Tensor]) – List of tensors to reduce and scatter.
+input_list (list[Tensor]) - List of tensors to reduce and scatter.
 
-op (optional) – One of the values from torch.distributed.ReduceOp enum. Specifies an operation used for element-wise reductions.
+op (optional) - One of the values from torch.distributed.ReduceOp enum. Specifies an operation used for element-wise reductions.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-async_op (bool, optional) – Whether this op should be an async op.
+async_op (bool, optional) - Whether this op should be an async op.
 
 Async work handle, if async_op is set to True. None, if not async_op or if not part of the group.
 
 Reduces, then scatters a tensor to all ranks in a group.
 
-output (Tensor) – Output tensor. It should have the same size across all ranks.
+output (Tensor) - Output tensor. It should have the same size across all ranks.
 
-input (Tensor) – Input tensor to be reduced and scattered. Its size should be output tensor size times the world size. The input tensor can have one of the following shapes: (i) a concatenation of the output tensors along the primary dimension, or (ii) a stack of the output tensors along the primary dimension. For definition of “concatenation”, see torch.cat(). For definition of “stack”, see torch.stack().
+input (Tensor) - Input tensor to be reduced and scattered. Its size should be output tensor size times the world size. The input tensor can have one of the following shapes: (i) a concatenation of the output tensors along the primary dimension, or (ii) a stack of the output tensors along the primary dimension. For definition of “concatenation”, see torch.cat(). For definition of “stack”, see torch.stack().
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-async_op (bool, optional) – Whether this op should be an async op.
+async_op (bool, optional) - Whether this op should be an async op.
 
 Async work handle, if async_op is set to True. None, if not async_op or if not part of the group.
 
@@ -1363,17 +1363,17 @@ Later the received tensors are concatenated from all the processes in the group 
 
 Complex tensors are supported.
 
-output (Tensor) – Gathered concatenated output tensor.
+output (Tensor) - Gathered concatenated output tensor.
 
-input (Tensor) – Input tensor to scatter.
+input (Tensor) - Input tensor to scatter.
 
-output_split_sizes – (list[Int], optional): Output split sizes for dim 0 if specified None or empty, dim 0 of output tensor must divide equally by world_size.
+output_split_sizes - (list[Int], optional): Output split sizes for dim 0 if specified None or empty, dim 0 of output tensor must divide equally by world_size.
 
-input_split_sizes – (list[Int], optional): Input split sizes for dim 0 if specified None or empty, dim 0 of input tensor must divide equally by world_size.
+input_split_sizes - (list[Int], optional): Input split sizes for dim 0 if specified None or empty, dim 0 of input tensor must divide equally by world_size.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-async_op (bool, optional) – Whether this op should be an async op.
+async_op (bool, optional) - Whether this op should be an async op.
 
 Async work handle, if async_op is set to True. None, if not async_op or if not part of the group.
 
@@ -1383,13 +1383,13 @@ Scatters list of input tensors to all processes in a group and return gathered l
 
 Complex tensors are supported.
 
-output_tensor_list (list[Tensor]) – List of tensors to be gathered one per rank.
+output_tensor_list (list[Tensor]) - List of tensors to be gathered one per rank.
 
-input_tensor_list (list[Tensor]) – List of tensors to scatter one per rank.
+input_tensor_list (list[Tensor]) - List of tensors to scatter one per rank.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-async_op (bool, optional) – Whether this op should be an async op.
+async_op (bool, optional) - Whether this op should be an async op.
 
 Async work handle, if async_op is set to True. None, if not async_op or if not part of the group.
 
@@ -1399,11 +1399,11 @@ Synchronize all processes.
 
 This collective blocks processes until the whole group enters this function, if async_op is False, or if async work handle is called on wait().
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-async_op (bool, optional) – Whether this op should be an async op
+async_op (bool, optional) - Whether this op should be an async op
 
-device_ids ([int], optional) – List of device/GPU ids. Only one id is expected.
+device_ids ([int], optional) - List of device/GPU ids. Only one id is expected.
 
 Async work handle, if async_op is set to True. None, if not async_op or if not part of the group
 
@@ -1419,11 +1419,11 @@ This collective will block all processes/ranks in the group, until the whole gro
 
 Note that this collective is only supported with the GLOO backend.
 
-group (ProcessGroup, optional) – The process group to work on. If None, the default process group will be used.
+group (ProcessGroup, optional) - The process group to work on. If None, the default process group will be used.
 
-timeout (datetime.timedelta, optional) – Timeout for monitored_barrier. If None, the default process group timeout will be used.
+timeout (datetime.timedelta, optional) - Timeout for monitored_barrier. If None, the default process group timeout will be used.
 
-wait_all_ranks (bool, optional) – Whether to collect all failed ranks or not. By default, this is False and monitored_barrier on rank 0 will throw on the first failed rank it encounters in order to fail fast. By setting wait_all_ranks=True monitored_barrier will collect all failed ranks and throw an error containing information about all failed ranks.
+wait_all_ranks (bool, optional) - Whether to collect all failed ranks or not. By default, this is False and monitored_barrier on rank 0 will throw on the first failed rank it encounters in order to fail fast. By setting wait_all_ranks=True monitored_barrier will collect all failed ranks and throw an error containing information about all failed ranks.
 
 A Work object represents the handle to a pending asynchronous operation in PyTorch’s distributed package. It is returned by non-blocking collective operations, such as dist.all_reduce(tensor, async_op=True).
 
@@ -1479,41 +1479,41 @@ Base class for all store implementations, such as the 3 provided by PyTorch dist
 
 The first call to add for a given key creates a counter associated with key in the store, initialized to amount. Subsequent calls to add with the same key increment the counter by the specified amount. Calling add() with a key that has already been set in the store by set() will result in an exception.
 
-key (str) – The key in the store whose counter will be incremented.
+key (str) - The key in the store whose counter will be incremented.
 
-amount (int) – The quantity by which the counter will be incremented.
+amount (int) - The quantity by which the counter will be incremented.
 
 Append the key-value pair into the store based on the supplied key and value. If key does not exists in the store, it will be created.
 
-key (str) – The key to be appended to the store.
+key (str) - The key to be appended to the store.
 
-value (str) – The value associated with key to be added to the store.
+value (str) - The value associated with key to be added to the store.
 
 The call to check whether a given list of keys have value stored in the store. This call immediately returns in normal cases but still suffers from some edge deadlock cases, e.g, calling check after TCPStore has been destroyed. Calling check() with a list of keys that one wants to check whether stored in the store or not.
 
-keys (list[str]) – The keys to query whether stored in the store.
+keys (list[str]) - The keys to query whether stored in the store.
 
 Clones the store and returns a new object that points to the same underlying store. The returned store can be used concurrently with the original object. This is intended to provide a safe way to use a store from multiple threads by cloning one store per thread.
 
 Inserts the key-value pair into the store based on the supplied key and performs comparison between expected_value and desired_value before inserting. desired_value will only be set if expected_value for the key already exists in the store or if expected_value is an empty string.
 
-key (str) – The key to be checked in the store.
+key (str) - The key to be checked in the store.
 
-expected_value (str) – The value associated with key to be checked before insertion.
+expected_value (str) - The value associated with key to be checked before insertion.
 
-desired_value (str) – The value associated with key to be added to the store.
+desired_value (str) - The value associated with key to be added to the store.
 
 Deletes the key-value pair associated with key from the store. Returns true if the key was successfully deleted, and false if it was not.
 
 The delete_key API is only supported by the TCPStore and HashStore. Using this API with the FileStore will result in an exception.
 
-key (str) – The key to be deleted from the store
+key (str) - The key to be deleted from the store
 
 True if key was deleted, otherwise False.
 
 Retrieves the value associated with the given key in the store. If key is not present in the store, the function will wait for timeout, which is defined when initializing the store, before throwing an exception.
 
-key (str) – The function will return the value associated with this key.
+key (str) - The function will return the value associated with this key.
 
 Value associated with key if key is in the store.
 
@@ -1521,13 +1521,13 @@ Returns true if the store supports extended operations.
 
 Retrieve all values in keys. If any key in keys is not present in the store, the function will wait for timeout
 
-keys (List[str]) – The keys to be retrieved from the store.
+keys (List[str]) - The keys to be retrieved from the store.
 
 Inserts a list key-value pair into the store based on the supplied keys and values
 
-keys (List[str]) – The keys to insert.
+keys (List[str]) - The keys to insert.
 
-values (List[str]) – The values to insert.
+values (List[str]) - The values to insert.
 
 Returns the number of keys set in the store. Note that this number will typically be one greater than the number of keys added by set() and add() since one key is used to coordinate all the workers using the store.
 
@@ -1541,7 +1541,7 @@ If the queue doesn’t exist it returns 0.
 
 See queue_push for more details.
 
-key (str) – The key of the queue to get the length.
+key (str) - The key of the queue to get the length.
 
 Pops a value from the specified queue or waits until timeout if the queue is empty.
 
@@ -1549,9 +1549,9 @@ See queue_push for more details.
 
 If block is False, a dist.QueueEmptyError will be raised if the queue is empty.
 
-key (str) – The key of the queue to pop from.
+key (str) - The key of the queue to pop from.
 
-block (bool) – Whether to block waiting for the key or immediately return.
+block (bool) - Whether to block waiting for the key or immediately return.
 
 Pushes a value into the specified queue.
 
@@ -1561,19 +1561,19 @@ wait/check operations are supported for queues.
 
 wait with queues will only wake one waiting worker rather than all.
 
-key (str) – The key of the queue to push to.
+key (str) - The key of the queue to push to.
 
-value (str) – The value to push into the queue.
+value (str) - The value to push into the queue.
 
 Inserts the key-value pair into the store based on the supplied key and value. If key already exists in the store, it will overwrite the old value with the new supplied value.
 
-key (str) – The key to be added to the store.
+key (str) - The key to be added to the store.
 
-value (str) – The value associated with key to be added to the store.
+value (str) - The value associated with key to be added to the store.
 
 Sets the store’s default timeout. This timeout is used during initialization and in wait() and get().
 
-timeout (timedelta) – timeout to be set in the store.
+timeout (timedelta) - timeout to be set in the store.
 
 Gets the timeout of the store.
 
@@ -1581,35 +1581,35 @@ wait(self: torch._C._distributed_c10d.Store, arg0: collections.abc.Sequence[str]
 
 Waits for each key in keys to be added to the store. If not all keys are set before the timeout (set during store initialization), then wait will throw an exception.
 
-keys (list) – List of keys on which to wait until they are set in the store.
+keys (list) - List of keys on which to wait until they are set in the store.
 
 wait(self: torch._C._distributed_c10d.Store, arg0: collections.abc.Sequence[str], arg1: datetime.timedelta) -> None
 
 Waits for each key in keys to be added to the store, and throws an exception if the keys have not been set by the supplied timeout.
 
-keys (list) – List of keys on which to wait until they are set in the store.
+keys (list) - List of keys on which to wait until they are set in the store.
 
-timeout (timedelta) – Time to wait for the keys to be added before throwing an exception.
+timeout (timedelta) - Time to wait for the keys to be added before throwing an exception.
 
 A TCP-based distributed key-value store implementation. The server store holds the data, while the client stores can connect to the server store over TCP and perform actions such as set() to insert a key-value pair, get() to retrieve a key-value pair, etc. There should always be one server store initialized because the client store(s) will wait for the server to establish a connection.
 
-host_name (str) – The hostname or IP Address the server store should run on.
+host_name (str) - The hostname or IP Address the server store should run on.
 
-port (int) – The port on which the server store should listen for incoming requests.
+port (int) - The port on which the server store should listen for incoming requests.
 
-world_size (int, optional) – The total number of store users (number of clients + 1 for the server). Default is None (None indicates a non-fixed number of store users).
+world_size (int, optional) - The total number of store users (number of clients + 1 for the server). Default is None (None indicates a non-fixed number of store users).
 
-is_master (bool, optional) – True when initializing the server store and False for client stores. Default is False.
+is_master (bool, optional) - True when initializing the server store and False for client stores. Default is False.
 
-timeout (timedelta, optional) – Timeout used by the store during initialization and for methods such as get() and wait(). Default is timedelta(seconds=300)
+timeout (timedelta, optional) - Timeout used by the store during initialization and for methods such as get() and wait(). Default is timedelta(seconds=300)
 
-wait_for_workers (bool, optional) – Whether to wait for all the workers to connect with the server store. This is only applicable when world_size is a fixed value. Default is True.
+wait_for_workers (bool, optional) - Whether to wait for all the workers to connect with the server store. This is only applicable when world_size is a fixed value. Default is True.
 
-multi_tenant (bool, optional) – If True, all TCPStore instances in the current process with the same host/port will use the same underlying TCPServer. Default is False.
+multi_tenant (bool, optional) - If True, all TCPStore instances in the current process with the same host/port will use the same underlying TCPServer. Default is False.
 
-master_listen_fd (int, optional) – If specified, the underlying TCPServer will listen on this file descriptor, which must be a socket already bound to port. To bind an ephemeral port we recommend setting the port to 0 and reading .port. Default is None (meaning the server creates a new socket and attempts to bind it to port).
+master_listen_fd (int, optional) - If specified, the underlying TCPServer will listen on this file descriptor, which must be a socket already bound to port. To bind an ephemeral port we recommend setting the port to 0 and reading .port. Default is None (meaning the server creates a new socket and attempts to bind it to port).
 
-use_libuv (bool, optional) – If True, use libuv for TCPServer backend. Default is True.
+use_libuv (bool, optional) - If True, use libuv for TCPServer backend. Default is True.
 
 Creates a new TCPStore.
 
@@ -1625,9 +1625,9 @@ Creates a new HashStore.
 
 A store implementation that uses a file to store the underlying key-value pairs.
 
-file_name (str) – path of the file in which to store the key-value pairs
+file_name (str) - path of the file in which to store the key-value pairs
 
-world_size (int, optional) – The total number of processes using the store. Default is -1 (a negative value indicates a non-fixed number of store users).
+world_size (int, optional) - The total number of processes using the store. Default is -1 (a negative value indicates a non-fixed number of store users).
 
 Creates a new FileStore.
 
@@ -1635,9 +1635,9 @@ Gets the path of the file used by FileStore to store key-value pairs.
 
 A wrapper around any of the 3 key-value stores (TCPStore, FileStore, and HashStore) that adds a prefix to each key inserted to the store.
 
-prefix (str) – The prefix string that is prepended to each key before being inserted into the store.
+prefix (str) - The prefix string that is prepended to each key before being inserted into the store.
 
-store (torch.distributed.store) – A store object that forms the underlying key-value store.
+store (torch.distributed.store) - A store object that forms the underlying key-value store.
 
 Creates a new PrefixStore.
 
@@ -1713,7 +1713,7 @@ Set your device to local rank using either
 
 Changed in version 2.0.0: The launcher will passes the --local-rank=<rank> argument to your script. From PyTorch 2.0.0 onwards, the dashed --local-rank is preferred over the previously used underscored --local_rank.
 
-For backward compatibility, it may be necessary for users to handle both cases in their argument parsing code. This means including both "--local-rank" and "--local_rank" in the argument parser. If only "--local_rank" is provided, the launcher will trigger an error: “error: unrecognized arguments: –local-rank=<rank>”. For training code that only supports PyTorch 2.0.0+, including "--local-rank" should be sufficient.
+For backward compatibility, it may be necessary for users to handle both cases in their argument parsing code. This means including both "--local-rank" and "--local_rank" in the argument parser. If only "--local_rank" is provided, the launcher will trigger an error: “error: unrecognized arguments: -local-rank=<rank>”. For training code that only supports PyTorch 2.0.0+, including "--local-rank" should be sufficient.
 
 3. In your training program, you are supposed to call the following function at the beginning to start the distributed backend. It is strongly recommended that init_method=env://. Other init methods (e.g. tcp://) may work, but env:// is the one that is officially supported by this module.
 
@@ -1793,9 +1793,9 @@ If you are running single node training, it may be convenient to interactively b
 
 Set a breakpoint, but only on a single rank. All other ranks will wait for you to be done with the breakpoint before continuing.
 
-rank (int) – Which rank to break on. Default: 0
+rank (int) - Which rank to break on. Default: 0
 
-skip (int) – Skip the first skip calls to this breakpoint. Default: 0.
+skip (int) - Skip the first skip calls to this breakpoint. Default: 0.
 
 ---
 
@@ -1862,41 +1862,41 @@ You should never try to change your model’s parameters after wrapping up your 
 
 Using DistributedDataParallel in conjunction with the Distributed RPC Framework is experimental and subject to change.
 
-module (Module) – module to be parallelized
+module (Module) - module to be parallelized
 
-device_ids (list of int or torch.device) – CUDA devices. 1) For single-device modules, device_ids can contain exactly one device id, which represents the only CUDA device where the input module corresponding to this process resides. Alternatively, device_ids can also be None. 2) For multi-device modules and CPU modules, device_ids must be None. When device_ids is None for both cases, both the input data for the forward pass and the actual module must be placed on the correct device. (default: None)
+device_ids (list of int or torch.device) - CUDA devices. 1) For single-device modules, device_ids can contain exactly one device id, which represents the only CUDA device where the input module corresponding to this process resides. Alternatively, device_ids can also be None. 2) For multi-device modules and CPU modules, device_ids must be None. When device_ids is None for both cases, both the input data for the forward pass and the actual module must be placed on the correct device. (default: None)
 
 CUDA devices. 1) For single-device modules, device_ids can contain exactly one device id, which represents the only CUDA device where the input module corresponding to this process resides. Alternatively, device_ids can also be None. 2) For multi-device modules and CPU modules, device_ids must be None.
 
 When device_ids is None for both cases, both the input data for the forward pass and the actual module must be placed on the correct device. (default: None)
 
-output_device (int or torch.device) – Device location of output for single-device CUDA modules. For multi-device modules and CPU modules, it must be None, and the module itself dictates the output location. (default: device_ids[0] for single-device modules)
+output_device (int or torch.device) - Device location of output for single-device CUDA modules. For multi-device modules and CPU modules, it must be None, and the module itself dictates the output location. (default: device_ids[0] for single-device modules)
 
-broadcast_buffers (bool) – Flag that enables syncing (broadcasting) buffers of the module at beginning of the forward function. (default: True)
+broadcast_buffers (bool) - Flag that enables syncing (broadcasting) buffers of the module at beginning of the forward function. (default: True)
 
-init_sync (bool) – Whether to sync during initialization to verify param shapes and broadcast parameters and buffers. WARNING: if this is set to False the user is required to ensure themselves that the weights are the same on all ranks. (default: True)
+init_sync (bool) - Whether to sync during initialization to verify param shapes and broadcast parameters and buffers. WARNING: if this is set to False the user is required to ensure themselves that the weights are the same on all ranks. (default: True)
 
-process_group – The process group to be used for distributed data all-reduction. If None, the default process group, which is created by torch.distributed.init_process_group(), will be used. (default: None)
+process_group - The process group to be used for distributed data all-reduction. If None, the default process group, which is created by torch.distributed.init_process_group(), will be used. (default: None)
 
-bucket_cap_mb – DistributedDataParallel will bucket parameters into multiple buckets so that gradient reduction of each bucket can potentially overlap with backward computation. bucket_cap_mb controls the bucket size in MebiBytes (MiB). If None, a default size of 25 MiB will be used. (default: None)
+bucket_cap_mb - DistributedDataParallel will bucket parameters into multiple buckets so that gradient reduction of each bucket can potentially overlap with backward computation. bucket_cap_mb controls the bucket size in MebiBytes (MiB). If None, a default size of 25 MiB will be used. (default: None)
 
-find_unused_parameters (bool) – Traverse the autograd graph from all tensors contained in the return value of the wrapped module’s forward function. Parameters that don’t receive gradients as part of this graph are preemptively marked as being ready to be reduced. In addition, parameters that may have been used in the wrapped module’s forward function but were not part of loss computation and thus would also not receive gradients are preemptively marked as ready to be reduced. (default: False)
+find_unused_parameters (bool) - Traverse the autograd graph from all tensors contained in the return value of the wrapped module’s forward function. Parameters that don’t receive gradients as part of this graph are preemptively marked as being ready to be reduced. In addition, parameters that may have been used in the wrapped module’s forward function but were not part of loss computation and thus would also not receive gradients are preemptively marked as ready to be reduced. (default: False)
 
-check_reduction – This argument is deprecated.
+check_reduction - This argument is deprecated.
 
-gradient_as_bucket_view (bool) – When set to True, gradients will be views pointing to different offsets of allreduce communication buckets. This can reduce peak memory usage, where the saved memory size will be equal to the total gradients size. Moreover, it avoids the overhead of copying between gradients and allreduce communication buckets. When gradients are views, detach_() cannot be called on the gradients. If hitting such errors, please fix it by referring to the zero_grad() function in torch/optim/optimizer.py as a solution. Note that gradients will be views after first iteration, so the peak memory saving should be checked after first iteration.
+gradient_as_bucket_view (bool) - When set to True, gradients will be views pointing to different offsets of allreduce communication buckets. This can reduce peak memory usage, where the saved memory size will be equal to the total gradients size. Moreover, it avoids the overhead of copying between gradients and allreduce communication buckets. When gradients are views, detach_() cannot be called on the gradients. If hitting such errors, please fix it by referring to the zero_grad() function in torch/optim/optimizer.py as a solution. Note that gradients will be views after first iteration, so the peak memory saving should be checked after first iteration.
 
-static_graph (bool) – When set to True, DDP knows the trained graph is static. Static graph means 1) The set of used and unused parameters will not change during the whole training loop; in this case, it does not matter whether users set find_unused_parameters = True or not. 2) How the graph is trained will not change during the whole training loop (meaning there is no control flow depending on iterations). When static_graph is set to be True, DDP will support cases that can not be supported in the past: 1) Reentrant backwards. 2) Activation checkpointing multiple times. 3) Activation checkpointing when model has unused parameters. 4) There are model parameters that are outside of forward function. 5) Potentially improve performance when there are unused parameters, as DDP will not search graph in each iteration to detect unused parameters when static_graph is set to be True. To check whether you can set static_graph to be True, one way is to check ddp logging data at the end of your previous model training, if ddp_logging_data.get("can_set_static_graph") == True, mostly you can set static_graph = True as well. Example::>>> model_DDP = torch.nn.parallel.DistributedDataParallel(model) >>> # Training loop >>> ... >>> ddp_logging_data = model_DDP._get_ddp_logging_data() >>> static_graph = ddp_logging_data.get("can_set_static_graph")
+static_graph (bool) - When set to True, DDP knows the trained graph is static. Static graph means 1) The set of used and unused parameters will not change during the whole training loop; in this case, it does not matter whether users set find_unused_parameters = True or not. 2) How the graph is trained will not change during the whole training loop (meaning there is no control flow depending on iterations). When static_graph is set to be True, DDP will support cases that can not be supported in the past: 1) Reentrant backwards. 2) Activation checkpointing multiple times. 3) Activation checkpointing when model has unused parameters. 4) There are model parameters that are outside of forward function. 5) Potentially improve performance when there are unused parameters, as DDP will not search graph in each iteration to detect unused parameters when static_graph is set to be True. To check whether you can set static_graph to be True, one way is to check ddp logging data at the end of your previous model training, if ddp_logging_data.get("can_set_static_graph") == True, mostly you can set static_graph = True as well. Example::>>> model_DDP = torch.nn.parallel.DistributedDataParallel(model) >>> # Training loop >>> ... >>> ddp_logging_data = model_DDP._get_ddp_logging_data() >>> static_graph = ddp_logging_data.get("can_set_static_graph")
 
 When set to True, DDP knows the trained graph is static. Static graph means 1) The set of used and unused parameters will not change during the whole training loop; in this case, it does not matter whether users set find_unused_parameters = True or not. 2) How the graph is trained will not change during the whole training loop (meaning there is no control flow depending on iterations). When static_graph is set to be True, DDP will support cases that can not be supported in the past: 1) Reentrant backwards. 2) Activation checkpointing multiple times. 3) Activation checkpointing when model has unused parameters. 4) There are model parameters that are outside of forward function. 5) Potentially improve performance when there are unused parameters, as DDP will not search graph in each iteration to detect unused parameters when static_graph is set to be True. To check whether you can set static_graph to be True, one way is to check ddp logging data at the end of your previous model training, if ddp_logging_data.get("can_set_static_graph") == True, mostly you can set static_graph = True as well.
 
-delay_all_reduce_named_params (list of tuple of str and torch.nn.Parameter) – a list of named parameters whose all reduce will be delayed when the gradient of the parameter specified in param_to_hook_all_reduce is ready. Other arguments of DDP do not apply to named params specified in this argument as these named params will be ignored by DDP reducer.
+delay_all_reduce_named_params (list of tuple of str and torch.nn.Parameter) - a list of named parameters whose all reduce will be delayed when the gradient of the parameter specified in param_to_hook_all_reduce is ready. Other arguments of DDP do not apply to named params specified in this argument as these named params will be ignored by DDP reducer.
 
-param_to_hook_all_reduce (torch.nn.Parameter) – a parameter to hook delayed all reduce of parameters specified in delay_all_reduce_named_params.
+param_to_hook_all_reduce (torch.nn.Parameter) - a parameter to hook delayed all reduce of parameters specified in delay_all_reduce_named_params.
 
-skip_all_reduce_unused_params – When set to True, DDP will skip reducing unused parameters. This requires that unused parameters remain the same across all ranks throughout the entire training process. If this condition is not met, it may cause desynchronization and result in training hang.
+skip_all_reduce_unused_params - When set to True, DDP will skip reducing unused parameters. This requires that unused parameters remain the same across all ranks throughout the entire training process. If this condition is not met, it may cause desynchronization and result in training hang.
 
-module (Module) – the module to be parallelized.
+module (Module) - the module to be parallelized.
 
 Context manager for training with uneven inputs across processes in DDP.
 
@@ -1908,15 +1908,15 @@ To use this to enable training with uneven inputs across processes, simply wrap 
 
 If the model or training loop this context manager is wrapped around has additional distributed collective operations, such as SyncBatchNorm in the model’s forward pass, then the flag throw_on_early_termination must be enabled. This is because this context manager is not aware of non-DDP collective communication. This flag will cause all ranks to throw when any one rank exhausts inputs, allowing these errors to be caught and recovered from across all ranks.
 
-divide_by_initial_world_size (bool) – If True, will divide gradients by the initial world_size DDP training was launched with. If False, will compute the effective world size (number of ranks that have not depleted their inputs yet) and divide gradients by that during allreduce. Set divide_by_initial_world_size=True to ensure every input sample including the uneven inputs have equal weight in terms of how much they contribute to the global gradient. This is achieved by always dividing the gradient by the initial world_size even when we encounter uneven inputs. If you set this to False, we divide the gradient by the remaining number of nodes. This ensures parity with training on a smaller world_size although it also means the uneven inputs would contribute more towards the global gradient. Typically, you would want to set this to True for cases where the last few inputs of your training job are uneven. In extreme cases, where there is a large discrepancy in the number of inputs, setting this to False might provide better results.
+divide_by_initial_world_size (bool) - If True, will divide gradients by the initial world_size DDP training was launched with. If False, will compute the effective world size (number of ranks that have not depleted their inputs yet) and divide gradients by that during allreduce. Set divide_by_initial_world_size=True to ensure every input sample including the uneven inputs have equal weight in terms of how much they contribute to the global gradient. This is achieved by always dividing the gradient by the initial world_size even when we encounter uneven inputs. If you set this to False, we divide the gradient by the remaining number of nodes. This ensures parity with training on a smaller world_size although it also means the uneven inputs would contribute more towards the global gradient. Typically, you would want to set this to True for cases where the last few inputs of your training job are uneven. In extreme cases, where there is a large discrepancy in the number of inputs, setting this to False might provide better results.
 
-enable (bool) – Whether to enable uneven input detection or not. Pass in enable=False to disable in cases where you know that inputs are even across participating processes. Default is True.
+enable (bool) - Whether to enable uneven input detection or not. Pass in enable=False to disable in cases where you know that inputs are even across participating processes. Default is True.
 
-throw_on_early_termination (bool) – Whether to throw an error or continue training when at least one rank has exhausted inputs. If True, will throw upon the first rank reaching end of data. If False, will continue training with a smaller effective world size until all ranks are joined. Note that if this flag is specified, then the flag divide_by_initial_world_size would be ignored. Default is False.
+throw_on_early_termination (bool) - Whether to throw an error or continue training when at least one rank has exhausted inputs. If True, will throw upon the first rank reaching end of data. If False, will continue training with a smaller effective world size until all ranks are joined. Note that if this flag is specified, then the flag divide_by_initial_world_size would be ignored. Default is False.
 
 DDP join hook enables training on uneven inputs by mirroring communications in forward and backward passes.
 
-kwargs (dict) – a dict containing any keyword arguments to modify the behavior of the join hook at run time; all Joinable instances sharing the same join context manager are forwarded the same value for kwargs.
+kwargs (dict) - a dict containing any keyword arguments to modify the behavior of the join hook at run time; all Joinable instances sharing the same join context manager are forwarded the same value for kwargs.
 
 If True, then gradients are divided by the initial world size that DDP was launched with. If False, then gradients are divided by the effective world size (i.e. the number of non-joined processes), meaning that the uneven inputs contribute more toward the global gradient. Typically, this should be set to True if the degree of unevenness is small but can be set to False in extreme cases for possibly better results. Default is True.
 
@@ -1930,13 +1930,13 @@ Register communication hook for user-defined DDP aggregation of gradients across
 
 This hook would be very useful for researchers to try out new ideas. For example, this hook can be used to implement several algorithms like GossipGrad and gradient compression which involve different communication strategies for parameter syncs while running Distributed DataParallel training.
 
-state (object) – Passed to the hook to maintain any state information during the training process. Examples include error feedback in gradient compression, peers to communicate with next in GossipGrad, etc. It is locally stored by each worker and shared by all the gradient tensors on the worker.
+state (object) - Passed to the hook to maintain any state information during the training process. Examples include error feedback in gradient compression, peers to communicate with next in GossipGrad, etc. It is locally stored by each worker and shared by all the gradient tensors on the worker.
 
 Passed to the hook to maintain any state information during the training process. Examples include error feedback in gradient compression, peers to communicate with next in GossipGrad, etc.
 
 It is locally stored by each worker and shared by all the gradient tensors on the worker.
 
-hook (Callable) – Callable with the following signature: hook(state: object, bucket: dist.GradBucket) -> torch.futures.Future[torch.Tensor]: This function is called once the bucket is ready. The hook can perform whatever processing is needed and return a Future indicating completion of any async work (ex: allreduce). If the hook doesn’t perform any communication, it still must return a completed Future. The Future should hold the new value of grad bucket’s tensors. Once a bucket is ready, c10d reducer would call this hook and use the tensors returned by the Future and copy grads to individual parameters. Note that the future’s return type must be a single tensor. We also provide an API called get_future to retrieve a Future associated with the completion of c10d.ProcessGroup.Work. get_future is currently supported for NCCL and also supported for most operations on GLOO and MPI, except for peer to peer operations (send/recv).
+hook (Callable) - Callable with the following signature: hook(state: object, bucket: dist.GradBucket) -> torch.futures.Future[torch.Tensor]: This function is called once the bucket is ready. The hook can perform whatever processing is needed and return a Future indicating completion of any async work (ex: allreduce). If the hook doesn’t perform any communication, it still must return a completed Future. The Future should hold the new value of grad bucket’s tensors. Once a bucket is ready, c10d reducer would call this hook and use the tensors returned by the Future and copy grads to individual parameters. Note that the future’s return type must be a single tensor. We also provide an API called get_future to retrieve a Future associated with the completion of c10d.ProcessGroup.Work. get_future is currently supported for NCCL and also supported for most operations on GLOO and MPI, except for peer to peer operations (send/recv).
 
 Callable with the following signature: hook(state: object, bucket: dist.GradBucket) -> torch.futures.Future[torch.Tensor]:
 
@@ -2098,9 +2098,9 @@ Handles the tensors that should be compressed by PowerSGD compression:
 
 Note that this communication hook enforces vanilla allreduce for the first state.start_powerSGD_iter iterations. This not only gives the user more control over the tradeoff between speedup and accuracy, but also helps abstract away some complexity of the internal optimization of DDP for future communication hook developers.
 
-state (PowerSGDState) – State information to configure the compression rate and support error feedback, warm start, etc. To tune the compression configs, mainly need to tune matrix_approximation_rank, start_powerSGD_iter and min_compression_rate.
+state (PowerSGDState) - State information to configure the compression rate and support error feedback, warm start, etc. To tune the compression configs, mainly need to tune matrix_approximation_rank, start_powerSGD_iter and min_compression_rate.
 
-bucket (dist.GradBucket) – Bucket that stores a 1D flattened gradient tensor that batches multiple per-variable tensors. Note that since DDP comm hook only supports single process single device mode, only exactly one tensor is stored in this bucket.
+bucket (dist.GradBucket) - Bucket that stores a 1D flattened gradient tensor that batches multiple per-variable tensors. Note that since DDP comm hook only supports single process single device mode, only exactly one tensor is stored in this bucket.
 
 Future handler of the communication, which updates the gradients in place.
 
@@ -2126,9 +2126,9 @@ Truncates the input tensor to the original length.
 
 Note that this communication hook enforces vanilla allreduce for the first state.start_powerSGD_iter iterations. This not only gives the user more control over the tradeoff between speedup and accuracy, but also helps abstract away some complexity of the internal optimization of DDP for future communication hook developers.
 
-state (PowerSGDState) – State information to configure the compression rate and support error feedback, warm start, etc. To tune the compression configs, mainly need to tune matrix_approximation_rank and start_powerSGD_iter.
+state (PowerSGDState) - State information to configure the compression rate and support error feedback, warm start, etc. To tune the compression configs, mainly need to tune matrix_approximation_rank and start_powerSGD_iter.
 
-bucket (dist.GradBucket) – Bucket that stores a 1D flattened gradient tensor that batches multiple per-variable tensors. Note that since DDP comm hook only supports single process single device mode, only exactly one tensor is stored in this bucket.
+bucket (dist.GradBucket) - Bucket that stores a 1D flattened gradient tensor that batches multiple per-variable tensors. Note that since DDP comm hook only supports single process single device mode, only exactly one tensor is stored in this bucket.
 
 Future handler of the communication, which updates the gradients in place.
 
@@ -2208,19 +2208,19 @@ When saving checkpoint for FSDP’s ShardingStrategy.HYBRID_SHARD, only one of t
 
 state_dict in the local process.
 
-state_dict (Dict[str, Any]) – The state_dict to save.
+state_dict (Dict[str, Any]) - The state_dict to save.
 
-checkpoint_id (Union[str, os.PathLike, None]) – The ID of this checkpoint instance. The meaning of the checkpoint_id depends on the storage. It can be a path to a folder or to a file. It can also be a key if the storage is a key-value store. (Default: None)
+checkpoint_id (Union[str, os.PathLike, None]) - The ID of this checkpoint instance. The meaning of the checkpoint_id depends on the storage. It can be a path to a folder or to a file. It can also be a key if the storage is a key-value store. (Default: None)
 
-storage_writer (Optional[StorageWriter]) – Instance of StorageWriter used to perform writes. If this is not specified, DCP will automatically infer the writer based on the checkpoint_id. If checkpoint_id is also None, an exception will be raised. (Default: None)
+storage_writer (Optional[StorageWriter]) - Instance of StorageWriter used to perform writes. If this is not specified, DCP will automatically infer the writer based on the checkpoint_id. If checkpoint_id is also None, an exception will be raised. (Default: None)
 
-planner (Optional[SavePlanner]) – Instance of SavePlanner. If this is not specified, the default planner will be used. (Default: None)
+planner (Optional[SavePlanner]) - Instance of SavePlanner. If this is not specified, the default planner will be used. (Default: None)
 
-process_group (Optional[ProcessGroup]) – ProcessGroup to be used for cross-rank synchronization. (Default: None)
+process_group (Optional[ProcessGroup]) - ProcessGroup to be used for cross-rank synchronization. (Default: None)
 
-no_dist (bool) – If True, this function will assume the intent is to load a checkpoint on a single rank/process. (Default: False)
+no_dist (bool) - If True, this function will assume the intent is to load a checkpoint on a single rank/process. (Default: False)
 
-use_collectives (bool) – If False, this function will assume the intent is to save a checkpoint without using cross-rank synchronization. (Default: True) This configuration is experimental and should be used with caution. It will change the format of the saved checkpoint and may not be backward compatible.
+use_collectives (bool) - If False, this function will assume the intent is to save a checkpoint without using cross-rank synchronization. (Default: True) This configuration is experimental and should be used with caution. It will change the format of the saved checkpoint and may not be backward compatible.
 
 Metadata object for the saved checkpoint.
 
@@ -2230,23 +2230,23 @@ Asynchronous version of save. This code first de-stages the state_dict on to the
 
 This feature is experimental and subject to change. MUST CALL CLOSE AFTER LAST CHECKPOINT IS SAVED
 
-state_dict (Dict[str, Any]) – The state_dict to save.
+state_dict (Dict[str, Any]) - The state_dict to save.
 
-checkpoint_id (Union[str, os.PathLike, None]) – The ID of this checkpoint instance. The meaning of the checkpoint_id depends on the storage. It can be a path to a folder or to a file. It can also be a key if the storage is a key-value store. (Default: None)
+checkpoint_id (Union[str, os.PathLike, None]) - The ID of this checkpoint instance. The meaning of the checkpoint_id depends on the storage. It can be a path to a folder or to a file. It can also be a key if the storage is a key-value store. (Default: None)
 
-storage_writer (Optional[StorageWriter]) – Instance of StorageWriter used to perform ‘stage’ and ‘save’. If this is not specified, DCP will automatically infer the writer based on the checkpoint_id. If checkpoint_id is also None, an exception will be raised. (Default: None)
+storage_writer (Optional[StorageWriter]) - Instance of StorageWriter used to perform ‘stage’ and ‘save’. If this is not specified, DCP will automatically infer the writer based on the checkpoint_id. If checkpoint_id is also None, an exception will be raised. (Default: None)
 
-planner (Optional[SavePlanner]) – Instance of SavePlanner. If this is not specified, the default planner will be used. (Default: None)
+planner (Optional[SavePlanner]) - Instance of SavePlanner. If this is not specified, the default planner will be used. (Default: None)
 
-process_group (Optional[ProcessGroup]) – ProcessGroup to be used for cross-rank synchronization. (Default: None)
+process_group (Optional[ProcessGroup]) - ProcessGroup to be used for cross-rank synchronization. (Default: None)
 
-async_checkpointer_type (AsyncCheckpointerType) – whether to do checkpoint in separate thread or process (Default: AsyncCheckpointerType.THREAD)
+async_checkpointer_type (AsyncCheckpointerType) - whether to do checkpoint in separate thread or process (Default: AsyncCheckpointerType.THREAD)
 
-async_stager (AsyncStager) – provides staging implementation. If storage_writer implements AsyncStager and async_stager is provided, async_stager will be used for staging
+async_stager (AsyncStager) - provides staging implementation. If storage_writer implements AsyncStager and async_stager is provided, async_stager will be used for staging
 
-no_dist (bool) – If True, this function will assume the intent is to save a checkpoint on a single rank/process. (Default: False)
+no_dist (bool) - If True, this function will assume the intent is to save a checkpoint on a single rank/process. (Default: False)
 
-use_collectives (bool) – If False, Save the checkpoint without rank coordination. (Default: True) This configuration is experimental and should be used with caution. It will change the format of the saved checkpoint and may not be backward compatible.
+use_collectives (bool) - If False, Save the checkpoint without rank coordination. (Default: True) This configuration is experimental and should be used with caution. It will change the format of the saved checkpoint and may not be backward compatible.
 
 A future holding the resultant Metadata object from save.
 
@@ -2266,17 +2266,17 @@ All non-tensor data is loaded using torch.load() and modified in place on state_
 
 Users must call load_state_dict on the root module to ensure load pos-processing and non-tensor data properly propagates.
 
-state_dict (Dict[str, Any]) – The state_dict to load the checkpoint into.
+state_dict (Dict[str, Any]) - The state_dict to load the checkpoint into.
 
-checkpoint_id (Union[str, os.PathLike, None]) – The ID of this checkpoint instance. The meaning of the checkpoint_id depends on the storage. It can be a path to a folder or to a file. It can also be a key if the storage is a key-value store. (Default: None)
+checkpoint_id (Union[str, os.PathLike, None]) - The ID of this checkpoint instance. The meaning of the checkpoint_id depends on the storage. It can be a path to a folder or to a file. It can also be a key if the storage is a key-value store. (Default: None)
 
-storage_reader (Optional[StorageReader]) – Instance of StorageWriter used to perform reads. If this is not specified, DCP will automatically infer the reader based on the checkpoint_id. If checkpoint_id is also None, an exception will be raised. (Default: None)
+storage_reader (Optional[StorageReader]) - Instance of StorageWriter used to perform reads. If this is not specified, DCP will automatically infer the reader based on the checkpoint_id. If checkpoint_id is also None, an exception will be raised. (Default: None)
 
-planner (Optional[LoadPlanner]) – Instance of LoadPlanner. If this is not specified, the default planner will be used. (Default: None)
+planner (Optional[LoadPlanner]) - Instance of LoadPlanner. If this is not specified, the default planner will be used. (Default: None)
 
-process_group (Optional[ProcessGroup]) – ProcessGroup to be used for cross-rank synchronization. (Default: None)
+process_group (Optional[ProcessGroup]) - ProcessGroup to be used for cross-rank synchronization. (Default: None)
 
-no_dist (bool) – If True, this function will assume the intent is to load a checkpoint without using cross-rank synchronization. (Default: False)
+no_dist (bool) - If True, this function will assume the intent is to load a checkpoint without using cross-rank synchronization. (Default: False)
 
 load_state_dict uses collectives to coordinate reads across ranks. For NCCL-based process groups, internal tensor representations of objects must be moved to the GPU device before communication takes place. In this case, the device used is given by torch.cuda.current_device() and it is the user’s responsibility to ensure that this is set so that each rank has an individual GPU, via torch.cuda.set_device().
 
@@ -2328,7 +2328,7 @@ stager = DefaultStager(StagingOptions(use_async_staging=True)) future = stager.s
 
 This function is responsible for staging staging the state_dict. See class docstring for more details on staging. If use_async_staging is True, it will return a Future object that will be fulfilled when staging is complete. If use_async_staging is False, it will return the fully staged state_dict.
 
-state_dict (STATE_DICT_TYPE) – The state_dict to be staged.
+state_dict (STATE_DICT_TYPE) - The state_dict to be staged.
 
 Union[dict[str, Union[~StatefulT, Any]], Future[dict[str, Union[~StatefulT, Any]]]]
 
@@ -2336,13 +2336,13 @@ When use_async_staging is True, this method will wait until staging is complete.
 
 Configuration options for checkpoint staging behavior.
 
-use_pinned_memory (bool) – Enable pinned memory allocation for faster CPU-GPU transfers. Requires CUDA to be available. Default: True
+use_pinned_memory (bool) - Enable pinned memory allocation for faster CPU-GPU transfers. Requires CUDA to be available. Default: True
 
-use_shared_memory (bool) – Enable shared memory for multi-process scenarios. Useful when multiple processes need access to the same staged data. Default: True
+use_shared_memory (bool) - Enable shared memory for multi-process scenarios. Useful when multiple processes need access to the same staged data. Default: True
 
-use_async_staging (bool) – Enable asynchronous staging using a background thread pool. Allows overlapping computation with staging operations. Requires CUDA. Default: True
+use_async_staging (bool) - Enable asynchronous staging using a background thread pool. Allows overlapping computation with staging operations. Requires CUDA. Default: True
 
-use_non_blocking_copy (bool) – Use non-blocking device memory copies with stream synchronization. Improves performance by allowing CPU work to continue during GPU transfers. Default: True
+use_non_blocking_copy (bool) - Use non-blocking device memory copies with stream synchronization. Improves performance by allowing CPU work to continue during GPU transfers. Default: True
 
 CUDA-dependent features will raise exception if CUDA is not available.
 
@@ -2362,7 +2362,7 @@ Stateful protocol for objects that can be checkpointed and restored.
 
 Restore the object’s state from the provided state_dict.
 
-state_dict (dict[str, Any]) – The state dict to restore from
+state_dict (dict[str, Any]) - The state dict to restore from
 
 Objects should return their state_dict representation as a dictionary. The output of this function will be checkpointed, and later restored in load_state_dict().
 
@@ -2398,7 +2398,7 @@ This method is only called on the coordinator instance.
 
 While this method can produce a completely different plan, the preferred way is to store storage specific data in LoadPlan::storage_data.
 
-plans (list[torch.distributed.checkpoint.planner.LoadPlan]) – A list of LoadPlan instances, one for each rank.
+plans (list[torch.distributed.checkpoint.planner.LoadPlan]) - A list of LoadPlan instances, one for each rank.
 
 A list of transformed LoadPlan after storage global planning
 
@@ -2408,7 +2408,7 @@ Perform storage-specific local planning.
 
 While this method can produce a completely different plan, the recommended way is to store storage specific data in LoadPlan::storage_data.
 
-plan (LoadPlan) – The local plan from the LoadPlan in use.
+plan (LoadPlan) - The local plan from the LoadPlan in use.
 
 A transformed LoadPlan after storage local planning
 
@@ -2420,9 +2420,9 @@ A subclass should call LoadPlanner::resolve_tensor to get access to the tensors 
 
 It’s the StorageLayer responsibility to properly schedule any cross device copies required.
 
-plan (LoadPlan) – The local plan to execute on
+plan (LoadPlan) - The local plan to execute on
 
-planner (LoadPlanner) – The planner object to use to resolve items.
+planner (LoadPlanner) - The planner object to use to resolve items.
 
 A future that completes once all reads are finished.
 
@@ -2432,13 +2432,13 @@ The metadata object associated with the checkpoint being loaded.
 
 Calls to indicates a brand new checkpoint read is going to happen. A checkpoint_id may be present if users set the checkpoint_id for this checkpoint read. The meaning of the checkpoint_id is storage-dependent. It can be a path to a folder/file or a key for a key-value storage.
 
-checkpoint_id (Union[str, os.PathLike, None]) – The ID of this checkpoint instance. The meaning of the checkpoint_id depends on the storage. It can be a path to a folder or to a file. It can also be a key if the storage is more like a key-value store. (Default: None)
+checkpoint_id (Union[str, os.PathLike, None]) - The ID of this checkpoint instance. The meaning of the checkpoint_id depends on the storage. It can be a path to a folder or to a file. It can also be a key if the storage is more like a key-value store. (Default: None)
 
 Initialize this instance.
 
-metadata (Metadata) – The metadata schema to use.
+metadata (Metadata) - The metadata schema to use.
 
-is_coordinator (bool) – Whether this instance is responsible for coordinating the checkpoint.
+is_coordinator (bool) - Whether this instance is responsible for coordinating the checkpoint.
 
 Check if the given checkpoint_id is supported by the storage. This allow us to enable automatic storage selection.
 
@@ -2464,9 +2464,9 @@ Write the metadata and marks the current checkpoint as successful.
 
 The actual format/schema used for serializing metadata is an implementation detail. The only requirement is that it’s recoverable in to the same object graph.
 
-metadata (Metadata) – metadata for the new checkpoint
+metadata (Metadata) - metadata for the new checkpoint
 
-results (list[list[torch.distributed.checkpoint.storage.WriteResult]]) – A list of WriteResults from all ranks.
+results (list[list[torch.distributed.checkpoint.storage.WriteResult]]) - A list of WriteResults from all ranks.
 
 Perform centralized planning of storage.
 
@@ -2474,7 +2474,7 @@ This method is only called on the coordinator instance.
 
 While this method can produce a completely different plan, the preferred way is to store storage specific data in SavePlan::storage_data.
 
-plans (list[torch.distributed.checkpoint.planner.SavePlan]) – A list of SavePlan instances, one for each rank.
+plans (list[torch.distributed.checkpoint.planner.SavePlan]) - A list of SavePlan instances, one for each rank.
 
 A list of transformed SavePlan after storage global planning
 
@@ -2484,17 +2484,17 @@ Perform storage-specific local planning.
 
 While this method can produce a completely different plan, the recommended way is to store storage specific data in SavePlan::storage_data.
 
-plan (SavePlan) – The local plan from the SavePlanner in use.
+plan (SavePlan) - The local plan from the SavePlanner in use.
 
 A transformed SavePlan after storage local planning
 
 Calls to indicates a brand new checkpoint write is going to happen. A checkpoint_id may be present if users set the checkpoint_id for this checkpoint write. The meaning of the checkpoint_id is storage-dependent. It can be a path to a folder/file or a key for a key-value storage.
 
-checkpoint_id (Union[str, os.PathLike, None]) – The ID of this checkpoint instance. The meaning of the checkpoint_id depends on the storage. It can be a path to a folder or to a file. It can also be a key if the storage is a key-value store. (Default: None)
+checkpoint_id (Union[str, os.PathLike, None]) - The ID of this checkpoint instance. The meaning of the checkpoint_id depends on the storage. It can be a path to a folder or to a file. It can also be a key if the storage is a key-value store. (Default: None)
 
 Initialize this instance.
 
-is_coordinator (bool) – Whether this instance is responsible for coordinating the checkpoint.
+is_coordinator (bool) - Whether this instance is responsible for coordinating the checkpoint.
 
 Return the storage-specific metadata. This is used to store additional information in a checkpoint that can be useful for providing request-level observability. StorageMeta is passed to the SavePlanner during save calls. Returns None by default.
 
@@ -2526,9 +2526,9 @@ They might be on any device, including not matching the one on WriteItem::tensor
 
 They might be views or not contiguous. Only the projection needs to be saved.
 
-plan (SavePlan) – The save plan to execute.
+plan (SavePlan) - The save plan to execute.
 
-planner (SavePlanner) – Planner object to be used to resolve items to data.
+planner (SavePlanner) - Planner object to be used to resolve items to data.
 
 A future that completes to a list of WriteResult
 
@@ -2730,15 +2730,15 @@ get_state_dict can process any module that is parallelized by PyTorch FSDP/fully
 
 The keys of the result state dictionary are the canonical FQNs (Fully Qualified Names). A canonical FQN refers to the FQN based on a parameter’s position in an nn.Module hierarchy. More specifically, a canonical FQN to a parameter is the FQN returned by module.named_parameters() or module.named_buffers() when the module is not distributed by any parallelisms. Since the optimizer internally uses parameter IDs to represent a parameter, there will be a conversion from the parameter IDs to the canonical FQNs when calling this API.
 
-get_state_dict can also process a module that is not parallelized. In such a case, get_state_dict only performs one function – converting the optimizer parameter IDs to the canonical FQNs.
+get_state_dict can also process a module that is not parallelized. In such a case, get_state_dict only performs one function - converting the optimizer parameter IDs to the canonical FQNs.
 
-model (nn.Module) – the nn.Module to the model.
+model (nn.Module) - the nn.Module to the model.
 
-optimizers (Union[None, Optimizer, Iterable[Optimizer]]) – The optimizers that are used to optimize model.
+optimizers (Union[None, Optimizer, Iterable[Optimizer]]) - The optimizers that are used to optimize model.
 
-submodules (deprecated) – Optional[set[nn.Module]]: only return the model parameters that belong to the submodules.
+submodules (deprecated) - Optional[set[nn.Module]]: only return the model parameters that belong to the submodules.
 
-options (StateDictOptions) – the options to control how model state_dict and optimizer state_dict should be returned. See StateDictOptions for the details.
+options (StateDictOptions) - the options to control how model state_dict and optimizer state_dict should be returned. See StateDictOptions for the details.
 
 Tuple that contain model state_dict and optimizer state_dict.
 
@@ -2748,11 +2748,11 @@ Return the model state_dict of model.
 
 See get_state_dict for the detail usage.
 
-model (nn.Module) – the nn.Module to the model.
+model (nn.Module) - the nn.Module to the model.
 
-submodules (deprecated) – Optional[set[nn.Module]]: only return the model parameters that belong to the submodules.
+submodules (deprecated) - Optional[set[nn.Module]]: only return the model parameters that belong to the submodules.
 
-options (StateDictOptions) – the options to control how model state_dict and optimizer state_dict should be returned. See StateDictOptions for the details.
+options (StateDictOptions) - the options to control how model state_dict and optimizer state_dict should be returned. See StateDictOptions for the details.
 
 The state_dict for model.
 
@@ -2760,13 +2760,13 @@ Return the combined state_dict for optimizers.
 
 See get_state_dict for the detail usage.
 
-model (nn.Module) – the nn.Module to the model.
+model (nn.Module) - the nn.Module to the model.
 
-optimizers (Union[None, Optimizer, Iterable[Optimizer]]) – The optimizers that are used to optimize model.
+optimizers (Union[None, Optimizer, Iterable[Optimizer]]) - The optimizers that are used to optimize model.
 
-submodules (deprecated) – Optional[set[nn.Module]]: only return the model parameters that belong to the submodules.
+submodules (deprecated) - Optional[set[nn.Module]]: only return the model parameters that belong to the submodules.
 
-options (StateDictOptions) – the options to control how model state_dict and optimizer state_dict should be returned. See StateDictOptions for the details.
+options (StateDictOptions) - the options to control how model state_dict and optimizer state_dict should be returned. See StateDictOptions for the details.
 
 The state_dict for optimizers.
 
@@ -2776,15 +2776,15 @@ The counterpart of get_state_dict to set the state_dict to the model and optimiz
 
 is called on the optimizers. Otherwise, the optimizer states won’t be initialized correctly.
 
-model (nn.Module) – the nn.Module to the model.
+model (nn.Module) - the nn.Module to the model.
 
-optimizers (Union[Optimizer, Iterable[Optimizer]]) – The optimizers that are used to optimize model.
+optimizers (Union[Optimizer, Iterable[Optimizer]]) - The optimizers that are used to optimize model.
 
-model_state_dict (Dict[str, ValueType]) – (Union[Dict[nn.Module, Dict[str, ValueType]], Dict[str, ValueType]]): the model state_dict to load. If the key of the model_state_dict is nn.Module, the key is a submodule of model and the value should be the state_dict of the submodule. When loading the state_dict, the prefix of the submodule will be append to the state_dict.
+model_state_dict (Dict[str, ValueType]) - (Union[Dict[nn.Module, Dict[str, ValueType]], Dict[str, ValueType]]): the model state_dict to load. If the key of the model_state_dict is nn.Module, the key is a submodule of model and the value should be the state_dict of the submodule. When loading the state_dict, the prefix of the submodule will be append to the state_dict.
 
-optim_state_dict (OptimizerStateType) – OptimizerStateType: the optimizer state_dict to load.
+optim_state_dict (OptimizerStateType) - OptimizerStateType: the optimizer state_dict to load.
 
-options (StateDictOptions) – the options to control how model state_dict and optimizer state_dict should be loaded. See StateDictOptions for the details.
+options (StateDictOptions) - the options to control how model state_dict and optimizer state_dict should be loaded. See StateDictOptions for the details.
 
 missing_keys is a list of str containing the missing keys of the model state_dict. unexpected_keys is a list of str containing the unexpected keys of the model state_dict.
 
@@ -2798,11 +2798,11 @@ Load the model state_dict.
 
 The counterpart of get_model_state_dict to set the state_dict to the model. See set_state_dict for the detail usage.
 
-model (nn.Module) – the nn.Module to the model.
+model (nn.Module) - the nn.Module to the model.
 
-model_state_dict (Dict[str, ValueType]) – (Dict[str, ValueType]): the model state_dict to load. If the key of the model_state_dict is nn.Module, the key is a submodule of model and the value should be the state_dict of the submodule. When loading the state_dict, the prefix of the submodule will be append to the state_dict.
+model_state_dict (Dict[str, ValueType]) - (Dict[str, ValueType]): the model state_dict to load. If the key of the model_state_dict is nn.Module, the key is a submodule of model and the value should be the state_dict of the submodule. When loading the state_dict, the prefix of the submodule will be append to the state_dict.
 
-options (StateDictOptions) – the options to control how model state_dict and optimizer state_dict should be loaded. See StateDictOptions for the details.
+options (StateDictOptions) - the options to control how model state_dict and optimizer state_dict should be loaded. See StateDictOptions for the details.
 
 missing_keys is a list of str containing the missing keys unexpected_keys is a list of str containing the unexpected keys
 
@@ -2818,13 +2818,13 @@ The counterpart of get_optimizer_state_dict to set the state_dict to the optimiz
 
 step() is called on the optimizers. Otherwise, the optimizer states won’t be initialized correctly.
 
-model (nn.Module) – the nn.Module to the model.
+model (nn.Module) - the nn.Module to the model.
 
-optimizers (Union[Optimizer, Iterable[Optimizer]]) – The optimizers that are used to optimize model.
+optimizers (Union[Optimizer, Iterable[Optimizer]]) - The optimizers that are used to optimize model.
 
-optim_state_dict (OptimizerStateType) – OptimizerStateType: the optimizer state_dict to load.
+optim_state_dict (OptimizerStateType) - OptimizerStateType: the optimizer state_dict to load.
 
-options (StateDictOptions) – the options to control how model state_dict and optimizer state_dict should be loaded. See StateDictOptions for the details.
+options (StateDictOptions) - the options to control how model state_dict and optimizer state_dict should be loaded. See StateDictOptions for the details.
 
 This dataclass specifies how get_state_dict/set_state_dict will work.
 
@@ -2832,7 +2832,7 @@ full_state_dict: if this is set to True, all the tensors in the returned state_d
 
 cpu_offload: offload all the tensors to cpu. To prevent CPU OOM, if full_state_dict is also true, then only the rank0 will get the state_dict and all other ranks will get empty state_dict.
 
-ignore_frozen_params: if the value is True, the returned state_dict won’t contain any frozen parameters – the requires_grad is False. The default value is False.
+ignore_frozen_params: if the value is True, the returned state_dict won’t contain any frozen parameters - the requires_grad is False. The default value is False.
 
 keep_submodule_prefixes (deprecated): when submodules is not None, this option indicates whether to keep the submodule prefixes from the state_dict keys. or example, if the submodule is module.pretrain and the full FQN of the parameter is pretrain.layer1.weight of the param. When this option is True, the parameter’s key in the returned state_dict will be pretrain.layer1.weight. If the options is False, the key will be layer1.weight. Note that if keep_submodule_prefixes is False, there may be conflicted FQNs, hence there should be only one submodule in submodules.
 
@@ -2844,17 +2844,17 @@ For users which are used to using and sharing models in the torch.save format, t
 
 Given a directory containing a DCP checkpoint, this function will convert it into a Torch save file.
 
-dcp_checkpoint_dir (Union[str, PathLike]) – Directory containing the DCP checkpoint.
+dcp_checkpoint_dir (Union[str, PathLike]) - Directory containing the DCP checkpoint.
 
-torch_save_path (Union[str, PathLike]) – Filename to store the converted Torch save file.
+torch_save_path (Union[str, PathLike]) - Filename to store the converted Torch save file.
 
 To avoid OOM, it’s recommended to only run this function on a single rank.
 
 Given the location of a torch save file, converts it into a DCP checkpoint.
 
-torch_save_path (Union[str, PathLike]) – Filename of the Torch save file.
+torch_save_path (Union[str, PathLike]) - Filename of the Torch save file.
 
-dcp_checkpoint_dir (Union[str, PathLike]) – Directory to store the DCP checkpoint.
+dcp_checkpoint_dir (Union[str, PathLike]) - Directory to store the DCP checkpoint.
 
 To avoid OOM, it’s recommended to only run this function on a single rank.
 
@@ -2950,17 +2950,17 @@ A List[ChunkStorageMetadata] object that represents the shard size/offset on the
 
 Create a DTensor from a local torch.Tensor on each rank according to the device_mesh and placements specified.
 
-local_tensor (torch.Tensor) – local torch.Tensor on each rank.
+local_tensor (torch.Tensor) - local torch.Tensor on each rank.
 
-device_mesh (DeviceMesh, optional) – DeviceMesh to place the tensor, if not specified, must be called under a DeviceMesh context manager, default: None
+device_mesh (DeviceMesh, optional) - DeviceMesh to place the tensor, if not specified, must be called under a DeviceMesh context manager, default: None
 
-placements (List[Placement], optional) – the placements that describes how to place the local torch.Tensor on DeviceMesh, must have the same number of elements as device_mesh.ndim.
+placements (List[Placement], optional) - the placements that describes how to place the local torch.Tensor on DeviceMesh, must have the same number of elements as device_mesh.ndim.
 
-run_check (bool, optional) – at a cost of extra communications, perform sanity check across ranks to check each local tensor’s meta information to ensure correctness. If have Replicate in placements, the data on first rank of the device mesh dimension will be broadcasted to other ranks. default: False
+run_check (bool, optional) - at a cost of extra communications, perform sanity check across ranks to check each local tensor’s meta information to ensure correctness. If have Replicate in placements, the data on first rank of the device mesh dimension will be broadcasted to other ranks. default: False
 
-shape (torch.Size, optional) – A List of int which specifies the size of DTensor which build on top of local_tensor. Note this needs to be provided if the shape of local_tensor are different across the ranks. If not provided, shape will be computed assuming the given distributed tensor is evenly sharded across ranks. default: None
+shape (torch.Size, optional) - A List of int which specifies the size of DTensor which build on top of local_tensor. Note this needs to be provided if the shape of local_tensor are different across the ranks. If not provided, shape will be computed assuming the given distributed tensor is evenly sharded across ranks. default: None
 
-stride (tuple, optional) – A List of int which specifies the stride of DTensor. If not provided, stride will be computed assuming the given distributed tensor is evenly sharded across ranks. default: None
+stride (tuple, optional) - A List of int which specifies the stride of DTensor. If not provided, stride will be computed assuming the given distributed tensor is evenly sharded across ranks. default: None
 
 When run_check=False, it is the user’s responsibility to ensure the local tensor passed in is correct across ranks (i.e. the tensor is sharded for the Shard(dim) placement or replicated for the Replicate() placement). If not, the behavior of the created DTensor is undefined.
 
@@ -2970,7 +2970,7 @@ Return the full tensor of this DTensor. It will perform necessary collectives to
 
 dtensor.redistribute(placements=[Replicate()] * mesh.ndim).to_local()
 
-grad_placements (List[Placement], optional) – the placements describes the future layout of any gradient layout of the full Tensor returned from this function. full_tensor converts DTensor to a full torch.Tensor and the returned torch.tensor might not be used as the original replicated DTensor layout later in the code. This argument is the hint that user can give to autograd in case the gradient layout of the returned tensor does not match the original replicated DTensor layout. If not specified, we will assume the gradient layout of the full tensor be replicated.
+grad_placements (List[Placement], optional) - the placements describes the future layout of any gradient layout of the full Tensor returned from this function. full_tensor converts DTensor to a full torch.Tensor and the returned torch.tensor might not be used as the original replicated DTensor layout later in the code. This argument is the hint that user can give to autograd in case the gradient layout of the returned tensor does not match the original replicated DTensor layout. If not specified, we will assume the gradient layout of the full tensor be replicated.
 
 A torch.Tensor object that represents the full tensor of this DTensor.
 
@@ -2992,15 +2992,15 @@ Partial() -> Shard(dim): reduce_scatter
 
 redistribute would correctly figure out the necessary redistribute steps for DTensors that are created either on 1-D or N-D DeviceMesh.
 
-device_mesh (DeviceMesh, optional) – DeviceMesh to place the DTensor. If not specified, it would use the current DTensor’s DeviceMesh. default: None
+device_mesh (DeviceMesh, optional) - DeviceMesh to place the DTensor. If not specified, it would use the current DTensor’s DeviceMesh. default: None
 
-placements (List[Placement], optional) – the new placements that describes how to place the DTensor into the DeviceMesh, must have the same number of elements as device_mesh.ndim. default: replicate on all mesh dimensions
+placements (List[Placement], optional) - the new placements that describes how to place the DTensor into the DeviceMesh, must have the same number of elements as device_mesh.ndim. default: replicate on all mesh dimensions
 
-async_op (bool, optional) – whether to perform the DTensor redistribute operation asynchronously or not. Default: False
+async_op (bool, optional) - whether to perform the DTensor redistribute operation asynchronously or not. Default: False
 
-forward_dtype (torch.dtype, optional) – the local tensor datatype can be converted to forward_dtype before redistributing the local tensor in its forward. The result DTensor will be in forward_dtype Default: None.
+forward_dtype (torch.dtype, optional) - the local tensor datatype can be converted to forward_dtype before redistributing the local tensor in its forward. The result DTensor will be in forward_dtype Default: None.
 
-backward_dtype (torch.dtype, optional) – the local tensor datatype can be converted to backward_dtype before redistributing the local tensor in its backward. The result DTensor gradient would be converted back to the current DTensor dtype. Default: None
+backward_dtype (torch.dtype, optional) - the local tensor datatype can be converted to backward_dtype before redistributing the local tensor in its backward. The result DTensor gradient would be converted back to the current DTensor dtype. Default: None
 
 redistribute is differentiable, which means user do not need to worry about the backward formula of the redistribute operation.
 
@@ -3008,7 +3008,7 @@ redistribute currently only supports redistributing DTensor on the same DeviceMe
 
 Get the local tensor of this DTensor on its current rank. For sharding it returns a local shard of the logical tensor view, for replication it returns the replica on its current rank.
 
-grad_placements (List[Placement], optional) – the placements describes the future layout of any gradient layout of the Tensor returned from this function. to_local converts DTensor to local tensor and the returned local tensor might not be used as the original DTensor layout later in the code. This argument is the hint that user can give to autograd in case the gradient layout of the returned tensor does not match the original DTensor layout. If not specified, we will assume the gradient layout remains the same as the original DTensor and use that for gradient computation.
+grad_placements (List[Placement], optional) - the placements describes the future layout of any gradient layout of the Tensor returned from this function. to_local converts DTensor to local tensor and the returned local tensor might not be used as the original DTensor layout later in the code. This argument is the hint that user can give to autograd in case the gradient layout of the returned tensor does not match the original DTensor layout. If not specified, we will assume the gradient layout remains the same as the original DTensor and use that for gradient computation.
 
 A torch.Tensor or AsyncCollectiveTensor object. it represents the local tensor on its current rank. When an AsyncCollectiveTensor object is returned, it means the local tensor is not ready yet (i.e. communication is not finished). In this case, user needs to call wait to wait the local tensor to be ready.
 
@@ -3028,7 +3028,7 @@ DTensor supports the following types of Placement on each DeviceMesh dimension:
 
 The Shard(dim) placement describes the DTensor sharding on tensor dimension dim over a corresponding DeviceMesh dimension, where each rank on the DeviceMesh dimension only holds a shard/piece of the global Tensor. The Shard(dim) placement follows the torch.chunk(dim) semantic, where the last few shards on the DeviceMesh dimension might be empty when the tensor dimension is not evenly divisible on the DeviceMesh dimension. The Shard placement can be used by all DTensor APIs (i.e. distribute_tensor, from_local, etc.)
 
-dim (int) – The tensor dimension that describes the DTensor is sharded over its corresponding DeviceMesh dimension.
+dim (int) - The tensor dimension that describes the DTensor is sharded over its corresponding DeviceMesh dimension.
 
 sharding on a tensor dimension where the tensor dimension size is not evenly divisible on a DeviceMesh dimension is currently experimental and subject to change.
 
@@ -3036,7 +3036,7 @@ The Replicate() placement describes the DTensor replicating on a corresponding D
 
 The Partial(reduce_op) placement describes the DTensor that is pending reduction on a specified DeviceMesh dimension, where each rank on the DeviceMesh dimension holds the partial value of the global Tensor. User can redistribute the Partial DTensor to a Replicate or Shard(dim) placement on the specified DeviceMesh dimension using redistribute, which would trigger necessary communication operations under the hood (i.e. allreduce, reduce_scatter).
 
-reduce_op (str, optional) – The reduction op to be used for the partial DTensor to produce Replicated/Sharded DTensor. Only element-wise reduction operations are supported, including: “sum”, “avg”, “product”, “max”, “min”, default: “sum”.
+reduce_op (str, optional) - The reduction op to be used for the partial DTensor to produce Replicated/Sharded DTensor. Only element-wise reduction operations are supported, including: “sum”, “avg”, “product”, “max”, “min”, default: “sum”.
 
 The Partial placement can be generated as a result of the DTensor operators, and can only be used by the DTensor.from_local API.
 
@@ -3056,13 +3056,13 @@ DTensor offers a distribute_tensor() API that could shard the model weights or T
 
 Distribute a leaf torch.Tensor (i.e. nn.Parameter/buffers) to the device_mesh according to the placements specified. The rank of device_mesh and placements must be the same. The tensor to distribute is the logical or “global” tensor, and the API would use the tensor from first rank of the DeviceMesh dimension as the source of truth to preserve the single-device semantic. If you want to construct a DTensor in the middle of the Autograd computation, please use DTensor.from_local() instead.
 
-tensor (torch.Tensor) – torch.Tensor to be distributed. Note that if you want to shard a tensor on a dimension that is not evenly divisible by the number of devices in that mesh dimension, we use torch.chunk semantic to shard the tensor and scatter the shards. The uneven sharding behavior is experimental and subject to change.
+tensor (torch.Tensor) - torch.Tensor to be distributed. Note that if you want to shard a tensor on a dimension that is not evenly divisible by the number of devices in that mesh dimension, we use torch.chunk semantic to shard the tensor and scatter the shards. The uneven sharding behavior is experimental and subject to change.
 
-device_mesh (DeviceMesh, optional) – DeviceMesh to distribute the tensor, if not specified, must be called under a DeviceMesh context manager, default: None
+device_mesh (DeviceMesh, optional) - DeviceMesh to distribute the tensor, if not specified, must be called under a DeviceMesh context manager, default: None
 
-placements (List[Placement], optional) – the placements that describes how to place the tensor on DeviceMesh, must have the same number of elements as device_mesh.ndim. If not specified, we will by default replicate the tensor across the device_mesh from the first rank of each dimension of the device_mesh.
+placements (List[Placement], optional) - the placements that describes how to place the tensor on DeviceMesh, must have the same number of elements as device_mesh.ndim. If not specified, we will by default replicate the tensor across the device_mesh from the first rank of each dimension of the device_mesh.
 
-src_data_rank (int, optional) – the rank of the source data for the logical/global tensor, it is used by distribute_tensor() to scatter/broadcast the shards/replicas to other ranks. By default, we use group_rank=0 on each DeviceMesh dimension as the source data to preserve the single-device semantic. If passing None explicitly, distribute_tensor() simply uses its local data instead of trying to preserve the single-device semantic via scatter/broadcast. Default: 0
+src_data_rank (int, optional) - the rank of the source data for the logical/global tensor, it is used by distribute_tensor() to scatter/broadcast the shards/replicas to other ranks. By default, we use group_rank=0 on each DeviceMesh dimension as the source data to preserve the single-device semantic. If passing None explicitly, distribute_tensor() simply uses its local data instead of trying to preserve the single-device semantic via scatter/broadcast. Default: 0
 
 A DTensor or XLAShardedTensor object.
 
@@ -3074,15 +3074,15 @@ This function expose three functions to control the parameters/inputs/outputs of
 
 1. To perform sharding on the module before runtime execution by specifying the partition_fn (i.e. allow user to convert Module parameters to DTensor parameters according to the partition_fn specified). 2. To control the inputs or outputs of the module during runtime execution by specifying the input_fn and output_fn. (i.e. convert the input to DTensor, convert the output back to torch.Tensor)
 
-module (nn.Module) – user module to be partitioned.
+module (nn.Module) - user module to be partitioned.
 
-device_mesh (DeviceMesh) – the device mesh to place the module.
+device_mesh (DeviceMesh) - the device mesh to place the module.
 
-partition_fn (Callable) – the function to partition parameters (i.e. shard certain parameters across the device_mesh). If partition_fn is not specified, by default we replicate all module parameters of module across the mesh.
+partition_fn (Callable) - the function to partition parameters (i.e. shard certain parameters across the device_mesh). If partition_fn is not specified, by default we replicate all module parameters of module across the mesh.
 
-input_fn (Callable) – specify the input distribution, i.e. could control how the input of the module is sharded. input_fn will be installed as a module forward_pre_hook (pre forward hook).
+input_fn (Callable) - specify the input distribution, i.e. could control how the input of the module is sharded. input_fn will be installed as a module forward_pre_hook (pre forward hook).
 
-output_fn (Callable) – specify the output distribution, i.e. could control how the output is sharded, or convert it back to torch.Tensor. output_fn will be installed as a module forward_hook (post forward hook).
+output_fn (Callable) - specify the output distribution, i.e. could control how the output is sharded, or convert it back to torch.Tensor. output_fn will be installed as a module forward_hook (post forward hook).
 
 A module that contains parameters/buffers that are all DTensor s.
 
@@ -3092,97 +3092,97 @@ DTensor also provides dedicated tensor factory functions to allow creating DTens
 
 Returns a DTensor filled with the scalar value 0.
 
-size (int...) – a sequence of integers defining the shape of the output DTensor. Can be a variable number of arguments or a collection like a list or tuple. E.g.: zeros(1,2,3..) or zeros([1,2,3..]) or zeros((1,2,3..))
+size (int...) - a sequence of integers defining the shape of the output DTensor. Can be a variable number of arguments or a collection like a list or tuple. E.g.: zeros(1,2,3..) or zeros([1,2,3..]) or zeros((1,2,3..))
 
-requires_grad (bool, optional) – If autograd should record operations on the returned DTensor. Default: False.
+requires_grad (bool, optional) - If autograd should record operations on the returned DTensor. Default: False.
 
-dtype (torch.dtype, optional) – the desired data type of returned DTensor. Default: if None, uses a global default (see torch.set_default_dtype()).
+dtype (torch.dtype, optional) - the desired data type of returned DTensor. Default: if None, uses a global default (see torch.set_default_dtype()).
 
-layout (torch.layout, optional) – the desired layout of returned DTensor. Default: torch.strided.
+layout (torch.layout, optional) - the desired layout of returned DTensor. Default: torch.strided.
 
-device_mesh – DeviceMesh type, contains the mesh info of ranks
+device_mesh - DeviceMesh type, contains the mesh info of ranks
 
-placements – a sequence of Placement type: Shard, Replicate
+placements - a sequence of Placement type: Shard, Replicate
 
 A DTensor object on each rank
 
 Returns a DTensor filled with the scalar value 1, with the shape defined by the variable argument size.
 
-size (int...) – a sequence of integers defining the shape of the output DTensor. Can be a variable number of arguments or a collection like a list or tuple. E.g.: ones(1,2,3..) or ones([1,2,3..]) or ones((1,2,3..))
+size (int...) - a sequence of integers defining the shape of the output DTensor. Can be a variable number of arguments or a collection like a list or tuple. E.g.: ones(1,2,3..) or ones([1,2,3..]) or ones((1,2,3..))
 
-dtype (torch.dtype, optional) – the desired data type of returned DTensor. Default: if None, uses a global default (see torch.set_default_dtype()).
+dtype (torch.dtype, optional) - the desired data type of returned DTensor. Default: if None, uses a global default (see torch.set_default_dtype()).
 
-layout (torch.layout, optional) – the desired layout of returned DTensor. Default: torch.strided.
+layout (torch.layout, optional) - the desired layout of returned DTensor. Default: torch.strided.
 
-requires_grad (bool, optional) – If autograd should record operations on the returned DTensor. Default: False.
+requires_grad (bool, optional) - If autograd should record operations on the returned DTensor. Default: False.
 
-device_mesh – DeviceMesh type, contains the mesh info of ranks
+device_mesh - DeviceMesh type, contains the mesh info of ranks
 
-placements – a sequence of Placement type: Shard, Replicate
+placements - a sequence of Placement type: Shard, Replicate
 
 A DTensor object on each rank
 
 Returns a DTensor filled with uninitialized data. The shape of the DTensor is defined by the variable argument size.
 
-size (int...) – a sequence of integers defining the shape of the output DTensor. Can be a variable number of arguments or a collection like a list or tuple. E.g.: empty(1,2,3..) or empty([1,2,3..]) or empty((1,2,3..))
+size (int...) - a sequence of integers defining the shape of the output DTensor. Can be a variable number of arguments or a collection like a list or tuple. E.g.: empty(1,2,3..) or empty([1,2,3..]) or empty((1,2,3..))
 
-dtype (torch.dtype, optional) – the desired data type of returned DTensor. Default: if None, uses a global default (see torch.set_default_dtype()). layout (torch.layout, optional): the desired layout of returned DTensor. Default: torch.strided.
+dtype (torch.dtype, optional) - the desired data type of returned DTensor. Default: if None, uses a global default (see torch.set_default_dtype()). layout (torch.layout, optional): the desired layout of returned DTensor. Default: torch.strided.
 
-requires_grad (bool, optional) – If autograd should record operations on the returned DTensor. Default: False.
+requires_grad (bool, optional) - If autograd should record operations on the returned DTensor. Default: False.
 
-device_mesh – DeviceMesh type, contains the mesh info of ranks
+device_mesh - DeviceMesh type, contains the mesh info of ranks
 
-placements – a sequence of Placement type: Shard, Replicate
+placements - a sequence of Placement type: Shard, Replicate
 
 A DTensor object on each rank
 
 Returns a DTensor filled with fill_value according to device_mesh and placements, with the shape defined by the argument size.
 
-size (int...) – a sequence of integers defining the shape of the output DTensor. Can be a variable number of arguments or a collection like a list or tuple. E.g.: ones(1,2,3..) or ones([1,2,3..]) or ones((1,2,3..))
+size (int...) - a sequence of integers defining the shape of the output DTensor. Can be a variable number of arguments or a collection like a list or tuple. E.g.: ones(1,2,3..) or ones([1,2,3..]) or ones((1,2,3..))
 
-fill_value (Scalar) – the value to fill the output tensor with.
+fill_value (Scalar) - the value to fill the output tensor with.
 
-dtype (torch.dtype, optional) – the desired data type of returned DTensor. Default: if None, uses a global default (see torch.set_default_dtype()).
+dtype (torch.dtype, optional) - the desired data type of returned DTensor. Default: if None, uses a global default (see torch.set_default_dtype()).
 
-layout (torch.layout, optional) – the desired layout of returned DTensor. Default: torch.strided.
+layout (torch.layout, optional) - the desired layout of returned DTensor. Default: torch.strided.
 
-requires_grad (bool, optional) – If autograd should record operations on the returned DTensor. Default: False.
+requires_grad (bool, optional) - If autograd should record operations on the returned DTensor. Default: False.
 
-device_mesh – DeviceMesh type, contains the mesh info of ranks.
+device_mesh - DeviceMesh type, contains the mesh info of ranks.
 
-placements – a sequence of Placement type: Shard, Replicate
+placements - a sequence of Placement type: Shard, Replicate
 
 A DTensor object on each rank
 
 Returns a DTensor filled with random numbers from a uniform distribution on the interval [0, 1). The shape of the tensor is defined by the variable argument size.
 
-size (int...) – a sequence of integers defining the shape of the output DTensor. Can be a variable number of arguments or a collection like a list or tuple. E.g.: ones(1,2,3..) or ones([1,2,3..]) or ones((1,2,3..))
+size (int...) - a sequence of integers defining the shape of the output DTensor. Can be a variable number of arguments or a collection like a list or tuple. E.g.: ones(1,2,3..) or ones([1,2,3..]) or ones((1,2,3..))
 
-dtype (torch.dtype, optional) – the desired data type of returned DTensor. Default: if None, uses a global default (see torch.set_default_dtype()).
+dtype (torch.dtype, optional) - the desired data type of returned DTensor. Default: if None, uses a global default (see torch.set_default_dtype()).
 
-layout (torch.layout, optional) – the desired layout of returned DTensor. Default: torch.strided.
+layout (torch.layout, optional) - the desired layout of returned DTensor. Default: torch.strided.
 
-requires_grad (bool, optional) – If autograd should record operations on the returned DTensor. Default: False.
+requires_grad (bool, optional) - If autograd should record operations on the returned DTensor. Default: False.
 
-device_mesh – DeviceMesh type, contains the mesh info of ranks.
+device_mesh - DeviceMesh type, contains the mesh info of ranks.
 
-placements – a sequence of Placement type: Shard, Replicate
+placements - a sequence of Placement type: Shard, Replicate
 
 A DTensor object on each rank
 
 Returns a DTensor filled with random numbers from a normal distribution with mean 0 and variance 1. The shape of the tensor is defined by the variable argument size.
 
-size (int...) – a sequence of integers defining the shape of the output DTensor. Can be a variable number of arguments or a collection like a list or tuple. E.g.: ones(1,2,3..) or ones([1,2,3..]) or ones((1,2,3..))
+size (int...) - a sequence of integers defining the shape of the output DTensor. Can be a variable number of arguments or a collection like a list or tuple. E.g.: ones(1,2,3..) or ones([1,2,3..]) or ones((1,2,3..))
 
-dtype (torch.dtype, optional) – the desired data type of returned DTensor. Default: if None, uses a global default (see torch.set_default_dtype()).
+dtype (torch.dtype, optional) - the desired data type of returned DTensor. Default: if None, uses a global default (see torch.set_default_dtype()).
 
-layout (torch.layout, optional) – the desired layout of returned DTensor. Default: torch.strided.
+layout (torch.layout, optional) - the desired layout of returned DTensor. Default: torch.strided.
 
-requires_grad (bool, optional) – If autograd should record operations on the returned DTensor. Default: False.
+requires_grad (bool, optional) - If autograd should record operations on the returned DTensor. Default: False.
 
-device_mesh – DeviceMesh type, contains the mesh info of ranks.
+device_mesh - DeviceMesh type, contains the mesh info of ranks.
 
-placements – a sequence of Placement type: Shard, Replicate
+placements - a sequence of Placement type: Shard, Replicate
 
 A DTensor object on each rank
 
@@ -3240,13 +3240,13 @@ DTensor also provides a set of experimental features. These features are either 
 
 context_parallel is an experimental API to enable context parallelism (CP). This API performs two actions: 1) patch the SDPA (torch.nn.functional.scaled_dot_product_attention) with the CP-enabled one, 2) shard buffers along the sequence dimension and each rank will preserve the corresponding shard according mesh.
 
-mesh (DeviceMesh) – the device mesh for the context parallelism.
+mesh (DeviceMesh) - the device mesh for the context parallelism.
 
-buffers (Optional[List[torch.Tensor]]) – buffers that the usage depend on the sequence dimension. Examples are input batch, labels and positional embedding buffers. These buffers must be sharded along the sequence dimension to ensure the accuracy. The sharding will happen in-place, the buffer’s shape will change within the context. The buffers will be restored after the context finishes. no_restore_buffers can be used to specify which buffers don’t need to be restored. Note that buffers should not contain any nn.Parameter.
+buffers (Optional[List[torch.Tensor]]) - buffers that the usage depend on the sequence dimension. Examples are input batch, labels and positional embedding buffers. These buffers must be sharded along the sequence dimension to ensure the accuracy. The sharding will happen in-place, the buffer’s shape will change within the context. The buffers will be restored after the context finishes. no_restore_buffers can be used to specify which buffers don’t need to be restored. Note that buffers should not contain any nn.Parameter.
 
-buffer_seq_dims (Optional[List[int]]) – the sequence dimensions of buffers.
+buffer_seq_dims (Optional[List[int]]) - the sequence dimensions of buffers.
 
-no_restore_buffers (Optional[Set[torch.Tensor]]) – buffers in these set won’t be restored after the context exits. This set must be a subset of buffers. If the buffers won’t be used after the context exits, these buffers can be put in this list to avoid extra restore time.
+no_restore_buffers (Optional[Set[torch.Tensor]]) - buffers in these set won’t be restored after the context exits. This set must be a subset of buffers. If the buffers won’t be used after the context exits, these buffers can be put in this list to avoid extra restore time.
 
 Generator[None, None, None]
 
@@ -3254,29 +3254,29 @@ torch.distributed.tensor.experimental.context_parallel is a prototype feature in
 
 local_map() is an experimental API that allows users to pass DTensor s to a function that is written to be applied on torch.Tensor s. It is done by extracting the local components of DTensor, call the function, and wrap the outputs to DTensor according to the out_placements.
 
-func (Callable) – the function to be applied on each local shard of DTensor s.
+func (Callable) - the function to be applied on each local shard of DTensor s.
 
-out_placements (Union[PlacementType, Tuple[PlacementType, …]]) – the desired placements of the DTensor s in func’s flattened output. If the flattened output is a single value, the out_placements should be of type PlacementType. Otherwise if the flattened output has multiple values, the out_placements should be a tuple of PlacementType values 1:1 mapping to the flattened output. Besides, for Tensor output, we use PlacementType as its placements (a Tuple[Placement] value). For non-Tensor output, the PlacementType should be None. Note that the only exception is when no DTensor argument is passed in. In this case, even if out_placements is not None, the result function should ignore the desired placements because the function is not running with DTensor s.
+out_placements (Union[PlacementType, Tuple[PlacementType, …]]) - the desired placements of the DTensor s in func’s flattened output. If the flattened output is a single value, the out_placements should be of type PlacementType. Otherwise if the flattened output has multiple values, the out_placements should be a tuple of PlacementType values 1:1 mapping to the flattened output. Besides, for Tensor output, we use PlacementType as its placements (a Tuple[Placement] value). For non-Tensor output, the PlacementType should be None. Note that the only exception is when no DTensor argument is passed in. In this case, even if out_placements is not None, the result function should ignore the desired placements because the function is not running with DTensor s.
 
-in_placements (Tuple[PlacementType, …], optional) – the required placements of the DTensor s in the flattened inputs of func. If in_placements is specified, local_map() would examine whether the placements of each DTensor argument is the same as the required placements or not. If the placements are not the same and redistribute_inputs is False, an exception will be raised. Otherwise if redistribute_inputs is True, the argument will be first redistributed to the required sharding placements before passing its local tensor to func. The only exception is when required placements are not None and the argument is a torch.Tensor. In this case, the placements examination will be skipped and the argument will be directly passed to func. If in_placements is None, no placements examination will be performed. Default: None
+in_placements (Tuple[PlacementType, …], optional) - the required placements of the DTensor s in the flattened inputs of func. If in_placements is specified, local_map() would examine whether the placements of each DTensor argument is the same as the required placements or not. If the placements are not the same and redistribute_inputs is False, an exception will be raised. Otherwise if redistribute_inputs is True, the argument will be first redistributed to the required sharding placements before passing its local tensor to func. The only exception is when required placements are not None and the argument is a torch.Tensor. In this case, the placements examination will be skipped and the argument will be directly passed to func. If in_placements is None, no placements examination will be performed. Default: None
 
-in_grad_placements (Tuple[PlacementType, …], optional) – the placements hint of the DTensor s gradient corresponds to the flattened input DTensor. This argument is the hint that user can give to to_local() in case the gradient layout of the local tensor input does not match its DTensor input layout. If not specified, we will assume the gradient layout of the local tensor input remains the same as the original DTensor input and use that for gradient computation. Default: None.
+in_grad_placements (Tuple[PlacementType, …], optional) - the placements hint of the DTensor s gradient corresponds to the flattened input DTensor. This argument is the hint that user can give to to_local() in case the gradient layout of the local tensor input does not match its DTensor input layout. If not specified, we will assume the gradient layout of the local tensor input remains the same as the original DTensor input and use that for gradient computation. Default: None.
 
-device_mesh (DeviceMesh, optional) – the device mesh that the output DTensor s are placed on. If not specified, this will be inferred from the first input DTensor’s device mesh. Default: None.
+device_mesh (DeviceMesh, optional) - the device mesh that the output DTensor s are placed on. If not specified, this will be inferred from the first input DTensor’s device mesh. Default: None.
 
-redistribute_inputs (bool, optional) – the bool value indicating whether to reshard the input DTensor s when their placements are different from the required input placements. If this value is False and some DTensor input has a different placement, an exception will be raised. Default: False.
+redistribute_inputs (bool, optional) - the bool value indicating whether to reshard the input DTensor s when their placements are different from the required input placements. If this value is False and some DTensor input has a different placement, an exception will be raised. Default: False.
 
 A Callable that applies func to each local shard of the input DTensor and returns a DTensor constructed from the return value of func.
 
-AssertionError – For any non-DTensor output, we require its corresponding output placement in out_placements be None. An AssertionError will be raised if this is not the case.
+AssertionError - For any non-DTensor output, we require its corresponding output placement in out_placements be None. An AssertionError will be raised if this is not the case.
 
-ValueError – If redistribute_inputs=False but the input DTensor needs a redistribution according to in_placements.
+ValueError - If redistribute_inputs=False but the input DTensor needs a redistribution according to in_placements.
 
 This API is currently experimental and subject to change
 
 register_sharding() is an experimental API that allows users to register sharding strategies for an operator when the tensor inputs and outputs are DTensor. It can be useful when: (1) there doesn’t exist a default sharding strategy for op, e.g. when op is a custom operator that is not supported by DTensor; (2) when users would like to overwrite default sharding strategies of existing operators.
 
-op (Union[OpOverload, List[OpOverload]]) – An op or a list of ops to register the customized sharding function.
+op (Union[OpOverload, List[OpOverload]]) - An op or a list of ops to register the customized sharding function.
 
 A function decorator which can be used to wrap a function that defines the sharding strategy for the operator specified in op. The defined sharding strategy will be registered to DTensor and will override the default sharding strategy if DTensor has already implemented the operator. The customized sharding function takes the same inputs as the original op (except that if an arg is a torch.Tensor, it will be replaced by a tensor-like object that DTensor uses internally). The function should return a sequence of 2-tuples, each specifying acceptable output placements and its corresponding input placements.
 
@@ -3335,41 +3335,41 @@ As of PyTorch 1.12, FSDP offers limited support for shared parameters. If enhanc
 
 You should avoid modifying the parameters between forward and backward without using the summon_full_params context, as the modifications may not persist.
 
-module (nn.Module) – This is the module to be wrapped with FSDP.
+module (nn.Module) - This is the module to be wrapped with FSDP.
 
-process_group (Optional[Union[ProcessGroup, Tuple[ProcessGroup, ProcessGroup]]]) – This is the process group over which the model is sharded and thus the one used for FSDP’s all-gather and reduce-scatter collective communications. If None, then FSDP uses the default process group. For hybrid sharding strategies such as ShardingStrategy.HYBRID_SHARD, users can pass in a tuple of process groups, representing the groups over which to shard and replicate, respectively. If None, then FSDP constructs process groups for the user to shard intra-node and replicate inter-node. (Default: None)
+process_group (Optional[Union[ProcessGroup, Tuple[ProcessGroup, ProcessGroup]]]) - This is the process group over which the model is sharded and thus the one used for FSDP’s all-gather and reduce-scatter collective communications. If None, then FSDP uses the default process group. For hybrid sharding strategies such as ShardingStrategy.HYBRID_SHARD, users can pass in a tuple of process groups, representing the groups over which to shard and replicate, respectively. If None, then FSDP constructs process groups for the user to shard intra-node and replicate inter-node. (Default: None)
 
-sharding_strategy (Optional[ShardingStrategy]) – This configures the sharding strategy, which may trade off memory saving and communication overhead. See ShardingStrategy for details. (Default: FULL_SHARD)
+sharding_strategy (Optional[ShardingStrategy]) - This configures the sharding strategy, which may trade off memory saving and communication overhead. See ShardingStrategy for details. (Default: FULL_SHARD)
 
-cpu_offload (Optional[CPUOffload]) – This configures CPU offloading. If this is set to None, then no CPU offloading happens. See CPUOffload for details. (Default: None)
+cpu_offload (Optional[CPUOffload]) - This configures CPU offloading. If this is set to None, then no CPU offloading happens. See CPUOffload for details. (Default: None)
 
-auto_wrap_policy (Optional[Union[Callable[[nn.Module, bool, int], bool], ModuleWrapPolicy, CustomPolicy]]) – This specifies a policy to apply FSDP to submodules of module, which is needed for communication and computation overlap and thus affects performance. If None, then FSDP only applies to module, and users should manually apply FSDP to parent modules themselves (proceeding bottom-up). For convenience, this accepts ModuleWrapPolicy directly, which allows users to specify the module classes to wrap (e.g. the transformer block). Otherwise, this should be a callable that takes in three arguments module: nn.Module, recurse: bool, and nonwrapped_numel: int and should return a bool specifying whether the passed-in module should have FSDP applied if recurse=False or if the traversal should continue into the module’s subtree if recurse=True. Users may add additional arguments to the callable. The size_based_auto_wrap_policy in torch.distributed.fsdp.wrap.py gives an example callable that applies FSDP to a module if the parameters in its subtree exceed 100M numel. We recommend printing the model after applying FSDP and adjusting as needed. Example: >>> def custom_auto_wrap_policy( >>> module: nn.Module, >>> recurse: bool, >>> nonwrapped_numel: int, >>> # Additional custom arguments >>> min_num_params: int = int(1e8), >>> ) -> bool: >>> return nonwrapped_numel >= min_num_params >>> # Configure a custom `min_num_params` >>> my_auto_wrap_policy = functools.partial(custom_auto_wrap_policy, min_num_params=int(1e5))
+auto_wrap_policy (Optional[Union[Callable[[nn.Module, bool, int], bool], ModuleWrapPolicy, CustomPolicy]]) - This specifies a policy to apply FSDP to submodules of module, which is needed for communication and computation overlap and thus affects performance. If None, then FSDP only applies to module, and users should manually apply FSDP to parent modules themselves (proceeding bottom-up). For convenience, this accepts ModuleWrapPolicy directly, which allows users to specify the module classes to wrap (e.g. the transformer block). Otherwise, this should be a callable that takes in three arguments module: nn.Module, recurse: bool, and nonwrapped_numel: int and should return a bool specifying whether the passed-in module should have FSDP applied if recurse=False or if the traversal should continue into the module’s subtree if recurse=True. Users may add additional arguments to the callable. The size_based_auto_wrap_policy in torch.distributed.fsdp.wrap.py gives an example callable that applies FSDP to a module if the parameters in its subtree exceed 100M numel. We recommend printing the model after applying FSDP and adjusting as needed. Example: >>> def custom_auto_wrap_policy( >>> module: nn.Module, >>> recurse: bool, >>> nonwrapped_numel: int, >>> # Additional custom arguments >>> min_num_params: int = int(1e8), >>> ) -> bool: >>> return nonwrapped_numel >= min_num_params >>> # Configure a custom `min_num_params` >>> my_auto_wrap_policy = functools.partial(custom_auto_wrap_policy, min_num_params=int(1e5))
 
 This specifies a policy to apply FSDP to submodules of module, which is needed for communication and computation overlap and thus affects performance. If None, then FSDP only applies to module, and users should manually apply FSDP to parent modules themselves (proceeding bottom-up). For convenience, this accepts ModuleWrapPolicy directly, which allows users to specify the module classes to wrap (e.g. the transformer block). Otherwise, this should be a callable that takes in three arguments module: nn.Module, recurse: bool, and nonwrapped_numel: int and should return a bool specifying whether the passed-in module should have FSDP applied if recurse=False or if the traversal should continue into the module’s subtree if recurse=True. Users may add additional arguments to the callable. The size_based_auto_wrap_policy in torch.distributed.fsdp.wrap.py gives an example callable that applies FSDP to a module if the parameters in its subtree exceed 100M numel. We recommend printing the model after applying FSDP and adjusting as needed.
 
-backward_prefetch (Optional[BackwardPrefetch]) – This configures explicit backward prefetching of all-gathers. If None, then FSDP does not backward prefetch, and there is no communication and computation overlap in the backward pass. See BackwardPrefetch for details. (Default: BACKWARD_PRE)
+backward_prefetch (Optional[BackwardPrefetch]) - This configures explicit backward prefetching of all-gathers. If None, then FSDP does not backward prefetch, and there is no communication and computation overlap in the backward pass. See BackwardPrefetch for details. (Default: BACKWARD_PRE)
 
-mixed_precision (Optional[MixedPrecision]) – This configures native mixed precision for FSDP. If this is set to None, then no mixed precision is used. Otherwise, parameter, buffer, and gradient reduction dtypes can be set. See MixedPrecision for details. (Default: None)
+mixed_precision (Optional[MixedPrecision]) - This configures native mixed precision for FSDP. If this is set to None, then no mixed precision is used. Otherwise, parameter, buffer, and gradient reduction dtypes can be set. See MixedPrecision for details. (Default: None)
 
-ignored_modules (Optional[Iterable[torch.nn.Module]]) – Modules whose own parameters and child modules’ parameters and buffers are ignored by this instance. None of the modules directly in ignored_modules should be FullyShardedDataParallel instances, and any child modules that are already-constructed FullyShardedDataParallel instances will not be ignored if they are nested under this instance. This argument may be used to avoid sharding specific parameters at module granularity when using an auto_wrap_policy or if parameters’ sharding is not managed by FSDP. (Default: None)
+ignored_modules (Optional[Iterable[torch.nn.Module]]) - Modules whose own parameters and child modules’ parameters and buffers are ignored by this instance. None of the modules directly in ignored_modules should be FullyShardedDataParallel instances, and any child modules that are already-constructed FullyShardedDataParallel instances will not be ignored if they are nested under this instance. This argument may be used to avoid sharding specific parameters at module granularity when using an auto_wrap_policy or if parameters’ sharding is not managed by FSDP. (Default: None)
 
-param_init_fn (Optional[Callable[[nn.Module], None]]) – A Callable[torch.nn.Module] -> None that specifies how modules that are currently on the meta device should be initialized onto an actual device. As of v1.12, FSDP detects modules with parameters or buffers on meta device via is_meta and either applies param_init_fn if specified or calls nn.Module.reset_parameters() otherwise. For both cases, the implementation should only initialize the parameters/buffers of the module, not those of its submodules. This is to avoid re-initialization. In addition, FSDP also supports deferred initialization via torchdistX’s (pytorch/torchdistX) deferred_init() API, where the deferred modules are initialized by calling param_init_fn if specified or torchdistX’s default materialize_module() otherwise. If param_init_fn is specified, then it is applied to all meta-device modules, meaning that it should probably case on the module type. FSDP calls the initialization function before parameter flattening and sharding. Example: >>> module = MyModule(device="meta") >>> def my_init_fn(module: nn.Module): >>> # E.g. initialize depending on the module type >>> ... >>> fsdp_model = FSDP(module, param_init_fn=my_init_fn, auto_wrap_policy=size_based_auto_wrap_policy) >>> print(next(fsdp_model.parameters()).device) # current CUDA device >>> # With torchdistX >>> module = deferred_init.deferred_init(MyModule, device="cuda") >>> # Will initialize via deferred_init.materialize_module(). >>> fsdp_model = FSDP(module, auto_wrap_policy=size_based_auto_wrap_policy)
+param_init_fn (Optional[Callable[[nn.Module], None]]) - A Callable[torch.nn.Module] -> None that specifies how modules that are currently on the meta device should be initialized onto an actual device. As of v1.12, FSDP detects modules with parameters or buffers on meta device via is_meta and either applies param_init_fn if specified or calls nn.Module.reset_parameters() otherwise. For both cases, the implementation should only initialize the parameters/buffers of the module, not those of its submodules. This is to avoid re-initialization. In addition, FSDP also supports deferred initialization via torchdistX’s (pytorch/torchdistX) deferred_init() API, where the deferred modules are initialized by calling param_init_fn if specified or torchdistX’s default materialize_module() otherwise. If param_init_fn is specified, then it is applied to all meta-device modules, meaning that it should probably case on the module type. FSDP calls the initialization function before parameter flattening and sharding. Example: >>> module = MyModule(device="meta") >>> def my_init_fn(module: nn.Module): >>> # E.g. initialize depending on the module type >>> ... >>> fsdp_model = FSDP(module, param_init_fn=my_init_fn, auto_wrap_policy=size_based_auto_wrap_policy) >>> print(next(fsdp_model.parameters()).device) # current CUDA device >>> # With torchdistX >>> module = deferred_init.deferred_init(MyModule, device="cuda") >>> # Will initialize via deferred_init.materialize_module(). >>> fsdp_model = FSDP(module, auto_wrap_policy=size_based_auto_wrap_policy)
 
 A Callable[torch.nn.Module] -> None that specifies how modules that are currently on the meta device should be initialized onto an actual device. As of v1.12, FSDP detects modules with parameters or buffers on meta device via is_meta and either applies param_init_fn if specified or calls nn.Module.reset_parameters() otherwise. For both cases, the implementation should only initialize the parameters/buffers of the module, not those of its submodules. This is to avoid re-initialization. In addition, FSDP also supports deferred initialization via torchdistX’s (pytorch/torchdistX) deferred_init() API, where the deferred modules are initialized by calling param_init_fn if specified or torchdistX’s default materialize_module() otherwise. If param_init_fn is specified, then it is applied to all meta-device modules, meaning that it should probably case on the module type. FSDP calls the initialization function before parameter flattening and sharding.
 
-device_id (Optional[Union[int, torch.device]]) – An int or torch.device giving the CUDA device on which FSDP initialization takes place, including the module initialization if needed and the parameter sharding. This should be specified to improve initialization speed if module is on CPU. If the default CUDA device was set (e.g. via torch.cuda.set_device), then the user may pass torch.cuda.current_device to this. (Default: None)
+device_id (Optional[Union[int, torch.device]]) - An int or torch.device giving the CUDA device on which FSDP initialization takes place, including the module initialization if needed and the parameter sharding. This should be specified to improve initialization speed if module is on CPU. If the default CUDA device was set (e.g. via torch.cuda.set_device), then the user may pass torch.cuda.current_device to this. (Default: None)
 
-sync_module_states (bool) – If True, then each FSDP module will broadcast module parameters and buffers from rank 0 to ensure that they are replicated across ranks (adding communication overhead to this constructor). This can help load state_dict checkpoints via load_state_dict in a memory efficient way. See FullStateDictConfig for an example of this. (Default: False)
+sync_module_states (bool) - If True, then each FSDP module will broadcast module parameters and buffers from rank 0 to ensure that they are replicated across ranks (adding communication overhead to this constructor). This can help load state_dict checkpoints via load_state_dict in a memory efficient way. See FullStateDictConfig for an example of this. (Default: False)
 
-forward_prefetch (bool) – If True, then FSDP explicitly prefetches the next forward-pass all-gather before the current forward computation. This is only useful for CPU-bound workloads, in which case issuing the next all-gather earlier may improve overlap. This should only be used for static-graph models since the prefetching follows the first iteration’s execution order. (Default: False)
+forward_prefetch (bool) - If True, then FSDP explicitly prefetches the next forward-pass all-gather before the current forward computation. This is only useful for CPU-bound workloads, in which case issuing the next all-gather earlier may improve overlap. This should only be used for static-graph models since the prefetching follows the first iteration’s execution order. (Default: False)
 
-limit_all_gathers (bool) – If True, then FSDP explicitly synchronizes the CPU thread to ensure GPU memory usage from only two consecutive FSDP instances (the current instance running computation and the next instance whose all-gather is prefetched). If False, then FSDP allows the CPU thread to issue all-gathers without any extra synchronization. (Default: True) We often refer to this feature as the “rate limiter”. This flag should only be set to False for specific CPU-bound workloads with low memory pressure in which case the CPU thread can aggressively issue all kernels without concern for the GPU memory usage.
+limit_all_gathers (bool) - If True, then FSDP explicitly synchronizes the CPU thread to ensure GPU memory usage from only two consecutive FSDP instances (the current instance running computation and the next instance whose all-gather is prefetched). If False, then FSDP allows the CPU thread to issue all-gathers without any extra synchronization. (Default: True) We often refer to this feature as the “rate limiter”. This flag should only be set to False for specific CPU-bound workloads with low memory pressure in which case the CPU thread can aggressively issue all kernels without concern for the GPU memory usage.
 
-use_orig_params (bool) – Setting this to True has FSDP use module ‘s original parameters. FSDP exposes those original parameters to the user via nn.Module.named_parameters() instead of FSDP’s internal FlatParameter s. This means that the optimizer step runs on the original parameters, enabling per-original-parameter hyperparameters. FSDP preserves the original parameter variables and manipulates their data between unsharded and sharded forms, where they are always views into the underlying unsharded or sharded FlatParameter, respectively. With the current algorithm, the sharded form is always 1D, losing the original tensor structure. An original parameter may have all, some, or none of its data present for a given rank. In the none case, its data will be like a size-0 empty tensor. Users should not author programs relying on what data is present for a given original parameter in its sharded form. True is required to use torch.compile(). Setting this to False exposes FSDP’s internal FlatParameter s to the user via nn.Module.named_parameters(). (Default: False)
+use_orig_params (bool) - Setting this to True has FSDP use module ‘s original parameters. FSDP exposes those original parameters to the user via nn.Module.named_parameters() instead of FSDP’s internal FlatParameter s. This means that the optimizer step runs on the original parameters, enabling per-original-parameter hyperparameters. FSDP preserves the original parameter variables and manipulates their data between unsharded and sharded forms, where they are always views into the underlying unsharded or sharded FlatParameter, respectively. With the current algorithm, the sharded form is always 1D, losing the original tensor structure. An original parameter may have all, some, or none of its data present for a given rank. In the none case, its data will be like a size-0 empty tensor. Users should not author programs relying on what data is present for a given original parameter in its sharded form. True is required to use torch.compile(). Setting this to False exposes FSDP’s internal FlatParameter s to the user via nn.Module.named_parameters(). (Default: False)
 
-ignored_states (Optional[Iterable[torch.nn.Parameter]], Optional[Iterable[torch.nn.Module]]) – Ignored parameters or modules that will not be managed by this FSDP instance, meaning that the parameters are not sharded and their gradients are not reduced across ranks. This argument unifies with the existing ignored_modules argument, and we may deprecate ignored_modules soon. For backward compatibility, we keep both ignored_states and ignored_modules`, but FSDP only allows one of them to be specified as not None.
+ignored_states (Optional[Iterable[torch.nn.Parameter]], Optional[Iterable[torch.nn.Module]]) - Ignored parameters or modules that will not be managed by this FSDP instance, meaning that the parameters are not sharded and their gradients are not reduced across ranks. This argument unifies with the existing ignored_modules argument, and we may deprecate ignored_modules soon. For backward compatibility, we keep both ignored_states and ignored_modules`, but FSDP only allows one of them to be specified as not None.
 
-device_mesh (Optional[DeviceMesh]) – DeviceMesh can be used as an alternative to process_group. When device_mesh is passed, FSDP will use the underlying process groups for all-gather and reduce-scatter collective communications. Therefore, these two args need to be mutually exclusive. For hybrid sharding strategies such as ShardingStrategy.HYBRID_SHARD, users can pass in a 2D DeviceMesh instead of a tuple of process groups. For 2D FSDP + TP, users are required to pass in device_mesh instead of process_group. For more DeviceMesh info, please visit: https://pytorch.org/tutorials/recipes/distributed_device_mesh.html
+device_mesh (Optional[DeviceMesh]) - DeviceMesh can be used as an alternative to process_group. When device_mesh is passed, FSDP will use the underlying process groups for all-gather and reduce-scatter collective communications. Therefore, these two args need to be mutually exclusive. For hybrid sharding strategies such as ShardingStrategy.HYBRID_SHARD, users can pass in a 2D DeviceMesh instead of a tuple of process groups. For 2D FSDP + TP, users are required to pass in device_mesh instead of process_group. For more DeviceMesh info, please visit: https://pytorch.org/tutorials/recipes/distributed_device_mesh.html
 
 Apply fn recursively to every submodule (as returned by .children()) as well as self.
 
@@ -3377,7 +3377,7 @@ Typical use includes initializing the parameters of a model (see also torch.nn.i
 
 Compared to torch.nn.Module.apply, this version additionally gathers the full parameters before applying fn. It should not be called from within another summon_full_params context.
 
-fn (Module -> None) – function to be applied to each submodule
+fn (Module -> None) - function to be applied to each submodule
 
 Check if this instance is a root FSDP module.
 
@@ -3385,9 +3385,9 @@ Clip the gradient norm of all parameters.
 
 The norm is computed over all parameters’ gradients as viewed as a single vector, and the gradients are modified in-place.
 
-max_norm (float or int) – max norm of the gradients
+max_norm (float or int) - max norm of the gradients
 
-norm_type (float or int) – type of the used p-norm. Can be 'inf' for infinity norm.
+norm_type (float or int) - type of the used p-norm. Can be 'inf' for infinity norm.
 
 Total norm of the parameters (viewed as a single vector).
 
@@ -3403,11 +3403,11 @@ Flatten a sharded optimizer state-dict.
 
 The API is similar to shard_full_optim_state_dict(). The only difference is that the input sharded_optim_state_dict should be returned from sharded_optim_state_dict(). Therefore, there will be all-gather calls on each rank to gather ShardedTensor s.
 
-sharded_optim_state_dict (Dict[str, Any]) – Optimizer state dict corresponding to the unflattened parameters and holding the sharded optimizer state.
+sharded_optim_state_dict (Dict[str, Any]) - Optimizer state dict corresponding to the unflattened parameters and holding the sharded optimizer state.
 
-model (torch.nn.Module) – Refer to shard_full_optim_state_dict().
+model (torch.nn.Module) - Refer to shard_full_optim_state_dict().
 
-optim (torch.optim.Optimizer) – Optimizer for model ‘s parameters.
+optim (torch.optim.Optimizer) - Optimizer for model ‘s parameters.
 
 Refer to shard_full_optim_state_dict().
 
@@ -3417,9 +3417,9 @@ Return all nested FSDP instances.
 
 This possibly includes module itself and only includes FSDP root modules if root_only=True.
 
-module (torch.nn.Module) – Root module, which may or may not be an FSDP module.
+module (torch.nn.Module) - Root module, which may or may not be an FSDP module.
 
-root_only (bool) – Whether to return only FSDP root modules. (Default: False)
+root_only (bool) - Whether to return only FSDP root modules. (Default: False)
 
 FSDP modules that are nested in the input module.
 
@@ -3435,15 +3435,15 @@ Unlike torch.optim.Optimizer.state_dict(), this method uses full parameter names
 
 Like in torch.optim.Optimizer.state_dict(), the tensors contained in the optimizer state dict are not cloned, so there may be aliasing surprises. For best practices, consider saving the returned optimizer state dict immediately, e.g. using torch.save().
 
-model (torch.nn.Module) – Root module (which may or may not be a FullyShardedDataParallel instance) whose parameters were passed into the optimizer optim.
+model (torch.nn.Module) - Root module (which may or may not be a FullyShardedDataParallel instance) whose parameters were passed into the optimizer optim.
 
-optim (torch.optim.Optimizer) – Optimizer for model ‘s parameters.
+optim (torch.optim.Optimizer) - Optimizer for model ‘s parameters.
 
-optim_input (Optional[Union[List[Dict[str, Any]], Iterable[torch.nn.Parameter]]]) – Input passed into the optimizer optim representing either a list of parameter groups or an iterable of parameters; if None, then this method assumes the input was model.parameters(). This argument is deprecated, and there is no need to pass it in anymore. (Default: None)
+optim_input (Optional[Union[List[Dict[str, Any]], Iterable[torch.nn.Parameter]]]) - Input passed into the optimizer optim representing either a list of parameter groups or an iterable of parameters; if None, then this method assumes the input was model.parameters(). This argument is deprecated, and there is no need to pass it in anymore. (Default: None)
 
-rank0_only (bool) – If True, saves the populated dict only on rank 0; if False, saves it on all ranks. (Default: True)
+rank0_only (bool) - If True, saves the populated dict only on rank 0; if False, saves it on all ranks. (Default: True)
 
-group (dist.ProcessGroup) – Model’s process group or None if using the default process group. (Default: None)
+group (dist.ProcessGroup) - Model’s process group or None if using the default process group. (Default: None)
 
 A dict containing the optimizer state for model ‘s original unflattened parameters and including keys “state” and “param_groups” following the convention of torch.optim.Optimizer.state_dict(). If rank0_only=True, then nonzero ranks return an empty dict.
 
@@ -3453,9 +3453,9 @@ The target module does not have to be an FSDP module.
 
 A StateDictSettings containing the state_dict_type and state_dict / optim_state_dict configs that are currently set.
 
-AssertionError` if the StateDictSettings for different –
+AssertionError` if the StateDictSettings for different -
 
-FSDP submodules differ. –
+FSDP submodules differ. -
 
 Return the wrapped module.
 
@@ -3489,13 +3489,13 @@ For sharded optimizer state_dict, all states are unflattened but sharded. CPU on
 
 For local state_dict, no transformation will be performed. But a state will be converted from nn.Tensor to ShardedTensor to represent its sharding nature (this is not supported yet).
 
-model (torch.nn.Module) – Root module (which may or may not be a FullyShardedDataParallel instance) whose parameters were passed into the optimizer optim.
+model (torch.nn.Module) - Root module (which may or may not be a FullyShardedDataParallel instance) whose parameters were passed into the optimizer optim.
 
-optim (torch.optim.Optimizer) – Optimizer for model ‘s parameters.
+optim (torch.optim.Optimizer) - Optimizer for model ‘s parameters.
 
-optim_state_dict (Dict[str, Any]) – the target optimizer state_dict to transform. If the value is None, optim.state_dict() will be used. ( Default: None)
+optim_state_dict (Dict[str, Any]) - the target optimizer state_dict to transform. If the value is None, optim.state_dict() will be used. ( Default: None)
 
-group (dist.ProcessGroup) – Model’s process group across which parameters are sharded or None if using the default process group. ( Default: None)
+group (dist.ProcessGroup) - Model’s process group across which parameters are sharded or None if using the default process group. ( Default: None)
 
 A dict containing the optimizer state for model. The sharding of the optimizer state is based on state_dict_type.
 
@@ -3503,17 +3503,17 @@ Convert an optimizer state-dict so that it can be loaded into the optimizer asso
 
 Given a optim_state_dict that is transformed through optim_state_dict(), it gets converted to the flattened optimizer state_dict that can be loaded to optim which is the optimizer for model. model must be sharded by FullyShardedDataParallel.
 
-model (torch.nn.Module) – Root module (which may or may not be a FullyShardedDataParallel instance) whose parameters were passed into the optimizer optim.
+model (torch.nn.Module) - Root module (which may or may not be a FullyShardedDataParallel instance) whose parameters were passed into the optimizer optim.
 
-optim (torch.optim.Optimizer) – Optimizer for model ‘s parameters.
+optim (torch.optim.Optimizer) - Optimizer for model ‘s parameters.
 
-optim_state_dict (Dict[str, Any]) – The optimizer states to be loaded.
+optim_state_dict (Dict[str, Any]) - The optimizer states to be loaded.
 
-is_named_optimizer (bool) – Is this optimizer a NamedOptimizer or KeyedOptimizer. Only set to True if optim is TorchRec’s KeyedOptimizer or torch.distributed’s NamedOptimizer.
+is_named_optimizer (bool) - Is this optimizer a NamedOptimizer or KeyedOptimizer. Only set to True if optim is TorchRec’s KeyedOptimizer or torch.distributed’s NamedOptimizer.
 
-load_directly (bool) – If this is set to True, this API will also call optim.load_state_dict(result) before returning the result. Otherwise, users are responsible to call optim.load_state_dict() (Default: False)
+load_directly (bool) - If this is set to True, this API will also call optim.load_state_dict(result) before returning the result. Otherwise, users are responsible to call optim.load_state_dict() (Default: False)
 
-group (dist.ProcessGroup) – Model’s process group across which parameters are sharded or None if using the default process group. ( Default: None)
+group (dist.ProcessGroup) - Model’s process group across which parameters are sharded or None if using the default process group. ( Default: None)
 
 Register a communication hook.
 
@@ -3521,11 +3521,11 @@ This is an enhancement that provides a flexible hook to users where they can spe
 
 FSDP communication hook should be registered before running an initial forward pass and only once.
 
-state (object) – Passed to the hook to maintain any state information during the training process. Examples include error feedback in gradient compression, peers to communicate with next in GossipGrad, etc. It is locally stored by each worker and shared by all the gradient tensors on the worker.
+state (object) - Passed to the hook to maintain any state information during the training process. Examples include error feedback in gradient compression, peers to communicate with next in GossipGrad, etc. It is locally stored by each worker and shared by all the gradient tensors on the worker.
 
 Passed to the hook to maintain any state information during the training process. Examples include error feedback in gradient compression, peers to communicate with next in GossipGrad, etc. It is locally stored by each worker and shared by all the gradient tensors on the worker.
 
-hook (Callable) – Callable, which has one of the following signatures: 1) hook: Callable[torch.Tensor] -> None: This function takes in a Python tensor, which represents the full, flattened, unsharded gradient with respect to all variables corresponding to the model this FSDP unit is wrapping (that are not wrapped by other FSDP sub-units). It then performs all necessary processing and returns None; 2) hook: Callable[torch.Tensor, torch.Tensor] -> None: This function takes in two Python tensors, the first one represents the full, flattened, unsharded gradient with respect to all variables corresponding to the model this FSDP unit is wrapping (that are not wrapped by other FSDP sub-units). The latter represents a pre-sized tensor to store a chunk of a sharded gradient after reduction. In both cases, callable performs all necessary processing and returns None. Callables with signature 1 are expected to handle gradient communication for a NO_SHARD case. Callables with signature 2 are expected to handle gradient communication for sharded cases.
+hook (Callable) - Callable, which has one of the following signatures: 1) hook: Callable[torch.Tensor] -> None: This function takes in a Python tensor, which represents the full, flattened, unsharded gradient with respect to all variables corresponding to the model this FSDP unit is wrapping (that are not wrapped by other FSDP sub-units). It then performs all necessary processing and returns None; 2) hook: Callable[torch.Tensor, torch.Tensor] -> None: This function takes in two Python tensors, the first one represents the full, flattened, unsharded gradient with respect to all variables corresponding to the model this FSDP unit is wrapping (that are not wrapped by other FSDP sub-units). The latter represents a pre-sized tensor to store a chunk of a sharded gradient after reduction. In both cases, callable performs all necessary processing and returns None. Callables with signature 1 are expected to handle gradient communication for a NO_SHARD case. Callables with signature 2 are expected to handle gradient communication for sharded cases.
 
 Re-keys the optimizer state dict optim_state_dict to use the key type optim_state_key_type.
 
@@ -3543,15 +3543,15 @@ Returns the sharded optimizer state dict on each rank. The return value is the s
 
 Both shard_full_optim_state_dict() and scatter_full_optim_state_dict() may be used to get the sharded optimizer state dict to load. Assuming that the full optimizer state dict resides in CPU memory, the former requires each rank to have the full dict in CPU memory, where each rank individually shards the dict without any communication, while the latter requires only rank 0 to have the full dict in CPU memory, where rank 0 moves each shard to GPU memory (for NCCL) and communicates it to ranks appropriately. Hence, the former has higher aggregate CPU memory cost, while the latter has higher communication cost.
 
-full_optim_state_dict (Optional[Dict[str, Any]]) – Optimizer state dict corresponding to the unflattened parameters and holding the full non-sharded optimizer state if on rank 0; the argument is ignored on nonzero ranks.
+full_optim_state_dict (Optional[Dict[str, Any]]) - Optimizer state dict corresponding to the unflattened parameters and holding the full non-sharded optimizer state if on rank 0; the argument is ignored on nonzero ranks.
 
-model (torch.nn.Module) – Root module (which may or may not be a FullyShardedDataParallel instance) whose parameters correspond to the optimizer state in full_optim_state_dict.
+model (torch.nn.Module) - Root module (which may or may not be a FullyShardedDataParallel instance) whose parameters correspond to the optimizer state in full_optim_state_dict.
 
-optim_input (Optional[Union[List[Dict[str, Any]], Iterable[torch.nn.Parameter]]]) – Input passed into the optimizer representing either a list of parameter groups or an iterable of parameters; if None, then this method assumes the input was model.parameters(). This argument is deprecated, and there is no need to pass it in anymore. (Default: None)
+optim_input (Optional[Union[List[Dict[str, Any]], Iterable[torch.nn.Parameter]]]) - Input passed into the optimizer representing either a list of parameter groups or an iterable of parameters; if None, then this method assumes the input was model.parameters(). This argument is deprecated, and there is no need to pass it in anymore. (Default: None)
 
-optim (Optional[torch.optim.Optimizer]) – Optimizer that will load the state dict returned by this method. This is the preferred argument to use over optim_input. (Default: None)
+optim (Optional[torch.optim.Optimizer]) - Optimizer that will load the state dict returned by this method. This is the preferred argument to use over optim_input. (Default: None)
 
-group (dist.ProcessGroup) – Model’s process group or None if using the default process group. (Default: None)
+group (dist.ProcessGroup) - Model’s process group or None if using the default process group. (Default: None)
 
 The full optimizer state dict now remapped to flattened parameters instead of unflattened parameters and restricted to only include this rank’s part of the optimizer state.
 
@@ -3563,13 +3563,13 @@ This API should be called for only the top-level (root) module.
 
 This API enables users to transparently use the conventional state_dict API to take model checkpoints in cases where the root FSDP module is wrapped by another nn.Module. For example, the following will ensure state_dict is called on all non-FSDP instances, while dispatching into sharded_state_dict implementation for FSDP:
 
-module (torch.nn.Module) – Root module.
+module (torch.nn.Module) - Root module.
 
-state_dict_type (StateDictType) – the desired state_dict_type to set.
+state_dict_type (StateDictType) - the desired state_dict_type to set.
 
-state_dict_config (Optional[StateDictConfig]) – the configuration for the target state_dict_type.
+state_dict_config (Optional[StateDictConfig]) - the configuration for the target state_dict_type.
 
-optim_state_dict_config (Optional[OptimStateDictConfig]) – the configuration for the optimizer state dict.
+optim_state_dict_config (Optional[OptimStateDictConfig]) - the configuration for the optimizer state dict.
 
 A StateDictSettings that include the previous state_dict type and configuration for the module.
 
@@ -3579,13 +3579,13 @@ Remaps the state in full_optim_state_dict to flattened parameters instead of unf
 
 Both shard_full_optim_state_dict() and scatter_full_optim_state_dict() may be used to get the sharded optimizer state dict to load. Assuming that the full optimizer state dict resides in CPU memory, the former requires each rank to have the full dict in CPU memory, where each rank individually shards the dict without any communication, while the latter requires only rank 0 to have the full dict in CPU memory, where rank 0 moves each shard to GPU memory (for NCCL) and communicates it to ranks appropriately. Hence, the former has higher aggregate CPU memory cost, while the latter has higher communication cost.
 
-full_optim_state_dict (Dict[str, Any]) – Optimizer state dict corresponding to the unflattened parameters and holding the full non-sharded optimizer state.
+full_optim_state_dict (Dict[str, Any]) - Optimizer state dict corresponding to the unflattened parameters and holding the full non-sharded optimizer state.
 
-model (torch.nn.Module) – Root module (which may or may not be a FullyShardedDataParallel instance) whose parameters correspond to the optimizer state in full_optim_state_dict.
+model (torch.nn.Module) - Root module (which may or may not be a FullyShardedDataParallel instance) whose parameters correspond to the optimizer state in full_optim_state_dict.
 
-optim_input (Optional[Union[List[Dict[str, Any]], Iterable[torch.nn.Parameter]]]) – Input passed into the optimizer representing either a list of parameter groups or an iterable of parameters; if None, then this method assumes the input was model.parameters(). This argument is deprecated, and there is no need to pass it in anymore. (Default: None)
+optim_input (Optional[Union[List[Dict[str, Any]], Iterable[torch.nn.Parameter]]]) - Input passed into the optimizer representing either a list of parameter groups or an iterable of parameters; if None, then this method assumes the input was model.parameters(). This argument is deprecated, and there is no need to pass it in anymore. (Default: None)
 
-optim (Optional[torch.optim.Optimizer]) – Optimizer that will load the state dict returned by this method. This is the preferred argument to use over optim_input. (Default: None)
+optim (Optional[torch.optim.Optimizer]) - Optimizer that will load the state dict returned by this method. This is the preferred argument to use over optim_input. (Default: None)
 
 The full optimizer state dict now remapped to flattened parameters instead of unflattened parameters and restricted to only include this rank’s part of the optimizer state.
 
@@ -3601,13 +3601,13 @@ Set the state_dict_type of all the descendant FSDP modules of the target module.
 
 This context manager has the same functions as set_state_dict_type(). Read the document of set_state_dict_type() for the detail.
 
-module (torch.nn.Module) – Root module.
+module (torch.nn.Module) - Root module.
 
-state_dict_type (StateDictType) – the desired state_dict_type to set.
+state_dict_type (StateDictType) - the desired state_dict_type to set.
 
-state_dict_config (Optional[StateDictConfig]) – the model state_dict configuration for the target state_dict_type.
+state_dict_config (Optional[StateDictConfig]) - the model state_dict configuration for the target state_dict_type.
 
-optim_state_dict_config (Optional[OptimStateDictConfig]) – the optimizer state_dict configuration for the target state_dict_type.
+optim_state_dict_config (Optional[OptimStateDictConfig]) - the optimizer state_dict configuration for the target state_dict_type.
 
 Expose full params for FSDP instances with this context manager.
 
@@ -3627,15 +3627,15 @@ Note that rank0_only=True in conjunction with writeback=True is not currently su
 
 Note that offload_to_cpu and rank0_only=False will result in full parameters being redundantly copied to CPU memory for GPUs that reside on the same machine, which may incur the risk of CPU OOM. It is recommended to use offload_to_cpu with rank0_only=True.
 
-recurse (bool, Optional) – recursively summon all params for nested FSDP instances (default: True).
+recurse (bool, Optional) - recursively summon all params for nested FSDP instances (default: True).
 
-writeback (bool, Optional) – if False, modifications to params are discarded after the context manager exits; disabling this can be slightly more efficient (default: True)
+writeback (bool, Optional) - if False, modifications to params are discarded after the context manager exits; disabling this can be slightly more efficient (default: True)
 
-rank0_only (bool, Optional) – if True, full parameters are materialized on only global rank 0. This means that within the context, only rank 0 will have full parameters and the other ranks will have sharded parameters. Note that setting rank0_only=True with writeback=True is not supported, as model parameter shapes will be different across ranks within the context, and writing to them can lead to inconsistency across ranks when the context is exited.
+rank0_only (bool, Optional) - if True, full parameters are materialized on only global rank 0. This means that within the context, only rank 0 will have full parameters and the other ranks will have sharded parameters. Note that setting rank0_only=True with writeback=True is not supported, as model parameter shapes will be different across ranks within the context, and writing to them can lead to inconsistency across ranks when the context is exited.
 
-offload_to_cpu (bool, Optional) – If True, full parameters are offloaded to CPU. Note that this offloading currently only occurs if the parameter is sharded (which is only not the case for world_size = 1 or NO_SHARD config). It is recommended to use offload_to_cpu with rank0_only=True to avoid redundant copies of model parameters being offloaded to the same CPU memory.
+offload_to_cpu (bool, Optional) - If True, full parameters are offloaded to CPU. Note that this offloading currently only occurs if the parameter is sharded (which is only not the case for world_size = 1 or NO_SHARD config). It is recommended to use offload_to_cpu with rank0_only=True to avoid redundant copies of model parameters being offloaded to the same CPU memory.
 
-with_grads (bool, Optional) – If True, gradients are also unsharded with the parameters. Currently, this is only supported when passing use_orig_params=True to the FSDP constructor and offload_to_cpu=False to this method. (Default: False)
+with_grads (bool, Optional) - If True, gradients are also unsharded with the parameters. Currently, this is only supported when passing use_orig_params=True to the FSDP constructor and offload_to_cpu=False to this method. (Default: False)
 
 This configures explicit backward prefetching, which improves throughput by enabling communication and computation overlap in the backward pass at the cost of slightly increased memory usage.
 
@@ -3661,19 +3661,19 @@ _HYBRID_SHARD_ZERO2: Apply SHARD_GRAD_OP within a node, and replicate parameters
 
 This configures FSDP-native mixed precision training.
 
-param_dtype (Optional[torch.dtype]) – This specifies the dtype for model parameters during forward and backward and thus the dtype for forward and backward computation. Outside forward and backward, the sharded parameters are kept in full precision (e.g. for the optimizer step), and for model checkpointing, the parameters are always saved in full precision. (Default: None)
+param_dtype (Optional[torch.dtype]) - This specifies the dtype for model parameters during forward and backward and thus the dtype for forward and backward computation. Outside forward and backward, the sharded parameters are kept in full precision (e.g. for the optimizer step), and for model checkpointing, the parameters are always saved in full precision. (Default: None)
 
-reduce_dtype (Optional[torch.dtype]) – This specifies the dtype for gradient reduction (i.e. reduce-scatter or all-reduce). If this is None but param_dtype is not None, then this takes on the param_dtype value, still running gradient reduction in low precision. This is permitted to differ from param_dtype, e.g. to force gradient reduction to run in full precision. (Default: None)
+reduce_dtype (Optional[torch.dtype]) - This specifies the dtype for gradient reduction (i.e. reduce-scatter or all-reduce). If this is None but param_dtype is not None, then this takes on the param_dtype value, still running gradient reduction in low precision. This is permitted to differ from param_dtype, e.g. to force gradient reduction to run in full precision. (Default: None)
 
-buffer_dtype (Optional[torch.dtype]) – This specifies the dtype for buffers. FSDP does not shard buffers. Rather, FSDP casts them to buffer_dtype in the first forward pass and keeps them in that dtype thereafter. For model checkpointing, the buffers are saved in full precision except for LOCAL_STATE_DICT. (Default: None)
+buffer_dtype (Optional[torch.dtype]) - This specifies the dtype for buffers. FSDP does not shard buffers. Rather, FSDP casts them to buffer_dtype in the first forward pass and keeps them in that dtype thereafter. For model checkpointing, the buffers are saved in full precision except for LOCAL_STATE_DICT. (Default: None)
 
-keep_low_precision_grads (bool) – If False, then FSDP upcasts gradients to full precision after the backward pass in preparation for the optimizer step. If True, then FSDP keeps the gradients in the dtype used for gradient reduction, which can save memory if using a custom optimizer that supports running in low precision. (Default: False)
+keep_low_precision_grads (bool) - If False, then FSDP upcasts gradients to full precision after the backward pass in preparation for the optimizer step. If True, then FSDP keeps the gradients in the dtype used for gradient reduction, which can save memory if using a custom optimizer that supports running in low precision. (Default: False)
 
-cast_forward_inputs (bool) – If True, then this FSDP module casts its forward args and kwargs to param_dtype. This is to ensure that parameter and input dtypes match for forward computation, as required by many ops. This may need to be set to True when only applying mixed precision to some but not all FSDP modules, in which case a mixed-precision FSDP submodule needs to recast its inputs. (Default: False)
+cast_forward_inputs (bool) - If True, then this FSDP module casts its forward args and kwargs to param_dtype. This is to ensure that parameter and input dtypes match for forward computation, as required by many ops. This may need to be set to True when only applying mixed precision to some but not all FSDP modules, in which case a mixed-precision FSDP submodule needs to recast its inputs. (Default: False)
 
-cast_root_forward_inputs (bool) – If True, then the root FSDP module casts its forward args and kwargs to param_dtype, overriding the value of cast_forward_inputs. For non-root FSDP modules, this does not do anything. (Default: True)
+cast_root_forward_inputs (bool) - If True, then the root FSDP module casts its forward args and kwargs to param_dtype, overriding the value of cast_forward_inputs. For non-root FSDP modules, this does not do anything. (Default: True)
 
-_module_classes_to_ignore (collections.abc.Sequence[type[torch.nn.modules.module.Module]]) – (Sequence[Type[nn.Module]]): This specifies module classes to ignore for mixed precision when using an auto_wrap_policy: Modules of these classes will have FSDP applied to them separately with mixed precision disabled (meaning that the final FSDP construction would deviate from the specified policy). If auto_wrap_policy is not specified, then this does not do anything. This API is experimental and subject to change. (Default: (_BatchNorm,))
+_module_classes_to_ignore (collections.abc.Sequence[type[torch.nn.modules.module.Module]]) - (Sequence[Type[nn.Module]]): This specifies module classes to ignore for mixed precision when using an auto_wrap_policy: Modules of these classes will have FSDP applied to them separately with mixed precision disabled (meaning that the final FSDP construction would deviate from the specified policy). If auto_wrap_policy is not specified, then this does not do anything. This API is experimental and subject to change. (Default: (_BatchNorm,))
 
 This API is experimental and subject to change.
 
@@ -3693,31 +3693,31 @@ The above shows a working example. On the other hand, if model[1] were replaced 
 
 This configures CPU offloading.
 
-offload_params (bool) – This specifies whether to offload parameters to CPU when not involved in computation. If True, then this offloads gradients to CPU as well, meaning that the optimizer step runs on CPU.
+offload_params (bool) - This specifies whether to offload parameters to CPU when not involved in computation. If True, then this offloads gradients to CPU as well, meaning that the optimizer step runs on CPU.
 
 StateDictConfig is the base class for all state_dict configuration classes. Users should instantiate a child class (e.g. FullStateDictConfig) in order to configure settings for the corresponding state_dict type supported by FSDP.
 
-offload_to_cpu (bool) – If True, then FSDP offloads the state dict values to CPU, and if False, then FSDP keeps them on GPU. (Default: False)
+offload_to_cpu (bool) - If True, then FSDP offloads the state dict values to CPU, and if False, then FSDP keeps them on GPU. (Default: False)
 
 FullStateDictConfig is a config class meant to be used with StateDictType.FULL_STATE_DICT. We recommend enabling both offload_to_cpu=True and rank0_only=True when saving full state dicts to save GPU memory and CPU memory, respectively. This config class is meant to be used via the state_dict_type() context manager as follows:
 
-rank0_only (bool) – If True, then only rank 0 saves the full state dict, and nonzero ranks save an empty dict. If False, then all ranks save the full state dict. (Default: False)
+rank0_only (bool) - If True, then only rank 0 saves the full state dict, and nonzero ranks save an empty dict. If False, then all ranks save the full state dict. (Default: False)
 
 ShardedStateDictConfig is a config class meant to be used with StateDictType.SHARDED_STATE_DICT.
 
-_use_dtensor (bool) – If True, then FSDP saves the state dict values as DTensor, and if False, then FSDP saves them as ShardedTensor. (Default: False)
+_use_dtensor (bool) - If True, then FSDP saves the state dict values as DTensor, and if False, then FSDP saves them as ShardedTensor. (Default: False)
 
 _use_dtensor is a private field of ShardedStateDictConfig and it is used by FSDP to determine the type of state dict values. Users should not manually modify _use_dtensor.
 
 OptimStateDictConfig is the base class for all optim_state_dict configuration classes. Users should instantiate a child class (e.g. FullOptimStateDictConfig) in order to configure settings for the corresponding optim_state_dict type supported by FSDP.
 
-offload_to_cpu (bool) – If True, then FSDP offloads the state dict’s tensor values to CPU, and if False, then FSDP keeps them on the original device (which is GPU unless parameter CPU offloading is enabled). (Default: True)
+offload_to_cpu (bool) - If True, then FSDP offloads the state dict’s tensor values to CPU, and if False, then FSDP keeps them on the original device (which is GPU unless parameter CPU offloading is enabled). (Default: True)
 
-rank0_only (bool) – If True, then only rank 0 saves the full state dict, and nonzero ranks save an empty dict. If False, then all ranks save the full state dict. (Default: False)
+rank0_only (bool) - If True, then only rank 0 saves the full state dict, and nonzero ranks save an empty dict. If False, then all ranks save the full state dict. (Default: False)
 
 ShardedOptimStateDictConfig is a config class meant to be used with StateDictType.SHARDED_STATE_DICT.
 
-_use_dtensor (bool) – If True, then FSDP saves the state dict values as DTensor, and if False, then FSDP saves them as ShardedTensor. (Default: False)
+_use_dtensor (bool) - If True, then FSDP saves the state dict values as DTensor, and if False, then FSDP saves them as ShardedTensor. (Default: False)
 
 _use_dtensor is a private field of ShardedOptimStateDictConfig and it is used by FSDP to determine the type of state dict values. Users should not manually modify _use_dtensor.
 
@@ -3740,29 +3740,29 @@ DistributedOptimizer takes remote references to parameters scattered across work
 
 This class uses get_gradients() in order to retrieve the gradients for specific parameters.
 
-Concurrent calls to step(), either from the same or different clients, will be serialized on each worker – as each worker’s optimizer can only work on one set of gradients at a time. However, there is no guarantee that the full forward-backward-optimizer sequence will execute for one client at a time. This means that the gradients being applied may not correspond to the latest forward pass executed on a given worker. Also, there is no guaranteed ordering across workers.
+Concurrent calls to step(), either from the same or different clients, will be serialized on each worker - as each worker’s optimizer can only work on one set of gradients at a time. However, there is no guarantee that the full forward-backward-optimizer sequence will execute for one client at a time. This means that the gradients being applied may not correspond to the latest forward pass executed on a given worker. Also, there is no guaranteed ordering across workers.
 
 DistributedOptimizer creates the local optimizer with TorchScript enabled by default, so that optimizer updates are not blocked by the Python Global Interpreter Lock (GIL) in the case of multithreaded training (e.g. Distributed Model Parallel). This feature is currently enabled for most optimizers. You can also follow the recipe in PyTorch tutorials to enable TorchScript support for your own custom optimizers.
 
-optimizer_class (optim.Optimizer) – the class of optimizer to instantiate on each worker.
+optimizer_class (optim.Optimizer) - the class of optimizer to instantiate on each worker.
 
-params_rref (list[RRef]) – list of RRefs to local or remote parameters to optimize.
+params_rref (list[RRef]) - list of RRefs to local or remote parameters to optimize.
 
-args – arguments to pass to the optimizer constructor on each worker.
+args - arguments to pass to the optimizer constructor on each worker.
 
-kwargs – arguments to pass to the optimizer constructor on each worker.
+kwargs - arguments to pass to the optimizer constructor on each worker.
 
 Performs a single optimization step.
 
 This will call torch.optim.Optimizer.step() on each worker containing parameters to be optimized, and will block until all workers return. The provided context_id will be used to retrieve the corresponding context that contains the gradients that should be applied to the parameters.
 
-context_id – the autograd context id for which we should run the optimizer step.
+context_id - the autograd context id for which we should run the optimizer step.
 
 Wraps an arbitrary torch.optim.Optimizer and runs post-local SGD, This optimizer runs local optimizer at every step. After the warm-up stage, it averages parameters periodically after the local optimizer is applied.
 
-optim (Optimizer) – The local optimizer.
+optim (Optimizer) - The local optimizer.
 
-averager (ModelAverager) – A model averager instance to run post-localSGD algorithm.
+averager (ModelAverager) - A model averager instance to run post-localSGD algorithm.
 
 This is the same as torch.optim.Optimizer load_state_dict(), but also restores model averager’s step value to the one saved in the provided state_dict.
 
@@ -3780,17 +3780,17 @@ The local optimizer instance in each rank is only responsible for updating appro
 
 ZeroRedundancyOptimizer uses a sorted-greedy algorithm to pack a number of parameters at each rank. Each parameter belongs to a single rank and is not divided among ranks. The partition is arbitrary and might not match the parameter registration or usage order.
 
-params (Iterable) – an Iterable of torch.Tensor s or dict s giving all parameters, which will be sharded across ranks.
+params (Iterable) - an Iterable of torch.Tensor s or dict s giving all parameters, which will be sharded across ranks.
 
-optimizer_class (torch.nn.Optimizer) – the class of the local optimizer.
+optimizer_class (torch.nn.Optimizer) - the class of the local optimizer.
 
-process_group (ProcessGroup, optional) – torch.distributed ProcessGroup (default: dist.group.WORLD initialized by torch.distributed.init_process_group()).
+process_group (ProcessGroup, optional) - torch.distributed ProcessGroup (default: dist.group.WORLD initialized by torch.distributed.init_process_group()).
 
-parameters_as_bucket_view (bool, optional) – if True, parameters are packed into buckets to speed up communication, and param.data fields point to bucket views at different offsets; if False, each individual parameter is communicated separately, and each params.data stays intact (default: False).
+parameters_as_bucket_view (bool, optional) - if True, parameters are packed into buckets to speed up communication, and param.data fields point to bucket views at different offsets; if False, each individual parameter is communicated separately, and each params.data stays intact (default: False).
 
-overlap_with_ddp (bool, optional) – if True, step() is overlapped with DistributedDataParallel ‘s gradient synchronization; this requires (1) either a functional optimizer for the optimizer_class argument or one with a functional equivalent and (2) registering a DDP communication hook constructed from one of the functions in ddp_zero_hook.py; parameters are packed into buckets matching those in DistributedDataParallel, meaning that the parameters_as_bucket_view argument is ignored. If False, step() runs disjointly after the backward pass (per normal). (default: False)
+overlap_with_ddp (bool, optional) - if True, step() is overlapped with DistributedDataParallel ‘s gradient synchronization; this requires (1) either a functional optimizer for the optimizer_class argument or one with a functional equivalent and (2) registering a DDP communication hook constructed from one of the functions in ddp_zero_hook.py; parameters are packed into buckets matching those in DistributedDataParallel, meaning that the parameters_as_bucket_view argument is ignored. If False, step() runs disjointly after the backward pass (per normal). (default: False)
 
-**defaults – any trailing arguments, which are forwarded to the local optimizer.
+**defaults - any trailing arguments, which are forwarded to the local optimizer.
 
 Currently, ZeroRedundancyOptimizer requires that all of the passed-in parameters are the same dense type.
 
@@ -3802,15 +3802,15 @@ Add a parameter group to the Optimizer ‘s param_groups.
 
 This can be useful when fine tuning a pre-trained network, as frozen layers can be made trainable and added to the Optimizer as training progresses.
 
-param_group (dict) – specifies the parameters to be optimized and group-specific optimization options.
+param_group (dict) - specifies the parameters to be optimized and group-specific optimization options.
 
 This method handles updating the shards on all partitions but needs to be called on all ranks. Calling this on a subset of the ranks will cause the training to hang because communication primitives are called depending on the managed parameters and expect all the ranks to participate on the same set of parameters.
 
 Consolidate a list of state_dict s (one per rank) on the target rank.
 
-to (int) – the rank that receives the optimizer states (default: 0).
+to (int) - the rank that receives the optimizer states (default: 0).
 
-RuntimeError – if overlap_with_ddp=True and this method is called before this ZeroRedundancyOptimizer instance has been fully initialized, which happens once DistributedDataParallel gradient buckets have been rebuilt.
+RuntimeError - if overlap_with_ddp=True and this method is called before this ZeroRedundancyOptimizer instance has been fully initialized, which happens once DistributedDataParallel gradient buckets have been rebuilt.
 
 This needs to be called on all ranks.
 
@@ -3822,7 +3822,7 @@ It enables training on uneven inputs by shadowing the collective communications 
 
 Gradients must be properly set before this hook is called.
 
-kwargs (dict) – a dict containing any keyword arguments to modify the behavior of the join hook at run time; all Joinable instances sharing the same join context manager are forwarded the same value for kwargs.
+kwargs (dict) - a dict containing any keyword arguments to modify the behavior of the join hook at run time; all Joinable instances sharing the same join context manager are forwarded the same value for kwargs.
 
 This hook does not support any keyword arguments; i.e. kwargs is unused.
 
@@ -3830,17 +3830,17 @@ Return process group.
 
 Load the state pertaining to the given rank from the input state_dict, updating the local optimizer as needed.
 
-state_dict (dict) – optimizer state; should be an object returned from a call to state_dict().
+state_dict (dict) - optimizer state; should be an object returned from a call to state_dict().
 
-RuntimeError – if overlap_with_ddp=True and this method is called before this ZeroRedundancyOptimizer instance has been fully initialized, which happens once DistributedDataParallel gradient buckets have been rebuilt.
+RuntimeError - if overlap_with_ddp=True and this method is called before this ZeroRedundancyOptimizer instance has been fully initialized, which happens once DistributedDataParallel gradient buckets have been rebuilt.
 
 Return the last global optimizer state known to this rank.
 
-RuntimeError – if overlap_with_ddp=True and this method is called before this ZeroRedundancyOptimizer instance has been fully initialized, which happens once DistributedDataParallel gradient buckets have been rebuilt; or if this method is called without a preceding call to consolidate_state_dict().
+RuntimeError - if overlap_with_ddp=True and this method is called before this ZeroRedundancyOptimizer instance has been fully initialized, which happens once DistributedDataParallel gradient buckets have been rebuilt; or if this method is called without a preceding call to consolidate_state_dict().
 
 Perform a single optimizer step and syncs parameters across all ranks.
 
-closure (Callable) – a closure that re-evaluates the model and returns the loss; optional for most optimizers.
+closure (Callable) - a closure that re-evaluates the model and returns the loss; optional for most optimizers.
 
 Optional loss depending on the underlying local optimizer.
 
@@ -3949,7 +3949,7 @@ The pipeline frontend uses a tracer (torch.export) to capture your model into a 
 
 In the PiPPy repo where this package was original created, we kept examples based on unmodified Hugging Face models. See the examples/huggingface directory.
 
-First, the pipeline API turns our model into a directed acyclic graph (DAG) by tracing the model. It traces the model using torch.export – a PyTorch 2 full-graph capturing tool.
+First, the pipeline API turns our model into a directed acyclic graph (DAG) by tracing the model. It traces the model using torch.export - a PyTorch 2 full-graph capturing tool.
 
 Then, it groups together the operations and parameters needed by a stage into a reconstructed submodule: submod_0, submod_1, …
 
@@ -3993,15 +3993,15 @@ Split a module based on a specification.
 
 See Pipe for more details.
 
-module (Module) – The module to be split.
+module (Module) - The module to be split.
 
-mb_args (tuple[Any, ...]) – Example positional inputs, in micro-batch form.
+mb_args (tuple[Any, ...]) - Example positional inputs, in micro-batch form.
 
-mb_kwargs (Optional[dict[str, Any]]) – Example keyword inputs, in micro-batch form. (default: None)
+mb_kwargs (Optional[dict[str, Any]]) - Example keyword inputs, in micro-batch form. (default: None)
 
-split_spec (Optional[dict[str, torch.distributed.pipelining._IR.SplitPoint]]) – A dictionary using submodule names as split marker. (default: None)
+split_spec (Optional[dict[str, torch.distributed.pipelining._IR.SplitPoint]]) - A dictionary using submodule names as split marker. (default: None)
 
-split_policy (Optional[Callable[[GraphModule], GraphModule]]) – The policy to use for splitting the module. (default: None)
+split_policy (Optional[Callable[[GraphModule], GraphModule]]) - The policy to use for splitting the module. (default: None)
 
 A pipeline representation of class Pipe.
 
@@ -4013,23 +4013,23 @@ Class used to specify chunking of inputs
 
 Given a sequence of args and kwargs, split them into a number of chunks according to their respective chunking specs.
 
-args (tuple[Any, ...]) – Tuple of args
+args (tuple[Any, ...]) - Tuple of args
 
-kwargs (Optional[dict[str, Any]]) – Dict of kwargs
+kwargs (Optional[dict[str, Any]]) - Dict of kwargs
 
-chunks (int) – Number of chunks to split the args and kwargs into
+chunks (int) - Number of chunks to split the args and kwargs into
 
-args_chunk_spec (Optional[tuple[torch.distributed.pipelining.microbatch.TensorChunkSpec, ...]]) – chunking specs for args, in same shape as args
+args_chunk_spec (Optional[tuple[torch.distributed.pipelining.microbatch.TensorChunkSpec, ...]]) - chunking specs for args, in same shape as args
 
-kwargs_chunk_spec (Optional[dict[str, torch.distributed.pipelining.microbatch.TensorChunkSpec]]) – chunking specs for kwargs, in same shape as kwargs
+kwargs_chunk_spec (Optional[dict[str, torch.distributed.pipelining.microbatch.TensorChunkSpec]]) - chunking specs for kwargs, in same shape as kwargs
 
 List of sharded args kwargs_split: List of sharded kwargs
 
 Given a list of chunks, merge them into a single value according to the chunk spec.
 
-chunks (list[Any]) – list of chunks
+chunks (list[Any]) - list of chunks
 
-chunk_spec – Chunking spec for the chunks
+chunk_spec - Chunking spec for the chunks
 
 A class representing a pipeline stage in a pipeline parallelism setup.
 
@@ -4037,33 +4037,33 @@ PipelineStage assumes sequential partitioning of the model, i.e. the model is sp
 
 PipelineStage performs runtime shape/dtype inference automatically by propagating the outputs from stage0 to stage1 and so forth, in linear order. To bypass shape inference, pass the input_args and output_args to each PipelineStage instance.
 
-submodule (nn.Module) – The PyTorch module wrapped by this stage.
+submodule (nn.Module) - The PyTorch module wrapped by this stage.
 
-stage_index (int) – The ID of this stage.
+stage_index (int) - The ID of this stage.
 
-num_stages (int) – The total number of stages.
+num_stages (int) - The total number of stages.
 
-device (torch.device) – The device where this stage is located.
+device (torch.device) - The device where this stage is located.
 
-input_args (Union[torch.Tensor, Tuple[torch.tensor]], optional) – The input arguments for the submodule.
+input_args (Union[torch.Tensor, Tuple[torch.tensor]], optional) - The input arguments for the submodule.
 
-output_args (Union[torch.Tensor, Tuple[torch.tensor]], optional) – The output arguments for the submodule.
+output_args (Union[torch.Tensor, Tuple[torch.tensor]], optional) - The output arguments for the submodule.
 
-group (dist.ProcessGroup, optional) – The process group for distributed training. If None, default group.
+group (dist.ProcessGroup, optional) - The process group for distributed training. If None, default group.
 
-dw_builder (Optional[Callable[[], Callable[..., None]]) – If provided, dw_builder will build a new dw_runner function that will the W action (input weights) for F, I, W (Fwd, Input, Weight) zero bubble schedules.
+dw_builder (Optional[Callable[[], Callable[..., None]]) - If provided, dw_builder will build a new dw_runner function that will the W action (input weights) for F, I, W (Fwd, Input, Weight) zero bubble schedules.
 
 Create a pipeline stage given a stage_module to be wrapped by this stage and pipeline information.
 
-stage_module (torch.nn.Module) – the module to be wrapped by this stage
+stage_module (torch.nn.Module) - the module to be wrapped by this stage
 
-stage_index (int) – the index of this stage in the pipeline
+stage_index (int) - the index of this stage in the pipeline
 
-pipe_info (PipeInfo) – information about the pipeline, can be retrieved by pipe.info()
+pipe_info (PipeInfo) - information about the pipeline, can be retrieved by pipe.info()
 
-device (torch.device) – the device to be used by this stage
+device (torch.device) - the device to be used by this stage
 
-group (Optional[dist.ProcessGroup]) – the process group to be used by this stage
+group (Optional[dist.ProcessGroup]) - the process group to be used by this stage
 
 a pipeline stage that can run with PipelineSchedules.
 
@@ -4138,13 +4138,13 @@ User can also specify different parallel style per module fully qualified name (
 
 Note that parallelize_module only accepts a 1-D DeviceMesh, if you have a 2-D or N-D DeviceMesh, slice the DeviceMesh to a 1-D sub DeviceMesh first then pass to this API(i.e. device_mesh["tp"])
 
-module (nn.Module) – Module to be parallelized.
+module (nn.Module) - Module to be parallelized.
 
-device_mesh (DeviceMesh, optional) – Object which describes the mesh topology of devices for the DTensor. If not specified, the call must be under a DeviceMesh context.
+device_mesh (DeviceMesh, optional) - Object which describes the mesh topology of devices for the DTensor. If not specified, the call must be under a DeviceMesh context.
 
-parallelize_plan (Union[ParallelStyle, Dict[str, ParallelStyle]], optional) – The plan used to parallelize the module. It can be either a ParallelStyle object which contains how we prepare input/output for Tensor Parallelism or it can be a dict of module FQN and its corresponding ParallelStyle object. If not specified, the call will do nothing at the moment.
+parallelize_plan (Union[ParallelStyle, Dict[str, ParallelStyle]], optional) - The plan used to parallelize the module. It can be either a ParallelStyle object which contains how we prepare input/output for Tensor Parallelism or it can be a dict of module FQN and its corresponding ParallelStyle object. If not specified, the call will do nothing at the moment.
 
-src_data_rank (int, optional) – the rank of the source data for the logical/global tensor, it is used by distribute_tensor() to scatter/broadcast the shards/replicas to other ranks. By default, we use group_rank=0 on each DeviceMesh dimension as the source data to preserve the single-device semantic. If passing None explicitly, parallelize_module() simply uses its local data instead of trying to preserve the single-device semantic via scatter/broadcast. Default: 0
+src_data_rank (int, optional) - the rank of the source data for the logical/global tensor, it is used by distribute_tensor() to scatter/broadcast the shards/replicas to other ranks. By default, we use group_rank=0 on each DeviceMesh dimension as the source data to preserve the single-device semantic. If passing None explicitly, parallelize_module() simply uses its local data instead of trying to preserve the single-device semantic via scatter/broadcast. Default: 0
 
 A nn.Module object parallelized.
 
@@ -4154,11 +4154,11 @@ Tensor Parallelism supports the following parallel styles:
 
 Partition a compatible nn.Module in a column-wise fashion. Currently supports nn.Linear and nn.Embedding. Users can compose it together with RowwiseParallel to achieve the sharding of more complicated modules. (i.e. MLP, Attention)
 
-input_layouts (Placement, optional) – The DTensor layout of input tensor for the nn.Module, this is used to annotate the input tensor to become a DTensor. If not specified, we assume the input tensor to be replicated.
+input_layouts (Placement, optional) - The DTensor layout of input tensor for the nn.Module, this is used to annotate the input tensor to become a DTensor. If not specified, we assume the input tensor to be replicated.
 
-output_layouts (Placement, optional) – The DTensor layout of the output for the nn.Module, this is used to ensure the output of the nn.Module with the user desired layout. If not specified, the output tensor is sharded on the last dimension.
+output_layouts (Placement, optional) - The DTensor layout of the output for the nn.Module, this is used to ensure the output of the nn.Module with the user desired layout. If not specified, the output tensor is sharded on the last dimension.
 
-use_local_output (bool, optional) – Whether to use local torch.Tensor instead of DTensor for the module output, default: True.
+use_local_output (bool, optional) - Whether to use local torch.Tensor instead of DTensor for the module output, default: True.
 
 A ParallelStyle object that represents Colwise sharding of the nn.Module.
 
@@ -4166,11 +4166,11 @@ By default ColwiseParallel output is sharded on the last dimension if the output
 
 Partition a compatible nn.Module in a row-wise fashion. Currently supports nn.Linear and nn.Embedding. Users can compose it with ColwiseParallel to achieve the sharding of more complicated modules. (i.e. MLP, Attention)
 
-input_layouts (Placement, optional) – The DTensor layout of input tensor for the nn.Module, this is used to annotate the input tensor to become a DTensor. If not specified, we assume the input tensor to be sharded on the last dimension.
+input_layouts (Placement, optional) - The DTensor layout of input tensor for the nn.Module, this is used to annotate the input tensor to become a DTensor. If not specified, we assume the input tensor to be sharded on the last dimension.
 
-output_layouts (Placement, optional) – The DTensor layout of the output for the nn.Module, this is used to ensure the output of the nn.Module with the user desired layout. If not specified, the output tensor is replicated.
+output_layouts (Placement, optional) - The DTensor layout of the output for the nn.Module, this is used to ensure the output of the nn.Module with the user desired layout. If not specified, the output tensor is replicated.
 
-use_local_output (bool, optional) – Whether to use local torch.Tensor instead of DTensor for the module output, default: True.
+use_local_output (bool, optional) - Whether to use local torch.Tensor instead of DTensor for the module output, default: True.
 
 A ParallelStyle object that represents Rowwise sharding of the nn.Module.
 
@@ -4182,9 +4182,9 @@ If the input passed in to this nn.Module is a torch.Tensor, it assumes that the 
 
 The output of the nn.Module will be sharded on the sequence dimension.
 
-sequence_dim (int, optional) – The sequence dimension of the input tensor for the nn.Module, this is used to annotate the input tensor to become a DTensor that is sharded on the sequence dimension, default: 1.
+sequence_dim (int, optional) - The sequence dimension of the input tensor for the nn.Module, this is used to annotate the input tensor to become a DTensor that is sharded on the sequence dimension, default: 1.
 
-use_local_output (bool, optional) – Whether to use local torch.Tensor instead of DTensor for the module output, default: False.
+use_local_output (bool, optional) - Whether to use local torch.Tensor instead of DTensor for the module output, default: False.
 
 A ParallelStyle object that represents Sequence Parallel of the nn.Module.
 
@@ -4194,45 +4194,45 @@ To simply configure the nn.Module’s inputs and outputs with DTensor layouts an
 
 Configure the nn.Module’s inputs to convert the input tensors of the nn.Module to DTensors at runtime according to input_layouts, and perform layout redistribution according to the desired_input_layouts.
 
-input_layouts (Union[Placement, Tuple[Optional[Placement]]]) – The DTensor layouts of input tensors for the nn.Module, this is used to convert the input tensors to DTensors. If some inputs are not torch.Tensor or no need to convert to DTensors, None need to be specified as a placeholder. default: None.
+input_layouts (Union[Placement, Tuple[Optional[Placement]]]) - The DTensor layouts of input tensors for the nn.Module, this is used to convert the input tensors to DTensors. If some inputs are not torch.Tensor or no need to convert to DTensors, None need to be specified as a placeholder. default: None.
 
-desired_input_layouts (Union[Placement, Tuple[Optional[Placement]]]) – The desired DTensor layout of input tensors for the nn.Module, this is used to ensure the inputs of the nn.Module have the desired DTensor layouts. This argument needs to have the same length with input_layouts. default: None.
+desired_input_layouts (Union[Placement, Tuple[Optional[Placement]]]) - The desired DTensor layout of input tensors for the nn.Module, this is used to ensure the inputs of the nn.Module have the desired DTensor layouts. This argument needs to have the same length with input_layouts. default: None.
 
-input_kwarg_layouts (Dict[str, Placement]) – The DTensor layouts of input kwargs for the nn.Module, this is used to convert the input kwarg tensors to DTensors. default: None
+input_kwarg_layouts (Dict[str, Placement]) - The DTensor layouts of input kwargs for the nn.Module, this is used to convert the input kwarg tensors to DTensors. default: None
 
-desired_input_kwarg_layouts – (Dict[str, Placement]): The desired DTensor layout of input kwargs for the nn.Module, this is used to ensure the inputs of the nn.Module have the desired DTensor layouts. default: None.
+desired_input_kwarg_layouts - (Dict[str, Placement]): The desired DTensor layout of input kwargs for the nn.Module, this is used to ensure the inputs of the nn.Module have the desired DTensor layouts. default: None.
 
-use_local_output (bool, optional) – Whether to use local torch.Tensor instead of DTensor for the module inputs, default: False.
+use_local_output (bool, optional) - Whether to use local torch.Tensor instead of DTensor for the module inputs, default: False.
 
 A ParallelStyle object that prepares the sharding layouts of the nn.Module’s inputs.
 
 Configure the nn.Module’s outputs to convert the output tensors of the nn.Module to DTensors at runtime according to output_layouts, and perform layout redistribution according to the desired_output_layouts.
 
-output_layouts (Union[Placement, Tuple[Placement]]) – The DTensor layouts of output tensors for the nn.Module, this is used to convert the output tensors to DTensors if they are torch.Tensor. If some outputs are not torch.Tensor or no need to convert to DTensors, None need to be specified as a placeholder.
+output_layouts (Union[Placement, Tuple[Placement]]) - The DTensor layouts of output tensors for the nn.Module, this is used to convert the output tensors to DTensors if they are torch.Tensor. If some outputs are not torch.Tensor or no need to convert to DTensors, None need to be specified as a placeholder.
 
-desired_output_layouts (Union[Placement, Tuple[Placement]]) – The desired DTensor layouts of output tensors for the nn.Module, this is used to ensure the outputs of the nn.Module have the desired DTensor layouts.
+desired_output_layouts (Union[Placement, Tuple[Placement]]) - The desired DTensor layouts of output tensors for the nn.Module, this is used to ensure the outputs of the nn.Module have the desired DTensor layouts.
 
-use_local_output (bool, optional) – Whether to use local torch.Tensor instead of DTensor for the module outputs, default: True.
+use_local_output (bool, optional) - Whether to use local torch.Tensor instead of DTensor for the module outputs, default: True.
 
 A ParallelStyle object that prepares the sharding layouts of the nn.Module’s outputs.
 
 Configure the nn.Module’s inputs (and outputs) to convert the input tensors (and output tensors, respectively) of the nn.Module to DTensors at runtime according to input_layouts (and output_layouts, respectively), and perform layout redistribution according to the desired_input_layouts (and desired_output_layouts, respectively). This is a combination of PrepareModuleInput and PrepareModuleOutput.
 
-input_layouts (Union[Placement, Tuple[Optional[Placement]]]) – The DTensor layouts of input tensors for the nn.Module, this is used to convert the input tensors to DTensors. If some inputs are not torch.Tensor or no need to convert to DTensors, None need to be specified as a placeholder. default: None.
+input_layouts (Union[Placement, Tuple[Optional[Placement]]]) - The DTensor layouts of input tensors for the nn.Module, this is used to convert the input tensors to DTensors. If some inputs are not torch.Tensor or no need to convert to DTensors, None need to be specified as a placeholder. default: None.
 
-desired_input_layouts (Union[Placement, Tuple[Optional[Placement]]]) – The desired DTensor layout of input tensors for the nn.Module, this is used to ensure the inputs of the nn.Module have the desired DTensor layouts. This argument needs to have the same length with input_layouts. default: None.
+desired_input_layouts (Union[Placement, Tuple[Optional[Placement]]]) - The desired DTensor layout of input tensors for the nn.Module, this is used to ensure the inputs of the nn.Module have the desired DTensor layouts. This argument needs to have the same length with input_layouts. default: None.
 
-input_kwarg_layouts (Dict[str, Placement]) – The DTensor layouts of input kwargs for the nn.Module, this is used to convert the input kwarg tensors to DTensors. default: None
+input_kwarg_layouts (Dict[str, Placement]) - The DTensor layouts of input kwargs for the nn.Module, this is used to convert the input kwarg tensors to DTensors. default: None
 
-desired_input_kwarg_layouts – (Dict[str, Placement]): The desired DTensor layout of input kwargs for the nn.Module, this is used to ensure the inputs of the nn.Module have the desired DTensor layouts. default: None.
+desired_input_kwarg_layouts - (Dict[str, Placement]): The desired DTensor layout of input kwargs for the nn.Module, this is used to ensure the inputs of the nn.Module have the desired DTensor layouts. default: None.
 
-use_local_input (bool, optional) – Whether to use local torch.Tensor instead of DTensor for the module inputs, default: False.
+use_local_input (bool, optional) - Whether to use local torch.Tensor instead of DTensor for the module inputs, default: False.
 
-output_layouts (Union[Placement, Tuple[Placement]]) – The DTensor layouts of output tensors for the nn.Module, this is used to convert the output tensors to DTensors if they are torch.Tensor. If some outputs are not torch.Tensor or no need to convert to DTensors, None need to be specified as a placeholder.
+output_layouts (Union[Placement, Tuple[Placement]]) - The DTensor layouts of output tensors for the nn.Module, this is used to convert the output tensors to DTensors if they are torch.Tensor. If some outputs are not torch.Tensor or no need to convert to DTensors, None need to be specified as a placeholder.
 
-desired_output_layouts (Union[Placement, Tuple[Placement]]) – The desired DTensor layouts of output tensors for the nn.Module, this is used to ensure the outputs of the nn.Module have the desired DTensor layouts.
+desired_output_layouts (Union[Placement, Tuple[Placement]]) - The desired DTensor layouts of output tensors for the nn.Module, this is used to ensure the outputs of the nn.Module have the desired DTensor layouts.
 
-use_local_output (bool, optional) – Whether to use local torch.Tensor instead of DTensor for the module outputs, default: True.
+use_local_output (bool, optional) - Whether to use local torch.Tensor instead of DTensor for the module outputs, default: True.
 
 A ParallelStyle object that prepares the sharding layouts of the nn.Module’s inputs and outputs.
 
@@ -4246,13 +4246,13 @@ A context manager that enables loss parallelism, where efficient parallelized lo
 
 Within this context manager, one can use cross_entropy() or CrossEntropyLoss as usual, with the following assumptions on the input parameters. The corresponding backward() call, if any, also needs to happen under this context manager.
 
-input (DTensor) – Input logits. Assumed to be sharded on the class dimension.
+input (DTensor) - Input logits. Assumed to be sharded on the class dimension.
 
-target (Union[torch.Tensor, DTensor]) – Must be ground truth class indices (class probabilities currently not supported). Assumed to be replicated across the DeviceMesh.
+target (Union[torch.Tensor, DTensor]) - Must be ground truth class indices (class probabilities currently not supported). Assumed to be replicated across the DeviceMesh.
 
-weight (Union[torch.Tensor, DTensor], optional) – If given, assumed to be replicated across the DeviceMesh.
+weight (Union[torch.Tensor, DTensor], optional) - If given, assumed to be replicated across the DeviceMesh.
 
-label_smoothing – Currently not supported.
+label_smoothing - Currently not supported.
 
 A replicated DTensor.
 

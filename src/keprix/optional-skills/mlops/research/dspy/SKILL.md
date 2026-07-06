@@ -502,12 +502,12 @@ optimized_qa = optimizer.compile(qa, trainset=data)
 ### 2. Use Descriptive Signatures
 
 ```python
-# ❌ Bad: Vague
+# Failed:  Bad: Vague
 class Task(dspy.Signature):
     input = dspy.InputField()
     output = dspy.OutputField()
 
-# ✅ Good: Descriptive
+# Done:  Good: Descriptive
 class SummarizeArticle(dspy.Signature):
     """Summarize news articles into 3-5 key points."""
     article = dspy.InputField(desc="full article text")

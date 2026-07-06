@@ -16,7 +16,7 @@ interface SegmentedControlProps<T extends string> {
 
 /**
  * Grouped one-row toggle used for small mutually-exclusive choices
- * (color mode, tool-call display, usage period, etc.). Flat by design —
+ * (color mode, tool-call display, usage period, etc.). Flat by design;
  * no per-option borders, just a tinted track with a raised active pill.
  */
 export function SegmentedControl<T extends string>({ options, value, onChange, className }: SegmentedControlProps<T>) {

@@ -1,0 +1,17 @@
+{
+  "name": "@keprix/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for Keprix agents, workflows, memory, RAG, and evals",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "example:agent": "tsx examples/basic-agent.ts",
+    "example:workflow": "tsx examples/workflow.ts",
+    "example:rag": "tsx examples/rag-agent.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0"
+  }
+}

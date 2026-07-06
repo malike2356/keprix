@@ -1,8 +1,8 @@
 /**
  * Window translucency (see-through window).
  *
- * One lever, 0–100. 0 = off (fully opaque, the default). Higher = more of the
- * desktop shows through the whole window — the main process maps it to the
+ * One lever, 0-100. 0 = off (fully opaque, the default). Higher = more of the
+ * desktop shows through the whole window; the main process maps it to the
  * native window opacity (`setOpacity`), the same effect as the Windows
  * shift-scroll trick. macOS + Windows only; Linux has no runtime window
  * opacity, so it's a no-op there.

@@ -74,7 +74,7 @@ describe('toChatMessages', () => {
       {
         role: 'user',
         content:
-          'what is this file\n\n--- Attached Context ---\n\n📄 @file:tsconfig.tsbuildinfo (981 tokens)\n```json\n{"root":["./src/main.tsx"]}\n```',
+          'what is this file\n\n--- Attached Context ---\n\n @file:tsconfig.tsbuildinfo (981 tokens)\n```json\n{"root":["./src/main.tsx"]}\n```',
         timestamp: 1
       }
     ])
@@ -146,7 +146,7 @@ describe('toChatMessages', () => {
     const [message] = toChatMessages([
       {
         content: {
-          text: 'look\n\n--- Attached Context ---\n\n📄 @file:foo.ts (10 tokens)\n```ts\nconst x = 1\n```'
+          text: 'look\n\n--- Attached Context ---\n\n @file:foo.ts (10 tokens)\n```ts\nconst x = 1\n```'
         },
         role: 'user',
         timestamp: 1

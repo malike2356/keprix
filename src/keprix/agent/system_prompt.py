@@ -99,6 +99,15 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
         # Fallback to hardcoded identity
         stable_parts.append(DEFAULT_AGENT_IDENTITY)
 
+    try:
+        from keprix.mutation.prompt_resolver import resolve_active_prompt
+
+        evolved_prompt = resolve_active_prompt(agent)
+        if evolved_prompt:
+            stable_parts.append(evolved_prompt)
+    except Exception as exc:
+        _ra().logger.debug("evolved prompt injection skipped: %s", exc)
+
     # Pointer to the keprix skill + docs for user questions about Keprix itself.
     stable_parts.append(KEPRIX_AGENT_HELP_GUIDANCE)
 

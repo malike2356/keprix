@@ -16,6 +16,7 @@ Import chain (circular-import safe):
 
 import ast
 import importlib
+import importlib.util
 import json
 import logging
 import threading
@@ -194,6 +195,10 @@ class ToolRegistry:
         with self._lock:
             return self._tools.get(name)
 
+    def get_tool(self, name: str) -> Optional[ToolEntry]:
+        """Alias for get_entry (mutation pipeline compatibility)."""
+        return self.get_entry(name)
+
     def get_registered_toolset_names(self) -> List[str]:
         """Return sorted unique toolset names present in the registry."""
         return sorted({entry.toolset for entry in self._snapshot_entries()})
@@ -330,6 +335,13 @@ class ToolRegistry:
             self._generation += 1
         logger.debug("Deregistered tool: %s", name)
 
+    def deregister_tool(self, name: str) -> bool:
+        """Remove a tool from the registry. Return True if it existed."""
+        existed = self.get_entry(name) is not None
+        if existed:
+            self.deregister(name)
+        return existed
+
     # ------------------------------------------------------------------
     # Schema retrieval
     # ------------------------------------------------------------------
@@ -397,12 +409,36 @@ class ToolRegistry:
         entry = self.get_entry(name)
         if not entry:
             return json.dumps({"error": f"Unknown tool: {name}"})
+        if entry.toolset == "generated":
+            try:
+                from keprix.agent.keprix.tool_health import is_quarantined, record_tool_result
+
+                if is_quarantined(name):
+                    return json.dumps({"error": f"Tool quarantined: {name}"})
+            except Exception:
+                pass
         try:
             if entry.is_async:
                 from model_tools import _run_async
-                return _run_async(entry.handler(args, **kwargs))
-            return entry.handler(args, **kwargs)
+                result = _run_async(entry.handler(args, **kwargs))
+            else:
+                result = entry.handler(args, **kwargs)
+            if entry.toolset == "generated":
+                try:
+                    from keprix.agent.keprix.tool_health import record_tool_result
+
+                    record_tool_result(name, success=True)
+                except Exception:
+                    pass
+            return result
         except Exception as e:
+            if entry.toolset == "generated":
+                try:
+                    from keprix.agent.keprix.tool_health import record_tool_result
+
+                    record_tool_result(name, success=False)
+                except Exception:
+                    pass
             logger.exception("Tool %s dispatch error: %s", name, e)
             # Route through the sanitizer so framing tokens / CDATA / fences
             # in exception strings don't reach the model as structural noise.
@@ -538,6 +574,31 @@ class ToolRegistry:
                     "tools": [e.name for e in entries if e.toolset == ts],
                 })
         return available, unavailable
+
+    def reload_generated_tools(self, generated_dir: Path) -> int:
+        """Import generated tool modules for hot-reload without restart."""
+        imported = 0
+        if not generated_dir.exists():
+            return imported
+        try:
+            from keprix.agent.keprix.installer import verify_installed_tool
+        except Exception:
+            verify_installed_tool = None
+        for path in sorted(generated_dir.glob("*.py")):
+            if verify_installed_tool is not None and not verify_installed_tool(path):
+                logger.warning("Skipping generated tool with invalid signature: %s", path.name)
+                continue
+            module_name = f"generated_tools.{path.stem}"
+            try:
+                spec = importlib.util.spec_from_file_location(module_name, path)
+                if spec is None or spec.loader is None:
+                    continue
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                imported += 1
+            except Exception as exc:
+                logger.warning("Could not import generated tool %s: %s", path.name, exc)
+        return imported
 
 
 # Module-level singleton

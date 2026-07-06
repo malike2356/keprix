@@ -1,0 +1,17 @@
+name: tool_execution
+version: "1"
+category: tool_execution
+min_pass_rate: 0.9
+tasks:
+  - id: successful_tool_call
+    input: "Run web search and return title"
+    expect_contains: "results"
+    mock_output: "results: 3 items found"
+    mock_cost_usd: 0.01
+    max_cost_usd: 0.05
+  - id: tool_failure_recorded
+    input: "Call unavailable tool"
+    expect_contains: "failed"
+    mock_output: "tool failed: timeout"
+    mock_cost_usd: 0.02
+    max_cost_usd: 0.05

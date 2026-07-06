@@ -786,14 +786,14 @@ sweep_config_v2 = {
 ### 2. Use Log Scales
 
 ```python
-# ✅ Good: Log scale for learning rate
+# Done:  Good: Log scale for learning rate
 'learning_rate': {
     'distribution': 'log_uniform',
     'min': 1e-6,
     'max': 1e-2
 }
 
-# ❌ Bad: Linear scale
+# Failed:  Bad: Linear scale
 'learning_rate': {
     'distribution': 'uniform',
     'min': 0.000001,

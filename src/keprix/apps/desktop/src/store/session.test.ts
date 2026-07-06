@@ -72,7 +72,7 @@ describe('sessionPinId', () => {
 
   it('uses the lineage root so a pin survives compression', () => {
     // After auto-compression the entry surfaces under a fresh tip id but keeps
-    // the original root — pinning on the root keeps the pin stable.
+    // the original root; pinning on the root keeps the pin stable.
     expect(sessionPinId(session({ id: 'tip', _lineage_root_id: 'root' }))).toBe('root')
   })
 })
@@ -294,7 +294,7 @@ describe('getRecentlySettledSessionIds', () => {
     setSessionWorking('s2', false)
     expect(getRecentlySettledSessionIds()).toEqual(['s2'])
 
-    // A new turn for the same session is "working" again — drop it from the
+    // A new turn for the same session is "working" again; drop it from the
     // settled set so it's tracked as working, not recently-finished.
     setSessionWorking('s2', true)
     expect(getRecentlySettledSessionIds()).toEqual([])

@@ -116,7 +116,7 @@ function ClarifyToolPending({ args }: ToolCallMessagePartProps) {
 
   // Race: tool.start fires a tick before clarify.request, so request_id
   // arrives slightly after the tool block mounts. Hold the whole panel on a
-  // spinner until the gateway request is wired — showing disabled choices or
+  // spinner until the gateway request is wired; showing disabled choices or
   // a "loading question" stub is worse than a brief wait.
   const ready = Boolean(matchingRequest?.requestId)
   const loading = !ready && !submitting

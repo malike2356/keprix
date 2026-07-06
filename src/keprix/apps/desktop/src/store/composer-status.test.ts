@@ -33,7 +33,7 @@ describe('reconcileBackgroundProcesses', () => {
 
   it('keeps row order stable when a process flips state or the snapshot reorders', () => {
     reconcileBackgroundProcesses(SID, [running('a'), running('b')])
-    // Snapshot arrives reordered AND `a` has exited — rows must not move.
+    // Snapshot arrives reordered AND `a` has exited; rows must not move.
     reconcileBackgroundProcesses(SID, [running('b'), exited('a', 0)])
 
     expect(items().map(i => [i.id, i.state])).toEqual([

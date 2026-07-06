@@ -217,7 +217,7 @@ export interface ModelOptionProvider {
   warning?: string
   /** True when the provider has usable credentials. False for canonical
    *  providers surfaced by `include_unconfigured` that the user hasn't set up
-   *  yet — render these with a setup affordance instead of hiding them. */
+   *  yet; render these with a setup affordance instead of hiding them. */
   authenticated?: boolean
   /** Auth flow for an unconfigured provider: "api_key" can be activated inline
    *  by pasting `key_env`; anything else (oauth_*, external, aws_sdk, …) needs
@@ -285,7 +285,7 @@ export interface SessionInfo {
   ended_at: null | number
   id: string
   /** Original root id of a compression chain, when this entry is a projected
-   *  continuation tip. Stable across compressions — used as the durable id for
+   *  continuation tip. Stable across compressions; used as the durable id for
    *  pins so a pinned conversation survives auto-compression. */
   _lineage_root_id?: null | string
   input_tokens: number
@@ -551,7 +551,7 @@ export interface SessionSearchResult {
   lineage_root?: string | null
   model: string | null
   role: string | null
-  /** Live compression tip of the matched conversation — resume by this id. */
+  /** Live compression tip of the matched conversation; resume by this id. */
   session_id: string
   session_started: number | null
   snippet: string
@@ -613,7 +613,7 @@ export interface BackendUpdateCommit {
   at: number
 }
 
-/** Shape of `GET /api/hermes/update/check` — the backend's own update state.
+/** Shape of `GET /api/hermes/update/check`; the backend's own update state.
  *  Used by the desktop's remote update overlay so the backend version (not the
  *  Electron client clone) drives "what's changed + Install" in remote mode. */
 export interface BackendUpdateCheckResponse {
@@ -645,7 +645,7 @@ export interface ModelAssignmentRequest {
    *  Only honored for custom/local providers on the main slot. */
   api_key?: string
   /** OpenAI-compatible endpoint URL. Only honored for custom/local providers
-   *  on the main slot — wires a self-hosted endpoint into runtime resolution. */
+   *  on the main slot; wires a self-hosted endpoint into runtime resolution. */
   base_url?: string
   model: string
   provider: string

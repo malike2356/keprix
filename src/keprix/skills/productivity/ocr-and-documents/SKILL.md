@@ -34,18 +34,18 @@ Only use local extraction when: the file is local, web_extract fails, or you nee
 
 | Feature | pymupdf (~25MB) | marker-pdf (~3-5GB) |
 |---------|-----------------|---------------------|
-| **Text-based PDF** | ✅ | ✅ |
-| **Scanned PDF (OCR)** | ❌ | ✅ (90+ languages) |
-| **Tables** | ✅ (basic) | ✅ (high accuracy) |
-| **Equations / LaTeX** | ❌ | ✅ |
-| **Code blocks** | ❌ | ✅ |
-| **Forms** | ❌ | ✅ |
-| **Headers/footers removal** | ❌ | ✅ |
-| **Reading order detection** | ❌ | ✅ |
-| **Images extraction** | ✅ (embedded) | ✅ (with context) |
-| **Images → text (OCR)** | ❌ | ✅ |
-| **EPUB** | ✅ | ✅ |
-| **Markdown output** | ✅ (via pymupdf4llm) | ✅ (native, higher quality) |
+| **Text-based PDF** | Done:  | Done:  |
+| **Scanned PDF (OCR)** | Failed:  | Done:  (90+ languages) |
+| **Tables** | Done:  (basic) | Done:  (high accuracy) |
+| **Equations / LaTeX** | Failed:  | Done:  |
+| **Code blocks** | Failed:  | Done:  |
+| **Forms** | Failed:  | Done:  |
+| **Headers/footers removal** | Failed:  | Done:  |
+| **Reading order detection** | Failed:  | Done:  |
+| **Images extraction** | Done:  (embedded) | Done:  (with context) |
+| **Images → text (OCR)** | Failed:  | Done:  |
+| **EPUB** | Done:  | Done:  |
+| **Markdown output** | Done:  (via pymupdf4llm) | Done:  (native, higher quality) |
 | **Install size** | ~25MB | ~3-5GB (PyTorch + models) |
 | **Speed** | Instant | ~1-14s/page (CPU), ~0.2s/page (GPU) |
 
@@ -125,7 +125,7 @@ web_search(query="arxiv GRPO reinforcement learning 2026")
 
 ## Split, Merge & Search
 
-pymupdf handles these natively — use `execute_code` or inline Python:
+pymupdf handles these natively; use `execute_code` or inline Python:
 
 ```python
 # Split: extract pages 1-5 to a new PDF
@@ -157,16 +157,16 @@ for i, page in enumerate(doc):
         print(page.get_text("text"))
 ```
 
-No extra dependencies needed — pymupdf covers split, merge, search, and text extraction in one package.
+No extra dependencies needed; pymupdf covers split, merge, search, and text extraction in one package.
 
 ---
 
 ## Notes
 
 - `web_extract` is always first choice for URLs
-- pymupdf is the safe default — instant, no models, works everywhere
-- marker-pdf is for OCR, scanned docs, equations, complex layouts — install only when needed
+- pymupdf is the safe default; instant, no models, works everywhere
+- marker-pdf is for OCR, scanned docs, equations, complex layouts; install only when needed
 - Both helper scripts accept `--help` for full usage
 - marker-pdf downloads ~2.5GB of models to `~/.cache/huggingface/` on first use
-- For Word docs: `pip install python-docx` (better than OCR — parses actual structure)
+- For Word docs: `pip install python-docx` (better than OCR; parses actual structure)
 - For PowerPoint: see the `powerpoint` skill (uses python-pptx)

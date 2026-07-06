@@ -1,20 +1,20 @@
 # AAAI 2026 统一LaTeX模板使用说明 / AAAI 2026 Unified LaTeX Template Guide
 
-> **📝 重要说明 / Important Notice**: 本仓库借助Cursor在AAAI 2026官方模板基础上改进得到。如果遇到不满足或有冲突的情况，请积极提issues。
+> ** 重要说明 / Important Notice**: 本仓库借助Cursor在AAAI 2026官方模板基础上改进得到。如果遇到不满足或有冲突的情况，请积极提issues。
 > 
-> **📝 Important Notice**: This repository is improved based on the official AAAI 2026 template with the assistance of Cursor. If you encounter any issues or conflicts, please actively submit issues.
+> ** Important Notice**: This repository is improved based on the official AAAI 2026 template with the assistance of Cursor. If you encounter any issues or conflicts, please actively submit issues.
 
 [中文](#中文版本) | [English](#english-version)
 
 ---
 
-## 🌐 在线查看 / Online Access
+##  在线查看 / Online Access
 
-**📖 在线阅读和测试模板**: [https://cn.overleaf.com/read/wyhcnvcrtpyt#cd4a07](https://cn.overleaf.com/read/wyhcnvcrtpyt#cd4a07)
+** 在线阅读和测试模板**: [https://cn.overleaf.com/read/wyhcnvcrtpyt#cd4a07](https://cn.overleaf.com/read/wyhcnvcrtpyt#cd4a07)
 
-**📖 Online View and Test Template**: [https://cn.overleaf.com/read/wyhcnvcrtpyt#cd4a07](https://cn.overleaf.com/read/wyhcnvcrtpyt#cd4a07)
+** Online View and Test Template**: [https://cn.overleaf.com/read/wyhcnvcrtpyt#cd4a07](https://cn.overleaf.com/read/wyhcnvcrtpyt#cd4a07)
 
-💡 **提示 / Tips**: 
+ **提示 / Tips**: 
 - 中文：您可以通过上述链接在Overleaf中直接查看、编辑和编译模板，无需本地安装LaTeX环境
 - English: You can view, edit, and compile the template directly in Overleaf using the link above, without needing a local LaTeX installation
 
@@ -22,7 +22,7 @@
 
 ## 中文版本
 
-### 概述 ✅
+### 概述 Done: 
 
 我已经将AAAI 2026的两个版本（匿名投稿版本和camera-ready版本）**完整合并**成一个统一的模板文件 `aaai2026-unified-template.tex`。
 
@@ -56,7 +56,7 @@
 
 ### 依赖文件检查结果
 
-✅ **已验证并复制到主目录的文件**：
+Done:  **已验证并复制到主目录的文件**：
 
 - `aaai2026.sty` - AAAI 2026 样式文件（两个版本完全相同）
 - `aaai2026.bst` - 参考文献样式文件（两个版本完全相同）
@@ -152,7 +152,7 @@
 
 ### 使用检查清单 (Usage Checklist)
 
-#### 📋 投稿前检查清单 (Pre-Submission Checklist)
+####  投稿前检查清单 (Pre-Submission Checklist)
 
 **版本设置**:
 - [ ] 已设置 `\def\aaaianonymous{true}` (匿名投稿)
@@ -179,7 +179,7 @@
 - [ ] PDF输出正常
 - [ ] 文件大小在限制范围内
 
-#### 📋 录用后检查清单 (Post-Acceptance Checklist)
+####  录用后检查清单 (Post-Acceptance Checklist)
 
 **版本切换**:
 - [ ] 已注释掉 `\def\aaaianonymous{true}` (camera-ready)
@@ -199,7 +199,7 @@
 - [ ] 符合会议最终提交要求
 - [ ] 补充材料已单独提交（如需要）
 
-#### 📋 补充材料检查清单 (Supplementary Material Checklist)
+####  补充材料检查清单 (Supplementary Material Checklist)
 
 **内容组织**:
 - [ ] 补充材料与主论文内容对应
@@ -242,7 +242,7 @@
 
 ### 重要注意事项
 
-⚠️ **关于Bibliography Style**:
+WARNING:  **关于Bibliography Style**:
 - `aaai2026.sty`文件已经自动设置了`\bibliographystyle{aaai2026}`
 - **不要**在文档中再次添加`\bibliographystyle{aaai2026}`命令
 - 否则会出现"`Illegal, another \bibstyle command`"错误
@@ -272,7 +272,7 @@ pdflatex aaai2026-unified-template.tex
 
 ## English Version
 
-### Overview ✅
+### Overview Done: 
 
 I have **completely merged** the two AAAI 2026 versions (anonymous submission and camera-ready) into a single unified template file `aaai2026-unified-template.tex`.
 
@@ -306,7 +306,7 @@ By comparing the two original templates, the main differences are:
 
 ### Dependency Files Verification
 
-✅ **Files verified and copied to main directory**:
+Done:  **Files verified and copied to main directory**:
 
 - `aaai2026.sty` - AAAI 2026 style file (identical in both versions)
 - `aaai2026.bst` - Bibliography style file (identical in both versions)
@@ -402,7 +402,7 @@ Same as the main paper template, just modify line 11:
 
 ### Usage Checklist
 
-#### 📋 Pre-Submission Checklist
+####  Pre-Submission Checklist
 
 **Version Setup**:
 - [ ] Set `\def\aaaianonymous{true}` (anonymous submission)
@@ -429,7 +429,7 @@ Same as the main paper template, just modify line 11:
 - [ ] PDF output normal
 - [ ] File size within limits
 
-#### 📋 Post-Acceptance Checklist
+####  Post-Acceptance Checklist
 
 **Version Switch**:
 - [ ] Commented out `\def\aaaianonymous{true}` (camera-ready)
@@ -449,7 +449,7 @@ Same as the main paper template, just modify line 11:
 - [ ] Meets conference final submission requirements
 - [ ] Supplementary materials submitted separately (if needed)
 
-#### 📋 Supplementary Material Checklist
+####  Supplementary Material Checklist
 
 **Content Organization**:
 - [ ] Supplementary materials correspond to main paper content
@@ -492,7 +492,7 @@ Same as the main paper template, just modify line 11:
 
 ### Important Notes
 
-⚠️ **About Bibliography Style**:
+WARNING:  **About Bibliography Style**:
 - The `aaai2026.sty` file automatically sets `\bibliographystyle{aaai2026}`
 - **Do NOT** add `\bibliographystyle{aaai2026}` command again in your document
 - Otherwise you'll get "`Illegal, another \bibstyle command`" error
@@ -530,5 +530,5 @@ pdflatex aaai2026-unified-template.tex
 
 ---
 
-🎉 **现在您只需要修改一行代码就可以在两个版本之间切换，同时所有必要的依赖文件都已经准备就绪！**  
-🎉 **Now you only need to modify one line of code to switch between the two versions, with all necessary dependency files ready to use!**
+ **现在您只需要修改一行代码就可以在两个版本之间切换，同时所有必要的依赖文件都已经准备就绪！**  
+ **Now you only need to modify one line of code to switch between the two versions, with all necessary dependency files ready to use!**

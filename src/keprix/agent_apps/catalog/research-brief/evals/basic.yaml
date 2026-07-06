@@ -1,0 +1,4 @@
+cases:
+  - name: research smoke
+    input: federated learning
+    expect_contains: Research

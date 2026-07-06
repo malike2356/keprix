@@ -1,7 +1,7 @@
 import { Component, type ReactNode } from 'react'
 
 // `@assistant-ui/store`'s index-keyed child-scope lookup (`tapClientLookup`)
-// throws — rather than returning undefined — when a subscriber reads an index
+// throws; rather than returning undefined; when a subscriber reads an index
 // that the message/parts list no longer has. This races during high-frequency
 // store replacement (session switch mid-stream, gateway reconnect replay): a
 // subscriber from the previous, longer list is still in React's notification

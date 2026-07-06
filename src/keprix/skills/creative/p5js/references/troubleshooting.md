@@ -2,24 +2,24 @@
 
 ## Performance
 
-### Step Zero — Disable FES
+### Step Zero; Disable FES
 
-The Friendly Error System (FES) adds massive overhead — up to 10x slowdown. Disable it in every production sketch:
+The Friendly Error System (FES) adds massive overhead; up to 10x slowdown. Disable it in every production sketch:
 
 ```javascript
 // BEFORE any p5 code
 p5.disableFriendlyErrors = true;
 
-// Or use p5.min.js instead of p5.js — FES is stripped from minified build
+// Or use p5.min.js instead of p5.js; FES is stripped from minified build
 ```
 
-### Step One — pixelDensity(1)
+### Step One; pixelDensity(1)
 
 Retina/HiDPI displays default to 2x or 3x density, multiplying pixel count by 4-9x:
 
 ```javascript
 function setup() {
-  pixelDensity(1);        // force 1:1 — always do this first
+  pixelDensity(1); // force 1:1; always do this first
   createCanvas(1920, 1080);
 }
 ```
@@ -29,36 +29,36 @@ function setup() {
 p5's `sin()`, `cos()`, `random()`, `min()`, `max()`, `abs()` are wrapper functions with overhead. In hot loops (thousands of iterations per frame), use native `Math.*`:
 
 ```javascript
-// SLOW — p5 wrappers
+// SLOW; p5 wrappers
 for (let p of particles) {
   let a = sin(p.angle);
   let d = dist(p.x, p.y, mx, my);
 }
 
-// FAST — native Math
+// FAST; native Math
 for (let p of particles) {
   let a = Math.sin(p.angle);
   let dx = p.x - mx, dy = p.y - my;
-  let dSq = dx * dx + dy * dy;  // skip sqrt entirely
+  let dSq = dx * dx + dy * dy; // skip sqrt entirely
 }
 ```
 
-Use `magSq()` instead of `mag()` for distance comparisons — avoids expensive `sqrt()`.
+Use `magSq()` instead of `mag()` for distance comparisons; avoids expensive `sqrt()`.
 
 ### Diagnosis
 
 Open Chrome DevTools > Performance tab > Record while sketch runs.
 
 Common bottlenecks:
-1. **FES enabled** — 10x overhead on every p5 function call
-2. **pixelDensity > 1** — 4x pixel count, 4x slower
-3. **Too many draw calls** — thousands of `ellipse()`, `rect()` per frame
-4. **Large canvas + pixel operations** — `loadPixels()`/`updatePixels()` on 4K canvas
-5. **Unoptimized particle systems** — checking all-vs-all distances (O(n^2))
-6. **Memory leaks** — creating objects every frame without cleanup
-7. **Shader compilation** — calling `createShader()` in `draw()` instead of `setup()`
-8. **console.log() in draw()** — DOM write per frame, destroys performance
-9. **DOM manipulation in draw()** — layout thrashing (400-500x slower than canvas ops)
+1. **FES enabled**; 10x overhead on every p5 function call
+2. **pixelDensity > 1**; 4x pixel count, 4x slower
+3. **Too many draw calls**; thousands of `ellipse()`, `rect()` per frame
+4. **Large canvas + pixel operations**; `loadPixels()`/`updatePixels()` on 4K canvas
+5. **Unoptimized particle systems**; checking all-vs-all distances (O(n^2))
+6. **Memory leaks**; creating objects every frame without cleanup
+7. **Shader compilation**; calling `createShader()` in `draw()` instead of `setup()`
+8. **console.log() in draw()**; DOM write per frame, destroys performance
+9. **DOM manipulation in draw()**; layout thrashing (400-500x slower than canvas ops)
 
 ### Solutions
 
@@ -199,7 +199,7 @@ Pixel-level operations (`loadPixels()` loops) are the most expensive common patt
 
 **Solution: render at lower resolution, fill blocks:**
 ```javascript
-let step = 3;  // render 1/9 of pixels, fill 3x3 blocks
+let step = 3; // render 1/9 of pixels, fill 3x3 blocks
 loadPixels();
 for (let y = 0; y < H; y += step) {
   for (let x = 0; x < W; x += step) {
@@ -224,7 +224,7 @@ Step=2 gives 4x speedup. Step=3 gives 9x. Visible at 1080p but acceptable for vi
 blendMode(ADD);
 image(glowLayer, 0, 0);
 // WRONG: everything after this is ADD blended
-blendMode(BLEND);  // ALWAYS reset
+blendMode(BLEND); // ALWAYS reset
 ```
 
 ### 2. Creating objects in draw()
@@ -232,7 +232,7 @@ blendMode(BLEND);  // ALWAYS reset
 ```javascript
 // BAD: creates new font object every frame
 function draw() {
-  let f = loadFont('font.otf');  // NEVER load in draw()
+  let f = loadFont('font.otf'); // NEVER load in draw()
 }
 
 // GOOD: load in preload, use in draw
@@ -264,7 +264,7 @@ pop();
 line(10.5, 20.3, 100.7, 80.2);
 
 // CRISP: integer + 0.5 for 1px lines
-line(10.5, 20.5, 100.5, 80.5);  // on pixel boundary
+line(10.5, 20.5, 100.5, 80.5); // on pixel boundary
 ```
 
 ### 5. Pixel density confusion
@@ -272,7 +272,7 @@ line(10.5, 20.5, 100.5, 80.5);  // on pixel boundary
 ```javascript
 // WRONG: assuming pixel array matches canvas dimensions
 loadPixels();
-let idx = 4 * (y * width + x);  // wrong if pixelDensity > 1
+let idx = 4 * (y * width + x); // wrong if pixelDensity > 1
 
 // RIGHT: account for pixel density
 let d = pixelDensity();
@@ -287,10 +287,10 @@ let idx = 4 * ((y * d) * (width * d) + (x * d));
 ```javascript
 // In HSB mode, fill(255) is NOT white
 colorMode(HSB, 360, 100, 100);
-fill(255);  // This is hue=255, sat=100, bri=100 = vivid purple
+fill(255); // This is hue=255, sat=100, bri=100 = vivid purple
 
 // White in HSB:
-fill(0, 0, 100);  // any hue, 0 saturation, 100 brightness
+fill(0, 0, 100); // any hue, 0 saturation, 100 brightness
 
 // Black in HSB:
 fill(0, 0, 0);
@@ -306,16 +306,16 @@ function draw() {
 
   // For top-left behavior:
   translate(-width/2, -height/2);
-  rect(0, 0, 100, 100);  // now at top-left
+  rect(0, 0, 100, 100); // now at top-left
 }
 ```
 
 ### 8. createGraphics cleanup
 
 ```javascript
-// BAD: memory leak — buffer never freed
+// BAD: memory leak; buffer never freed
 function draw() {
-  let temp = createGraphics(width, height);  // new buffer every frame!
+  let temp = createGraphics(width, height); // new buffer every frame!
   // ...
 }
 
@@ -330,13 +330,13 @@ function draw() {
 }
 
 // If you must create/destroy:
-temp.remove();  // explicitly free
+temp.remove(); // explicitly free
 ```
 
 ### 9. noise() returns 0-1, not -1 to 1
 
 ```javascript
-let n = noise(x);  // 0.0 to 1.0 (biased toward 0.5)
+let n = noise(x); // 0.0 to 1.0 (biased toward 0.5)
 
 // For -1 to 1 range:
 let n = noise(x) * 2 - 1;
@@ -351,7 +351,7 @@ let n = map(noise(x), 0, 1, -100, 100);
 // BAD: saves a PNG every single frame
 function draw() {
   // ... render ...
-  saveCanvas('output', 'png');  // DON'T DO THIS
+  saveCanvas('output', 'png'); // DON'T DO THIS
 }
 
 // GOOD: save once via keyboard
@@ -363,16 +363,16 @@ function keyPressed() {
 function draw() {
   // ... render ...
   saveCanvas('output', 'png');
-  noLoop();  // stop after saving
+  noLoop(); // stop after saving
 }
 ```
 
 ### 11. console.log() in draw()
 
 ```javascript
-// BAD: writes to DOM console every frame — massive overhead
+// BAD: writes to DOM console every frame; massive overhead
 function draw() {
-  console.log(particles.length);  // 60 DOM writes/second
+  console.log(particles.length); // 60 DOM writes/second
 }
 
 // GOOD: log periodically or conditionally
@@ -384,10 +384,10 @@ function draw() {
 ### 12. DOM manipulation in draw()
 
 ```javascript
-// BAD: layout thrashing — 400-500x slower than canvas ops
+// BAD: layout thrashing; 400-500x slower than canvas ops
 function draw() {
   document.getElementById('counter').innerText = frameCount;
-  let el = document.querySelector('.info');  // DOM query per frame
+  let el = document.querySelector('.info'); // DOM query per frame
 }
 
 // GOOD: cache DOM refs, update infrequently
@@ -425,7 +425,7 @@ function setup() { createCanvas(800, 800); }
 
 ### Mobile Issues
 - Touch events need `return false` to prevent scroll
-- `devicePixelRatio` can be 2x or 3x — use `pixelDensity(1)` for performance
+- `devicePixelRatio` can be 2x or 3x; use `pixelDensity(1)` for performance
 - Smaller canvas recommended (720p or less)
 - Audio requires explicit user gesture to start
 
@@ -452,21 +452,21 @@ function setup() { createCanvas(800, 800); }
 // 1. Growing arrays
 let history = [];
 function draw() {
-  history.push(someData);  // grows forever
+  history.push(someData); // grows forever
 }
 // FIX: cap the array
 if (history.length > 1000) history.shift();
 
 // 2. Creating p5 objects in draw()
 function draw() {
-  let v = createVector(0, 0);  // allocation every frame
+  let v = createVector(0, 0); // allocation every frame
 }
 // FIX: reuse pre-allocated objects
 
 // 3. Unreleased graphics buffers
 let layers = [];
 function reset() {
-  for (let l of layers) l.remove();  // free old buffers
+  for (let l of layers) l.remove(); // free old buffers
   layers = [];
 }
 
@@ -525,8 +525,8 @@ function keyPressed() {
 ```javascript
 // Comment out layers to find the slow one
 function draw() {
-  renderBackground();      // comment out to test
-  // renderParticles();    // this might be slow
-  // renderPostEffects();  // or this
+  renderBackground(); // comment out to test
+  // renderParticles(); // this might be slow
+  // renderPostEffects(); // or this
 }
 ```

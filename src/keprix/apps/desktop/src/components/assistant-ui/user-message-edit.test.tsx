@@ -1,11 +1,11 @@
 import { ExportedMessageRepository } from '@assistant-ui/core/internal'
-// Clicking a user bubble must open the inline edit composer — through the
+// Clicking a user bubble must open the inline edit composer; through the
 // app's incremental external-store runtime (which reimplements capability
 // resolution, incl. `edit: onEdit !== undefined`) and the stock runtime.
 //
 // Note: this covers the React/runtime wiring only. The Electron-level failure
 // mode (titlebar -webkit-app-region:drag swallowing clicks on *stuck* sticky
-// bubbles) is not reproducible in jsdom — see USER_BUBBLE_BASE_CLASS's no-drag
+// bubbles) is not reproducible in jsdom; see USER_BUBBLE_BASE_CLASS's no-drag
 // carve-out in thread.tsx.
 import { AssistantRuntimeProvider, type ThreadMessage, useExternalStoreRuntime } from '@assistant-ui/react'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'

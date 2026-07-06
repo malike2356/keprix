@@ -102,14 +102,14 @@ Slow down pacing for emotional impact:
 
 ## Quality Markers
 
-- ✓ Large, sparkling detailed eyes
-- ✓ Decorative elements in emotional moments
-- ✓ Flowing, beautiful character designs
-- ✓ Soft, pastel color palette
-- ✓ Elegant panel compositions
-- ✓ Screen tone mood effects
-- ✓ Romantic atmosphere throughout
-- ✓ Beautiful, expressive poses
+-  Large, sparkling detailed eyes
+-  Decorative elements in emotional moments
+-  Flowing, beautiful character designs
+-  Soft, pastel color palette
+-  Elegant panel compositions
+-  Screen tone mood effects
+-  Romantic atmosphere throughout
+-  Beautiful, expressive poses
 
 ## Best For
 

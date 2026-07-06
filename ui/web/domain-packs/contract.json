@@ -1,0 +1,16 @@
+{
+  "surface": "domain-packs",
+  "title": "Domain Knowledge Packs",
+  "description": "Create, validate, localize, and publish domain knowledge packs.",
+  "routes": [
+    { "path": "/domain-packs", "label": "Domain Packs" }
+  ],
+  "actions": [
+    "create_pack",
+    "validate_pack",
+    "ingest_sources",
+    "localize_pack",
+    "request_review",
+    "publish_pack"
+  ]
+}

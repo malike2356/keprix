@@ -201,7 +201,7 @@ function IdleView({
   const remaining = Math.max(0, behind - shownItems)
 
   // Name what's being updated. In remote mode the overlay acts on the connected
-  // backend, not the local client — say so. When there are no commit rows to
+  // backend, not the local client; say so. When there are no commit rows to
   // show (e.g. pip/non-git backend), degrade to honest "no release notes" copy
   // instead of generic filler.
   const { title, body } = resolveUpdateCopy({ target, shownItems, copy: u })

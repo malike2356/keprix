@@ -129,12 +129,12 @@ function hiddenWindowsChildOptions(options = {}) {
 }
 
 // Remote displays (SSH X11 forwarding, VNC, RDP) make Chromium's GPU
-// compositor flicker — accelerated layers can't be presented cleanly over the
+// compositor flicker; accelerated layers can't be presented cleanly over the
 // wire, so the window flashes during scroll/streaming/animation. Local
 // Windows/macOS (and WSLg, which renders locally via vGPU) composite on the
 // GPU and never see it. Fall back to software rendering when a remote display
 // is detected; it's rock-steady over the wire and the CPU cost is negligible
-// next to the connection's latency. Must run before app `ready` — these
+// next to the connection's latency. Must run before app `ready`; these
 // switches only apply pre-launch. Override with HERMES_DESKTOP_DISABLE_GPU
 // (1/true → always disable, 0/false → keep GPU on).
 const REMOTE_DISPLAY_REASON = detectRemoteDisplay()
@@ -226,7 +226,7 @@ if (INSTALL_STAMP) {
   )
 }
 
-// HERMES_HOME — the user-facing root for everything Hermes-related. Mirrors
+// HERMES_HOME; the user-facing root for everything Hermes-related. Mirrors
 // scripts/install.ps1's $HermesHome and scripts/install.sh's $HERMES_HOME.
 //
 // Defaults:
@@ -266,13 +266,13 @@ function resolveHermesHome() {
 }
 
 const HERMES_HOME = resolveHermesHome()
-// ACTIVE_HERMES_ROOT — the canonical mutable Hermes install. Same path
+// ACTIVE_HERMES_ROOT; the canonical mutable Hermes install. Same path
 // install.ps1 / install.sh use, so a desktop-only user and a CLI-only user end
 // up with identical layouts and can share one install.
 const ACTIVE_HERMES_ROOT = path.join(HERMES_HOME, 'hermes-agent')
-// VENV_ROOT — venv lives inside the repo, exactly like install.ps1 does it.
+// VENV_ROOT; venv lives inside the repo, exactly like install.ps1 does it.
 const VENV_ROOT = path.join(ACTIVE_HERMES_ROOT, 'venv')
-// BOOTSTRAP_COMPLETE_MARKER — written by the first-launch bootstrap runner
+// BOOTSTRAP_COMPLETE_MARKER; written by the first-launch bootstrap runner
 // (Phase 1D) after install.ps1 has completed all stages and the user has
 // finished initial configuration. Presence of this marker means the install
 // is in a known-good state and we can skip the bootstrap flow on subsequent
@@ -303,7 +303,7 @@ const PROFILE_NAME_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/
 // hermesDesktop.updates.setBranch().
 const DEFAULT_UPDATE_BRANCH = 'main'
 // desktop.log lives under HERMES_HOME/logs/ so it sits next to agent.log,
-// errors.log, gateway.log produced by hermes_logging.setup_logging — one log
+// errors.log, gateway.log produced by hermes_logging.setup_logging; one log
 // directory per user, regardless of which UI surface produced the line.
 const DESKTOP_LOG_PATH = path.join(HERMES_HOME, 'logs', 'desktop.log')
 const DESKTOP_LOG_FLUSH_MS = 120
@@ -311,7 +311,7 @@ const DESKTOP_LOG_BUFFER_MAX_CHARS = 64 * 1024
 // Bound desktop.log on disk. It is an append-only forensic log, so a boot loop
 // (version-skew crash -> backend exits instantly -> renderer keeps hitting
 // Retry) appends the full bootstrap transcript every attempt and grows without
-// bound — we have seen it reach ~326 GB and exhaust the disk, which then breaks
+// bound; we have seen it reach ~326 GB and exhaust the disk, which then breaks
 // update/install (no room for git/venv/npm temp files).
 //
 // Mirror the Python logs (hermes_logging.py RotatingFileHandler, maxBytes x
@@ -321,7 +321,7 @@ const DESKTOP_LOG_BUFFER_MAX_CHARS = 64 * 1024
 // Bounding alone never RECLAIMS an already-huge file: a plain rotation just
 // renames the monster to .1 and strands it for a cycle a healthy app may never
 // reach. A multi-GB boot-loop transcript has no diagnostic value, so anything
-// past the discard ceiling is deleted outright — the updated app self-heals a
+// past the discard ceiling is deleted outright; the updated app self-heals a
 // disk a stale build filled, on the next launch.
 const DESKTOP_LOG_MAX_BYTES = 10 * 1024 * 1024
 const DESKTOP_LOG_BACKUP_COUNT = 3
@@ -360,7 +360,7 @@ const terminalSessions = new Map()
 // Force the NATIVE window appearance (vibrancy material, titlebar, the
 // pre-first-paint window background) to follow the APP theme instead of the
 // OS appearance. With `vibrancy` set, macOS paints an NSVisualEffectView that
-// tracks the window's effective appearance and ignores `backgroundColor` —
+// tracks the window's effective appearance and ignores `backgroundColor`;
 // so a dark-themed app on a light-mode Mac flashes a white material on every
 // new window until the renderer covers it. The renderer reports its mode via
 // 'hermes:native-theme' ('dark' | 'light' | 'system'); we pin
@@ -394,7 +394,7 @@ function writePersistedThemeSource(mode) {
 
 nativeTheme.themeSource = readPersistedThemeSource()
 
-// Window translucency (see-through window). One lever, 0–100; 0 = off (the
+// Window translucency (see-through window). One lever, 0-100; 0 = off (the
 // default). Mapped to the native window opacity so the desktop shows through
 // the whole window. Persisted so a cold launch applies it at window creation,
 // before the renderer reports its value. macOS + Windows only; `setOpacity` is
@@ -426,14 +426,14 @@ function writePersistedTranslucency(intensity) {
 
 let translucencyIntensity = readPersistedTranslucency()
 
-// Map the 0–100 lever to a window opacity. Floor at 0.3 so the most see-through
+// Map the 0-100 lever to a window opacity. Floor at 0.3 so the most see-through
 // setting is still usable rather than nearly invisible. 0 → fully opaque.
 function windowOpacity() {
   return 1 - (translucencyIntensity / 100) * 0.7
 }
 
 // Re-apply translucency to a live window (runtime toggle, no recreation).
-// `setOpacity` is a no-op on Linux, which is fine — it just stays opaque there.
+// `setOpacity` is a no-op on Linux, which is fine; it just stays opaque there.
 function applyWindowTranslucency(win) {
   if (!win || win.isDestroyed() || typeof win.setOpacity !== 'function') {
     return
@@ -639,7 +639,7 @@ function registerMediaProtocol() {
     try {
       const url = new URL(request.url)
       const filePath = decodeURIComponent(url.pathname.replace(/^\/+/, ''))
-      ;({ resolvedPath } = await resolveReadableFileForIpc(filePath, { purpose: 'Media stream' }))
+;({ resolvedPath } = await resolveReadableFileForIpc(filePath, { purpose: 'Media stream' }))
     } catch {
       return new Response('Media not found', { status: 404 })
     }
@@ -648,7 +648,7 @@ function registerMediaProtocol() {
       return new Response('Unsupported media type', { status: 415 })
     }
 
-    // Delegate to Electron's net stack on a file:// URL — it resolves the
+    // Delegate to Electron's net stack on a file:// URL; it resolves the
     // content-type and honors Range requests so seeking works. Forward the
     // renderer's headers (notably Range) and skip custom-protocol re-entry.
     return electronNet.fetch(pathToFileURL(resolvedPath).toString(), {
@@ -674,7 +674,7 @@ const backendPool = new Map() // profile -> { process, port, token, connectionPr
 const POOL_MAX_BACKENDS = Math.max(1, Number(process.env.HERMES_DESKTOP_POOL_MAX) || 3)
 const POOL_IDLE_MS = Math.max(60_000, Number(process.env.HERMES_DESKTOP_POOL_IDLE_MS) || 10 * 60_000)
 // A backend touched within this window has a live renderer socket (the keepalive
-// pings every 60s for every open profile). LRU eviction must spare these — a
+// pings every 60s for every open profile). LRU eviction must spare these; a
 // concurrent multi-profile session keeps several backends "fresh" at once, and
 // killing one to honor the soft cap would abort a running agent.
 const POOL_KEEPALIVE_FRESH_MS = 90_000
@@ -738,14 +738,14 @@ function rotateDesktopLogIfNeededSync() {
   try {
     size = fs.statSync(DESKTOP_LOG_PATH).size
   } catch {
-    return // No live file yet — the append (re)creates it.
+    return // No live file yet; the append (re)creates it.
   }
   for (const [op, src, dst] of planDesktopLogRotation(size)) {
     try {
       if (op === 'rm') fs.rmSync(src, { force: true })
       else fs.renameSync(src, dst)
     } catch {
-      // Best-effort — logging must never block startup/shutdown.
+      // Best-effort; logging must never block startup/shutdown.
     }
   }
 }
@@ -755,14 +755,14 @@ async function rotateDesktopLogIfNeededAsync() {
   try {
     size = (await fs.promises.stat(DESKTOP_LOG_PATH)).size
   } catch {
-    return // No live file yet — the append (re)creates it.
+    return // No live file yet; the append (re)creates it.
   }
   for (const [op, src, dst] of planDesktopLogRotation(size)) {
     try {
       if (op === 'rm') await fs.promises.rm(src, { force: true })
       else await fs.promises.rename(src, dst)
     } catch {
-      // Best-effort — logging must never crash the shell.
+      // Best-effort; logging must never crash the shell.
     }
   }
 }
@@ -1193,13 +1193,13 @@ function findSystemPython() {
   //      %LOCALAPPDATA%\Microsoft\WindowsApps\python.exe and is on PATH
   //      by default on modern Windows. It's a redirector that opens the
   //      Store window if no Store Python is installed. Running it for
-  //      `-m venv` would either succeed (real Store install — fine) or
+  //      `-m venv` would either succeed (real Store install; fine) or
   //      pop the Store dialog (bad UX during boot).
   //  (2) `py.exe` (Python launcher) is missing from per-user installs
   //      that didn't check the launcher option, so PATH-only checks
   //      miss real Python 3.13 installs (user-reported case).
   //
-  // We also restrict ourselves to Python 3.11–3.13. 3.14 is the latest
+  // We also restrict ourselves to Python 3.11-3.13. 3.14 is the latest
   // CPython but several Hermes deps (notably pywinpty's Rust-built
   // windows_x86_64_msvc crate) don't yet publish 3.14 wheels, and
   // `pip install -e .` falls back to source-build, which fails without
@@ -1212,7 +1212,7 @@ function findSystemPython() {
   // least-precise, and ONLY use PATH lookup as a last resort after
   // confirming the candidate isn't the WindowsApps redirector.
   //
-  //  Pass 1: PEP 514 registry — every standards-compliant Python
+  //  Pass 1: PEP 514 registry; every standards-compliant Python
   //          installer registers itself at SOFTWARE\Python\PythonCore.
   //          The MS Store stub does NOT register here, so a hit means
   //          a real Python install. Versions are explicit so we
@@ -1221,7 +1221,7 @@ function findSystemPython() {
   //          (Program Files, LocalAppData\Programs\Python). Same
   //          version filtering by directory name.
   //  Pass 3: PATH lookup of `py.exe` (the launcher itself never
-  //          triggers the Store) — but call it with a version flag so
+  //          triggers the Store); but call it with a version flag so
   //          we resolve to a SPECIFIC supported version, not whatever
   //          py.exe's default is (which on a 3.14-only box would be
   //          3.14).
@@ -1247,7 +1247,7 @@ function findSystemPython() {
           if (fileExists(pythonExe)) return pythonExe
         }
       } catch {
-        // Key not present — try next.
+        // Key not present; try next.
       }
     }
   }
@@ -1284,7 +1284,7 @@ function findSystemPython() {
         const candidate = out.trim()
         if (candidate && fileExists(candidate)) return candidate
       } catch {
-        // py couldn't find that version — try next.
+        // py couldn't find that version; try next.
       }
     }
   }
@@ -1298,7 +1298,7 @@ function findSystemPython() {
   return null
 }
 
-// findGitBash — locate bash.exe on Windows. Hermes' terminal tool requires
+// findGitBash; locate bash.exe on Windows. Hermes' terminal tool requires
 // bash (POSIX shell), and on Windows that's almost always Git for Windows'
 // bundled Git Bash. We check the same set of locations tools/environments/
 // local.py:_find_bash() checks at runtime, so a positive result here means
@@ -1311,7 +1311,7 @@ function findGitBash() {
     return findOnPath('bash')
   }
 
-  // install.ps1 drops PortableGit at %LOCALAPPDATA%\hermes\git\... — checked
+  // install.ps1 drops PortableGit at %LOCALAPPDATA%\hermes\git\...; checked
   // first so users who installed via install.ps1 are detected before we
   // start probing system-wide locations.
   const localAppData = process.env.LOCALAPPDATA || ''
@@ -1332,7 +1332,7 @@ function findGitBash() {
     if (fileExists(candidate)) return candidate
   }
 
-  // Last resort — bash on PATH (covers WSL bash, MSYS2, custom installs).
+  // Last resort; bash on PATH (covers WSL bash, MSYS2, custom installs).
   // On WSL hosts findOnPath itself filters out Windows-binary paths via
   // isWindowsBinaryPathInWsl, so we won't hand back a wsl.exe shim either.
   return findOnPath('bash')
@@ -1342,7 +1342,7 @@ function getVenvPython(venvRoot) {
   return path.join(venvRoot, IS_WINDOWS ? path.join('Scripts', 'python.exe') : path.join('bin', 'python'))
 }
 
-// resolveGitBinary — locate git.exe on Windows. A fresh installer-driven
+// resolveGitBinary; locate git.exe on Windows. A fresh installer-driven
 // install only has PortableGit under %LOCALAPPDATA%\hermes\git (never on
 // PATH), so a bare spawn('git') ENOENTs and self-update checks fail with
 // "Couldn't check for updates". Mirror findGitBash: PortableGit first, then
@@ -1459,7 +1459,7 @@ function emitUpdateProgress(payload) {
 
 // Self-heal the tracked update branch: if origin no longer publishes it (e.g.
 // bb/gui was merged into main and deleted), fall back to main and persist so
-// every later check/apply follows main — no manual flip, even for already-
+// every later check/apply follows main; no manual flip, even for already-
 // installed clients. Read-only ls-remote probe; only flips on a definitive
 // "ref absent" (exit 2), never on a transient network error, so a flaky
 // connection can't strand a user on the wrong branch.
@@ -1491,7 +1491,7 @@ async function checkUpdates() {
     return {
       supported: false,
       reason: 'not-a-git-checkout',
-      message: `${updateRoot} isn't a git checkout — desktop self-update only runs against a source install.`,
+      message: `${updateRoot} isn't a git checkout; desktop self-update only runs against a source install.`,
       hermesRoot: updateRoot,
       branch
     }
@@ -1593,7 +1593,7 @@ let updateInFlight = false
 // Resolve the staged updater binary. The Tauri installer copies itself to
 // HERMES_HOME/hermes-setup.exe on a successful install (see
 // apps/bootstrap-installer paths::copy_self_to_hermes_home). That binary owns
-// ALL repo mutation — running `hermes update` + rebuilding the desktop — so
+// ALL repo mutation; running `hermes update` + rebuilding the desktop; so
 // the desktop never touches its own bits while running. Returns null when the
 // updater isn't staged (e.g. a dev/source run that never went through the
 // installer); callers degrade gracefully.
@@ -1640,7 +1640,7 @@ function venvHermesShimPath(updateRoot) {
 // Best-effort lock probe mirroring the Rust updater's is_locked(): a running
 // .exe on Windows refuses an O_RDWR open with a sharing violation. On POSIX
 // this practically always succeeds (no mandatory locking), so it returns false
-// — correct, since the shim-contention brick is Windows-only.
+//; correct, since the shim-contention brick is Windows-only.
 function isShimLocked(shimPath) {
   if (!IS_WINDOWS) return false
   let fd
@@ -1668,7 +1668,7 @@ function isShimLocked(shimPath) {
 // gateway) would survive and keep the venv shim locked. taskkill /T /F reaps
 // the whole tree synchronously. Windows-only: this is called solely from the
 // Windows shim-unlock path, and the backend is NOT spawned detached (so it's
-// not a process-group leader — a POSIX negative-pgid kill would be meaningless
+// not a process-group leader; a POSIX negative-pgid kill would be meaningless
 // here anyway). POSIX teardown stays with the existing before-quit SIGTERM.
 function forceKillProcessTree(pid) {
   if (!IS_WINDOWS) return
@@ -1676,7 +1676,7 @@ function forceKillProcessTree(pid) {
   try {
     execFileSync('taskkill', ['/PID', String(pid), '/T', '/F'], hiddenWindowsChildOptions({ stdio: 'ignore' }))
   } catch {
-    // Already gone, or no permission — best effort; the unlock wait below is
+    // Already gone, or no permission; best effort; the unlock wait below is
     // the real gate.
   }
 }
@@ -1687,7 +1687,7 @@ function forceKillProcessTree(pid) {
 // Windows doesn't reap the backend's grandchildren, and quit didn't wait for
 // teardown, so the updater raced a still-locked `hermes.exe`, the quarantine
 // rename failed, uv's `pip install` hit "Access is denied", and the git path
-// bailed into a full ZIP re-download that ALSO couldn't write the locked shim —
+// bailed into a full ZIP re-download that ALSO couldn't write the locked shim;
 // a half-applied install (ryanc's update.log). Here we tree-kill the primary +
 // pool backends and poll the shim until it's writable (or a bounded timeout),
 // so by the time we spawn the updater the lock is genuinely gone.
@@ -1702,15 +1702,15 @@ async function releaseBackendLockForUpdate(updateRoot) {
 }
 
 // Shared backend teardown + venv-shim unlock wait. Used by BOTH the self-update
-// hand-off and the desktop uninstaller — they have the identical Windows
-// problem: the desktop's backend (and the grandchildren IT spawned — a hermes
+// hand-off and the desktop uninstaller; they have the identical Windows
+// problem: the desktop's backend (and the grandchildren IT spawned; a hermes
 // REPL, a pty terminal, the gateway) keep `hermes.exe` and other files in the
 // venv mandatory-locked, so any in-place replace/delete of the install tree
 // races a live handle and half-fails (#37532). We tree-kill every backend PID
 // the desktop owns, then poll the shim until it's genuinely writable.
 //
 // `tag` only flavors the log lines. No-op off Windows (POSIX has no mandatory
-// locks — the before-quit SIGTERM + the cleanup script's own PID-wait suffice).
+// locks; the before-quit SIGTERM + the cleanup script's own PID-wait suffice).
 async function releaseBackendLock(updateRoot, tag) {
   if (!IS_WINDOWS) return { unlocked: true }
 
@@ -1745,7 +1745,7 @@ async function releaseBackendLock(updateRoot, tag) {
   return { unlocked: false }
 }
 
-// applyUpdates — hand off to the installer's --update flow, then exit.
+// applyUpdates; hand off to the installer's --update flow, then exit.
 //
 // The desktop is a pure consumer: it does NOT git pull / pip install / rebuild
 // itself (the old open-coded git dance lived here and drifted from
@@ -1773,12 +1773,12 @@ async function applyUpdates(opts = {}) {
       return await applyUpdatesPosixInApp(opts)
     }
     if (!updater) {
-      // No staged updater binary — this is a CLI-installed user (they ran
+      // No staged updater binary; this is a CLI-installed user (they ran
       // `hermes desktop`, never the Tauri installer that self-copies
       // hermes-setup.exe into HERMES_HOME). They DO have a working `hermes`
       // on PATH / in the venv, so the correct path is the one-liner in their
       // native medium. We show the EXACT command, branch-pinned to the
-      // checkout they're on — bare `hermes update` defaults to main and would
+      // checkout they're on; bare `hermes update` defaults to main and would
       // silently switch a bb/gui (or any non-main) install off-branch. Mirror
       // the GUI button's contract: append --branch <current> for non-main
       // checkouts, keep it bare for main so the card stays clean.
@@ -1818,7 +1818,7 @@ async function applyUpdates(opts = {}) {
     // bricks. See releaseBackendLockForUpdate for the full failure analysis.
     await releaseBackendLockForUpdate(updateRoot)
 
-    // Detached so the updater outlives this process — it needs us GONE before
+    // Detached so the updater outlives this process; it needs us GONE before
     // `hermes update` will run (the venv shim is locked while we live).
     const child = spawn(updater, updaterArgs, {
       cwd: HERMES_HOME,
@@ -1962,7 +1962,7 @@ async function applyUpdatesPosixInApp() {
   // `hermes update` reaps stale `hermes dashboard` backends (a code update
   // leaves the running process serving old Python against the freshly-updated
   // JS bundle). But OUR backend is one of those processes, and killing it
-  // mid-update produces the boot→kill→crash loop in #37532 — the desktop
+  // mid-update produces the boot→kill→crash loop in #37532; the desktop
   // already restarts its own backend via the rebuild+relaunch below, so the
   // reap must spare it. Hand the live backend's PID to the update process;
   // _kill_stale_dashboard_processes reads HERMES_DESKTOP_CHILD_PID and excludes
@@ -2146,7 +2146,7 @@ function resolveWebDist() {
   if (directoryExists(unpackedDist)) return unpackedDist
 
   // Final fallback: APP_ROOT/dist. When packaged with asar:true this lives
-  // INSIDE app.asar — not a servable filesystem directory — so the embedded
+  // INSIDE app.asar; not a servable filesystem directory; so the embedded
   // dashboard backend 404s on static routes (see #41327, #39472). The durable
   // fix is unpacking dist/ (PR #41411 adds dist/** to asarUnpack so the tier-2
   // unpackedDist above resolves). If we still land here while packaged, log it
@@ -2170,7 +2170,7 @@ function resolveRendererIndex() {
   // a bare ERR_FILE_NOT_FOUND and no clue why (see #39484). Surface the cause
   // and the fix before Electron loads the missing file.
   rememberLog(
-    `[renderer] index.html not found — the desktop app was packaged without a ` +
+    `[renderer] index.html not found; the desktop app was packaged without a ` +
       `renderer bundle. Tried: ${candidates.join(', ')}. ` +
       `Rebuild with: hermes desktop --force-build`
   )
@@ -2179,8 +2179,8 @@ function resolveRendererIndex() {
 
 // True when `dir` lives inside the packaged app bundle / install tree.
 // Packaged Electron's process.cwd() (and npm's INIT_CWD when dev tooling
-// leaked into a release build) often resolve here — e.g. win-unpacked on
-// Windows — which is exactly where PR #37536 item 16 said we must NOT run.
+// leaked into a release build) often resolve here; e.g. win-unpacked on
+// Windows; which is exactly where PR #37536 item 16 said we must NOT run.
 function isPackagedInstallPath(dir) {
   return isPackagedInstallPathUnderRoots(dir, {
     isPackaged: IS_PACKAGED,
@@ -2243,7 +2243,7 @@ function sanitizeWorkspaceCwd(cwd) {
   return { cwd: resolveHermesCwd(), sanitized: Boolean(trimmed) }
 }
 
-// Persisted "Default project directory" — surfaced as a setting in the
+// Persisted "Default project directory"; surfaced as a setting in the
 // renderer (see app/settings/sessions-settings.tsx). Stored as JSON in
 // userData so it survives self-updates without bleeding into the new
 // install. `null` means "no preference, fall back to the usual chain".
@@ -2305,7 +2305,7 @@ function createPythonBackend(root, label, dashboardArgs, options = {}) {
   }
 }
 
-// createActiveBackend — build a backend pointing at ACTIVE_HERMES_ROOT, the
+// createActiveBackend; build a backend pointing at ACTIVE_HERMES_ROOT, the
 // canonical install location shared with the CLI installer. The venv at
 // VENV_ROOT may not exist yet on first run; bootstrap=true tells
 // ensureRuntime() to create / refresh it before launch.
@@ -2692,7 +2692,7 @@ function fetchJson(url, token, options = {}) {
 function fetchPublicJson(url, options = {}) {
   // Credential-free JSON GET/POST for public gateway endpoints
   // (``/api/status``, ``/api/auth/providers``). Unlike ``fetchJson`` it sends
-  // NO ``X-Hermes-Session-Token`` header — used by the auth-mode probe before
+  // NO ``X-Hermes-Session-Token`` header; used by the auth-mode probe before
   // any credentials exist, and any time we must not leak a token to an
   // endpoint that doesn't need one.
   return new Promise((resolve, reject) => {
@@ -2793,14 +2793,14 @@ function filenameFromUrl(rawUrl, fallback = 'image') {
   }
 }
 
-// Link title resolution — curl (tier 1) → hidden BrowserWindow (tier 2).
+// Link title resolution; curl (tier 1) → hidden BrowserWindow (tier 2).
 const titleCache = new Map()
 const titleInflight = new Map()
 const TITLE_CACHE_LIMIT = 500
 const TITLE_BYTE_BUDGET = 96 * 1024
 const TITLE_TIMEOUT_MS = 5000
 const TITLE_MAX_REDIRECTS = 3
-// Browser-shaped UA — many bot-walled sites (GetYourGuide, Cloudflare-protected
+// Browser-shaped UA; many bot-walled sites (GetYourGuide, Cloudflare-protected
 // pages) refuse anything that doesn't look like a real Chrome.
 const TITLE_USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_6_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36'
@@ -2809,11 +2809,11 @@ const TITLE_ERROR_RE =
 const HTML_ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', '#39': "'" }
 
 // Tier-2 renderer fallback config. Only invoked when curl came back empty or
-// matched TITLE_ERROR_RE — keeps cold/CDN-cached pages on the cheap path.
+// matched TITLE_ERROR_RE; keeps cold/CDN-cached pages on the cheap path.
 const RENDER_TITLE_MAX_CONCURRENT = 2
 const RENDER_TITLE_TIMEOUT_MS = 8000
 const RENDER_TITLE_GRACE_MS = 700
-// Resource types we cancel before the network even fires — keeps the hidden
+// Resource types we cancel before the network even fires; keeps the hidden
 // renderer fast and cuts third-party tracking noise.
 const RENDER_TITLE_BLOCKED_RESOURCES = new Set([
   'cspReport',
@@ -3006,7 +3006,7 @@ function fetchHtmlTitleWithRenderer(rawUrl) {
   })
 }
 
-// Strips known error/captcha titles (e.g. "GetYourGuide – Error", "Just a
+// Strips known error/captcha titles (e.g. "GetYourGuide - Error", "Just a
 // moment...") so they don't get cached as the resolved title.
 const usableTitle = value => (value && !TITLE_ERROR_RE.test(value) ? value : '')
 
@@ -3141,7 +3141,7 @@ async function previewFileTarget(rawTarget, baseDir) {
     return null
   }
 
-  ;({ resolvedPath: resolved } = await resolveReadableFileForIpc(resolved, { purpose: 'Preview target' }))
+;({ resolvedPath: resolved } = await resolveReadableFileForIpc(resolved, { purpose: 'Preview target' }))
 
   const mimeType = mimeTypeForPath(resolved)
   const metadata = previewFileMetadata(resolved, mimeType)
@@ -3735,7 +3735,7 @@ function installMediaPermissions() {
 //   * REST is authed by HttpOnly session cookies (``hermes_session_at``),
 //     established by a browser redirect round-trip (/login → IDP →
 //     /auth/callback sets cookies). We cannot read the HttpOnly cookie value
-//     in JS — instead we let an Electron BrowserWindow complete the round
+//     in JS; instead we let an Electron BrowserWindow complete the round
 //     trip into a PERSISTENT session partition, and thereafter route our REST
 //     through Electron's ``net`` bound to that same partition so the cookie
 //     jar attaches the cookie automatically.
@@ -3747,7 +3747,7 @@ function installMediaPermissions() {
 //     Both are set as HttpOnly cookies (``hermes_session_at`` ~15 min,
 //     ``hermes_session_rt`` 24h). When the AT cookie lapses but the RT cookie
 //     is still alive, the gateway middleware transparently rotates a fresh AT
-//     on the next authenticated request — so connectivity must NOT be gated on
+//     on the next authenticated request; so connectivity must NOT be gated on
 //     the AT cookie alone. We probe liveness by actually minting a ws-ticket
 //     (which triggers that server-side refresh) and treat a real 401 as
 //     "needs re-login"; the AT-or-RT cookie presence check is only a cheap
@@ -3822,7 +3822,7 @@ async function clearOauthSession(baseUrl) {
       })
     )
   } catch {
-    // Best effort — a stale cookie self-expires anyway.
+    // Best effort; a stale cookie self-expires anyway.
   }
 }
 
@@ -3992,7 +3992,7 @@ function fetchJsonViaOauthSession(url, options = {}) {
 }
 
 // Mint a single-use WS ticket for a gated gateway. Returns the ticket string.
-// Throws (with statusCode 401) if the session cookie is missing/expired —
+// Throws (with statusCode 401) if the session cookie is missing/expired;
 // callers treat that as "needs re-login".
 async function mintGatewayWsTicket(baseUrl) {
   const body = await fetchJsonViaOauthSession(`${baseUrl}/api/auth/ws-ticket`, {
@@ -4191,7 +4191,7 @@ async function sanitizeDesktopConnectionConfig(config = readDesktopConnectionCon
   if (authMode === 'oauth' && remoteUrl) {
     try {
       // Display signal: treat a live RT cookie as "connected" even if the AT
-      // cookie has lapsed — the gateway refreshes the AT on the next request,
+      // cookie has lapsed; the gateway refreshes the AT on the next request,
       // so the session is still usable. The authoritative liveness check is
       // the ws-ticket mint in resolveRemoteBackend at actual connect time.
       remoteOauthConnected = await hasLiveOauthSession(remoteUrl)
@@ -4273,7 +4273,7 @@ async function buildRemoteConnection(rawUrl, authMode, token, source) {
 
   if (authMode === 'oauth') {
     // OAuth gateway: auth comes from the session cookies in the OAuth
-    // partition. Liveness is NOT "is the access-token cookie present?" —
+    // partition. Liveness is NOT "is the access-token cookie present?";
     // Portal issues a 24h rotating refresh token (hermes #37247), and the
     // gateway middleware transparently rotates a fresh ~15-min access token
     // from it on the next authenticated request. So a session with an expired
@@ -4332,14 +4332,14 @@ async function buildRemoteConnection(rawUrl, authMode, token, source) {
 // Resolve the remote backend for a given profile, or null when that profile
 // should run a LOCAL backend. Precedence:
 //   1. explicit per-profile remote override (connection.json `profiles[name]`)
-//   2. env override (HERMES_DESKTOP_REMOTE_URL/_TOKEN) — applies app-wide
+//   2. env override (HERMES_DESKTOP_REMOTE_URL/_TOKEN); applies app-wide
 //   3. global remote (connection.json `mode: 'remote'`)
 // A null/empty profile resolves the env/global remote, so legacy callers and
 // the connection test (which pass no profile) are unchanged.
 async function resolveRemoteBackend(profile) {
   const config = readDesktopConnectionConfig()
 
-  // 1. Per-profile override — "a profile with its own remote host". Wins even
+  // 1. Per-profile override; "a profile with its own remote host". Wins even
   //    over the env override so an explicitly-configured profile always
   //    reaches its intended backend.
   const override = profileRemoteOverride(config, profile)
@@ -4371,7 +4371,7 @@ async function resolveRemoteBackend(profile) {
 }
 
 // A remote profile's sessions live on its remote host's state.db, not on a local
-// file the primary can open — so reads for it must route to the remote backend,
+// file the primary can open; so reads for it must route to the remote backend,
 // not the local-disk fast path. These three helpers drive that (see
 // interceptSessionReadForRemote).
 function profileHasRemoteOverride(profile) {
@@ -4385,7 +4385,7 @@ function configuredRemoteProfileNames() {
 
 // True when the app is in app-global remote mode (Settings → "All profiles" →
 // Remote, or the env override): a SINGLE remote backend serves every profile via
-// ?profile=. Distinct from per-profile overrides — here there's one host for all.
+// ?profile=. Distinct from per-profile overrides; here there's one host for all.
 function globalRemoteActive() {
   if (process.env.HERMES_DESKTOP_REMOTE_URL) {
     return true
@@ -4480,7 +4480,7 @@ async function testDesktopConnectionConfig(input = {}) {
   const wantRemote =
     block?.mode === 'remote' || (!key && config.mode === 'remote') || (input.mode === 'remote' && block)
   // ``/api/status`` is public on every gateway (no creds needed), so a
-  // reachability test works for local, token, and oauth modes alike — we only
+  // reachability test works for local, token, and oauth modes alike; we only
   // need a base URL. For a remote config we normalize the URL from the input;
   // for local we fall back to the resolved/started backend.
   let baseUrl
@@ -4502,7 +4502,7 @@ async function testDesktopConnectionConfig(input = {}) {
 
   // The HTTP status check above proves the backend is reachable, but the chat
   // surface only works once the renderer's live WebSocket to ``/api/ws``
-  // connects — a separate transport with separate server-side guards (Host/
+  // connects; a separate transport with separate server-side guards (Host/
   // Origin, ws-ticket/token auth). Validating only the HTTP side produced a
   // false-positive "reachable" while the real boot still failed with "Could not
   // connect to Hermes gateway". Mirror the renderer's connect here so the test
@@ -4638,7 +4638,7 @@ function touchPoolBackend(profile) {
   if (entry) entry.lastActiveAt = Date.now()
 }
 
-// Evict least-recently-used pool backends until at most `keep` remain — but only
+// Evict least-recently-used pool backends until at most `keep` remain; but only
 // ever evict backends without a live renderer socket (stale beyond the keepalive
 // window). When every backend is actively kept alive we let the pool exceed the
 // soft cap rather than kill a running session.
@@ -4681,7 +4681,7 @@ function startPoolIdleReaper() {
 async function spawnPoolBackend(profile, entry) {
   // A profile may point at its OWN remote backend (connection.json
   // `profiles[name]`), or inherit the app-wide remote (env / global settings).
-  // In either case there is no local child to spawn — we just verify the
+  // In either case there is no local child to spawn; we just verify the
   // remote is reachable and hand back its connection descriptor. The pool
   // entry keeps `entry.process === null`, which stopPoolBackend/evict already
   // tolerate.
@@ -4928,7 +4928,7 @@ async function startHermes() {
           ...process.env,
           // Explicitly pin HERMES_HOME for the child so Python's get_hermes_home()
           // resolves to the SAME location our resolveHermesHome() picked. Without
-          // this pin, Python falls back to ~/.hermes on every platform — fine on
+          // this pin, Python falls back to ~/.hermes on every platform; fine on
           // mac/linux (where our default matches), but on Windows our default is
           // %LOCALAPPDATA%\hermes, which differs from C:\Users\<u>\.hermes.
           // Mismatch would split config / sessions / .env / logs across two
@@ -5070,7 +5070,7 @@ function wireCommonWindowHandlers(win) {
   })
 }
 
-// Secondary "session windows" — one extra OS window per chat so a user can
+// Secondary "session windows"; one extra OS window per chat so a user can
 // work with multiple chats side by side. The registry guarantees one window
 // per sessionId (re-opening focuses the existing window) and self-cleans on
 // close. The primary mainWindow is never tracked here. Pure logic + the URL
@@ -5149,7 +5149,7 @@ function createSessionWindow(sessionId, { watch = false } = {}) {
 }
 
 // Open a fresh compact window on the new-session draft (#/). Not registry-keyed:
-// like ⌘N in a browser, every press opens a new window — and a draft window that
+// like ⌘N in a browser, every press opens a new window; and a draft window that
 // later converts to a real session must not get refocused as if it were blank.
 function createNewSessionWindow() {
   return spawnSecondaryWindow({ newSession: true })
@@ -5165,7 +5165,7 @@ function createWindow() {
     title: 'Hermes',
     // Frameless title bar on every platform so the renderer can paint the
     // "hide sidebar" button (and other left-side titlebar tools) flush with
-    // the top edge — matching the macOS layout where the traffic lights sit
+    // the top edge; matching the macOS layout where the traffic lights sit
     // inside the same band. On Windows/Linux, titleBarOverlay tells Electron
     // to paint native min/max/close in the top-right of the renderer; on
     // macOS it just reserves a content inset alongside the traffic lights.
@@ -5194,7 +5194,7 @@ function createWindow() {
       // stalls whenever this window isn't focused (e.g. you switch to your
       // editor mid-turn, or open detached devtools) and only appears once you
       // refocus or refresh. A streaming chat app must render in the
-      // background, so opt out — matching the secondary windows above.
+      // background, so opt out; matching the secondary windows above.
       backgroundThrottling: false
     }
   })
@@ -5288,7 +5288,7 @@ function createWindow() {
 ipcMain.handle('hermes:connection', async (_event, profile) => ensureBackend(profile))
 // Reconnect-after-wake recovery. A REMOTE primary backend has no child process,
 // so the 'exit'/'error' handlers that would clear a dead connectionPromise never
-// fire — once the remote becomes unreachable across a sleep/wake the renderer
+// fire; once the remote becomes unreachable across a sleep/wake the renderer
 // re-dials the same dead descriptor forever and the composer stays stuck on
 // "Starting Hermes…". Before the renderer's backoff loop reconnects, it asks us
 // to confirm the cached PRIMARY backend is still reachable; if a remote one is
@@ -5304,7 +5304,7 @@ ipcMain.handle('hermes:connection:revalidate', async () => {
     conn = await connectionPromise
   } catch {
     // The cached boot already rejected (its own catch nulls connectionPromise);
-    // nothing to revalidate — the next getConnection() builds fresh.
+    // nothing to revalidate; the next getConnection() builds fresh.
     return { ok: true, rebuilt: false }
   }
 
@@ -5571,7 +5571,7 @@ async function mergeRemoteProfileSessions(searchParams, remoteProfiles) {
   }).catch(() => ({ sessions: [], total: 0, profile_totals: {} }))
 
   // Over-fetch each remote from offset 0 (limit+offset rows) so the merged window
-  // is correct for this page — mirrors the primary's per-profile over-fetch.
+  // is correct for this page; mirrors the primary's per-profile over-fetch.
   const remoteParams = new URLSearchParams(searchParams)
   remoteParams.set('limit', String(limit + offset))
   remoteParams.set('offset', '0')
@@ -5603,7 +5603,7 @@ async function mergeRemoteProfileSessions(searchParams, remoteProfiles) {
 
 ipcMain.handle('hermes:api', async (_event, request) => {
   // Remote-profile session requests would otherwise hit the local primary off
-  // each profile's on-disk state.db — fine for local profiles, but a remote
+  // each profile's on-disk state.db; fine for local profiles, but a remote
   // profile's sessions live on its remote host, so the UI's IDs 404 (or mutations
   // no-op) the moment they run there. Route reads + mutations to the remote.
   const rerouted = await interceptSessionRequestForRemote(request)
@@ -5622,7 +5622,7 @@ ipcMain.handle('hermes:api', async (_event, request) => {
   })
   const url = `${connection.baseUrl}${requestPath}`
   // OAuth gateways authenticate REST via the HttpOnly session cookie held in
-  // the OAuth partition — route through Electron's net stack bound to that
+  // the OAuth partition; route through Electron's net stack bound to that
   // session so the cookie attaches automatically. Token/local modes keep using
   // the static session-token header.
   if (connection.authMode === 'oauth') {
@@ -6007,7 +6007,7 @@ function terminalShellEnv() {
   // Strip color/theme-detection vars that ride along when Electron is launched
   // from a non-tty agent shell (Cursor's runner sets NO_COLOR/FORCE_COLOR=0
   // /TERM=dumb; some terminals set COLORFGBG which would flip Hermes' TUI into
-  // light-mode). Our PTY is a real xterm-compat terminal — force truecolor.
+  // light-mode). Our PTY is a real xterm-compat terminal; force truecolor.
   delete env.NO_COLOR
   delete env.FORCE_COLOR
   delete env.COLORFGBG
@@ -6172,7 +6172,7 @@ function resolveHermesVersion() {
 
 // Re-resolve the live Hermes version and push it into the native About panel
 // just before showing it, so an in-place `hermes update` is reflected without
-// an app restart. macOS only — `showAboutPanel()` is a no-op elsewhere, and the
+// an app restart. macOS only; `showAboutPanel()` is a no-op elsewhere, and the
 // other platforms don't use this menu item.
 function showAboutPanelFresh() {
   app.setAboutPanelOptions({
@@ -6192,7 +6192,7 @@ ipcMain.handle('hermes:version', async () => ({
 }))
 
 // ===========================================================================
-// Uninstall — remove the Chat GUI (and optionally the agent / user data).
+// Uninstall; remove the Chat GUI (and optionally the agent / user data).
 // ===========================================================================
 //
 // The renderer's About → Danger Zone surfaces three options that mirror the
@@ -6202,7 +6202,7 @@ ipcMain.handle('hermes:version', async () => ({
 // (hermes_cli/uninstall.py + hermes_cli/gui_uninstall.py).
 //
 // getUninstallSummary() shells out to `--gui-summary` (a fast, no-side-effect
-// JSON probe) so the UI can gate options on what's actually installed — and
+// JSON probe) so the UI can gate options on what's actually installed; and
 // detect a missing agent (a future "lite client" that ships without the
 // bundled agent), hiding the agent/full options when there's nothing to remove.
 
@@ -6214,7 +6214,7 @@ async function getUninstallSummary() {
   const py = uninstallVenvPython()
   const agentRoot = ACTIVE_HERMES_ROOT
   // Fast JS-side fallback used when the agent venv is gone (lite client) or the
-  // probe fails — the renderer still needs *something* to render options from.
+  // probe fails; the renderer still needs *something* to render options from.
   const fallback = () => ({
     hermes_home: HERMES_HOME,
     agent_installed: isHermesSourceRoot(agentRoot) && fileExists(py),
@@ -6293,11 +6293,11 @@ async function runDesktopUninstall(mode) {
 
   // Interpreter choice (Finding 3): lite/full rmtree the venv that holds the
   // running python.exe. On Windows a running .exe is mandatory-locked, so the
-  // rmtree must NOT be driven by the venv's own interpreter — use a system
+  // rmtree must NOT be driven by the venv's own interpreter; use a system
   // Python with PYTHONPATH=<agentRoot> so `import hermes_cli` resolves from
   // source while the venv is torn down. gui-only doesn't touch the venv, so the
   // venv python is fine there. If no system Python exists (the Windows edge
-  // case), fall back to the venv python — gui-only is unaffected; lite/full may
+  // case), fall back to the venv python; gui-only is unaffected; lite/full may
   // leave venv remnants the user can delete, which we log.
   let py = venvPy
   let pythonPath = null
@@ -6309,7 +6309,7 @@ async function runDesktopUninstall(mode) {
     } else if (IS_WINDOWS) {
       rememberLog(
         '[uninstall] no system Python found for lite/full on Windows; falling back ' +
-          'to the venv python — venv files locked by the running interpreter may ' +
+          'to the venv python; venv files locked by the running interpreter may ' +
           'remain and need manual deletion.'
       )
     }
@@ -6320,7 +6320,7 @@ async function runDesktopUninstall(mode) {
 
   // CRITICAL (Windows): tear down every backend the desktop owns and wait for
   // the venv shim to unlock BEFORE the cleanup script runs. lite/full delete
-  // the venv, and even gui-only removes the install tree's GUI artifacts — a
+  // the venv, and even gui-only removes the install tree's GUI artifacts; a
   // live backend grandchild (gateway / pty / REPL) holding a mandatory file
   // lock would make the script's rmdir half-fail (#37532 for the update path).
   // Reuses the incident-hardened update teardown; no-op on macOS/Linux.
@@ -6388,7 +6388,7 @@ ipcMain.handle('hermes:uninstall:run', async (_event, payload) => {
 })
 
 // Download a VS Code Marketplace extension and return the raw color-theme JSON
-// it contributes. No theme code is executed — we only read JSON from the .vsix.
+// it contributes. No theme code is executed; we only read JSON from the .vsix.
 ipcMain.handle('hermes:vscode-theme:fetch', async (_event, id) => fetchMarketplaceThemes(String(id || '')))
 
 // Search the Marketplace for color-theme extensions (empty query = top installs).
@@ -6487,7 +6487,7 @@ if (!_gotSingleInstanceLock) {
   })
 }
 
-// macOS delivers deep links via 'open-url' — register early (can fire before
+// macOS delivers deep links via 'open-url'; register early (can fire before
 // whenReady; handleDeepLink queues until the renderer is ready).
 app.on('open-url', (event, url) => {
   event.preventDefault()

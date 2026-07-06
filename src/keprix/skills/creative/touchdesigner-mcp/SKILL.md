@@ -1,6 +1,6 @@
 ---
 name: touchdesigner-mcp
-description: "Control a running TouchDesigner instance via twozero MCP — create operators, set parameters, wire connections, execute Python, build real-time visuals. 36 native tools."
+description: "Control a running TouchDesigner instance via twozero MCP; create operators, set parameters, wire connections, execute Python, build real-time visuals. 36 native tools."
 version: 1.1.0
 author: kshitijk4poor
 license: MIT
@@ -28,7 +28,7 @@ metadata:
 Keprix -> MCP (Streamable HTTP) -> twozero.tox (port 40404) -> TD Python
 ```
 
-36 native tools. Free plugin (no payment/license — confirmed April 2026).
+36 native tools. Free plugin (no payment/license; confirmed April 2026).
 Context-aware (knows selected OP, current network).
 Hub health check: `GET http://localhost:40404/mcp` returns JSON with instance PID, project name, TD version.
 
@@ -62,7 +62,7 @@ nc -z 127.0.0.1 40404 && echo "twozero MCP: READY"
 
 - **Non-Commercial TD** caps resolution at 1280×1280. Use `outputresolution = 'custom'` and set width/height explicitly.
 - **Codecs:** `prores` (preferred on macOS) or `mjpa` as fallback. H.264/H.265/AV1 require a Commercial license.
-- Always call `td_get_par_info` before setting params — names vary by TD version (see CRITICAL RULES #1).
+- Always call `td_get_par_info` before setting params; names vary by TD version (see CRITICAL RULES #1).
 
 ## Workflow
 
@@ -120,7 +120,7 @@ op('/project1/time_driver').par.colorr.expr = "absTime.seconds % 1000.0"
 
 ### Step 3: Wire
 
-Use `td_execute_python` — no native wire tool exists:
+Use `td_execute_python`; no native wire tool exists:
 
 ```python
 op('/project1/bg').outputConnectors[0].connect(op('/project1/fx').inputConnectors[0])
@@ -207,7 +207,7 @@ win.par.winopen.pulse()
 | `td_click_screen_point` | Click a point in a screenshot |
 | `td_screen_point_to_global` | Convert screenshot pixel to absolute screen coords |
 
-The table above covers the 32 tools used in typical creative workflows. The remaining 4 tools (`td_project_quit`, `td_test_session`, `td_dev_log`, `td_clear_dev_log`) are admin/dev-mode utilities — see `references/mcp-tools.md` for the full 36-tool reference with complete parameter schemas.
+The table above covers the 32 tools used in typical creative workflows. The remaining 4 tools (`td_project_quit`, `td_test_session`, `td_dev_log`, `td_clear_dev_log`) are admin/dev-mode utilities; see `references/mcp-tools.md` for the full 36-tool reference with complete parameter schemas.
 
 ## Key Implementation Rules
 
@@ -228,7 +228,7 @@ Fallback: Constant TOP in `rgba32float` format (8-bit clamps to 0-1, freezing th
 
 **Large shaders:** Write GLSL to `/tmp/file.glsl`, then use `td_write_dat` or `td_execute_python` to load.
 
-**Vertex/Point access (TD 2025.32):** `point.P[0]`, `point.P[1]`, `point.P[2]` — NOT `.x`, `.y`, `.z`.
+**Vertex/Point access (TD 2025.32):** `point.P[0]`, `point.P[1]`, `point.P[2]`; NOT `.x`, `.y`, `.z`.
 
 **Extensions:** `ext0object` format is `"op('./datName').module.ClassName(me)"` in CONSTANT mode. After editing extension code with `td_write_dat`, call `td_reinit_extension`.
 
@@ -245,7 +245,7 @@ rec = root.create(moviefileoutTOP, 'recorder')
 op('/project1/out').outputConnectors[0].connect(rec.inputConnectors[0])
 rec.par.type = 'movie'
 rec.par.file = '/tmp/output.mov'
-rec.par.videocodec = 'prores'  # Apple ProRes — NOT license-restricted on macOS
+rec.par.videocodec = 'prores'  # Apple ProRes; NOT license-restricted on macOS
 rec.par.record = True   # start
 # rec.par.record = False  # stop (call separately later)
 ```
@@ -253,14 +253,14 @@ rec.par.record = True   # start
 H.264/H.265/AV1 need Commercial license. Use `prores` on macOS or `mjpa` as fallback.
 Extract frames: `ffmpeg -i /tmp/output.mov -vframes 120 /tmp/frames/frame_%06d.png`
 
-**TOP.save() is useless for animation** — captures same GPU texture every time. Always use MovieFileOut.
+**TOP.save() is useless for animation**; captures same GPU texture every time. Always use MovieFileOut.
 
 ### Before Recording: Checklist
 
 1. **Verify FPS > 0** via `td_get_perf`. If FPS=0 the recording will be empty. See pitfalls #38-39.
 2. **Verify shader output is not black** via `td_get_screenshot`. Black output = shader error or missing input. See pitfalls #8, #40.
 3. **If recording with audio:** cue audio to start first, then delay recording by 3 frames. See pitfalls #19.
-4. **Set output path before starting record** — setting both in the same script can race.
+4. **Set output path before starting record**; setting both in the same script can race.
 
 ## Audio-Reactive GLSL (Proven Recipe)
 
@@ -282,7 +282,7 @@ GLSL TOP → Null TOP → MovieFileOut
 1. **TimeSlice must stay ON** for AudioSpectrum. OFF = processes entire audio file → 24000+ samples → CHOP to TOP overflow.
 2. **Set Output Length manually** to 256 via `outputmenu='setmanually'` and `outlength=256`. Default outputs 22050 samples.
 3. **DO NOT use Lag CHOP for spectrum smoothing.** Lag CHOP operates in timeslice mode and expands 256 samples to 2400+, averaging all values to near-zero (~1e-06). The shader receives no usable data. This was the #1 audio sync failure in testing.
-4. **DO NOT use Filter CHOP either** — same timeslice expansion problem with spectrum data.
+4. **DO NOT use Filter CHOP either**; same timeslice expansion problem with spectrum data.
 5. **Smoothing belongs in the GLSL shader** if needed, via temporal lerp with a feedback texture: `mix(prevValue, newValue, 0.3)`. This gives frame-perfect sync with zero pipeline latency.
 6. **CHOP to TOP dataformat = 'r'**, layout = 'rowscropped'. Spectrum output is 256x2 (stereo). Sample at y=0.25 for first channel.
 7. **Math gain = 10** (not 5). Raw spectrum values are ~0.19 in bass range. Gain of 10 gives usable ~5.0 for the shader.
@@ -319,7 +319,7 @@ See `references/network-patterns.md` for complete build scripts + shader code.
 
 ## Security Notes
 
-- MCP runs on localhost only (port 40404). No authentication — any local process can send commands.
+- MCP runs on localhost only (port 40404). No authentication; any local process can send commands.
 - `td_execute_python` has unrestricted access to the TD Python environment and filesystem as the TD process user.
 - `setup.sh` downloads twozero.tox from the official 404zero.com URL. Verify the download if concerned.
 - The skill never sends data outside localhost. All MCP communication is local.
@@ -342,12 +342,12 @@ See `references/network-patterns.md` for complete build scripts + shader code.
 | `references/audio-reactive.md` | Audio band extraction, beat detection, envelope following |
 | `references/animation.md` | LFOs, timers, keyframes, easing, expression-driven motion |
 | `references/midi-osc.md` | MIDI/OSC controllers, TouchOSC, multi-machine sync |
-| `references/particles.md` | POPs and legacy particleSOP — emission, forces, collisions |
+| `references/particles.md` | POPs and legacy particleSOP; emission, forces, collisions |
 | `references/projection-mapping.md` | Multi-window output, corner pin, mesh warp, edge blending |
 | `references/external-data.md` | HTTP, WebSocket, MQTT, Serial, TCP, webserverDAT |
 | `references/panel-ui.md` | Custom params, panel COMPs, button/slider/field, panelExecuteDAT |
-| `references/replicator.md` | replicatorCOMP — data-driven cloning, layouts, callbacks |
-| `references/dat-scripting.md` | Execute DAT family — chop/dat/parameter/panel/op/executeDAT |
+| `references/replicator.md` | replicatorCOMP; data-driven cloning, layouts, callbacks |
+| `references/dat-scripting.md` | Execute DAT family; chop/dat/parameter/panel/op/executeDAT |
 | `references/3d-scene.md` | Lighting rigs, shadows, IBL/cubemaps, multi-camera, PBR |
 | `scripts/setup.sh` | Automated setup script |
 

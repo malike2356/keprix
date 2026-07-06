@@ -1,0 +1,21 @@
+id: jamovi_preparation
+name: jamovi Preparation
+description: Export a clean dataset and jamovi analysis plan for external execution.
+domain: statistics
+steps:
+  - id: prepare_dataset
+    title: Prepare clean dataset
+    action: dataset.prepare
+    risk: low
+  - id: export_labels
+    title: Export labels and missing-value notes
+    action: dataset.export_labels
+    risk: low
+  - id: analysis_plan
+    title: Generate jamovi analysis plan
+    action: jamovi.analysis_plan
+    risk: medium
+  - id: store_results
+    title: Store user-provided results and R syntax
+    action: jamovi.store_results
+    risk: medium

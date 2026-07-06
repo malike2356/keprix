@@ -1,7 +1,7 @@
 # Photon iMessage platform plugin
 
 This plugin connects Keprix to iMessage (and other Spectrum
-interfaces) through [Photon][photon] — a managed service that handles
+interfaces) through [Photon][photon]; a managed service that handles
 iMessage line allocation, delivery, and abuse-prevention so users don't
 have to run their own Mac relay.
 
@@ -10,7 +10,7 @@ recommend for everyone who doesn't already pay for a dedicated number.
 
 ## Architecture
 
-Like Discord and Slack, Photon is a **persistent-connection** channel — no
+Like Discord and Slack, Photon is a **persistent-connection** channel; no
 public URL, no webhook, no signing secret. The `spectrum-ts` SDK holds a
 long-lived **gRPC stream** to Photon for both directions. Because the SDK is
 TypeScript-only, Keprix runs it inside a small supervised Node sidecar and
@@ -51,18 +51,18 @@ keprix gateway start
 
 `keprix photon setup` does, in order:
 
-1. **Device login** (RFC 8628, `client_id=photon-cli`) — opens
+1. **Device login** (RFC 8628, `client_id=photon-cli`); opens
    `https://app.photon.codes/` for approval and stores the bearer token.
 2. **Find or create** the `Keprix` project on the Photon dashboard.
-3. **Provision the project secret** — mint a fresh project secret (the
+3. **Provision the project secret**; mint a fresh project secret (the
    dashboard reveals it only once) and persist it to `~/.keprix/.env` so the
    sidecar can authenticate `spectrum-ts`. Spectrum is always on, so there's no
    separate enable step.
-4. **Register your phone number** as a Spectrum user (idempotent — skipped if
+4. **Register your phone number** as a Spectrum user (idempotent; skipped if
    a user with that number already exists).
-5. **Print the assigned iMessage line** — the number you text to reach your
+5. **Print the assigned iMessage line**; the number you text to reach your
    agent.
-6. **Install the sidecar deps** (`npm ci` — installs the committed lockfile
+6. **Install the sidecar deps** (`npm ci`; installs the committed lockfile
    verbatim, so every setup runs the exact `spectrum-ts` version this plugin
    was written against).
 
@@ -117,13 +117,13 @@ All env vars are documented in `plugin.yaml`. The most important:
 | `PHOTON_SIDECAR_AUTOSTART`| true                       | Spawn the sidecar on connect         |
 | `PHOTON_DASHBOARD_HOST`   | https://app.photon.codes   | Dashboard API host                   |
 | `PHOTON_SPECTRUM_HOST`    | https://spectrum.photon.codes | Spectrum API host                 |
-| `PHOTON_HOME_CHANNEL`     | your number (set by setup) | Default space for cron delivery — a space id, or a bare E.164 number (resolved to a DM) |
+| `PHOTON_HOME_CHANNEL`     | your number (set by setup) | Default space for cron delivery; a space id, or a bare E.164 number (resolved to a DM) |
 | `PHOTON_ALLOWED_USERS`    | your number (set by setup) | Comma-separated E.164 allowlist      |
 | `PHOTON_REQUIRE_MENTION`  | false                      | Gate group chats on a wake word      |
 | `PHOTON_MAX_INLINE_ATTACHMENT_BYTES` | 20 MB           | Max inbound attachment size the sidecar reads & inlines |
-| `PHOTON_TELEMETRY`        | false                      | Spectrum SDK telemetry — toggle with `keprix photon telemetry on\|off` (restart the gateway to apply) |
+| `PHOTON_TELEMETRY`        | false                      | Spectrum SDK telemetry; toggle with `keprix photon telemetry on\|off` (restart the gateway to apply) |
 | `PHOTON_MARKDOWN`         | true                       | Send agent replies as markdown (iMessage renders natively). `false` strips formatting to plain text |
-| `PHOTON_REACTIONS`        | false                      | Tapback 👀/👍/👎 as processing status; tapbacks on bot messages reach the agent as `reaction:added:<emoji>` |
+| `PHOTON_REACTIONS`        | false                      | Tapback // as processing status; tapbacks on bot messages reach the agent as `reaction:added:<emoji>` |
 
 ## Attachments & limitations
 
@@ -131,7 +131,7 @@ All env vars are documented in `plugin.yaml`. The most important:
   the bytes (`content.read()`) and base64-inlines them on the NDJSON event; the
   adapter caches them to the shared media cache and populates `media_urls` /
   `media_types`, so the agent sees the real image/file or can transcribe the
-  voice note — parity with the BlueBubbles iMessage channel. Media larger than
+  voice note; parity with the BlueBubbles iMessage channel. Media larger than
   `PHOTON_MAX_INLINE_ATTACHMENT_BYTES` (default 20 MB), or any byte read that
   fails, falls back to a text marker (`[Photon attachment received: …]` or
   `[Photon voice received: …]`) so the agent still knows something arrived.
@@ -144,13 +144,13 @@ All env vars are documented in `plugin.yaml`. The most important:
   Spectrum platforms degrade to readable plain text. `PHOTON_MARKDOWN=false`
   reverts to stripped plain text.
 - **Reactions (tapbacks) are supported** behind `PHOTON_REACTIONS` (default
-  off): the adapter tapbacks 👀 while processing and swaps it for 👍/👎 on
+  off): the adapter tapbacks  while processing and swaps it for / on
   completion, and a user tapback on a bot-sent message is routed to the agent
   as a synthetic `reaction:added:<emoji>` event. Removal after a sidecar
-  restart is best-effort — the live reaction handle is lost, so a stale
+  restart is best-effort; the live reaction handle is lost, so a stale
   tapback heals when the next reaction replaces it. Group spaces stay
   reachable across restarts via spectrum-ts v3's `space.get(id)`.
-- **Message effects, polls** — supported by `spectrum-ts` but not yet
+- **Message effects, polls**; supported by `spectrum-ts` but not yet
   exposed; the sidecar is the natural place to add them.
 
 ## Upgrading spectrum-ts
@@ -166,7 +166,7 @@ release take down fresh setups silently. Upgrades are deliberate:
 2. Bump the exact pin in `sidecar/package.json`, then run `npm install`
    inside `sidecar/` to regenerate `package-lock.json`. Commit both.
 3. Migrate `sidecar/index.mjs` against the new typings
-   (`sidecar/node_modules/spectrum-ts/dist/*.d.ts` is the source of truth —
+   (`sidecar/node_modules/spectrum-ts/dist/*.d.ts` is the source of truth;
    the hosted docs can lag).
 4. Run `pytest tests/plugins/platforms/photon/`.
 5. Verify end-to-end: `keprix photon status`, a DM and a group roundtrip,

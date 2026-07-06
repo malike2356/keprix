@@ -91,7 +91,7 @@ export const onComposerFocusRequest = (handler: (target: ComposerTarget) => void
 export const onComposerInsertRequest = (handler: (detail: InsertDetail) => void) =>
   subscribe<InsertDetail>(INSERT_EVENT, handler)
 
-/** Insert typed ref chips (carrying a display label) into a composer — the
+/** Insert typed ref chips (carrying a display label) into a composer; the
  * structured cousin of {@link requestComposerInsert}, used for session links. */
 export const requestComposerInsertRefs = (
   refs: InlineRefInput[],

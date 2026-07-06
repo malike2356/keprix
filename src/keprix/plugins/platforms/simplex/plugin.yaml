@@ -6,7 +6,7 @@ description: >
   SimpleX Chat gateway adapter for Keprix.
   Connects to a local simplex-chat daemon via WebSocket and relays
   messages between SimpleX contacts/groups and the Keprix agent.
-  SimpleX is decentralised and assigns no persistent user IDs —
+  SimpleX is decentralised and assigns no persistent user IDs;
   every contact is an opaque internal ID generated at connection
   time, making it one of the most private messengers available.
 author: Mibayy, jooray
@@ -24,7 +24,7 @@ optional_env:
     prompt: "Allowed contact IDs (comma-separated)"
     password: false
   - name: SIMPLEX_ALLOW_ALL_USERS
-    description: "Allow any contact to talk to the bot (dev only — disables allowlist)"
+    description: "Allow any contact to talk to the bot (dev only; disables allowlist)"
     prompt: "Allow all contacts? (true/false)"
     password: false
   - name: SIMPLEX_AUTO_ACCEPT
@@ -35,7 +35,7 @@ optional_env:
     description: >-
       Comma-separated SimpleX group IDs the bot should participate in, or
       '*' to allow any group. Omit to ignore group messages entirely
-      (safer default — a bot in a group otherwise processes every
+      (safer default; a bot in a group otherwise processes every
       member's traffic).
     prompt: "Allowed group IDs (comma-separated, or '*' for any)"
     password: false
@@ -50,7 +50,7 @@ optional_env:
   - name: KEPRIX_SIMPLEX_TEXT_BATCH_DELAY
     description: >-
       Quiet-period seconds (default: 0.8) used to concatenate rapid-fire
-      inbound text messages into a single MessageEvent — same pattern as
+      inbound text messages into a single MessageEvent; same pattern as
       Telegram's text batching.
     prompt: "Text batch flush delay in seconds (default 0.8)"
     password: false

@@ -1,0 +1,22 @@
+name: research_basics
+version: "1"
+category: research_source_quality
+min_pass_rate: 0.9
+max_cost_usd: 0.05
+max_runtime_ms: 30000
+tasks:
+  - id: cite_sources
+    input: "Summarize AI safety trends with citations"
+    citations_required: 2
+    mock_output: "AI safety requires careful evaluation [1] and governance (2024) https://example.com/safety"
+    max_cost_usd: 0.01
+    max_runtime_ms: 5000
+    metadata:
+      rubric:
+        - "safety"
+        - "evaluation"
+  - id: source_quality
+    input: "Compare peer-reviewed vs blog sources"
+    expect_contains: "peer-reviewed"
+    mock_output: "Peer-reviewed sources offer stronger evidence than blog posts."
+    max_runtime_ms: 5000

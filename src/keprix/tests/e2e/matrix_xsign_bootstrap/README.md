@@ -1,4 +1,4 @@
-# Matrix cross-signing bootstrap — E2E test
+# Matrix cross-signing bootstrap; E2E test
 
 Self-contained end-to-end test for the auto-bootstrap behavior added in
 `gateway/platforms/matrix.py`. Spins up a real Continuwuity homeserver
@@ -6,7 +6,7 @@ in Docker, registers a fresh bot, runs the patched bootstrap path
 against it, and asserts:
 
 1. Cross-signing keys get published with **unpadded** base64 keyids
-   (the bug this PR fixes — padded keyids are silently rejected by
+   (the bug this PR fixes; padded keyids are silently rejected by
    matrix-rust-sdk in Element).
 2. On a second startup with the same crypto store, bootstrap is
    skipped.
@@ -23,7 +23,7 @@ docker compose -f tests/e2e/matrix_xsign_bootstrap/docker-compose.yml down -v
 ```
 
 The `down -v` step removes the persistent volume so the next run gets
-a fresh homeserver — important because Continuwuity's one-time admin
+a fresh homeserver; important because Continuwuity's one-time admin
 registration token is only valid before the first user is created.
 
 ## Port

@@ -1,8 +1,8 @@
-// Hermes Agent — Photon Spectrum sidecar
+// Hermes Agent; Photon Spectrum sidecar
 //
 // Spawned by `plugins/platforms/photon/adapter.py` to bridge BOTH directions
 // of messaging to Photon's Spectrum platform via the `spectrum-ts` SDK (the
-// SDK is TypeScript-only, so a Node sidecar is unavoidable — there is no
+// SDK is TypeScript-only, so a Node sidecar is unavoidable; there is no
 // Python SDK and no public HTTP message API).
 //
 // Inbound  (gRPC -> Hermes): the SDK's `app.messages` async iterator is a
@@ -27,7 +27,7 @@
 //              "kind": "attachment" | "voice"}
 //   - POST /react       -> {"ok": true, "reactionId": "..." | null}
 //       body: {"spaceId": "...", "messageId": "<target msg id>",
-//              "emoji": "👀"}
+//              "emoji": ""}
 //   - POST /unreact     -> {"ok": true} | 400 soft failure
 //       body: {"spaceId": "...", "messageId": "<target msg id>",
 //              "reactionId": "..." | null (restart-recovery fallback)}
@@ -38,7 +38,7 @@
 // On SIGINT/SIGTERM the sidecar calls `app.stop()` (3s graceful) before
 // exiting. Logs go to stderr; Python supervises restart.
 //
-// Requires spectrum-ts 3.x — pinned exactly in package.json because the SDK
+// Requires spectrum-ts 3.x; pinned exactly in package.json because the SDK
 // ships breaking majors; see README "Upgrading spectrum-ts".
 //
 // Env vars (required):
@@ -49,10 +49,10 @@
 // Optional:
 //   PHOTON_SIDECAR_BIND    (default 127.0.0.1)
 //   PHOTON_SIDECAR_WATCH_STDIN  "1" = exit when stdin hits EOF (set by the
-//                          adapter, which holds our stdin pipe — parent-death
+//                          adapter, which holds our stdin pipe; parent-death
 //                          detection so a dead gateway can't orphan us)
 //   PHOTON_TELEMETRY       enable Spectrum SDK telemetry ("true"/"1"/"on"/"yes";
-//                          default off — toggle with `hermes photon telemetry`)
+//                          default off; toggle with `hermes photon telemetry`)
 
 import http from "node:http";
 import crypto from "node:crypto";
@@ -69,7 +69,7 @@ const telemetry = /^(1|true|yes|on)$/i.test(
 
 // Inbound binary content is read into memory and base64-inlined on the NDJSON
 // event so the Python adapter can cache the real bytes (and the agent can see
-// images / transcribe voice). Cap the size we inline — above it we forward
+// images / transcribe voice). Cap the size we inline; above it we forward
 // metadata only and the adapter surfaces a text marker, so one large clip can't
 // balloon a single NDJSON line. Override via PHOTON_MAX_INLINE_ATTACHMENT_BYTES.
 const MAX_INLINE_ATTACHMENT_BYTES =
@@ -135,7 +135,7 @@ const knownSpaces = new Map();
 // `space.getMessage` round trip when tapping back on a recent message.
 const knownMessages = new Map();
 // One reaction handle per reacted-to message (key `${spaceId}\0${messageId}`,
-// value {emoji, handle}) — mirrors iMessage's one-tapback-per-sender
+// value {emoji, handle}); mirrors iMessage's one-tapback-per-sender
 // semantics; a new /react on the same target overwrites the slot. The handle
 // is the outbound reaction Message returned by `target.react()`, kept so
 // /unreact can `unsend()` it later.
@@ -198,7 +198,7 @@ function clearConsumer(res) {
 // connected; if the write fails (consumer vanished mid-flight) we wait for a
 // new consumer and retry, so a message is never silently dropped here.
 async function deliver(line) {
-  for (;;) {
+  for (;) {
     await waitForConsumer();
     const res = consumerRes;
     if (!res) continue;
@@ -280,7 +280,7 @@ async function normalizeContent(content) {
       targetMessageId: content.target?.id ?? null,
       // Lets Python gate "is this a reaction to one of MY messages" without
       // tracking every outbound id. May be null if the provider doesn't
-      // hydrate the target — Python falls back to its own sent-id cache.
+      // hydrate the target; Python falls back to its own sent-id cache.
       targetDirection: content.target?.direction ?? null,
     };
   }
@@ -319,10 +319,10 @@ async function normalizeEvent(space, message) {
 // always recovers (the adapter dedupes any catch-up replay).
 (async () => {
   let backoff = 1000;
-  for (;;) {
+  for (;) {
     try {
       for await (const [space, message] of app.messages) {
-        backoff = 1000; // healthy traffic — reset
+        backoff = 1000; // healthy traffic; reset
         // Only forward inbound messages (ignore our own outbound echoes).
         if (message && message.direction && message.direction !== "inbound") {
           continue;
@@ -333,10 +333,10 @@ async function normalizeEvent(space, message) {
         if (!event) continue;
         await deliver(JSON.stringify(event));
       }
-      console.error("photon-sidecar: inbound stream ended — re-subscribing");
+      console.error("photon-sidecar: inbound stream ended; re-subscribing");
     } catch (e) {
       console.error(
-        "photon-sidecar: inbound stream errored — restarting: " +
+        "photon-sidecar: inbound stream errored; restarting: " +
           (e && e.message ? e.message : String(e))
       );
     }
@@ -389,7 +389,7 @@ function badRequest(res, msg) {
 function serverError(res) {
   res.statusCode = 500;
   res.setHeader("Content-Type", "application/json");
-  // Don't leak stack traces or raw exception text to the caller — even
+  // Don't leak stack traces or raw exception text to the caller; even
   // though we listen on loopback, the supervisor logs the real error
   // and the client only needs a generic failure signal.
   res.end(JSON.stringify({ ok: false, error: "internal sidecar error" }));
@@ -406,7 +406,7 @@ function handleInbound(req, res) {
   res.setHeader("Content-Type", "application/x-ndjson");
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("Connection", "keep-alive");
-  // One consumer at a time — a fresh connection (e.g. after a reconnect)
+  // One consumer at a time; a fresh connection (e.g. after a reconnect)
   // supersedes the previous one.
   if (consumerRes && consumerRes !== res) {
     try {
@@ -457,7 +457,7 @@ async function resolveSpace(spaceId) {
       );
     }
   }
-  // Anything else — typically an opaque group GUID — is rehydrated from the
+  // Anything else; typically an opaque group GUID; is rehydrated from the
   // persisted id via `space.get`, so group spaces stay reachable after a
   // sidecar restart even before any fresh inbound message in that group.
   if (!space) {
@@ -478,7 +478,7 @@ async function resolveSpace(spaceId) {
   return space;
 }
 
-// Constant-time token comparison — don't leak the token via `!==` timing.
+// Constant-time token comparison; don't leak the token via `!==` timing.
 const _tokenBuf = Buffer.from(sharedToken);
 function tokenOk(header) {
   if (typeof header !== "string") return false;
@@ -596,7 +596,7 @@ const server = http.createServer(async (req, res) => {
       }
       // Restart-recovery: the live handle is gone, so try rehydrating the
       // reaction message by id and retracting it. Only outbound messages can
-      // be unsent — if the provider rehydrates it as inbound (or not at all)
+      // be unsent; if the provider rehydrates it as inbound (or not at all)
       // this throws, and that's an expected soft failure, not a sidecar bug:
       // a stale tapback self-heals when the next /react replaces it.
       if (reactionId) {
@@ -635,7 +635,7 @@ const server = http.createServer(async (req, res) => {
       "photon-sidecar: handler error: " +
         (e && e.stack ? e.stack : String(e))
     );
-    // serverError() intentionally returns a generic message — see its
+    // serverError() intentionally returns a generic message; see its
     // body for the rationale.
     return serverError(res);
   }
@@ -668,7 +668,7 @@ process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 
 // Lifetime binding to the parent. The adapter spawns us with stdin as a pipe
-// it holds open; EOF means the gateway process is gone — including hard
+// it holds open; EOF means the gateway process is gone; including hard
 // deaths (crash, SIGKILL) where no signal and no /shutdown ever reaches us.
 // Without this, an orphaned sidecar squats the port and keeps consuming the
 // inbound gRPC stream, and every replacement spawn dies on EADDRINUSE.
@@ -679,7 +679,7 @@ if (process.env.PHOTON_SIDECAR_WATCH_STDIN === "1") {
   process.stdin.on("error", () => shutdown("stdin error (parent exited)"));
 }
 
-// Don't let a stray promise rejection take the process down silently — handlers
+// Don't let a stray promise rejection take the process down silently; handlers
 // catch their own errors, so log and keep serving (Python supervises restart on
 // a real fatal exit).
 process.on("unhandledRejection", (reason) => {

@@ -1,4 +1,8 @@
-"""Central constants for keprix. Import from here; never hardcode these strings."""
+"""Central constants for keprix. Import from here; never hardcode product names."""
+
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 PRODUCT_NAME = "Keprix"
 PRODUCT_VERSION = "0.1.0"
@@ -6,12 +10,15 @@ EDITION = "community"
 HOMEPAGE = "https://keprix.io"
 DOCS_URL = "https://keprix.io/docs"
 GITHUB_URL = "https://github.com/malike2356/keprix"
-SPONSOR_NAME = "Carina"
-SPONSOR_URL = "https://carinaai.uk"
-SCOUT_CONNECTOR_URL = "https://labyrinthscout.com"
 DEVELOPER_IDENTITY_DIR = "~/.keprix/identity"
 DEVELOPER_CONFIG_DIR = "~/.keprix"
 DATA_DIR = "/data/keprix"
+
+if TYPE_CHECKING:
+    from keprix.extensions.registry import ExtensionManifest
+
+# Populated at runtime when products register via keprix.extensions.registry
+EXTENSION_REGISTRY: dict[str, "ExtensionManifest"] = {}
 
 # Audit event types
 AUDIT_DEVELOPER_IDENTITY_CREATED = "developer_identity_created"

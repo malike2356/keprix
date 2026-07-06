@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { useRef, useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-// No global setupFiles registers auto-cleanup, so unmount between tests —
+// No global setupFiles registers auto-cleanup, so unmount between tests;
 // otherwise a second render() leaks the first editor and getByTestId('editor')
 // matches multiple nodes.
 afterEach(cleanup)
@@ -16,8 +16,8 @@ afterEach(cleanup)
 // derived `hasComposerPayload` lag the DOM by a render, so the keydown handler
 // read empty state and either dropped the message, drained a queued prompt
 // instead of sending, or (while busy) refused to queue. The fix reads the live
-// editor text — `hasLivePayload` in the handler and a DOM re-sync at the top of
-// submitDraft — so the just-typed text always wins.
+// editor text; `hasLivePayload` in the handler and a DOM re-sync at the top of
+// submitDraft; so the just-typed text always wins.
 //
 // We model the race deterministically the way the IME repro does: mutate the
 // editor's textContent WITHOUT firing an input event, so the React `draft`
@@ -41,7 +41,7 @@ function Harness({
 }) {
   const editorRef = useRef<HTMLDivElement>(null)
   const draftRef = useRef('')
-  // Mirrors `useAuiState(s => s.composer.text)` — updated only via setText, so
+  // Mirrors `useAuiState(s => s.composer.text)`; updated only via setText, so
   // it lags the DOM until React re-renders (the source of the bug).
   const [draft, setDraft] = useState('')
   const attachments: unknown[] = []
@@ -124,7 +124,7 @@ function Harness({
   )
 }
 
-describe('composer Enter submit — live DOM vs stale composer state (#39630)', () => {
+describe('composer Enter submit; live DOM vs stale composer state (#39630)', () => {
   it('sends the just-typed text on Enter even when composer state has not synced', async () => {
     const onSubmit = vi.fn()
     const { getByTestId } = render(

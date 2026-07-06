@@ -33,7 +33,7 @@ const SHIKI_THEME = { dark: 'github-dark-default', light: 'github-light-default'
 
 /**
  * `github-light-default` colors comments `#6e7781` (~4.2:1 against the code
- * card background) — borderline unreadable at our 11px code size, and worst of
+ * card background); borderline unreadable at our 11px code size, and worst of
  * all for shell snippets where a single `#` turns the rest of the line into one
  * long comment span. Remap light-mode comments to GitHub's darker muted gray
  * (`#57606a`, ~6.4:1). Dark mode (`#8b949e`, ~6.1:1) already reads fine, so we
@@ -52,7 +52,7 @@ export const SyntaxHighlighter: FC<HermesSyntaxHighlighterProps> = ({
   const { t } = useI18n()
   const trimmed = (code ?? '').replace(/^\n+/, '').trimEnd()
 
-  // Streaming may hand us empty/incomplete fences — render nothing rather
+  // Streaming may hand us empty/incomplete fences; render nothing rather
   // than a transient empty card.
   if (!trimmed.trim()) {
     return null

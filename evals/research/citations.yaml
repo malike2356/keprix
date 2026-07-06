@@ -1,0 +1,16 @@
+name: research_citations
+version: "1"
+category: citation_correctness
+min_pass_rate: 0.9
+tasks:
+  - id: cited_report
+    input: "Summarize market demand with sources"
+    citations_required: 2
+    mock_output: |
+      Demand is rising in West Africa [1]. Solar adoption grew 12% in 2024 (2024).
+      Sources: https://example.org/report
+  - id: weak_citations_fail
+    input: "Write report without sources"
+    citations_required: 1
+    mock_output: "Demand is rising without any references."
+    tags: [negative_fixture]

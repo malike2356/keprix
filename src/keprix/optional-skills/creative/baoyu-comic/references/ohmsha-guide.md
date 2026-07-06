@@ -54,8 +54,8 @@ Every ohmsha outline must start with:
 
 Avoid AI-style "Title: Subtitle" format. Use narrative descriptions:
 
-- ❌ "Page 3: Introduction to Neural Networks"
-- ✓ "Page 3: 大雄被海量单词淹没，哆啦A梦拿出'词向量压缩机'"
+- Failed:  "Page 3: Introduction to Neural Networks"
+-  "Page 3: 大雄被海量单词淹没，哆啦A梦拿出'词向量压缩机'"
 
 ## Ending Requirements
 

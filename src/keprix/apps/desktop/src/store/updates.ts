@@ -87,7 +87,7 @@ function isUpdateToastSnoozed(): boolean {
 
 // Must match tui_gateway's DESKTOP_BACKEND_CONTRACT that this build was written
 // against. The backend reports its own value in session runtime info; a lower
-// value (or none — a pre-GUI checkout) means GUI<->backend skew.
+// value (or none; a pre-GUI checkout) means GUI<->backend skew.
 // v2: requires the file.attach RPC (remote-gateway non-image file upload).
 const REQUIRED_BACKEND_CONTRACT = 2
 const SKEW_TOAST_ID = 'backend-contract-skew'
@@ -117,7 +117,7 @@ export function reportBackendContract(contract: number | undefined): void {
 
 /**
  * Fire a toast when an update is available, at most once per cooldown window.
- * Closing the toast — dismissing it or opening the updates window from it —
+ * Closing the toast; dismissing it or opening the updates window from it;
  * (re)starts the cooldown, so a busy upstream branch doesn't re-spam the user
  * on every new commit. The snooze is persisted, so it survives relaunches too.
  */
@@ -283,7 +283,7 @@ export async function applyUpdates(opts: DesktopUpdateApplyOptions = {}): Promis
   try {
     const result = await bridge.apply(opts)
 
-    // CLI install with no staged updater: not an error — the user just runs
+    // CLI install with no staged updater: not an error; the user just runs
     // `hermes update` themselves. Land on a dedicated manual state so the
     // overlay shows the command + copy button instead of a dead retry loop.
     if (result?.manual) {
@@ -366,7 +366,7 @@ export async function applyBackendUpdate(): Promise<DesktopUpdateApplyResult> {
       try {
         last = await getActionStatus(started.name, 200)
       } catch {
-        // The dashboard restarts mid-update, dropping this connection — expected, not a failure.
+        // The dashboard restarts mid-update, dropping this connection; expected, not a failure.
         $backendUpdateApply.set({
           ...$backendUpdateApply.get(),
           applying: true,
@@ -447,7 +447,7 @@ export function startUpdatePoller(): void {
   void refreshDesktopVersion()
   bridge.onProgress(ingestProgress)
 
-  // The poller starts at mount, before the gateway connects — so the first
+  // The poller starts at mount, before the gateway connects; so the first
   // backend check above sees mode≠remote and no-ops. Re-check once the
   // connection resolves to remote.
   connectionUnsub = $connection.subscribe(conn => {

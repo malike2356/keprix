@@ -480,11 +480,11 @@ if metrics['f1'] > 0.9:
 ### 1. Use Descriptive Names
 
 ```python
-# ✅ Good: Descriptive names
+# Done:  Good: Descriptive names
 wandb.Artifact('imagenet-train-augmented-v2', type='dataset')
 wandb.Artifact('bert-base-sentiment-finetuned', type='model')
 
-# ❌ Bad: Generic names
+# Failed:  Bad: Generic names
 wandb.Artifact('dataset1', type='dataset')
 wandb.Artifact('model', type='model')
 ```
@@ -565,14 +565,14 @@ def create_training_pipeline():
 ### 5. Efficient Storage
 
 ```python
-# ✅ Good: Reference large files
+# Done:  Good: Reference large files
 large_dataset = wandb.Artifact('large-dataset', type='dataset')
 large_dataset.add_reference('s3://bucket/huge-file.tar.gz')
 
-# ❌ Bad: Upload giant files
+# Failed:  Bad: Upload giant files
 # large_dataset.add_file('huge-file.tar.gz')  # Don't do this
 
-# ✅ Good: Upload only metadata
+# Done:  Good: Upload only metadata
 metadata_artifact = wandb.Artifact('dataset-metadata', type='dataset')
 metadata_artifact.add_file('metadata.json')  # Small file
 ```

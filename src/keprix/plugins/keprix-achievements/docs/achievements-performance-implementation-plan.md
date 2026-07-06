@@ -6,7 +6,7 @@ Decision: `/overview` and top-banner slots are out of scope and will be removed.
 
 ---
 
-## Phase 0 — Baseline & Safety (no behavior change)
+## Phase 0; Baseline & Safety (no behavior change)
 
 ### Task 0.1: Add perf benchmark script (local)
 Objective: Repro baseline before/after.
@@ -24,7 +24,7 @@ Acceptance:
 
 ---
 
-## Phase 1 — Remove unused overview/slot surface (highest certainty)
+## Phase 1; Remove unused overview/slot surface (highest certainty)
 
 ### Task 1.1: Remove `/overview` backend route
 Objective: Eliminate duplicate heavy endpoint path.
@@ -48,7 +48,7 @@ Acceptance:
 
 ---
 
-## Phase 2 — Shared snapshot persistence + single-flight for `/achievements`
+## Phase 2; Shared snapshot persistence + single-flight for `/achievements`
 
 ### Task 2.1: Introduce snapshot store abstraction + on-disk persistence
 Objective: Single source of truth for Achievements data that survives process restarts.
@@ -72,7 +72,7 @@ Acceptance:
 
 ---
 
-## Phase 3 — Stale-While-Revalidate
+## Phase 3; Stale-While-Revalidate
 
 ### Task 3.1: TTL state (`FRESH`/`STALE`)
 Objective: Serve immediately when stale, refresh in background.
@@ -95,7 +95,7 @@ Acceptance:
 
 ---
 
-## Phase 4 — Incremental Scanning (optional but recommended)
+## Phase 4; Incremental Scanning (optional but recommended)
 
 ### Task 4.1: Add per-session checkpoint file
 Objective: Track session-level changes, not just global scan time.

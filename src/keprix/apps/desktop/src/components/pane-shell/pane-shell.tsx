@@ -32,9 +32,9 @@ export interface PaneProps {
   defaultOpen?: boolean
   /** Paints a persistent hairline on the resize edge (not just the hover sash) so the pane boundary is always visible. */
   divider?: boolean
-  /** Forces the pane closed (track→0, aria-hidden) without writing to the store — for transient route gates. */
+  /** Forces the pane closed (track→0, aria-hidden) without writing to the store; for transient route gates. */
   disabled?: boolean
-  /** Like disabled, but keeps hoverReveal alive — collapses the track without writing to the store (e.g. narrow window). */
+  /** Like disabled, but keeps hoverReveal alive; collapses the track without writing to the store (e.g. narrow window). */
   forceCollapsed?: boolean
   /** When collapsed, float the contents over the main column on hover/focus instead of hiding them (track stays 0px). */
   hoverReveal?: boolean
@@ -81,7 +81,7 @@ const HOVER_REVEAL_EASE = 'cubic-bezier(0.32,0.72,0,1)'
 // the mirror axis is offset-x, which is 0). Same color on light + dark.
 const HOVER_REVEAL_SHADOW = '0px -18px 18px -5px #00000012'
 // Edge trigger strip, inset past the OS window-resize grab area AND the
-// adjacent pane's scrollbar (0.5rem, .scrollbar-dt) — the strip overlays the
+// adjacent pane's scrollbar (0.5rem, .scrollbar-dt); the strip overlays the
 // neighboring scroller's edge, so any overlap makes the scrollbar reveal the
 // pane on hover and swallow its clicks (#44140).
 const HOVER_REVEAL_TRIGGER_WIDTH = 14
@@ -162,7 +162,7 @@ function collectPanes(children: ReactNode) {
       width: widthToCss(props.width, DEFAULT_WIDTH)
     }
 
-    ;(props.side === 'left' ? left : right).push(entry)
+;(props.side === 'left' ? left : right).push(entry)
   })
 
   return { left, mainCount, right }

@@ -1,0 +1,41 @@
+{
+  "domain_name": "example-domain",
+  "version": "0.1.0",
+  "jurisdictions": ["GH"],
+  "common_tasks": [
+    "Explain domain terminology",
+    "Draft a compliance checklist",
+    "Map tools to common workflows"
+  ],
+  "playbooks": [
+    {
+      "title": "Domain onboarding",
+      "href": "/playbooks/domain-onboarding"
+    }
+  ],
+  "disclaimers": [
+    "This pack is informational only and does not constitute legal, medical, or financial advice."
+  ],
+  "limitations": [
+    "Does not replace licensed professional review.",
+    "May not cover every regional regulatory variation."
+  ],
+  "can_do": [
+    "Explain terminology",
+    "Suggest workflow checklists",
+    "Map tools to tasks"
+  ],
+  "cannot_do": [
+    "Provide binding legal advice",
+    "Make regulated decisions on behalf of users"
+  ],
+  "tool_permissions": ["filesystem:read"],
+  "localization_coverage": {
+    "locales": ["en"],
+    "fallback": "en",
+    "low_resource_fallback": "en",
+    "voice_friendly": true
+  },
+  "data_schemas": [],
+  "tests": ["tests/domain_packs/test_example_pack.py"]
+}

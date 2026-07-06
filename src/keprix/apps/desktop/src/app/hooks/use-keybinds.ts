@@ -65,8 +65,8 @@ export interface KeybindRuntimeDeps {
 type HandlerMap = Record<string, () => void>
 
 // Mount once near the top of the app. Owns the single global keydown listener
-// for every rebindable hotkey: it runs the matched action, or — while capture
-// mode is active (edit overlay / panel rebind) — records the pressed combo.
+// for every rebindable hotkey: it runs the matched action, or; while capture
+// mode is active (edit overlay / panel rebind); records the pressed combo.
 export function useKeybinds(deps: KeybindRuntimeDeps): void {
   const navigate = useNavigate()
   const { resolvedMode, setMode } = useTheme()
@@ -197,7 +197,7 @@ export function useKeybinds(deps: KeybindRuntimeDeps): void {
       }
 
       // While the session switcher is up, Esc abandons it (stay put) before any
-      // combo dispatch — ⌃Tab keeps stepping through the existing handler.
+      // combo dispatch; ⌃Tab keeps stepping through the existing handler.
       if (switcherActive() && event.key === 'Escape') {
         event.preventDefault()
         event.stopPropagation()

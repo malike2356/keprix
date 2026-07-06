@@ -1,0 +1,15 @@
+{
+  "surface": "evals",
+  "title": "Benchmarks and Evals",
+  "description": "Golden task suites, provider comparison, and release gate reports.",
+  "routes": [
+    { "path": "/evals", "label": "Evals" }
+  ],
+  "actions": [
+    "list_suites",
+    "run_suite",
+    "run_all",
+    "release_gate",
+    "compare_providers"
+  ]
+}

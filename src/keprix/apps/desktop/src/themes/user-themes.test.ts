@@ -55,7 +55,7 @@ describe('user theme registry', () => {
 
   it('rejects a theme missing required colors', () => {
     const broken = makeTheme('Broken')
-    // @ts-expect-error — intentionally corrupt the palette for the test.
+    // @ts-expect-error; intentionally corrupt the palette for the test.
     broken.colors = { background: '#000000' }
 
     expect(() => installUserTheme(broken)).toThrow(/colors/)

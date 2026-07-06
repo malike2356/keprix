@@ -10,7 +10,7 @@ const _READY_RE = /^HERMES_DASHBOARD_READY port=(\d+)/m
  *   - no line arrives within the timeout
  *
  * A single `cleanup()` tears down every listener (data/exit/error/timeout)
- * on every terminal path — resolve, reject, or timeout — so repeated
+ * on every terminal path; resolve, reject, or timeout; so repeated
  * backend spawns don't leak listener slots on the child.
  */
 function waitForDashboardPort(child, timeoutMs = 45_000) {

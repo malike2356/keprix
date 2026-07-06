@@ -92,4 +92,28 @@ def build_tools_parser(subparsers, *, cmd_tools: Callable) -> None:
         metavar="KEY",
         help="Post-setup hook key (e.g. agent_browser, camofox, kittentts)",
     )
+
+    tools_pending_p = tools_sub.add_parser("pending", help="List generated tools awaiting approval")
+    tools_pending_p.set_defaults(tools_action="pending")
+
+    tools_history_p = tools_sub.add_parser("history", help="List all generated tool records")
+    tools_history_p.set_defaults(tools_action="history")
+
+    tools_show_p = tools_sub.add_parser("show", help="Show a generated tool record")
+    tools_show_p.add_argument("record_id", help="Generated tool record ID")
+    tools_show_p.set_defaults(tools_action="show")
+
+    tools_approve_p = tools_sub.add_parser("approve", help="Approve and install a generated tool")
+    tools_approve_p.add_argument("record_id", help="Generated tool record ID")
+    tools_approve_p.set_defaults(tools_action="approve")
+
+    tools_reject_p = tools_sub.add_parser("reject", help="Reject a generated tool")
+    tools_reject_p.add_argument("record_id", help="Generated tool record ID")
+    tools_reject_p.add_argument("--reason", default=None, help="Rejection reason")
+    tools_reject_p.set_defaults(tools_action="reject")
+
+    tools_delete_p = tools_sub.add_parser("delete", help="Remove generated tool files from disk")
+    tools_delete_p.add_argument("record_id", help="Generated tool record ID")
+    tools_delete_p.set_defaults(tools_action="delete-generated")
+
     tools_parser.set_defaults(func=cmd_tools)

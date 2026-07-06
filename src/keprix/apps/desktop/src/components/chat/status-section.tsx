@@ -14,8 +14,8 @@ interface StatusSectionProps {
 }
 
 /**
- * One collapsible group inside the composer status stack. Pure chrome — header
- * (caret + label) + body — styled to match the queue exactly so every status
+ * One collapsible group inside the composer status stack. Pure chrome; header
+ * (caret + label) + body; styled to match the queue exactly so every status
  * (queue, subagents, background) reads as one piece. The stack supplies the
  * outer card and the dividers between groups; this owns only its own collapse.
  */

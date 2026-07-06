@@ -1,4 +1,4 @@
-// CPU-profile a synthetic stream — outputs a .cpuprofile and a top-self ranking.
+// CPU-profile a synthetic stream; outputs a .cpuprofile and a top-self ranking.
 // Open the .cpuprofile in Chrome DevTools Performance panel for a flamegraph.
 
 import { writeFileSync } from 'node:fs'

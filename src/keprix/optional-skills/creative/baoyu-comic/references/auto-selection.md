@@ -53,7 +53,7 @@ Content signals determine default art + tone + layout (or preset).
 
 Art Style × Tone combinations work best when matched appropriately:
 
-| Art Style | ✓✓ Best | ✓ Works | ✗ Avoid |
+| Art Style |  Best |  Works |  Avoid |
 |-----------|---------|---------|---------|
 | ligne-claire | neutral, warm | dramatic, vintage, energetic | romantic, action |
 | manga | neutral, romantic, energetic, action | warm, dramatic | vintage |

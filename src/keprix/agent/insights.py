@@ -163,6 +163,48 @@ class InsightsEngine:
             "top_sessions": top_sessions,
         }
 
+    async def generate_from_usage_store(self, days: int = 30) -> dict[str, Any]:
+        """Build an insights-shaped report from persisted llm_usage_events."""
+        from keprix.usage.analytics import get_llm_usage_analytics
+        from keprix.usage.filters import UsageQueryFilters
+
+        filters = UsageQueryFilters(days=days)
+        analytics = get_llm_usage_analytics()
+        summary = await analytics.summary(filters)
+        if summary.get("request_count", 0) == 0:
+            return {"days": days, "empty": True, "source": "usage_store", "overview": {}}
+        models = await analytics.breakdown(filters, dimension="model")
+        channels = await analytics.breakdown(filters, dimension="channel")
+        return {
+            "days": days,
+            "empty": False,
+            "source": "usage_store",
+            "generated_at": time.time(),
+            "overview": {
+                "total_tokens": summary.get("total_tokens", 0),
+                "total_cost_usd": summary.get("total_cost_usd", 0),
+                "request_count": summary.get("request_count", 0),
+                "avg_tokens_per_request": summary.get("avg_tokens_per_request", 0),
+            },
+            "models": [
+                {
+                    "model": row["label"],
+                    "tokens": row["total_tokens"],
+                    "cost_usd": row["total_cost_usd"],
+                    "share_percent": row["share_percent"],
+                }
+                for row in models
+            ],
+            "platforms": [
+                {
+                    "platform": row["label"],
+                    "tokens": row["total_tokens"],
+                    "cost_usd": row["total_cost_usd"],
+                }
+                for row in channels
+            ],
+        }
+
     # =========================================================================
     # Data gathering (SQL queries)
     # =========================================================================

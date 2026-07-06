@@ -10,7 +10,7 @@ describe('vscodeThemeSlug', () => {
   })
 
   it('falls back when the name has no usable characters', () => {
-    expect(vscodeThemeSlug('—')).toBe('vsc-theme')
+    expect(vscodeThemeSlug(';')).toBe('vsc-theme')
   })
 })
 
@@ -47,7 +47,7 @@ describe('convertVscodeColorTheme', () => {
       'editorWidget.background': '#21222c',
       'sideBar.background': '#21222c',
       errorForeground: '#ff5555',
-      // 8-digit hex (alpha) — must flatten over the background.
+      // 8-digit hex (alpha); must flatten over the background.
       'panel.border': '#bd93f900'
     }
   }
@@ -139,7 +139,7 @@ describe('convertVscodeColorTheme', () => {
         'editor.foreground': '#93a1a1',
         'terminal.foreground': '#839496',
         'terminalCursor.foreground': '#93a1a1',
-        // Alpha selection must survive un-flattened — xterm blends it.
+        // Alpha selection must survive un-flattened; xterm blends it.
         'terminal.selectionBackground': '#073642aa',
         ...fullAnsi
       }
@@ -150,7 +150,7 @@ describe('convertVscodeColorTheme', () => {
     expect(theme.terminal?.foreground).toBe('#839496')
     expect(theme.terminal?.cursor).toBe('#93a1a1')
     expect(theme.terminal?.selectionBackground).toBe('#073642aa')
-    // No background slot — the pane keeps the live surface (transparency).
+    // No background slot; the pane keeps the live surface (transparency).
     expect('background' in (theme.terminal ?? {})).toBe(false)
   })
 

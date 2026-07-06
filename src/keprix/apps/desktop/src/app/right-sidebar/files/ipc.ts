@@ -75,7 +75,7 @@ async function gitRootFor(start: string) {
   return cached
 }
 
-/** Read .gitignore at `dir` if it actually exists — never probe missing files. */
+/** Read .gitignore at `dir` if it actually exists; never probe missing files. */
 async function readGitignore(dir: string): Promise<GitignoreRule | null> {
   try {
     const listing = await readDesktopDir(dir)

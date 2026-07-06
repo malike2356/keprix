@@ -48,9 +48,9 @@ The `hf` command is the modern command-line interface for interacting with the H
 
 ### Datasets & Models
 *   **Datasets:** `hf datasets list`, `info`, and `parquet` (list parquet URLs).
-*   **SQL Queries:** `hf datasets sql SQL` — Execute raw SQL via DuckDB against dataset parquet URLs.
+*   **SQL Queries:** `hf datasets sql SQL`; Execute raw SQL via DuckDB against dataset parquet URLs.
 *   **Models:** `hf models list` and `info`.
-*   **Papers:** `hf papers list` — View daily papers.
+*   **Papers:** `hf papers list`; View daily papers.
 
 ### Discussions & Pull Requests (`hf discussions`)
 *   Manage the lifecycle of Hub contributions: `list`, `create`, `info`, `comment`, `close`, `reopen`, and `rename`.

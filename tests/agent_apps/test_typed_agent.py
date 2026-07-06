@@ -266,9 +266,7 @@ class TestTypedAgentAsyncRun:
             return ctx.deps.api_key
 
         deps = SimpleDeps(db_url="u", api_key="api-test-key")
-        run = asyncio.get_event_loop().run_until_complete(
-            agent.run("query", deps=deps)
-        )
+        run = asyncio.run(agent.run("query", deps=deps))
         assert run.ok
         assert captured == ["api-test-key"]
 
@@ -279,9 +277,7 @@ class TestTypedAgentAsyncRun:
         async def bad(ctx: RunContext[EmptyDeps]) -> None:
             raise RuntimeError("async failure")
 
-        run = asyncio.get_event_loop().run_until_complete(
-            agent.run("q", deps=EmptyDeps())
-        )
+        run = asyncio.run(agent.run("q", deps=EmptyDeps()))
         assert run.ok is False
 
 

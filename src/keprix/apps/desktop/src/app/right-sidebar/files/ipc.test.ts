@@ -21,7 +21,7 @@ function dataUrl(text: string) {
 }
 
 function installBridge() {
-  ;(
+;(
     window as unknown as {
       hermesDesktop: {
         gitRoot: typeof gitRoot

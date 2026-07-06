@@ -15,7 +15,7 @@ interface ProgressProps {
 }
 
 /*
- * Progress screen — drives a stage list + collapsible log panel. Uses
+ * Progress screen; drives a stage list + collapsible log panel. Uses
  * the DS <Progress> for the top bar so its motion + ring match the rest
  * of the product.
  */
@@ -57,7 +57,7 @@ export default function ProgressScreen({ bootstrap }: ProgressProps) {
             {progress.done} of {progress.total} steps
           </div>
         </div>
-        {/* Top progress bar — plain HTML, derived from --primary so it
+        {/* Top progress bar; plain HTML, derived from --primary so it
             tracks the theme accent. */}
         <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
           <div

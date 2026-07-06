@@ -69,24 +69,24 @@ Japanese manga art style characterized by large expressive eyes, dynamic poses, 
 
 ## Quality Markers
 
-- ✓ Expressive character faces
-- ✓ Clean, consistent line work
-- ✓ Dynamic poses and compositions
-- ✓ Appropriate use of manga conventions
-- ✓ Readable panel flow
-- ✓ Consistent character designs
+-  Expressive character faces
+-  Clean, consistent line work
+-  Dynamic poses and compositions
+-  Appropriate use of manga conventions
+-  Readable panel flow
+-  Consistent character designs
 
 ## Compatibility
 
 | Tone | Fit | Notes |
 |------|-----|-------|
-| neutral | ✓✓ | Educational manga |
-| warm | ✓ | Slice of life |
-| dramatic | ✓ | Intense moments |
-| romantic | ✓✓ | Shoujo style |
-| energetic | ✓✓ | Shonen style |
-| vintage | ✗ | Style mismatch |
-| action | ✓✓ | Battle manga |
+| neutral |  | Educational manga |
+| warm |  | Slice of life |
+| dramatic |  | Intense moments |
+| romantic |  | Shoujo style |
+| energetic |  | Shonen style |
+| vintage |  | Style mismatch |
+| action |  | Battle manga |
 
 ## Best For
 

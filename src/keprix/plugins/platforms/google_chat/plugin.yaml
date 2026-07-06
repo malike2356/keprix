@@ -5,7 +5,7 @@ version: 1.0.0
 description: >
   Google Chat gateway adapter for Keprix.
   Connects via Cloud Pub/Sub pull subscription for inbound events and the
-  Google Chat REST API for outbound messages — same ergonomics as Slack
+  Google Chat REST API for outbound messages; same ergonomics as Slack
   Socket Mode or Telegram long-polling, no public URL required. Native
   file attachments are delivered via per-user OAuth (each user runs
   /setup-files once in their own DM).

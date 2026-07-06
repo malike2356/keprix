@@ -34,7 +34,7 @@ test('bundledRuntimeImportCheck selects platform-specific import checks', () => 
 })
 
 test('detectRemoteDisplay keeps GPU on for local sessions', () => {
-  // Plain local X11, Wayland, native Windows, native macOS — no remote signal.
+  // Plain local X11, Wayland, native Windows, native macOS; no remote signal.
   assert.equal(detectRemoteDisplay({ env: { DISPLAY: ':0' }, platform: 'linux' }), null)
   assert.equal(detectRemoteDisplay({ env: { WAYLAND_DISPLAY: 'wayland-0' }, platform: 'linux' }), null)
   assert.equal(detectRemoteDisplay({ env: { SESSIONNAME: 'Console' }, platform: 'win32' }), null)

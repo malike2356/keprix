@@ -101,13 +101,13 @@ Every panel should show:
 
 ## Quality Markers
 
-- ✓ Every concept is a visual metaphor
-- ✓ Characters are DOING things, not just talking
-- ✓ Clear student/mentor dynamic
-- ✓ Gadgets and props drive the explanation
-- ✓ Expressive manga-style emotions
-- ✓ Information density through visual design, not text walls
-- ✓ Narrative page titles
+-  Every concept is a visual metaphor
+-  Characters are DOING things, not just talking
+-  Clear student/mentor dynamic
+-  Gadgets and props drive the explanation
+-  Expressive manga-style emotions
+-  Information density through visual design, not text walls
+-  Narrative page titles
 
 ## Reference
 

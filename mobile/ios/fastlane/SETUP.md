@@ -1,0 +1,177 @@
+# fastlane setup (Carina iOS)
+
+Install:
+
+```bash
+brew install fastlane
+```
+
+Create an App Store Connect API key:
+
+- App Store Connect → Users and Access → Keys → App Store Connect API → Generate API Key
+- Download the `.p8`, note the **Issuer ID** and **Key ID**
+
+Recommended (macOS): store the private key in Keychain and write non-secret vars:
+
+```bash
+scripts/ios-asc-keychain-setup.sh \
+  --key-path /absolute/path/to/AuthKey_XXXXXXXXXX.p8 \
+  --issuer-id YOUR_ISSUER_ID \
+  --write-env
+```
+
+This writes these auth variables in `apps/ios/fastlane/.env`:
+
+```bash
+ASC_KEY_ID=YOUR_KEY_ID
+ASC_ISSUER_ID=YOUR_ISSUER_ID
+ASC_KEYCHAIN_SERVICE=openclaw-asc-key
+ASC_KEYCHAIN_ACCOUNT=YOUR_MAC_USERNAME
+```
+
+Important: `apps/ios/fastlane/.env` is only for Fastlane/App Store Connect auth and optional release-archive settings. It does **not** configure gateway-side direct APNs push delivery for local iOS builds.
+
+Optional app targeting variables (helpful if Fastlane cannot auto-resolve app by bundle):
+
+```bash
+ASC_APP_IDENTIFIER=ai.verlox.carinakeprix.app
+# or
+ASC_APP_ID=YOUR_APP_STORE_CONNECT_APP_ID
+```
+
+File-based fallback (CI/non-macOS):
+
+```bash
+ASC_KEY_ID=YOUR_KEY_ID
+ASC_ISSUER_ID=YOUR_ISSUER_ID
+ASC_KEY_PATH=/absolute/path/to/AuthKey_XXXXXXXXXX.p8
+```
+
+Code signing variable (optional in `.env`):
+
+```bash
+IOS_DEVELOPMENT_TEAM=YOUR_TEAM_ID
+```
+
+Tip: run `scripts/ios-team-id.sh --require-canonical` from repo root to verify the canonical Carina iOS team (`FWJYW4S8P8`) is available locally. Fastlane uses the same canonical-only path when `IOS_DEVELOPMENT_TEAM` is missing, and rejects non-canonical teams for release archives.
+
+App Store release signing is manual and profile-pinned. The canonical manifest is `apps/ios/Config/AppStoreSigning.json`.
+
+One-time or rotation setup:
+
+```bash
+pnpm ios:release:signing:plan
+pnpm ios:release:signing:check
+pnpm ios:release:signing:setup
+```
+
+Shared encrypted signing storage:
+
+```bash
+ASC_MATCH_PASSWORD=... pnpm ios:release:signing:sync:push
+ASC_MATCH_PASSWORD=... pnpm ios:release:signing:sync:pull
+```
+
+The signing repo is private and encrypted. Store `ASC_MATCH_PASSWORD` in the release-owner vault, not in this product repo. `sync:pull` writes decrypted assets under `apps/ios/build/signing/`; import the distribution certificate/private key into Keychain before archiving.
+
+For local/manual iOS builds that stay on direct APNs, configure the gateway host separately with `OPENCLAW_APNS_TEAM_ID`, `OPENCLAW_APNS_KEY_ID`, and either `OPENCLAW_APNS_PRIVATE_KEY_P8` or `OPENCLAW_APNS_PRIVATE_KEY_PATH`. Those gateway runtime env vars are separate from Fastlane's `.env`.
+
+Validate auth:
+
+```bash
+cd apps/ios
+fastlane ios auth_check
+```
+
+ASC auth is only required when:
+
+- uploading to App Store Connect
+- auto-resolving the next build number from App Store Connect
+
+If you pass `--build-number` to `pnpm ios:release:archive`, the local archive path does not need ASC auth.
+
+Archive locally without upload:
+
+```bash
+pnpm ios:release:archive
+```
+
+Generate deterministic App Store screenshots:
+
+```bash
+pnpm ios:screenshots
+```
+
+The screenshot lane runs the app with `--openclaw-screenshot-mode`, which enters the built-in connected screenshot fixture instead of pairing with a live gateway. By default it captures the tab set on `iPhone 16 Pro Max` and `iPad Pro 13-inch (M4)`; override devices with a comma-separated `OPENCLAW_SNAPSHOT_DEVICES` value when the requested simulators exist locally.
+
+Upload to App Store Connect:
+
+```bash
+pnpm ios:release:upload
+```
+
+Direct Fastlane entry point:
+
+```bash
+cd apps/ios
+fastlane ios release_upload
+```
+
+Maintainer recovery path for a fresh clone on the same Mac:
+
+1. Reuse the existing Keychain-backed ASC key on that machine.
+2. Restore or recreate `apps/ios/fastlane/.env` so it contains the non-secret variables:
+
+```bash
+ASC_KEY_ID=YOUR_KEY_ID
+ASC_ISSUER_ID=YOUR_ISSUER_ID
+ASC_KEYCHAIN_SERVICE=openclaw-asc-key
+ASC_KEYCHAIN_ACCOUNT=YOUR_MAC_USERNAME
+```
+
+3. Re-run auth validation:
+
+```bash
+cd apps/ios
+fastlane ios auth_check
+```
+
+4. If you are starting a brand-new production release train, pin iOS to the current gateway version:
+
+```bash
+pnpm ios:version:pin -- --from-gateway
+```
+
+5. Set the official relay URL before release:
+
+```bash
+export OPENCLAW_PUSH_RELAY_BASE_URL=https://relay.example.com
+```
+
+6. Upload:
+
+```bash
+pnpm ios:release:upload
+```
+
+Quick verification after upload:
+
+- confirm `apps/ios/build/app-store/Carina-<version>.ipa` exists
+- confirm Fastlane prints `Uploaded iOS App Store build: version=<version> short=<short> build=<build>`
+- remember that App Store Connect/TestFlight processing can take a few minutes after the upload succeeds
+
+Versioning rules:
+
+- `apps/ios/version.json` is the pinned iOS release version source
+- `apps/ios/CHANGELOG.md` is the iOS-only changelog and release-note source
+- Supported pinned iOS versions use CalVer: `YYYY.M.D`
+- `pnpm ios:version:pin -- --from-gateway` promotes the current root gateway version into the pinned iOS release version
+- Fastlane uses the pinned iOS version only; changing `package.json.version` alone does not change the iOS app version
+- Fastlane sets `CFBundleShortVersionString` to the pinned iOS version, for example `2026.4.10`
+- Fastlane resolves `CFBundleVersion` as the next integer App Store Connect build number for that short version
+- Run `pnpm ios:version:sync` after changing `apps/ios/version.json` or `apps/ios/CHANGELOG.md`
+- `pnpm ios:version:check` validates that checked-in iOS version artifacts are in sync
+- The release flow regenerates `apps/ios/Carina.xcodeproj` from `apps/ios/project.yml` before archiving
+- Local App Store signing uses a temporary generated xcconfig with profile names from `apps/ios/Config/AppStoreSigning.json` and leaves local development signing overrides untouched
+- `pnpm ios:release:upload` generates and uploads screenshots and release notes before archiving, then uploads the IPA without submitting it for App Review
+- See `apps/ios/VERSIONING.md` for the detailed workflow

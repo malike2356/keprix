@@ -237,7 +237,7 @@ async function resolveStoredSession(storedSessionId: string): Promise<SessionInf
     return cached
   }
 
-  // Direct by-id on the live backend — one row lookup, no list scan. Covers
+  // Direct by-id on the live backend; one row lookup, no list scan. Covers
   // single-profile users and any id on the active profile (e.g. an old session
   // past the sidebar's recent window). 404 just means it's not on this profile.
   try {
@@ -247,7 +247,7 @@ async function resolveStoredSession(storedSessionId: string): Promise<SessionInf
 
     return session
   } catch {
-    // Not on the active profile — fall through to the cross-profile probe.
+    // Not on the active profile; fall through to the cross-profile probe.
   }
 
   // Multi-profile only: probe each other profile by id (still one cheap lookup
@@ -417,7 +417,7 @@ export function useSessionActions({
       setYoloActive(false)
       setCurrentCwd(workspaceCwdForNewSession())
       setCurrentBranch('')
-      // Never clear the composer here — ChatBar's per-thread draft swap owns it.
+      // Never clear the composer here; ChatBar's per-thread draft swap owns it.
       setFreshDraftReady(true)
     },
     [activeSessionIdRef, busyRef, navigate, selectedStoredSessionIdRef]
@@ -437,7 +437,7 @@ export function useSessionActions({
         // "+" sets it explicitly. Resolve null to the active gateway profile so
         // session.create always carries it: in global-remote mode one backend
         // serves every profile, so an omitted profile param silently lands the
-        // chat on the launch (default) profile — the "rubberbands back to
+        // chat on the launch (default) profile; the "rubberbands back to
         // default" bug. This is a no-op for single-profile/local-pooled users:
         // a backend resolves its own launch profile to None (_profile_home).
         const newChatProfile = $newChatProfile.get() ?? normalizeProfileKey($activeGatewayProfile.get())
@@ -490,7 +490,7 @@ export function useSessionActions({
         }
 
         // User may have armed YOLO on the new-chat draft before the runtime
-        // session existed — apply it to the freshly created session.
+        // session existed; apply it to the freshly created session.
         if (yoloArmed) {
           await setSessionYolo(requestGateway, created.session_id, true).catch(() => undefined)
         }
@@ -555,7 +555,7 @@ export function useSessionActions({
       // so there's zero dead air: highlight the row instantly (the sidebar reads
       // $selectedStoredSessionId) and, for a cold target, drop the previous
       // transcript so the thread shows its loader instead of the old session
-      // lingering until resume lands. A warm-cached target keeps its transcript —
+      // lingering until resume lands. A warm-cached target keeps its transcript;
       // the cached fast-path repaints it this same tick. Setting the ref here is
       // also what use-route-resume's self-heal assumes ("set synchronously at
       // resume entry").
@@ -670,10 +670,10 @@ export function useSessionActions({
         let localSnapshot = $messages.get()
 
         // REST transcript prefetch and the gateway resume RPC are independent
-        // — run them concurrently so a big session's wall time is
+        //; run them concurrently so a big session's wall time is
         // max(prefetch, resume) instead of their sum. The prefetch paints the
         // transcript as soon as it lands; the RPC binds the runtime id.
-        // Watch windows skip the prefetch — lazy resume attaches the live mirror.
+        // Watch windows skip the prefetch; lazy resume attaches the live mirror.
         const prefetchPromise = watchWindow ? null : getSessionMessages(storedSessionId, sessionProfile)
 
         const resumePromise = requestGateway<SessionResumeResponse>('session.resume', {
@@ -712,7 +712,7 @@ export function useSessionActions({
 
         // Keep the local snapshot when resume would only reshuffle runtime
         // projection. When the REST prefetch already hydrated the transcript,
-        // skip converting/reconciling the resume payload entirely — on a
+        // skip converting/reconciling the resume payload entirely; on a
         // 1000+-message session that second conversion plus the deep
         // equivalence compare costs over a second of main-thread time.
         const preferredMessages =

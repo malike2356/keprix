@@ -327,9 +327,9 @@ print(torch.cuda.get_device_capability())
 ```
 
 Flash Attention requires:
-- Ampere (A100, A10): ✅ Full support
-- Turing (T4): ✅ Supported
-- Volta (V100): ❌ Not supported
+- Ampere (A100, A10): Done:  Full support
+- Turing (T4): Done:  Supported
+- Volta (V100): Failed:  Not supported
 
 **Issue: Accuracy degradation**
 

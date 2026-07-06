@@ -71,7 +71,7 @@ try {
 const PAIR_ONLY = args.includes('--pair-only');
 const WHATSAPP_MODE = getArg('mode', process.env.WHATSAPP_MODE || 'self-chat'); // "bot" or "self-chat"
 const ALLOWED_USERS = parseAllowedUsers(process.env.WHATSAPP_ALLOWED_USERS || '');
-const DEFAULT_REPLY_PREFIX = '⚕ *Hermes Agent*\n────────────\n';
+const DEFAULT_REPLY_PREFIX = ' *Hermes Agent*\n────────────\n';
 const REPLY_PREFIX = process.env.WHATSAPP_REPLY_PREFIX === undefined
   ? DEFAULT_REPLY_PREFIX
   : process.env.WHATSAPP_REPLY_PREFIX.replace(/\\n/g, '\n');
@@ -101,7 +101,7 @@ function sendWithTimeout(chatId, payload, timeoutMs = SEND_TIMEOUT_MS) {
 
 function formatOutgoingMessage(message) {
   // In bot mode, messages come from a different number so the prefix is
-  // redundant — the sender identity is already clear.  Only prepend in
+  // redundant; the sender identity is already clear.  Only prepend in
   // self-chat mode where bot and user share the same number.
   if (WHATSAPP_MODE !== 'self-chat') return message;
   return REPLY_PREFIX ? `${REPLY_PREFIX}${message}` : message;
@@ -224,7 +224,7 @@ async function startSocket() {
     const { connection, lastDisconnect, qr } = update;
 
     if (qr) {
-      console.log('\n📱 Scan this QR code with WhatsApp on your phone:\n');
+      console.log('\n Scan this QR code with WhatsApp on your phone:\n');
       qrcode.generate(qr, { small: true });
       console.log('\nWaiting for scan...\n');
     }
@@ -234,22 +234,22 @@ async function startSocket() {
       connectionState = 'disconnected';
 
       if (reason === DisconnectReason.loggedOut) {
-        console.log('❌ Logged out. Delete session and restart to re-authenticate.');
+        console.log('Failed:  Logged out. Delete session and restart to re-authenticate.');
         process.exit(1);
       } else {
         // 515 = restart requested (common after pairing). Always reconnect.
         if (reason === 515) {
           console.log('↻ WhatsApp requested restart (code 515). Reconnecting...');
         } else {
-          console.log(`⚠️  Connection closed (reason: ${reason}). Reconnecting in 3s...`);
+          console.log(`WARNING:   Connection closed (reason: ${reason}). Reconnecting in 3s...`);
         }
         setTimeout(startSocket, reason === 515 ? 1000 : 3000);
       }
     } else if (connection === 'open') {
       connectionState = 'connected';
-      console.log('✅ WhatsApp connected!');
+      console.log('Done:  WhatsApp connected!');
       if (PAIR_ONLY) {
-        console.log('✅ Pairing complete. Credentials saved.');
+        console.log('Done:  Pairing complete. Credentials saved.');
         // Give Baileys a moment to flush creds, then exit cleanly
         setTimeout(() => process.exit(0), 2000);
       }
@@ -289,7 +289,7 @@ async function startSocket() {
         if (isGroup || chatId.includes('status')) continue;
 
         if (WHATSAPP_MODE === 'bot') {
-          // Bot mode: separate number. ALL fromMe are echo-backs of our own replies — skip.
+          // Bot mode: separate number. ALL fromMe are echo-backs of our own replies; skip.
           continue;
         }
 
@@ -306,7 +306,7 @@ async function startSocket() {
 
       // Handle !fromMe messages (from other people) based on mode.
       // Self-chat mode only responds to the user's own messages to
-      // themselves — stranger DMs / group pings must never reach the
+      // themselves; stranger DMs / group pings must never reach the
       // Python gateway, otherwise a pairing-code reply fires in response
       // to arbitrary incoming messages (#8389).
       if (!msg.key.fromMe) {
@@ -472,7 +472,7 @@ async function startSocket() {
 const app = express();
 app.use(express.json());
 
-// Host-header validation — defends against DNS rebinding.
+// Host-header validation; defends against DNS rebinding.
 // The bridge binds loopback-only (127.0.0.1) but a victim browser on
 // the same machine could be tricked into fetching from an attacker
 // hostname that TTL-flips to 127.0.0.1. Reject any request whose Host
@@ -641,7 +641,7 @@ app.post('/send-media', async (req, res) => {
             audioBuffer = readFileSync(tmpPath);
             audioExt = 'ogg';
           } catch (convErr) {
-            // ffmpeg not available or conversion failed — fall back to original format
+            // ffmpeg not available or conversion failed; fall back to original format
             console.warn('[bridge] ffmpeg conversion failed, sending as file attachment:', convErr.message);
           } finally {
             try { if (tmpPath && existsSync(tmpPath)) unlinkSync(tmpPath); } catch (_) {}
@@ -727,20 +727,20 @@ app.get('/health', (req, res) => {
 // Start
 if (PAIR_ONLY) {
   // Pair-only mode: just connect, show QR, save creds, exit. No HTTP server.
-  console.log('📱 WhatsApp pairing mode');
-  console.log(`📁 Session: ${SESSION_DIR}`);
+  console.log(' WhatsApp pairing mode');
+  console.log(` Session: ${SESSION_DIR}`);
   console.log();
   startSocket();
 } else {
   app.listen(PORT, '127.0.0.1', () => {
-    console.log(`🌉 WhatsApp bridge listening on port ${PORT} (mode: ${WHATSAPP_MODE})`);
-    console.log(`📁 Session stored in: ${SESSION_DIR}`);
+    console.log(` WhatsApp bridge listening on port ${PORT} (mode: ${WHATSAPP_MODE})`);
+    console.log(` Session stored in: ${SESSION_DIR}`);
     if (ALLOWED_USERS.size > 0) {
-      console.log(`🔒 Allowed users: ${Array.from(ALLOWED_USERS).join(', ')}`);
+      console.log(` Allowed users: ${Array.from(ALLOWED_USERS).join(', ')}`);
     } else if (WHATSAPP_MODE === 'self-chat') {
-      console.log(`🔒 Self-chat mode — only your own messages to yourself are processed.`);
+      console.log(` Self-chat mode; only your own messages to yourself are processed.`);
     } else {
-      console.log(`🔒 No WHATSAPP_ALLOWED_USERS set — incoming messages are rejected.`);
+      console.log(` No WHATSAPP_ALLOWED_USERS set; incoming messages are rejected.`);
       console.log(`   Set WHATSAPP_ALLOWED_USERS=<phone> to authorize specific users,`);
       console.log(`   or WHATSAPP_ALLOWED_USERS=* for an explicit open bot.`);
     }

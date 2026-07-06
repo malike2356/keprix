@@ -11,10 +11,10 @@
 
 | Severity | Count |
 |----------|-------|
-| 🔴 Critical | {critical_count} |
-| 🟠 High | {high_count} |
-| 🟡 Medium | {medium_count} |
-| 🔵 Low | {low_count} |
+|  Critical | {critical_count} |
+|  High | {high_count} |
+|  Medium | {medium_count} |
+|  Low | {low_count} |
 | **Total** | **{total_count}** |
 
 **Overall Assessment:** {one_sentence_assessment}

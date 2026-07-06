@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  community-files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate community files
+        run: bash scripts/validate-community-files.sh
+
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Install backend dependencies
+        run: uv sync --extra dev
+      - name: Ruff
+        run: uv run ruff check src/keprix tests
+      - name: Mypy
+        run: uv run mypy src/keprix
+      - name: Pytest
+        run: uv run pytest tests/ -q
+      - name: Dependency audit
+        run: bash scripts/audit-deps.sh || true
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: ESLint
+        working-directory: frontend
+        run: pnpm lint
+      - name: Type check
+        working-directory: frontend
+        run: pnpm type-check
+      - name: Build
+        working-directory: frontend
+        run: pnpm build
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Check CHANGELOG Unreleased section
+        run: |
+          if ! grep -q '^## \[Unreleased\]' CHANGELOG.md; then
+            echo "CHANGELOG.md missing Unreleased section"
+            exit 1
+          fi
+      - name: Sync docs/reference/changelog.md with CHANGELOG.md
+        run: bash scripts/check-changelog-sync.sh

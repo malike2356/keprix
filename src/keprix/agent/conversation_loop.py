@@ -1848,6 +1848,25 @@ def run_conversation(
                                 "Token persistence failed (session=%s, tokens=%d): %s",
                                 agent.session_id, total_tokens, e,
                             )
+
+                    try:
+                        from keprix.usage.recorder import get_llm_usage_recorder
+
+                        get_llm_usage_recorder().record_sync(
+                            usage=canonical_usage,
+                            provider=agent.provider or "",
+                            model=agent.model or "",
+                            channel=getattr(agent, "platform", None) or "agent",
+                            user_id=getattr(agent, "user_id", None),
+                            session_id=agent.session_id,
+                            run_id=task_id,
+                            duration_ms=int(api_duration * 1000) if api_duration else None,
+                            base_url=getattr(agent, "base_url", None),
+                            api_key=getattr(agent, "api_key", ""),
+                            cost_result=cost_result,
+                        )
+                    except Exception as e:
+                        logger.debug("LLM usage record failed (session=%s): %s", agent.session_id, e)
                     
                     if agent.verbose_logging:
                         logging.debug(f"Token usage: prompt={usage_dict['prompt_tokens']:,}, completion={usage_dict['completion_tokens']:,}, total={usage_dict['total_tokens']:,}")
@@ -3700,6 +3719,33 @@ def run_conversation(
                     available = ", ".join(sorted(agent.valid_tool_names))
                     invalid_name = invalid_tool_calls[0]
                     invalid_preview = invalid_name[:80] + "..." if len(invalid_name) > 80 else invalid_name
+                    _keprix_miss = getattr(agent, "_keprix_on_tool_miss", None)
+                    if _keprix_miss is not None:
+                        try:
+                            miss_result = _keprix_miss(
+                                invalid_name,
+                                user_message,
+                                agent,
+                            )
+                        except Exception as _miss_exc:
+                            miss_result = None
+                            logger.debug("keprix tool miss hook failed: %s", _miss_exc)
+                        if isinstance(miss_result, str) and miss_result.strip():
+                            assistant_msg = agent._build_assistant_message(assistant_message, finish_reason)
+                            messages.append(assistant_msg)
+                            for tc in assistant_message.tool_calls:
+                                content = miss_result if tc.function.name == invalid_name else (
+                                    "Skipped: another tool call in this turn used an invalid name."
+                                )
+                                messages.append({
+                                    "role": "tool",
+                                    "name": tc.function.name,
+                                    "tool_call_id": tc.id,
+                                    "content": content,
+                                })
+                            agent._invalid_tool_retries = 0
+                            continue
+
                     agent._buffer_vprint(f"⚠️  Unknown tool '{invalid_preview}' — sending error to model for agent-correction ({agent._invalid_tool_retries}/3)")
 
                     if agent._invalid_tool_retries >= 3:

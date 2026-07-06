@@ -1,0 +1,19 @@
+{
+  "variables": [
+    {"name": "age", "label": "Age", "value_labels": {"1": "Young"}, "missing_codes": ["-99"]},
+    {"name": "region", "label": "Region"}
+  ],
+  "procedures": [
+    {"type": "frequencies", "variables": ["age", "region"]},
+    {"type": "descriptives", "variables": ["age"]}
+  ],
+  "expected_syntax_fragments": [
+    "GET FILE=",
+    "VARIABLE LABELS age 'Age'",
+    "VALUE LABELS age 1 'Young'.",
+    "MISSING VALUES age (-99).",
+    "FREQUENCIES VARIABLES=age region.",
+    "DESCRIPTIVES VARIABLES=age."
+  ],
+  "mock_output_text": "Descriptives\n\nage    N    Mean\n30     3    33.33\n\nregion north south\n       2     1"
+}

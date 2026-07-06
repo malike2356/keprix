@@ -29,7 +29,7 @@ def has_incomplete_scratchpad(content: str) -> bool:
 
 def save_trajectory(trajectory: List[Dict[str, Any]], model: str,
                     completed: bool, filename: str = None):
-    """Append a trajectory entry to a JSONL file.
+    """Append a trajectory entry to a JSONL file and mirror to session logs.
 
     Args:
         trajectory: The ShareGPT-format conversation list.
@@ -54,3 +54,20 @@ def save_trajectory(trajectory: List[Dict[str, Any]], model: str,
         logger.info("Trajectory saved to %s", filename)
     except Exception as e:
         logger.warning("Failed to save trajectory: %s", e)
+
+    try:
+        from pathlib import Path
+        import uuid as _uuid
+
+        try:
+            from keprix_cli.config import get_keprix_home
+            logs_dir = Path(get_keprix_home()) / "logs"
+        except Exception:
+            logs_dir = Path.home() / ".keprix" / "logs"
+        logs_dir.mkdir(parents=True, exist_ok=True)
+        session_name = f"session_{datetime.now().strftime('%Y%m%d')}_{_uuid.uuid4().hex[:8]}.json"
+        session_path = logs_dir / session_name
+        session_path.write_text(json.dumps(entry, ensure_ascii=False, indent=2), encoding="utf-8")
+        logger.info("Session trajectory saved to %s", session_path)
+    except Exception as e:
+        logger.debug("Failed to save session trajectory mirror: %s", e)

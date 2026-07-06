@@ -1,0 +1,23 @@
+name: analytics_basics
+version: "1"
+category: data_analysis
+min_pass_rate: 0.9
+max_cost_usd: 0.06
+max_runtime_ms: 40000
+tasks:
+  - id: summarize_csv
+    input: "Summarize sales CSV by region"
+    expect_contains: "region"
+    mock_output: "Sales by region: North 42%, South 31%, East 27%."
+    required_artifacts:
+      - "summary_table"
+    mock_artifacts:
+      - "summary_table"
+    max_runtime_ms: 12000
+  - id: chart_request
+    input: "Create bar chart of monthly revenue"
+    expect_contains: "chart"
+    mock_output: "Generated bar chart for monthly revenue trends."
+    mock_tool_calls:
+      - {name: "analytics.plot", success: true}
+    max_runtime_ms: 12000

@@ -5,7 +5,7 @@
  *
  * Resolves an extension's latest version via the (undocumented but stable)
  * gallery ExtensionQuery API, downloads the `.vsix` (a zip), and extracts the
- * color-theme JSON files it contributes. No theme code is ever executed — we
+ * color-theme JSON files it contributes. No theme code is ever executed; we
  * only read `package.json` + the referenced `*.json` theme files out of the
  * archive and hand their text back to the renderer to convert.
  *
@@ -19,7 +19,7 @@ const zlib = require('node:zlib')
 
 const GALLERY_QUERY_URL = 'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery'
 const VSIX_ASSET_TYPE = 'Microsoft.VisualStudio.Services.VSIXPackage'
-const MAX_VSIX_BYTES = 40 * 1024 * 1024 // 40 MB — themes are tiny; this is paranoia.
+const MAX_VSIX_BYTES = 40 * 1024 * 1024 // 40 MB; themes are tiny; this is paranoia.
 const MAX_REDIRECTS = 5
 const REQUEST_TIMEOUT_MS = 20_000
 

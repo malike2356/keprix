@@ -1,0 +1,14 @@
+name: chat_basics
+version: "1"
+category: chat_helpfulness
+min_pass_rate: 0.9
+tasks:
+  - id: greet
+    input: "Say hello to the user"
+    expect_contains: "hello"
+    mock_output: "Hello, how can I help you today?"
+    max_latency_ms: 5000
+  - id: summarize_request
+    input: "Summarize what keprix does"
+    expect_contains: "agent"
+    mock_output: "Keprix is a self-hosted AI agent workspace."

@@ -1,0 +1,21 @@
+name: opportunity_basics
+version: "1"
+category: chat_helpfulness
+min_pass_rate: 0.9
+max_cost_usd: 0.07
+max_runtime_ms: 35000
+tasks:
+  - id: icp_outline
+    input: "Draft ICP outline for B2B SaaS"
+    expect_contains: "ICP"
+    mock_output: "ICP: mid-market B2B SaaS teams with 50-500 employees seeking workflow automation."
+    required_artifacts:
+      - "offer_doc"
+    mock_artifacts:
+      - "offer_doc"
+    max_runtime_ms: 10000
+  - id: pain_mining
+    input: "Extract top 3 pains from interview notes"
+    expect_contains: "pain"
+    mock_output: "Top pains: manual reporting, fragmented tools, slow onboarding."
+    max_runtime_ms: 10000

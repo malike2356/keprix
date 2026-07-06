@@ -4,7 +4,7 @@ Local SQLite fact store with FTS5 search, trust scoring, entity resolution, and 
 
 ## Requirements
 
-None — uses SQLite (always available). NumPy optional for HRR algebra.
+None; uses SQLite (always available). NumPy optional for HRR algebra.
 
 ## Setup
 

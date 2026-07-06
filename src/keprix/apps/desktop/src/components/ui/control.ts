@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from 'class-variance-authority'
 
-// Single source of truth for non-composer form-control chrome — Input,
+// Single source of truth for non-composer form-control chrome; Input,
 // Textarea, and SelectTrigger all consume this. Mirrors `buttonVariants`:
 // 2.5px radius, 12px text, padding-driven sizing (no fixed heights). The visual
 // chrome (background, border tint, hover, focus glow, invalid state) comes from

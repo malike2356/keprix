@@ -47,7 +47,7 @@ lm_eval --model hf \
   --batch_size 8
 ```
 
-**With 8 GPUs**: 70B model (140GB) / 8 = 17.5GB per GPU ✅
+**With 8 GPUs**: 70B model (140GB) / 8 = 17.5GB per GPU Done: 
 
 **Advanced sharding**:
 ```bash
@@ -305,9 +305,9 @@ Memory (GB) = Parameters (B) × Precision (bytes) × 1.2 (overhead)
 ```
 
 **Examples**:
-- 7B FP16: 7 × 2 × 1.2 = 16.8GB ✅ Fits A100 40GB
-- 13B FP16: 13 × 2 × 1.2 = 31.2GB ✅ Fits A100 40GB
-- 70B FP16: 70 × 2 × 1.2 = 168GB ❌ Need TP=4 or TP=8
+- 7B FP16: 7 × 2 × 1.2 = 16.8GB Done:  Fits A100 40GB
+- 13B FP16: 13 × 2 × 1.2 = 31.2GB Done:  Fits A100 40GB
+- 70B FP16: 70 × 2 × 1.2 = 168GB Failed:  Need TP=4 or TP=8
 - 70B BF16: 70 × 2 × 1.2 = 168GB (same as FP16)
 
 **With tensor parallelism**:
@@ -315,8 +315,8 @@ Memory (GB) = Parameters (B) × Precision (bytes) × 1.2 (overhead)
 Memory per GPU = Total Memory / TP
 ```
 
-- 70B on 4 GPUs: 168GB / 4 = 42GB per GPU ✅
-- 70B on 8 GPUs: 168GB / 8 = 21GB per GPU ✅
+- 70B on 4 GPUs: 168GB / 4 = 42GB per GPU Done: 
+- 70B on 8 GPUs: 168GB / 8 = 21GB per GPU Done: 
 
 ## Multi-Node Evaluation
 

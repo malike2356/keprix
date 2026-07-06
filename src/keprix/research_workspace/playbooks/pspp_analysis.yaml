@@ -1,0 +1,26 @@
+id: pspp_analysis
+name: PSPP Analysis
+description: Prepare dataset, generate PSPP syntax, run when available, and capture outputs.
+domain: statistics
+steps:
+  - id: prepare_dataset
+    title: Prepare dataset and codebook
+    action: dataset.prepare
+    risk: low
+  - id: generate_syntax
+    title: Generate PSPP syntax
+    action: pspp.generate_syntax
+    risk: low
+  - id: run_pspp
+    title: Run PSPP if available
+    action: pspp.run
+    risk: medium
+  - id: capture_outputs
+    title: Capture outputs
+    action: pspp.capture_outputs
+    risk: low
+  - id: interpret_results
+    title: Interpret results cautiously
+    action: stats.interpret
+    risk: high
+    requires_review: true

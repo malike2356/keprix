@@ -517,6 +517,34 @@ def _extract_usage(response: Any) -> PluginLlmUsage:
     return usage
 
 
+def _record_plugin_llm_usage(
+    *,
+    plugin_id: str,
+    provider: str,
+    model: str,
+    usage: PluginLlmUsage,
+    purpose: str | None = None,
+) -> None:
+    try:
+        from keprix.usage.pricing_bridge import usage_from_counts
+        from keprix.usage.recorder import get_llm_usage_recorder
+
+        get_llm_usage_recorder().record_sync(
+            usage=usage_from_counts(
+                input_tokens=usage.input_tokens,
+                output_tokens=usage.output_tokens,
+                cache_read_tokens=usage.cache_read_tokens,
+                cache_write_tokens=usage.cache_write_tokens,
+            ),
+            provider=provider,
+            model=model,
+            channel="plugin",
+            metadata={"plugin_id": plugin_id, "purpose": purpose or ""},
+        )
+    except Exception:
+        pass
+
+
 def _extract_text(response: Any) -> str:
     """Pull the assistant text out of an OpenAI-shaped response object."""
     try:
@@ -678,6 +706,13 @@ class PluginLlm:
             self._plugin_id, real_provider, real_model, purpose or "",
             usage.total_tokens,
         )
+        _record_plugin_llm_usage(
+            plugin_id=self._plugin_id,
+            provider=real_provider,
+            model=real_model,
+            usage=usage,
+            purpose=purpose,
+        )
         return result
 
     def complete_structured(
@@ -770,6 +805,13 @@ class PluginLlm:
             self._plugin_id, real_provider, real_model, purpose or "",
             content_type, usage.total_tokens,
         )
+        _record_plugin_llm_usage(
+            plugin_id=self._plugin_id,
+            provider=real_provider,
+            model=real_model,
+            usage=usage,
+            purpose=purpose,
+        )
         return result
 
     # -- public async API ---------------------------------------------------
@@ -807,7 +849,7 @@ class PluginLlm:
         )
         text = _extract_text(response)
         usage = _extract_usage(response)
-        return PluginLlmCompleteResult(
+        result = PluginLlmCompleteResult(
             text=text,
             provider=real_provider,
             model=real_model,
@@ -819,6 +861,14 @@ class PluginLlm:
                 "profile": eff_profile or "",
             },
         )
+        _record_plugin_llm_usage(
+            plugin_id=self._plugin_id,
+            provider=real_provider,
+            model=real_model,
+            usage=usage,
+            purpose=purpose,
+        )
+        return result
 
     async def acomplete_structured(
         self,
@@ -876,7 +926,7 @@ class PluginLlm:
         parsed, content_type = _parse_structured_text(
             text=text, json_mode=json_mode, json_schema=json_schema
         )
-        return PluginLlmStructuredResult(
+        result = PluginLlmStructuredResult(
             text=text,
             provider=real_provider,
             model=real_model,
@@ -891,6 +941,14 @@ class PluginLlm:
                 "schema_name": schema_name or "",
             },
         )
+        _record_plugin_llm_usage(
+            plugin_id=self._plugin_id,
+            provider=real_provider,
+            model=real_model,
+            usage=usage,
+            purpose=purpose,
+        )
+        return result
 
     # -- internals ---------------------------------------------------------
 

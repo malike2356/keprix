@@ -1,7 +1,7 @@
 'use strict'
 
 /**
- * before-pack.cjs — electron-builder beforePack hook.
+ * before-pack.cjs; electron-builder beforePack hook.
  *
  * Removes any stale unpacked app directory (`appOutDir`) before
  * electron-builder stages the Electron binaries into it.
@@ -23,13 +23,13 @@
  *   ENOENT: no such file or directory, rename
  *   '.../release/linux-unpacked/electron' -> '.../release/linux-unpacked/Hermes'
  *
- * This is a hard failure with no obvious cause for the user — `hermes desktop`
+ * This is a hard failure with no obvious cause for the user; `hermes desktop`
  * just prints "Desktop GUI build failed" and the only fix is to manually
  * `rm -rf` the release directory, which a normal user has no way to know.
  *
  * The packaging step is not idempotent across an interrupted run, so we make
  * it idempotent ourselves: wipe the target unpacked directory up front so
- * electron-builder always stages into a clean tree. This is safe — the
+ * electron-builder always stages into a clean tree. This is safe; the
  * directory is a pure build artifact that electron-builder fully recreates
  * on every pack; nothing else depends on its prior contents.
  *
@@ -38,7 +38,7 @@
  * clean whatever `appOutDir` electron-builder hands us regardless of platform.
  *
  * Best-effort: a cleanup failure must never mask the real build. We log and
- * resolve rather than throw — worst case electron-builder hits the original
+ * resolve rather than throw; worst case electron-builder hits the original
  * ENOENT, which is no worse than not having this hook at all.
  *
  * electron-builder passes a context with:

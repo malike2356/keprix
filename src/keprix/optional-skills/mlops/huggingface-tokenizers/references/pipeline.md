@@ -246,7 +246,7 @@ tokenizer.pre_tokenizer = Sequence([
 |-------------------|---------------------------------|--------------------------------------------|
 | Whitespace        | Simple English                  | "Hello world" → ["Hello", "world"]         |
 | Punctuation       | Isolate symbols                 | "world!" → ["world", "!"]                  |
-| ByteLevel         | Multilingual, emojis            | "🌍" → byte tokens                          |
+| ByteLevel         | Multilingual, emojis            | "" → byte tokens                          |
 | Metaspace         | SentencePiece-style             | "Hello" → ["▁Hello"]                       |
 | BertPreTokenizer  | BERT-style (CJK aware)          | "世界" → ["世", "界"]                        |
 | Digits            | Handle numbers                  | "123" → ["1", "2", "3"] or ["123"]        |

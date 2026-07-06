@@ -496,7 +496,7 @@ export function useMessageStream({
         return
       }
 
-      // The composer status stack owns todo display now (no inline panel) —
+      // The composer status stack owns todo display now (no inline panel);
       // mirror every todo state the tool reports into its session store.
       if (payload?.name === 'todo') {
         const todos = parseTodos(payload.todos) ?? parseTodos(payload.result) ?? parseTodos(payload.args)
@@ -878,7 +878,7 @@ export function useMessageStream({
           return
         }
 
-        // Turn ended — drop any blocking prompt still open for THIS session
+        // Turn ended; drop any blocking prompt still open for THIS session
         // (e.g. interrupted, or the approval already resolved). Scoped to the
         // session so a background turn finishing can't wipe the active chat's
         // prompt, and vice versa.
@@ -911,13 +911,13 @@ export function useMessageStream({
           flushQueuedDeltas(sessionId)
           upsertToolCall(sessionId, toTodoPayload(payload) ?? payload, 'complete', event.type)
           // A pending clarify blocks the turn, so the first tool.complete after
-          // one is the clarify resolving — drop the "needs input" flag here so
+          // one is the clarify resolving; drop the "needs input" flag here so
           // the sidebar indicator clears as soon as it's answered, not only at
           // message.complete.
           updateSessionState(sessionId, state => (state.needsInput ? { ...state, needsInput: false } : state))
 
           // terminal/process tool calls are the only things that spawn or reap
-          // background processes — sync the composer status stack right after.
+          // background processes; sync the composer status stack right after.
           if (!sessionInterrupted(sessionId) && (payload?.name === 'terminal' || payload?.name === 'process')) {
             void refreshBackgroundProcesses(sessionId)
           }
@@ -945,7 +945,7 @@ export function useMessageStream({
         // `clarify.respond`, so without this handler the agent would hang
         // forever (see tools/clarify_tool.py + tui_gateway/server.py:_block).
         //
-        // Store the request for whichever session raised it — even a background
+        // Store the request for whichever session raised it; even a background
         // one. clarify.request is a one-shot event; if we dropped it for an
         // unfocused session, that session would block on `clarify.respond`
         // indefinitely and re-focusing it could never recover (the event is
@@ -965,7 +965,7 @@ export function useMessageStream({
           // The transcript only renders the active session, so a background
           // clarify is otherwise invisible (the row just keeps spinning like
           // it's working). Flag the session so the sidebar shows a persistent
-          // "needs input" indicator on its row — works for the active session
+          // "needs input" indicator on its row; works for the active session
           // too, and survives alt-tab / window blur (unlike a toast).
           if (sessionId) {
             updateSessionState(sessionId, state => ({ ...state, needsInput: true }))
@@ -983,7 +983,7 @@ export function useMessageStream({
         // in _await_gateway_decision() until approval.respond lands; without
         // this the agent stalls until its 5-min timeout and the tool is BLOCKED.
         // Park it per-session (like clarify) so a *background* profile's turn can
-        // raise it and wait — the sidebar flags "needs input" and the inline bar
+        // raise it and wait; the sidebar flags "needs input" and the inline bar
         // surfaces once the user focuses that chat.
         const command = typeof payload?.command === 'string' ? payload.command : ''
         const description = typeof payload?.description === 'string' ? payload.description : 'dangerous command'
@@ -1077,14 +1077,14 @@ export function useMessageStream({
           compactedTurnRef.current.add(sessionId)
         } else if (sessionId && payload?.kind === 'process') {
           // The gateway's notification poller announces background process
-          // completions / watch matches here — re-sync the status stack.
+          // completions / watch matches here; re-sync the status stack.
           void refreshBackgroundProcesses(sessionId)
         }
       } else if (event.type === 'error') {
         const errorMessage = payload?.message || 'Hermes reported an error'
         const looksLikeProviderSetup = isProviderSetupErrorMessage(errorMessage)
 
-        // A turn that errors out has also ended — drop any open blocking prompt
+        // A turn that errors out has also ended; drop any open blocking prompt
         // for this session so an approval/sudo/secret overlay can't linger past
         // the failed turn (same intent as the message.complete clear).
         if (sessionId) {

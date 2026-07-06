@@ -1,4 +1,4 @@
-// Probe the cloud shadows thread state — count messages, turn pairs,
+// Probe the cloud shadows thread state; count messages, turn pairs,
 // thread height, composer state
 const list = await (await fetch('http://127.0.0.1:9222/json/list')).json()
 const tgt = list.find(t => t.type === 'page' && t.url.startsWith('http'))

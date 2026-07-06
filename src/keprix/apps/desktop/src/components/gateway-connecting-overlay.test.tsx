@@ -11,8 +11,8 @@ import { GatewayConnectingOverlay } from './gateway-connecting-overlay'
 // Repro for the "remote gateway → stuck on CONNECTING, no way to settings"
 // report. The connecting overlay (z-1200, full-screen, pointer-events on) used
 // to be shown whenever `gatewayState !== 'open' && !boot.error`. The ONLY escape
-// hatch — BootFailureOverlay, which has "Use local gateway" / "Sign in" /
-// "Retry" — only renders when `boot.error` is set.
+// hatch; BootFailureOverlay, which has "Use local gateway" / "Sign in" /
+// "Retry"; only renders when `boot.error` is set.
 //
 // useGatewayBoot only calls failDesktopBoot() (which sets boot.error) when the
 // INITIAL boot() throws. After the first successful connect (bootCompleted),
@@ -88,7 +88,7 @@ describe('connecting overlay vs recovery surface', () => {
 
     // 2. The remote VPS socket drops (sleep/wake, remote restart, network).
     //    bootCompleted is true, so useGatewayBoot routes this through
-    //    scheduleReconnect() — boot.error stays NULL.
+    //    scheduleReconnect(); boot.error stays NULL.
     setGatewayState('closed')
     rerender(
       <>

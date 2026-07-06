@@ -44,7 +44,7 @@ function mouseDragged() {
 function mouseWheel(event) {
   // event.delta: positive = scroll down, negative = scroll up
   zoom += event.delta * -0.01;
-  return false;  // prevent page scroll
+  return false; // prevent page scroll
 }
 ```
 
@@ -138,7 +138,7 @@ function keyPressed() {
   if (keyCode === LEFT_ARROW) { /* ... */ }
   if (key === 's') saveCanvas('output', 'png');
   if (key === ' ') CONFIG.paused = !CONFIG.paused;
-  return false;  // prevent default browser behavior
+  return false; // prevent default browser behavior
 }
 
 function keyReleased() {
@@ -177,11 +177,11 @@ SHIFT, CONTROL, OPTION, ALT
 ## Touch Events
 
 ```javascript
-touches   // array of { x, y, id } — all current touches
+touches   // array of { x, y, id }; all current touches
 
 function touchStarted() {
   // fires on first touch
-  return false;  // prevent default (stops scroll on mobile)
+  return false; // prevent default (stops scroll on mobile)
 }
 
 function touchMoved() {
@@ -225,7 +225,7 @@ function setup() {
   createCanvas(800, 800);
 
   // Slider
-  let slider = createSlider(0, 255, 100, 1);  // min, max, default, step
+  let slider = createSlider(0, 255, 100, 1); // min, max, default, step
   slider.position(10, height + 10);
   slider.input(() => { CONFIG.value = slider.value(); });
 
@@ -265,7 +265,7 @@ let slider = createSlider(0, 100, 50);
 slider.position(10, 10);
 slider.style('width', '200px');
 slider.class('my-slider');
-slider.parent('controls-div');  // attach to specific DOM element
+slider.parent('controls-div'); // attach to specific DOM element
 ```
 
 ## Audio Input (p5.sound)
@@ -283,12 +283,12 @@ let mic, fft, amplitude;
 
 function setup() {
   createCanvas(800, 800);
-  userStartAudio();  // required — user gesture to enable audio
+  userStartAudio(); // required; user gesture to enable audio
 
   mic = new p5.AudioIn();
   mic.start();
 
-  fft = new p5.FFT(0.8, 256);  // smoothing, bins
+  fft = new p5.FFT(0.8, 256); // smoothing, bins
   fft.setInput(mic);
 
   amplitude = new p5.Amplitude();
@@ -296,16 +296,16 @@ function setup() {
 }
 
 function draw() {
-  let level = amplitude.getLevel();    // 0.0 to 1.0 (overall volume)
-  let spectrum = fft.analyze();         // array of 256 frequency values (0-255)
-  let waveform = fft.waveform();        // array of 256 time-domain samples (-1 to 1)
+  let level = amplitude.getLevel(); // 0.0 to 1.0 (overall volume)
+  let spectrum = fft.analyze(); // array of 256 frequency values (0-255)
+  let waveform = fft.waveform(); // array of 256 time-domain samples (-1 to 1)
 
   // Get energy in frequency bands
-  let bass = fft.getEnergy('bass');          // 20-140 Hz
-  let lowMid = fft.getEnergy('lowMid');      // 140-400 Hz
-  let mid = fft.getEnergy('mid');            // 400-2600 Hz
-  let highMid = fft.getEnergy('highMid');    // 2600-5200 Hz
-  let treble = fft.getEnergy('treble');      // 5200-14000 Hz
+  let bass = fft.getEnergy('bass'); // 20-140 Hz
+  let lowMid = fft.getEnergy('lowMid'); // 140-400 Hz
+  let mid = fft.getEnergy('mid'); // 400-2600 Hz
+  let highMid = fft.getEnergy('highMid'); // 2600-5200 Hz
+  let treble = fft.getEnergy('treble'); // 5200-14000 Hz
   // Each returns 0-255
 }
 ```
@@ -345,7 +345,7 @@ function detectBeat() {
   let bass = fft.getEnergy('bass');
   let isBeat = bass - prevBass > beatThreshold && beatCooldown <= 0;
   prevBass = bass;
-  if (isBeat) beatCooldown = 10;  // frames
+  if (isBeat) beatCooldown = 10; // frames
   beatCooldown--;
   return isBeat;
 }
@@ -390,7 +390,7 @@ function windowResized() {
 // Visibility change (tab switching)
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
-    noLoop();  // pause when tab not visible
+    noLoop(); // pause when tab not visible
   } else {
     loop();
   }

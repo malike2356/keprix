@@ -41,7 +41,7 @@ describe('model visibility', () => {
   })
 
   it('preserves hidden-provider sentinel without re-adding defaults', () => {
-    // User explicitly hid all models for "nous" — sentinel marks this choice.
+    // User explicitly hid all models for "nous"; sentinel marks this choice.
     const stored = new Set([emptyProviderSentinelKey('nous')])
 
     const visible = effectiveVisibleKeys(stored, [

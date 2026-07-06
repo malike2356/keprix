@@ -1,0 +1,11 @@
+{
+  "translated_text": "I want a borehole quote near Tamale",
+  "original_text": "Me pe borehole quote wɔ Tamale",
+  "source_language": "ak-GH",
+  "workspace_id": "ws-borehole",
+  "expected_intent": "request_drilling_quote",
+  "expected_entities": {
+    "location_description": "near Tamale"
+  },
+  "expected_missing": ["depth_target_metres"]
+}

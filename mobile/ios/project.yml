@@ -1,0 +1,408 @@
+name: keprix
+options:
+  bundleIdPrefix: com.verlox
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "16.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    ENABLE_APP_INTENTS_METADATA_GENERATION: NO
+
+packages:
+  CarinaKit:
+    path: ../shared/CarinaKit
+  Swabble:
+    path: ../swabble
+  WebRTC:
+    url: https://github.com/stasel/WebRTC.git
+    exactVersion: 147.0.0
+
+schemes:
+  Carina:
+    shared: true
+    build:
+      targets:
+        Carina: all
+    test:
+      targets:
+        - CarinaTests
+        - CarinaLogicTests
+  CarinaLogicTests:
+    shared: true
+    build:
+      targets:
+        CarinaLogicTests: all
+    test:
+      targets:
+        - CarinaLogicTests
+  CarinaUITests:
+    shared: true
+    build:
+      targets:
+        CarinaUITests: all
+    test:
+      targets:
+        - CarinaUITests
+  CarinaWatchApp:
+    shared: true
+    build:
+      targets:
+        CarinaWatchApp: all
+
+targets:
+  Carina:
+    type: application
+    platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
+    sources:
+      - path: Sources
+    dependencies:
+      - target: CarinaShareExtension
+        embed: true
+      - target: CarinaActivityWidget
+        embed: true
+      - target: CarinaWatchApp
+      - package: CarinaKit
+      - package: CarinaKit
+        product: CarinaChatUI
+      - package: CarinaKit
+        product: CarinaProtocol
+      - package: Swabble
+        product: SwabbleKit
+      - package: WebRTC
+      - sdk: AppIntents.framework
+    preBuildScripts:
+      - name: SwiftFormat (lint)
+        basedOnDependencyAnalysis: false
+        inputFileLists:
+          - $(SRCROOT)/SwiftSources.input.xcfilelist
+        script: |
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          if ! command -v swiftformat >/dev/null 2>&1; then
+            echo "error: swiftformat not found (brew install swiftformat)" >&2
+            exit 1
+          fi
+          swiftformat --lint --config "$SRCROOT/../../config/swiftformat" \
+            --unexclude "$SRCROOT/Sources,$SRCROOT/ShareExtension,$SRCROOT/ActivityWidget,$SRCROOT/WatchExtension,$SRCROOT/../shared/CarinaKit,$SRCROOT/../swabble" \
+            --filelist "$SRCROOT/SwiftSources.input.xcfilelist"
+      - name: SwiftLint
+        basedOnDependencyAnalysis: false
+        inputFileLists:
+          - $(SRCROOT)/SwiftSources.input.xcfilelist
+        script: |
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          if ! command -v swiftlint >/dev/null 2>&1; then
+            echo "error: swiftlint not found (brew install swiftlint)" >&2
+            exit 1
+          fi
+          swiftlint lint --config "$SRCROOT/.swiftlint.yml" --use-script-input-file-lists
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "$(OPENCLAW_CODE_SIGN_IDENTITY)"
+        CODE_SIGN_ENTITLEMENTS: Sources/Carina.entitlements
+        CODE_SIGN_STYLE: "$(OPENCLAW_CODE_SIGN_STYLE)"
+        DEVELOPMENT_TEAM: "$(OPENCLAW_DEVELOPMENT_TEAM)"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(OPENCLAW_APP_BUNDLE_ID)"
+        PROVISIONING_PROFILE_SPECIFIER: "$(OPENCLAW_APP_PROFILE)"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+        SUPPORTS_LIVE_ACTIVITIES: YES
+        ENABLE_APPINTENTS_METADATA: NO
+        ENABLE_APP_INTENTS_METADATA_GENERATION: NO
+      configs:
+        Debug:
+          OPENCLAW_APNS_ENTITLEMENT_ENVIRONMENT: development
+          OPENCLAW_PUSH_TRANSPORT: direct
+          OPENCLAW_PUSH_DISTRIBUTION: local
+          OPENCLAW_PUSH_RELAY_BASE_URL: ""
+          OPENCLAW_PUSH_APNS_ENVIRONMENT: sandbox
+        Release:
+          OPENCLAW_APNS_ENTITLEMENT_ENVIRONMENT: production
+          OPENCLAW_PUSH_TRANSPORT: direct
+          OPENCLAW_PUSH_DISTRIBUTION: local
+          OPENCLAW_PUSH_RELAY_BASE_URL: ""
+          OPENCLAW_PUSH_APNS_ENVIRONMENT: production
+    info:
+      path: Sources/Info.plist
+      properties:
+        CFBundleDisplayName: Carina
+        CFBundleIconName: AppIcon
+        CFBundleURLTypes:
+          - CFBundleURLName: ai.verlox.carinakeprix.app
+            CFBundleURLSchemes:
+              - openclaw
+        CFBundleShortVersionString: "$(OPENCLAW_MARKETING_VERSION)"
+        CarinaCanonicalVersion: "$(OPENCLAW_IOS_VERSION)"
+        CFBundleVersion: "$(OPENCLAW_BUILD_VERSION)"
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+        UIBackgroundModes:
+          - audio
+          - remote-notification
+        BGTaskSchedulerPermittedIdentifiers:
+          - "$(OPENCLAW_APP_BUNDLE_ID).bgrefresh"
+        NSLocalNetworkUsageDescription: Carina discovers and connects to your Carina gateway on the local network.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoadsInWebContent: true
+          NSAllowsLocalNetworking: true
+        NSBonjourServices:
+          - _openclaw-gw._tcp
+        NSCameraUsageDescription: Carina can capture photos or short video clips when requested via the gateway.
+        NSCalendarsUsageDescription: Carina uses your calendars to show events and scheduling context when you enable calendar access.
+        NSCalendarsFullAccessUsageDescription: Carina uses your calendars to show events and scheduling context when you enable calendar access.
+        NSCalendarsWriteOnlyAccessUsageDescription: Carina uses your calendars to add events when you enable calendar access.
+        NSContactsUsageDescription: Carina uses your contacts so you can search and reference people while using the assistant.
+        NSLocationWhenInUseUsageDescription: Carina uses your location when you allow location sharing.
+        NSLocationAlwaysAndWhenInUseUsageDescription: Carina can share your location in the background when you enable Always.
+        NSMicrophoneUsageDescription: Carina uses the microphone for realtime chat, voice wake, and push-to-talk.
+        NSMotionUsageDescription: Carina may use motion data to support device-aware interactions and automations.
+        NSPhotoLibraryUsageDescription: Carina needs photo library access when you choose existing photos to share with your assistant.
+        NSRemindersFullAccessUsageDescription: Carina uses your reminders to list, add, and complete tasks when you enable reminders access.
+        NSSpeechRecognitionUsageDescription: Carina uses on-device speech recognition for talk mode and voice wake.
+        NSSupportsLiveActivities: true
+        ITSAppUsesNonExemptEncryption: false
+        CarinaPushTransport: "$(OPENCLAW_PUSH_TRANSPORT)"
+        CarinaPushDistribution: "$(OPENCLAW_PUSH_DISTRIBUTION)"
+        CarinaPushRelayBaseURL: "$(OPENCLAW_PUSH_RELAY_BASE_URL)"
+        CarinaPushAPNsEnvironment: "$(OPENCLAW_PUSH_APNS_ENVIRONMENT)"
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+  CarinaShareExtension:
+    type: app-extension
+    platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
+    sources:
+      - path: ShareExtension
+    dependencies:
+      - package: CarinaKit
+      - sdk: AppIntents.framework
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "$(OPENCLAW_CODE_SIGN_IDENTITY)"
+        CODE_SIGN_STYLE: "$(OPENCLAW_CODE_SIGN_STYLE)"
+        DEVELOPMENT_TEAM: "$(OPENCLAW_DEVELOPMENT_TEAM)"
+        ENABLE_APPINTENTS_METADATA: NO
+        ENABLE_APP_INTENTS_METADATA_GENERATION: NO
+        PRODUCT_BUNDLE_IDENTIFIER: "$(OPENCLAW_SHARE_BUNDLE_ID)"
+        PROVISIONING_PROFILE_SPECIFIER: "$(OPENCLAW_SHARE_PROFILE)"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+    info:
+      path: ShareExtension/Info.plist
+      properties:
+        CFBundleDisplayName: Carina Share
+        CFBundleShortVersionString: "$(OPENCLAW_MARKETING_VERSION)"
+        CFBundleVersion: "$(OPENCLAW_BUILD_VERSION)"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).ShareViewController"
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsText: true
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+              NSExtensionActivationSupportsImageWithMaxCount: 10
+              NSExtensionActivationSupportsMovieWithMaxCount: 1
+
+  CarinaActivityWidget:
+    type: app-extension
+    platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
+    sources:
+      - path: ActivityWidget
+      - path: Sources/LiveActivity/CarinaActivityAttributes.swift
+    dependencies:
+      - sdk: WidgetKit.framework
+      - sdk: ActivityKit.framework
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "$(OPENCLAW_CODE_SIGN_IDENTITY)"
+        CODE_SIGN_STYLE: "$(OPENCLAW_CODE_SIGN_STYLE)"
+        DEVELOPMENT_TEAM: "$(OPENCLAW_DEVELOPMENT_TEAM)"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(OPENCLAW_ACTIVITY_WIDGET_BUNDLE_ID)"
+        PROVISIONING_PROFILE_SPECIFIER: "$(OPENCLAW_ACTIVITY_WIDGET_PROFILE)"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+        SUPPORTS_LIVE_ACTIVITIES: YES
+    info:
+      path: ActivityWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Carina Activity
+        CFBundleShortVersionString: "$(OPENCLAW_MARKETING_VERSION)"
+        CFBundleVersion: "$(OPENCLAW_BUILD_VERSION)"
+        NSSupportsLiveActivities: true
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+
+  CarinaWatchApp:
+    type: application.watchapp2
+    platform: watchOS
+    deploymentTarget: "11.0"
+    sources:
+      - path: WatchApp
+    dependencies:
+      - target: CarinaWatchExtension
+    configFiles:
+      Debug: Config/Signing.xcconfig
+      Release: Config/Signing.xcconfig
+    attributes:
+      DevelopmentTeam: "$(OPENCLAW_DEVELOPMENT_TEAM)"
+      ProvisioningStyle: "$(OPENCLAW_CODE_SIGN_STYLE)"
+    settings:
+      base:
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_IDENTITY: "$(OPENCLAW_CODE_SIGN_IDENTITY)"
+        CODE_SIGN_STYLE: "$(OPENCLAW_CODE_SIGN_STYLE)"
+        DEVELOPMENT_TEAM: "$(OPENCLAW_DEVELOPMENT_TEAM)"
+        ENABLE_APPINTENTS_METADATA: NO
+        ENABLE_APP_INTENTS_METADATA_GENERATION: NO
+        PRODUCT_BUNDLE_IDENTIFIER: "$(OPENCLAW_WATCH_APP_BUNDLE_ID)"
+        PROVISIONING_PROFILE_SPECIFIER: "$(OPENCLAW_WATCH_APP_PROFILE)"
+    info:
+      path: WatchApp/Info.plist
+      properties:
+        CFBundleDisplayName: Carina
+        CFBundleShortVersionString: "$(OPENCLAW_MARKETING_VERSION)"
+        CFBundleVersion: "$(OPENCLAW_BUILD_VERSION)"
+        WKCompanionAppBundleIdentifier: "$(OPENCLAW_APP_BUNDLE_ID)"
+        WKWatchKitApp: true
+
+  CarinaWatchExtension:
+    type: watchkit2-extension
+    platform: watchOS
+    deploymentTarget: "11.0"
+    sources:
+      - path: WatchExtension/Sources
+      - path: WatchExtension/Assets.xcassets
+    dependencies:
+      - sdk: AppIntents.framework
+      - sdk: WatchConnectivity.framework
+      - sdk: UserNotifications.framework
+    configFiles:
+      Debug: Config/Signing.xcconfig
+      Release: Config/Signing.xcconfig
+    attributes:
+      DevelopmentTeam: "$(OPENCLAW_DEVELOPMENT_TEAM)"
+      ProvisioningStyle: "$(OPENCLAW_CODE_SIGN_STYLE)"
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "$(OPENCLAW_CODE_SIGN_IDENTITY)"
+        CODE_SIGN_STYLE: "$(OPENCLAW_CODE_SIGN_STYLE)"
+        DEVELOPMENT_TEAM: "$(OPENCLAW_DEVELOPMENT_TEAM)"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(OPENCLAW_WATCH_EXTENSION_BUNDLE_ID)"
+        PROVISIONING_PROFILE_SPECIFIER: "$(OPENCLAW_WATCH_EXTENSION_PROFILE)"
+    info:
+      path: WatchExtension/Info.plist
+      properties:
+        CFBundleDisplayName: Carina
+        CFBundleShortVersionString: "$(OPENCLAW_MARKETING_VERSION)"
+        CFBundleVersion: "$(OPENCLAW_BUILD_VERSION)"
+        NSExtension:
+          NSExtensionAttributes:
+            WKAppBundleIdentifier: "$(OPENCLAW_WATCH_APP_BUNDLE_ID)"
+          NSExtensionPointIdentifier: com.apple.watchkit
+
+  CarinaTests:
+    type: bundle.unit-test
+    platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
+    sources:
+      - path: Tests
+        excludes:
+          - Logic
+    dependencies:
+      - target: Carina
+      - package: Swabble
+        product: SwabbleKit
+      - sdk: AppIntents.framework
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "$(OPENCLAW_CODE_SIGN_IDENTITY)"
+        CODE_SIGN_STYLE: "$(OPENCLAW_CODE_SIGN_STYLE)"
+        DEVELOPMENT_TEAM: "$(OPENCLAW_DEVELOPMENT_TEAM)"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(OPENCLAW_APP_BUNDLE_ID).tests"
+        ENABLE_APP_INTENTS_METADATA_GENERATION: NO
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Carina.app/Carina"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+    info:
+      path: Tests/Info.plist
+      properties:
+        CFBundleDisplayName: CarinaTests
+        CFBundleShortVersionString: "$(OPENCLAW_MARKETING_VERSION)"
+        CFBundleVersion: "$(OPENCLAW_BUILD_VERSION)"
+
+  CarinaLogicTests:
+    type: bundle.unit-test
+    platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
+    sources:
+      - path: Tests/Logic
+    dependencies:
+      - package: CarinaKit
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "$(OPENCLAW_CODE_SIGN_IDENTITY)"
+        CODE_SIGN_STYLE: "$(OPENCLAW_CODE_SIGN_STYLE)"
+        DEVELOPMENT_TEAM: "$(OPENCLAW_DEVELOPMENT_TEAM)"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(OPENCLAW_APP_BUNDLE_ID).logic-tests"
+        ENABLE_APP_INTENTS_METADATA_GENERATION: NO
+        SWIFT_EMIT_CONST_VALUE_PROTOCOLS: ""
+        SWIFT_VERSION: "6.0"
+        SWIFT_STRICT_CONCURRENCY: complete
+    info:
+      path: Tests/Info.plist
+      properties:
+        CFBundleDisplayName: CarinaLogicTests
+        CFBundleShortVersionString: "$(OPENCLAW_MARKETING_VERSION)"
+        CFBundleVersion: "$(OPENCLAW_BUILD_VERSION)"
+
+  CarinaUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    configFiles:
+      Debug: Signing.xcconfig
+      Release: Signing.xcconfig
+    sources:
+      - path: UITests
+    dependencies:
+      - target: Carina
+    settings:
+      base:
+        CODE_SIGN_IDENTITY: "$(OPENCLAW_CODE_SIGN_IDENTITY)"
+        CODE_SIGN_STYLE: "$(OPENCLAW_CODE_SIGN_STYLE)"
+        DEVELOPMENT_TEAM: "$(OPENCLAW_DEVELOPMENT_TEAM)"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(OPENCLAW_APP_BUNDLE_ID).ui-tests"
+        SDKROOT: iphoneos
+        SUPPORTED_PLATFORMS: "iphonesimulator iphoneos"
+        SUPPORTS_MACCATALYST: NO
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+        TEST_TARGET_NAME: Carina
+        SWIFT_VERSION: "5.0"
+    info:
+      path: UITests/Info.plist
+      properties:
+        CFBundleDisplayName: CarinaUITests
+        CFBundleShortVersionString: "$(OPENCLAW_MARKETING_VERSION)"
+        CFBundleVersion: "$(OPENCLAW_BUILD_VERSION)"

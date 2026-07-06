@@ -1,0 +1,27 @@
+# Nous-approved MCP catalog entry.
+# Presence in this directory = approval. Merged via PR review.
+manifest_version: 1
+
+name: trello
+description: Trello boards, lists, and cards via community MCP server.
+source: https://github.com/delorenj/mcp-server-trello
+
+transport:
+  type: stdio
+  command: npx
+  args: ["-y", "@delorenj/mcp-server-trello"]
+
+auth:
+  type: api_key
+  env:
+    - name: TRELLO_API_KEY
+      prompt: "Trello API key (from trello.com/power-ups/admin)"
+      required: true
+      secret: false
+    - name: TRELLO_TOKEN
+      prompt: "Trello user token (generate from the same Power-Up admin page)"
+      required: true
+      secret: true
+
+post_install: |
+  Requires Node.js for npx. Start a new Keprix session after install.

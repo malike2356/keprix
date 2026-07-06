@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from keprix.analytics.code_interpreter import AnalyticsSession, CodeInterpreter
 from keprix.analytics.container_executor import ContainerExecutor
+from keprix.analytics.file_import import (
+    AnalyticsImportError,
+    parse_analytics_file,
+    supported_analytics_formats,
+)
 from keprix.analytics.reflective_execution import ReflectiveExecutor
 from keprix.api.auth import require_api_auth
 
@@ -15,6 +20,10 @@ router = APIRouter(prefix="/api/analytics", tags=["analytics-workspace"])
 _executor = ContainerExecutor(container_required=False)
 _interpreter = CodeInterpreter(executor=_executor)
 _reflective = ReflectiveExecutor(_interpreter)
+
+
+def get_workspace_interpreter() -> CodeInterpreter:
+    return _interpreter
 
 
 class RunRequest(BaseModel):
@@ -38,6 +47,42 @@ def _get_session(session_id: str) -> AnalyticsSession:
 async def create_session(_user: str = Depends(require_api_auth)) -> dict:
     session = _interpreter.create_session()
     return {"session_id": session.session_id}
+
+
+@router.get("/sessions")
+async def list_sessions(_user: str = Depends(require_api_auth)) -> dict:
+    sessions = sorted(
+        _interpreter.sessions.values(),
+        key=lambda item: item.created_at,
+        reverse=True,
+    )
+    return {
+        "sessions": [
+            {
+                **session.to_dict(),
+                "code_runs": len(session.code_history),
+            }
+            for session in sessions
+        ],
+    }
+
+
+@router.get("/supported-formats")
+async def list_supported_formats(_user: str = Depends(require_api_auth)) -> dict:
+    return {"formats": supported_analytics_formats()}
+
+
+@router.post("/parse-file")
+async def parse_file_upload(
+    file: UploadFile = File(...),
+    _user: str = Depends(require_api_auth),
+) -> dict:
+    raw = await file.read()
+    filename = file.filename or "upload.csv"
+    try:
+        return parse_analytics_file(filename, raw)
+    except AnalyticsImportError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/sessions/{session_id}/run")

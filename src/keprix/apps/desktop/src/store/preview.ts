@@ -6,7 +6,7 @@ import { $activeSessionId, $selectedStoredSessionId } from './session'
 export interface PreviewTarget {
   binary?: boolean
   byteSize?: number
-  /** Inline image bytes (a `data:` URL) when the renderer already holds them —
+  /** Inline image bytes (a `data:` URL) when the renderer already holds them;
    * e.g. a pasted/dropped screenshot whose only on-disk copy is a transient
    * path the preview can't reliably re-read. Rendered directly and NOT
    * persisted to the session-preview registry (it would bloat localStorage). */
@@ -219,7 +219,7 @@ function persistSessionPreviewRegistry(registry: SessionPreviewRegistry) {
   }
 
   try {
-    // Drop the inline image bytes before persisting — a screenshot data URL is
+    // Drop the inline image bytes before persisting; a screenshot data URL is
     // megabytes and would blow the localStorage quota. On reload the record
     // falls back to reading its `path`/`url`.
     const lean = JSON.stringify(pruneRegistry(registry), (key, value) => (key === 'dataUrl' ? undefined : value))
@@ -359,7 +359,7 @@ export function dismissSessionPreview(sessionId: string | null | undefined, url?
   })
 }
 
-/** User clicked the close X — clear the target and persist dismissal for the current session. */
+/** User clicked the close X; clear the target and persist dismissal for the current session. */
 export function dismissPreviewTarget() {
   const current = $previewTarget.get()
 

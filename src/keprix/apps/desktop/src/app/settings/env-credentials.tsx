@@ -51,12 +51,12 @@ export function useEnvCredentials(): UseEnvCredentials {
   const [saving, setSaving] = useState<string | null>(null)
 
   // Best-effort cleanup of a retired localStorage flag (global "Show
-  // advanced" toggle) — everything in these views is configuration-level.
+  // advanced" toggle); everything in these views is configuration-level.
   useEffect(() => {
     try {
       window.localStorage.removeItem('desktop.settings.keys.show_advanced')
     } catch {
-      // Ignore — old key cleanup is best-effort.
+      // Ignore; old key cleanup is best-effort.
     }
   }, [])
 
@@ -108,7 +108,7 @@ export function useEnvCredentials(): UseEnvCredentials {
     }
   }
 
-  // Direct save for a known value (no edit-state round-trip) — used by the
+  // Direct save for a known value (no edit-state round-trip); used by the
   // onboarding-style key form, which owns its own input. Returns a result so
   // the form can surface inline errors instead of only toasting.
   async function saveValue(key: string, value: string): Promise<{ message?: string; ok: boolean }> {

@@ -21,7 +21,7 @@ declare global {
       // Open (or focus) a standalone OS window for a single chat session so
       // the user can work with multiple chats side by side. Returns ok:false
       // with an error code when the sessionId is empty/invalid. `watch` opens
-      // a spectator window (lazy resume — no agent build) for live-streaming
+      // a spectator window (lazy resume; no agent build) for live-streaming
       // a running subagent's session.
       openSessionWindow: (sessionId: string, opts?: { watch?: boolean }) => Promise<{ ok: boolean; error?: string }>
       // Open (or focus) a compact secondary window on the new-session draft.
@@ -73,7 +73,7 @@ declare global {
       gitRoot?: (path: string) => Promise<string | null>
       // Resolve git-worktree identity for a batch of session cwds, reading git's
       // on-disk metadata locally. Returns null per cwd that isn't inside a
-      // checkout (or can't be read — e.g. a remote backend's path).
+      // checkout (or can't be read; e.g. a remote backend's path).
       worktrees?: (cwds: string[]) => Promise<Record<string, HermesWorktreeInfo | null>>
       terminal: {
         dispose: (id: string) => Promise<boolean>
@@ -453,7 +453,7 @@ export interface HermesPreviewWatch {
 }
 
 export interface HermesWorktreeInfo {
-  // Main repo root — the shared grouping key for a checkout and all its linked
+  // Main repo root; the shared grouping key for a checkout and all its linked
   // worktrees.
   repoRoot: string
   // This cwd's own worktree root.

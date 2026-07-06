@@ -17,6 +17,7 @@ services:
       - KEPRIX_DATABASE_URL=postgresql+asyncpg://keprix:${POSTGRES_PASSWORD:-changeme}@postgres:5432/keprix
       - KEPRIX_REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379
       - KEPRIX_SEARXNG_URL=http://searxng:8080
+      - SEARXNG_URL=http://searxng:8080
     env_file:
       - path: ../.env
         required: false
@@ -90,10 +91,18 @@ services:
     image: searxng/searxng:latest
     container_name: keprix-searxng
     restart: unless-stopped
+    ports:
+      - "${SEARXNG_BIND:-127.0.0.1}:${SEARXNG_PORT:-8080}:8080"
     volumes:
-      - ./searxng:/etc/searxng:rw
+      - ./searxng.example:/etc/searxng:ro
     environment:
-      - SEARXNG_BASE_URL=http://searxng:8080
+      SEARXNG_BASE_URL: "http://localhost:${SEARXNG_PORT:-8080}/"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     networks:
       - keprix_network
 

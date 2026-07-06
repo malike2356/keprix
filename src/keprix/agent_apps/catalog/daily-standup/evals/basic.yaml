@@ -1,0 +1,4 @@
+cases:
+  - name: standup smoke
+    input: ""
+    expect_contains: Standup

@@ -1,11 +1,11 @@
-// Secondary "session windows" — one extra OS window per chat so a user can
+// Secondary "session windows"; one extra OS window per chat so a user can
 // work with multiple chats side by side. The pure, Electron-free pieces live
 // here so they can be unit-tested with node --test (mirroring how the rest of
 // electron/*.cjs splits testable logic out of the main.cjs monolith).
 
 const { pathToFileURL } = require('node:url')
 
-// Secondary windows open at the minimum usable size — a compact side panel for
+// Secondary windows open at the minimum usable size; a compact side panel for
 // subagent watch / cmd-click session pop-out, not a second full desktop.
 const SESSION_WINDOW_MIN_WIDTH = 420
 const SESSION_WINDOW_MIN_HEIGHT = 620

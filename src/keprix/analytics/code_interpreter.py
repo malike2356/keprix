@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
@@ -15,6 +16,7 @@ from keprix.analytics.plugin_runner import PluginRunner
 @dataclass(slots=True)
 class AnalyticsSession:
     session_id: str
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     chat_history: list[dict[str, str]] = field(default_factory=list)
     code_history: list[str] = field(default_factory=list)
     variables_metadata: dict[str, str] = field(default_factory=dict)
@@ -28,6 +30,7 @@ class AnalyticsSession:
     def to_dict(self) -> dict[str, Any]:
         return {
             "session_id": self.session_id,
+            "created_at": self.created_at,
             "chat_history": list(self.chat_history),
             "code_history": list(self.code_history),
             "variables_metadata": dict(self.variables_metadata),

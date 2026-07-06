@@ -32,6 +32,30 @@ from agent.web_search_provider import WebSearchProvider
 logger = logging.getLogger(__name__)
 
 
+def _tavily_api_key() -> str:
+    try:
+        from keprix_cli.config import get_env_value
+
+        value = get_env_value("TAVILY_API_KEY")
+    except Exception:
+        value = None
+    if value is None:
+        value = os.getenv("TAVILY_API_KEY", "")
+    return (value or "").strip()
+
+
+def _tavily_base_url() -> str:
+    try:
+        from keprix_cli.config import get_env_value
+
+        value = get_env_value("TAVILY_BASE_URL")
+    except Exception:
+        value = None
+    if value is None:
+        value = os.getenv("TAVILY_BASE_URL", "")
+    return (value or "https://api.tavily.com").strip().rstrip("/")
+
+
 def _tavily_request(endpoint: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     """POST to the Tavily API and return the parsed JSON response.
 
@@ -41,14 +65,14 @@ def _tavily_request(endpoint: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     """
     import httpx
 
-    api_key = os.getenv("TAVILY_API_KEY")
+    api_key = _tavily_api_key()
     if not api_key:
         raise ValueError(
             "TAVILY_API_KEY environment variable not set. "
             "Get your API key at https://app.tavily.com/home"
         )
 
-    base_url = os.getenv("TAVILY_BASE_URL", "https://api.tavily.com")
+    base_url = _tavily_base_url()
     payload = dict(payload)  # don't mutate caller's dict
     payload["api_key"] = api_key
     url = f"{base_url}/{endpoint.lstrip('/')}"
@@ -138,7 +162,7 @@ class TavilyWebSearchProvider(WebSearchProvider):
 
     def is_available(self) -> bool:
         """Return True when ``TAVILY_API_KEY`` is set to a non-empty value."""
-        return bool(os.getenv("TAVILY_API_KEY", "").strip())
+        return bool(_tavily_api_key())
 
     def supports_search(self) -> bool:
         return True

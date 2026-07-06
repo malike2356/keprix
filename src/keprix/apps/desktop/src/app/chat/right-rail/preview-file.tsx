@@ -362,7 +362,7 @@ function SourceView({ filePath, language, text }: { filePath: string; language: 
   }
 
   // ⌘/Ctrl+L with a line selection drops the same `@line:path:start-end` ref the
-  // gutter drag produces — so the keyboard path mirrors dragging the lines into
+  // gutter drag produces; so the keyboard path mirrors dragging the lines into
   // the composer. Capture-phase + stopPropagation so it beats the terminal's
   // global ⌘L handler (which would otherwise grab the native text selection).
   useEffect(() => {

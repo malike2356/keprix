@@ -223,6 +223,16 @@ def format_rate_limit_display(state: RateLimitState) -> str:
     return "\n".join(lines)
 
 
+async def record_rate_limit_hit(provider: str, user_id: str | None = None) -> None:
+    """Record a provider rate-limit event to the metrics store (best effort)."""
+    try:
+        from keprix.observability.metrics import record_rate_limit_event
+
+        await record_rate_limit_event(provider, user_id=user_id)
+    except Exception:
+        pass
+
+
 def format_rate_limit_compact(state: RateLimitState) -> str:
     """One-line compact summary for status bars / gateway messages."""
     if not state.has_data:

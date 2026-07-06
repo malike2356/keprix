@@ -106,7 +106,7 @@ function DialogTitle({
 }: React.ComponentProps<typeof DialogPrimitive.Title> & {
   // Pass a lucide icon to get the canonical dialog-header glyph: a plain
   // primary-tinted icon inline with the title (no bg chip / ring). This is the
-  // single source of truth for dialog header icons — don't hand-roll wrappers.
+  // single source of truth for dialog header icons; don't hand-roll wrappers.
   icon?: React.ComponentType<{ className?: string }>
 }) {
   return (

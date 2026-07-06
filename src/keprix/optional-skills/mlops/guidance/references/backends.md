@@ -332,11 +332,11 @@ lm = LlamaCpp("phi-4-mini-instruct.Q4_K_M.gguf")
 
 | Feature | Anthropic | OpenAI | Transformers | llama.cpp |
 |---------|-----------|--------|--------------|-----------|
-| Constrained Generation | ✅ Full | ✅ Full | ✅ Full | ✅ Full |
-| Token Healing | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
-| Streaming | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
-| GPU Support | N/A | N/A | ✅ Yes | ✅ Yes |
-| Quantization | N/A | N/A | ✅ Yes | ✅ Yes |
+| Constrained Generation | Done:  Full | Done:  Full | Done:  Full | Done:  Full |
+| Token Healing | Done:  Yes | Done:  Yes | Done:  Yes | Done:  Yes |
+| Streaming | Done:  Yes | Done:  Yes | Done:  Yes | Done:  Yes |
+| GPU Support | N/A | N/A | Done:  Yes | Done:  Yes |
+| Quantization | N/A | N/A | Done:  Yes | Done:  Yes |
 | Cost | $$$ | $$$ | Free | Free |
 | Latency | Low | Low | Medium | Low |
 | Setup Difficulty | Easy | Easy | Medium | Medium |

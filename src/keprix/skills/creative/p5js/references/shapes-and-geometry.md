@@ -5,36 +5,36 @@
 ```javascript
 point(x, y);
 line(x1, y1, x2, y2);
-rect(x, y, w, h);            // default: corner mode
-rect(x, y, w, h, r);         // rounded corners
-rect(x, y, w, h, tl, tr, br, bl);  // per-corner radius
+rect(x, y, w, h); // default: corner mode
+rect(x, y, w, h, r); // rounded corners
+rect(x, y, w, h, tl, tr, br, bl); // per-corner radius
 square(x, y, size);
 ellipse(x, y, w, h);
-circle(x, y, d);             // diameter, not radius
+circle(x, y, d); // diameter, not radius
 triangle(x1, y1, x2, y2, x3, y3);
 quad(x1, y1, x2, y2, x3, y3, x4, y4);
-arc(x, y, w, h, start, stop, mode);  // mode: OPEN, CHORD, PIE
+arc(x, y, w, h, start, stop, mode); // mode: OPEN, CHORD, PIE
 ```
 
 ### Drawing Modes
 
 ```javascript
-rectMode(CENTER);   // x,y is center (default: CORNER)
-rectMode(CORNERS);  // x1,y1 to x2,y2
+rectMode(CENTER); // x,y is center (default: CORNER)
+rectMode(CORNERS); // x1,y1 to x2,y2
 ellipseMode(CORNER); // x,y is top-left corner
-ellipseMode(CENTER); // default — x,y is center
+ellipseMode(CENTER); // default; x,y is center
 ```
 
 ## Stroke and Fill
 
 ```javascript
-fill(r, g, b, a);    // or fill(gray), fill('#hex'), fill(h, s, b) in HSB mode
+fill(r, g, b, a); // or fill(gray), fill('#hex'), fill(h, s, b) in HSB mode
 noFill();
 stroke(r, g, b, a);
 noStroke();
 strokeWeight(2);
-strokeCap(ROUND);     // ROUND, SQUARE, PROJECT
-strokeJoin(ROUND);    // ROUND, MITER, BEVEL
+strokeCap(ROUND); // ROUND, SQUARE, PROJECT
+strokeJoin(ROUND); // ROUND, MITER, BEVEL
 ```
 
 ## Custom Shapes with Vertices
@@ -48,19 +48,19 @@ beginShape();
   vertex(300, 100);
   vertex(250, 200);
   vertex(150, 200);
-endShape(CLOSE);  // CLOSE connects last vertex to first
+endShape(CLOSE); // CLOSE connects last vertex to first
 ```
 
 ### Shape modes
 
 ```javascript
-beginShape();          // default: polygon connecting all vertices
-beginShape(POINTS);    // individual points
-beginShape(LINES);     // pairs of vertices as lines
+beginShape(); // default: polygon connecting all vertices
+beginShape(POINTS); // individual points
+beginShape(LINES); // pairs of vertices as lines
 beginShape(TRIANGLES); // triplets as triangles
 beginShape(TRIANGLE_FAN);
 beginShape(TRIANGLE_STRIP);
-beginShape(QUADS);     // groups of 4
+beginShape(QUADS); // groups of 4
 beginShape(QUAD_STRIP);
 ```
 
@@ -118,7 +118,7 @@ endShape();
 ### Interpolation along Bezier
 
 ```javascript
-let x = bezierPoint(x1, cx1, cx2, x2, t);  // t = 0..1
+let x = bezierPoint(x1, cx1, cx2, x2, t); // t = 0..1
 let y = bezierPoint(y1, cy1, cy2, y2, t);
 let tx = bezierTangent(x1, cx1, cx2, x2, t); // tangent
 ```
@@ -132,8 +132,8 @@ curve(cpx1, cpy1, x1, y1, x2, y2, cpx2, cpy2);
 // x2,y2 = end point (visible)
 // cpx2,cpy2 = control point after end
 
-curveVertex(x, y);  // in beginShape() — smooth curve through all points
-curveTightness(0);  // 0 = Catmull-Rom, 1 = straight lines, -1 = loose
+curveVertex(x, y); // in beginShape(); smooth curve through all points
+curveTightness(0); // 0 = Catmull-Rom, 1 = straight lines, -1 = loose
 ```
 
 ### Smooth curve through points
@@ -157,29 +157,29 @@ Essential for physics, particle systems, and geometric computation.
 let v = createVector(x, y);
 
 // Arithmetic (modifies in place)
-v.add(other);        // vector addition
-v.sub(other);        // subtraction
-v.mult(scalar);      // scale
-v.div(scalar);       // inverse scale
-v.normalize();       // unit vector (length 1)
-v.limit(max);        // cap magnitude
-v.setMag(len);       // set exact magnitude
+v.add(other); // vector addition
+v.sub(other); // subtraction
+v.mult(scalar); // scale
+v.div(scalar); // inverse scale
+v.normalize(); // unit vector (length 1)
+v.limit(max); // cap magnitude
+v.setMag(len); // set exact magnitude
 
 // Queries (non-destructive)
-v.mag();             // magnitude (length)
-v.magSq();           // squared magnitude (faster, no sqrt)
-v.heading();         // angle in radians
-v.dist(other);       // distance to other vector
-v.dot(other);        // dot product
-v.cross(other);      // cross product (3D)
+v.mag(); // magnitude (length)
+v.magSq(); // squared magnitude (faster, no sqrt)
+v.heading(); // angle in radians
+v.dist(other); // distance to other vector
+v.dot(other); // dot product
+v.cross(other); // cross product (3D)
 v.angleBetween(other); // angle between vectors
 
 // Static methods (return new vector)
-p5.Vector.add(a, b);      // a + b → new vector
-p5.Vector.sub(a, b);      // a - b → new vector
-p5.Vector.fromAngle(a);   // unit vector at angle
-p5.Vector.random2D();     // random unit vector
-p5.Vector.lerp(a, b, t);  // interpolate
+p5.Vector.add(a, b); // a + b → new vector
+p5.Vector.sub(a, b); // a - b → new vector
+p5.Vector.fromAngle(a); // unit vector at angle
+p5.Vector.random2D(); // random unit vector
+p5.Vector.lerp(a, b, t); // interpolate
 
 // Copy
 let copy = v.copy();
@@ -219,7 +219,7 @@ function opSmoothUnion(d1, d2, k) {
 
 // Rendering SDF as glow
 let d = sdCircle(x, y, width/2, height/2, 200);
-let glow = exp(-abs(d) * 0.02);  // exponential falloff
+let glow = exp(-abs(d) * 0.02); // exponential falloff
 fill(glow * 255);
 ```
 
@@ -281,7 +281,7 @@ function blob(cx, cy, baseR, noiseScale, noiseOffset, detail = 64) {
 ## Clipping and Masking
 
 ```javascript
-// Clip shape — everything drawn after is masked by the clip shape
+// Clip shape; everything drawn after is masked by the clip shape
 beginClip();
   circle(width/2, height/2, 400);
 endClip();
@@ -293,8 +293,8 @@ clip(() => {
   circle(width/2, height/2, 400);
 });
 
-// Erase mode — cut holes
+// Erase mode; cut holes
 erase();
-  circle(mouseX, mouseY, 100);  // this area becomes transparent
+  circle(mouseX, mouseY, 100); // this area becomes transparent
 noErase();
 ```

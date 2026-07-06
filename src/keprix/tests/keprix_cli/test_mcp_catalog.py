@@ -812,3 +812,52 @@ class TestShippedCatalog:
             assert entry.name
             assert entry.description
             assert entry.transport.type in ("stdio", "http")
+
+
+class TestShippedProductivityManifests:
+    def test_notion_manifest_in_catalog(self, monkeypatch):
+        monkeypatch.delenv("KEPRIX_OPTIONAL_MCPS", raising=False)
+        from keprix_cli.mcp_catalog import get_entry
+
+        entry = get_entry("notion")
+        assert entry is not None
+        assert entry.transport.type == "http"
+        assert entry.transport.url == "https://mcp.notion.com/mcp"
+        assert entry.auth.type == "oauth"
+
+    def test_trello_manifest_in_catalog(self, monkeypatch):
+        monkeypatch.delenv("KEPRIX_OPTIONAL_MCPS", raising=False)
+        from keprix_cli.mcp_catalog import get_entry
+
+        entry = get_entry("trello")
+        assert entry is not None
+        assert entry.transport.command == "npx"
+        env_names = {e.name for e in entry.auth.env}
+        assert env_names == {"TRELLO_API_KEY", "TRELLO_TOKEN"}
+
+    def test_install_notion_writes_oauth_config(self, monkeypatch):
+        import keprix_cli.mcp_catalog as mc
+
+        monkeypatch.setattr(mc, "_probe_tools", lambda name: None)
+        from keprix_cli.mcp_catalog import install_entry, get_entry
+        from keprix_cli.mcp_config import _get_mcp_servers
+
+        install_entry(get_entry("notion"), enable=True)
+        saved = _get_mcp_servers()["notion"]
+        assert saved["url"] == "https://mcp.notion.com/mcp"
+        assert saved.get("auth") == "oauth"
+
+    def test_install_trello_writes_stdio_config(self, monkeypatch):
+        import keprix_cli.mcp_catalog as mc
+
+        monkeypatch.setattr(mc, "_probe_tools", lambda name: None)
+        from keprix_cli.mcp_catalog import install_entry, get_entry
+        from keprix_cli.config import save_env_value
+        from keprix_cli.mcp_config import _get_mcp_servers
+
+        save_env_value("TRELLO_API_KEY", "key123")
+        save_env_value("TRELLO_TOKEN", "token456")
+        install_entry(get_entry("trello"), enable=True)
+        saved = _get_mcp_servers()["trello"]
+        assert saved["command"] == "npx"
+        assert "@delorenj/mcp-server-trello" in saved["args"]

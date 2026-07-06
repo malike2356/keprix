@@ -26,6 +26,7 @@ coverage.xml
 
 # ---- Node / Next.js ----
 node_modules/
+.tools/
 frontend/.next/
 frontend/out/
 frontend/build/
@@ -58,5 +59,15 @@ Thumbs.db
 .pytest-data/
 trajectory_samples.jsonl
 
+# ---- MkDocs build output ----
+site/
+frontend/public/guide/
+
 # ---- Planning / UI references (not part of the shipped product) ----
 planning/
+
+# ---- Internal engineering docs (not operator-facing) ----
+docs/internal/
+
+# ---- Frontend build artifacts ----
+frontend/tsconfig.tsbuildinfo

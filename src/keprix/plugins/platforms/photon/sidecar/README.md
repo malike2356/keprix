@@ -33,8 +33,8 @@ PHOTON_SIDECAR_PORT=8789 PHOTON_SIDECAR_TOKEN=$(openssl rand -hex 16) \
 node index.mjs
 ```
 
-In normal use, the Python adapter supervises this process — start,
-restart on crash, kill on shutdown — and never asks the user to run
+In normal use, the Python adapter supervises this process; start,
+restart on crash, kill on shutdown; and never asks the user to run
 it by hand.
 
 ## Why a sidecar at all?
@@ -44,7 +44,7 @@ Photon publishes webhooks (inbound) but their docs state explicitly:
 > Pass `space.id` to `Space.send(...)` from a separate `spectrum-ts`
 > SDK instance to reply.  No public HTTP send endpoint exists today.
 
-— https://photon.codes/docs/webhooks/events
+; https://photon.codes/docs/webhooks/events
 
 When Photon ships an HTTP send endpoint, the plan is to retire this
 sidecar entirely and call it directly from Python.  The plugin's

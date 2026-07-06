@@ -1,0 +1,30 @@
+id: literature_review
+name: Literature Review
+description: Import citations, extract claims, and draft a literature synthesis.
+domain: generic
+steps:
+  - id: import_zotero
+    title: Import Zotero collection
+    action: zotero.import_collection
+    risk: low
+  - id: summarize_papers
+    title: Summarize selected papers
+    action: citations.summarize
+    risk: low
+  - id: extract_claims
+    title: Extract claims
+    action: citations.extract_claims
+    risk: medium
+  - id: obsidian_notes
+    title: Create Obsidian literature notes
+    action: obsidian.create_literature_notes
+    risk: low
+  - id: synthesis_matrix
+    title: Build synthesis matrix
+    action: evidence.synthesis_matrix
+    risk: medium
+  - id: draft_review
+    title: Draft literature review
+    action: report.draft_literature_review
+    risk: high
+    requires_review: true

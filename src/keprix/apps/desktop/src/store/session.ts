@@ -84,7 +84,7 @@ export async function ensureDefaultWorkspaceCwd(): Promise<void> {
 export function applyConfiguredDefaultProjectDir(dir: null | string | undefined): void {
   configuredDefaultProjectDir = dir?.trim() || ''
 
-  // Cache only — new chats read this via workspaceCwdForNewSession(). Do not
+  // Cache only; new chats read this via workspaceCwdForNewSession(). Do not
   // rewrite the live workspace (or localStorage) while a session is active.
   if (configuredDefaultProjectDir && !$activeSessionId.get()) {
     setCurrentCwd(configuredDefaultProjectDir)
@@ -107,7 +107,7 @@ export const sessionPinId = (session: Pick<SessionInfo, '_lineage_root_id' | 'id
   session._lineage_root_id ?? session.id
 
 /** Merge a fresh server session page into the in-memory list, keeping any
- *  row the server omitted that we still want visible — both still-"working"
+ *  row the server omitted that we still want visible; both still-"working"
  *  sessions and pinned sessions.
  *
  *  Two reasons the server drops a row we must keep:
@@ -120,7 +120,7 @@ export const sessionPinId = (session: Pick<SessionInfo, '_lineage_root_id' | 'id
  *  2. The sidebar lists only the most-recent page (`SIDEBAR_SESSIONS_PAGE_SIZE`)
  *     ordered by activity. A pinned conversation that hasn't been touched in a
  *     while falls off that page, so a hard replace silently evicts it from the
- *     in-memory list — and because the Pinned section resolves pins against
+ *     in-memory list; and because the Pinned section resolves pins against
  *     that list, the pin "disappears until you refresh".
  *
  *  `keepIds` carries both the working set and the pinned set. Pins are stored
@@ -173,7 +173,7 @@ export const $cronSessions = atom<SessionInfo[]>([])
 // share one source of truth without a circular import.
 export const CRON_SECTION_LIMIT = 50
 // Messaging-platform sessions (telegram/discord/...) are fetched as their own
-// slice — separate from local recents — so each platform renders a
+// slice; separate from local recents; so each platform renders a
 // self-managed sidebar section and never interleaves with (or buries) local
 // chats in the recents page. One combined fetch seeds every platform; a
 // platform that exceeds this cap gets its own per-platform "load more".
@@ -200,7 +200,7 @@ export const $messages = atom<ChatMessage[]>([])
 // Streaming-stable derivations of $messages. During a token stream the array
 // is replaced ~30×/s; components that only care about coarse facts (is the
 // thread empty? is the tail a user message?) subscribe to these instead of
-// $messages so per-token flushes don't re-render them — nanostores' `computed`
+// $messages so per-token flushes don't re-render them; nanostores' `computed`
 // only notifies when the derived VALUE changes.
 export const $messagesEmpty = computed($messages, messages => messages.length === 0)
 export const $lastVisibleMessageIsUser = computed($messages, lastVisibleMessageIsUser)
@@ -286,7 +286,7 @@ export const setContextSuggestions = (next: Updater<ContextSuggestion[]>) => upd
 export const setModelPickerOpen = (next: Updater<boolean>) => updateAtom($modelPickerOpen, next)
 export const setSessionPickerOpen = (next: Updater<boolean>) => updateAtom($sessionPickerOpen, next)
 
-// Watchdog tracking — when does a "working" session count as stuck?
+// Watchdog tracking; when does a "working" session count as stuck?
 // Long-running tool calls (LLM inference, long shell commands, web fetches)
 // can take a few minutes legitimately. We allow 8 minutes of complete
 // silence on the stream before clearing the working flag; in practice this
@@ -329,7 +329,7 @@ function clearSessionWatchdog(sessionId: string) {
 // just-persisted first turn a beat later. The active chat is shielded from that
 // race by sessionsToKeep(), but a brand-new session that finished *while you
 // were viewing a different chat* is, at the next refresh, neither working,
-// pinned, nor active — so mergeSessionPage() evicts it. Nothing re-fetches
+// pinned, nor active; so mergeSessionPage() evicts it. Nothing re-fetches
 // afterward, so it stays gone until the app restarts. (Repro: start a new chat,
 // then click another session before the first reply lands.)
 //

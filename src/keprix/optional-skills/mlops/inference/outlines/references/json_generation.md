@@ -521,13 +521,13 @@ users = [generator(text) for text in texts]
 ### Minimize Schema Complexity
 
 ```python
-# ✅ Good: Simple, flat structure (faster)
+# Done:  Good: Simple, flat structure (faster)
 class SimplePerson(BaseModel):
     name: str
     age: int
     city: str
 
-# ⚠️ Slower: Deep nesting
+# WARNING:  Slower: Deep nesting
 class ComplexPerson(BaseModel):
     personal_info: PersonalInfo
     address: Address
@@ -573,14 +573,14 @@ print(user.age)  # None (not provided)
 ### 1. Use Specific Types
 
 ```python
-# ✅ Good: Specific types
+# Done:  Good: Specific types
 class Product(BaseModel):
     name: str
     price: float  # Not Any or str
     quantity: int  # Not str
     in_stock: bool  # Not int
 
-# ❌ Bad: Generic types
+# Failed:  Bad: Generic types
 class Product(BaseModel):
     name: Any
     price: str  # Should be float
@@ -590,7 +590,7 @@ class Product(BaseModel):
 ### 2. Add Descriptions
 
 ```python
-# ✅ Good: Clear descriptions
+# Done:  Good: Clear descriptions
 class Article(BaseModel):
     title: str = Field(description="Article title, 10-100 characters")
     content: str = Field(description="Main article content in paragraphs")
@@ -602,11 +602,11 @@ class Article(BaseModel):
 ### 3. Use Constraints
 
 ```python
-# ✅ Good: With constraints
+# Done:  Good: With constraints
 class Age(BaseModel):
     value: int = Field(ge=0, le=120, description="Age in years")
 
-# ❌ Bad: No constraints
+# Failed:  Bad: No constraints
 class Age(BaseModel):
     value: int  # Could be negative or > 120
 ```
@@ -614,7 +614,7 @@ class Age(BaseModel):
 ### 4. Prefer Enums Over Strings
 
 ```python
-# ✅ Good: Enum for fixed set
+# Done:  Good: Enum for fixed set
 class Priority(str, Enum):
     LOW = "low"
     MEDIUM = "medium"
@@ -623,7 +623,7 @@ class Priority(str, Enum):
 class Task(BaseModel):
     priority: Priority  # Guaranteed valid
 
-# ❌ Bad: Free-form string
+# Failed:  Bad: Free-form string
 class Task(BaseModel):
     priority: str  # Could be "urgent", "ASAP", "!!", etc.
 ```

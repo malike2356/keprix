@@ -55,7 +55,7 @@ export function GatewayConnectingOverlay() {
   // The full-screen connecting overlay is for initial boot only. After a
   // healthy boot, flaky networks / sleep-wake can drop the socket and flip the
   // gateway state back to closed/error while the app reconnects. Do not cover
-  // the chat then — users should still be able to type drafts, open settings,
+  // the chat then; users should still be able to type drafts, open settings,
   // and recover instead of staring at a modal CONNECTING screen.
   const initialBootActive = boot.visible || boot.running || boot.progress < 100
   const connecting = gatewayState !== 'open' && !boot.error && initialBootActive
@@ -68,7 +68,7 @@ export function GatewayConnectingOverlay() {
     shownRef.current = true
   }
 
-  // Decode loop — only while live (freeze the resolved word during the exit).
+  // Decode loop; only while live (freeze the resolved word during the exit).
   useEffect(() => {
     if (phase !== 'live' || (!previewing && !connecting)) {
       return
@@ -144,7 +144,7 @@ export function GatewayConnectingOverlay() {
     }
   }, [phase, previewing])
 
-  // Boot failed — BootFailureOverlay owns the screen; don't linger behind it.
+  // Boot failed; BootFailureOverlay owns the screen; don't linger behind it.
   if (boot.error && !previewing) {
     return null
   }
@@ -154,7 +154,7 @@ export function GatewayConnectingOverlay() {
     return null
   }
 
-  // Never showed (e.g. gateway already up on a warm reload) — stay out.
+  // Never showed (e.g. gateway already up on a warm reload); stay out.
   if (!previewing && !connecting && !shownRef.current) {
     return null
   }

@@ -1,0 +1,14 @@
+name: tool_routing
+version: "1"
+category: tool_routing
+min_pass_rate: 0.9
+tasks:
+  - id: route_web_search
+    input: "Find recent news about solar adoption"
+    expect_contains: "web_search"
+    mock_output: "tool: web_search query=solar adoption news"
+    max_cost_usd: 0.05
+  - id: route_file_read
+    input: "Read README.md in the repo"
+    expect_contains: "read_file"
+    mock_output: "tool: read_file path=README.md"

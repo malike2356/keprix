@@ -1,0 +1,24 @@
+name: hello-agent
+version: 1.0.0
+display_name: Hello Agent
+description: Sample portable agent app with a Python greeting entrypoint.
+category: custom
+runtime: python
+entrypoint: agents.main:run
+tools:
+  - tools/greet.yaml
+playbooks:
+  - playbooks/welcome.yaml
+required_env: []
+required_permissions:
+  - network
+eval_suite: evals/basic.yaml
+inputs:
+  - id: name
+    label: Your name
+    type: text
+    required: false
+    default: world
+outputs:
+  - id: text
+    type: text

@@ -146,7 +146,7 @@ function resolveRequestedPathForIpc(filePath, options = {}) {
   let raw = rejectUnsafePathSyntax(filePath, purpose)
 
   // Gateway-reported cwds (config `terminal.cwd`, remote sessions) routinely
-  // arrive as `~/...`. Node's fs has no shell — without expansion the path
+  // arrive as `~/...`. Node's fs has no shell; without expansion the path
   // resolves under process.cwd() and every read "ENOENT"s forever.
   if (raw === '~' || raw.startsWith('~/') || raw.startsWith('~\\')) {
     raw = path.join(os.homedir(), raw.slice(1))

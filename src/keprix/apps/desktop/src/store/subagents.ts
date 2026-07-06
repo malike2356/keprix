@@ -14,7 +14,7 @@ export interface SubagentProgress {
   id: string
   parentId: null | string
   goal: string
-  /** The child's own stored session id — lets UIs open its session window. */
+  /** The child's own stored session id; lets UIs open its session window. */
   sessionId?: string
   model?: string
   status: SubagentStatus
@@ -31,7 +31,7 @@ export interface SubagentProgress {
   filesWritten: string[]
   stream: SubagentStreamEntry[]
   summary?: string
-  /** Active tool while running — cleared on terminal status. */
+  /** Active tool while running; cleared on terminal status. */
   currentTool?: string
 }
 

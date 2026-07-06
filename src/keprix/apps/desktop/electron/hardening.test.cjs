@@ -112,7 +112,7 @@ test('resolveRequestedPathForIpc expands ~ to the home directory', () => {
     resolveRequestedPathForIpc('~/www/project', { purpose: 'Directory read' }),
     path.resolve(os.homedir(), 'www/project')
   )
-  // `~user` shorthand is NOT expanded — only the caller's own home.
+  // `~user` shorthand is NOT expanded; only the caller's own home.
   assert.equal(
     resolveRequestedPathForIpc('~other/secret', { baseDir: os.tmpdir(), purpose: 'Directory read' }),
     path.resolve(os.tmpdir(), '~other/secret')

@@ -1,4 +1,4 @@
-// Simple eval helper — runs an expression and returns the result.value.
+// Simple eval helper; runs an expression and returns the result.value.
 const targets = await (await fetch('http://127.0.0.1:9222/json')).json()
 const t = targets.find((t) => t.url.includes('5174'))
 const ws = new WebSocket(t.webSocketDebuggerUrl)

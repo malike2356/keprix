@@ -9,8 +9,8 @@ Scientific references for all calculators used in the fitness-nutrition skill.
 | Category     | BMI Range  |
 |-------------|------------|
 | Underweight | < 18.5     |
-| Normal      | 18.5 – 24.9 |
-| Overweight  | 25.0 – 29.9 |
+| Normal      | 18.5 - 24.9 |
+| Overweight  | 25.0 - 29.9 |
 | Obese       | 30.0+      |
 
 **Limitation:** BMI does not distinguish muscle from fat. A muscular person
@@ -20,7 +20,7 @@ Reference: Quetelet, A. (1832). Keys et al., Int J Obes (1972).
 
 ## TDEE (Total Daily Energy Expenditure)
 
-Uses the **Mifflin-St Jeor equation** — the most accurate BMR predictor for
+Uses the **Mifflin-St Jeor equation**; the most accurate BMR predictor for
 the general population according to the ADA (2005).
 
 **BMR formulas:**
@@ -62,12 +62,12 @@ Recommended splits based on goal:
 | Maintenance | 30%     | 30%  | 40%   | 0              |
 | Lean bulk   | 30%     | 25%  | 45%   | +400 kcal      |
 
-Protein targets for muscle growth: 1.6–2.2 g/kg body weight per day.
+Protein targets for muscle growth: 1.6-2.2 g/kg body weight per day.
 Minimum fat intake: 0.5 g/kg to support hormone production.
 
 Conversion: Protein = 4 kcal/g, Fat = 9 kcal/g, Carbs = 4 kcal/g.
 
-Reference: Morton et al., Br J Sports Med 52, 376–384 (2018).
+Reference: Morton et al., Br J Sports Med 52, 376-384 (2018).
 
 ## Body Fat % (US Navy Method)
 
@@ -96,5 +96,5 @@ Reference: Hodgdon & Beckett, Naval Health Research Center (1984).
 
 ## APIs
 
-- wger: https://wger.de/api/v2/ — AGPL-3.0, exercise data is CC-BY-SA 3.0
-- USDA FoodData Central: https://api.nal.usda.gov/fdc/v1/ — public domain (CC0 1.0)
+- wger: https://wger.de/api/v2/; AGPL-3.0, exercise data is CC-BY-SA 3.0
+- USDA FoodData Central: https://api.nal.usda.gov/fdc/v1/; public domain (CC0 1.0)

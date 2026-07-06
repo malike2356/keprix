@@ -12,9 +12,16 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from keprix.config.settings import get_settings
 from keprix.database import Base
-
-# Import all models here so Alembic autogenerate finds them
-# from keprix.models import conversations, users, tools  # uncomment as models are added
+from keprix.db.models import (  # noqa: F401
+    ContactActionPreferencesRow,
+    ContactRow,
+    ContactSyncSourceRow,
+    EmailAccountRow,
+    EmailDraftRow,
+    EmailRow,
+    VaultItemRow,
+)
+from keprix.security.audit import AuditLogEntry  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:
@@ -23,7 +30,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.database_url_sync)
+config.set_main_option("sqlalchemy.url", settings.database_url)
 
 
 def run_migrations_offline() -> None:

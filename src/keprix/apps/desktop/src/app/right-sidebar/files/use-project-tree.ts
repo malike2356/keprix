@@ -64,7 +64,7 @@ export interface UseProjectTreeResult {
   /** Bumped by collapseAll so callers can remount the tree fully collapsed. */
   collapseNonce: number
   data: TreeNode[]
-  /** Directory actually displayed — differs from the requested cwd when the
+  /** Directory actually displayed; differs from the requested cwd when the
    *  session's recorded cwd no longer exists and we fell back to the default
    *  workspace dir. */
   effectiveCwd: string
@@ -125,7 +125,7 @@ function clearProjectTree() {
 /** Sessions record their launch cwd; deleted worktrees and remote-backend
  *  paths arrive here as directories that don't exist on this machine. Rather
  *  than bricking the tree, display the sanitized workspace fallback (main
- *  prefers the configured default project dir). Local connections only —
+ *  prefers the configured default project dir). Local connections only;
  *  remote trees are read through the remote bridge. */
 async function fallbackRootFor(cwd: string): Promise<string | null> {
   if ($connection.get()?.mode === 'remote') {

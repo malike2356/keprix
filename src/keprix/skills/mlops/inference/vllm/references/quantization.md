@@ -227,11 +227,11 @@ python quantize_gptq.py --model MODEL --output OUTPUT
 
 | Quantization | Accuracy | Memory | Speed | Production-Ready |
 |--------------|----------|--------|-------|------------------|
-| FP16 (baseline) | 100% | 140GB | 1.0x | ✅ (if memory available) |
-| FP8 | 99.5% | 70GB | 1.8x | ✅ (H100 only) |
-| AWQ 4-bit | 99.0% | 35GB | 1.5x | ✅ (best for 70B) |
-| GPTQ 4-bit | 98.5% | 35GB | 1.5x | ✅ (good compatibility) |
-| SqueezeLLM 3-bit | 96.0% | 26GB | 1.3x | ⚠️ (check accuracy) |
+| FP16 (baseline) | 100% | 140GB | 1.0x | Done:  (if memory available) |
+| FP8 | 99.5% | 70GB | 1.8x | Done:  (H100 only) |
+| AWQ 4-bit | 99.0% | 35GB | 1.5x | Done:  (best for 70B) |
+| GPTQ 4-bit | 98.5% | 35GB | 1.5x | Done:  (good compatibility) |
+| SqueezeLLM 3-bit | 96.0% | 26GB | 1.3x | WARNING:  (check accuracy) |
 
 **When to use each**:
 
@@ -278,7 +278,7 @@ print(f"Accuracy degradation: {degradation:.2f}%")
 
 # Decision
 if degradation < 1.0:
-    print("✅ Quantization acceptable for production")
+    print("Done:  Quantization acceptable for production")
 else:
-    print("⚠️ Review accuracy loss")
+    print("WARNING:  Review accuracy loss")
 ```

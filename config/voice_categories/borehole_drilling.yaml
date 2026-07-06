@@ -1,0 +1,15 @@
+categories:
+  - id: quote_ready
+    label: Quote ready - price
+    description: Announce the quote is ready; price via TTS
+    domain: borehole_drilling
+    is_dynamic: true
+    dynamic_placeholder: "{price}"
+    sort_order: 100
+  - id: cwsa_not_compliant
+    label: CWSA issue found
+    description: Announce a CWSA compliance issue
+    domain: borehole_drilling
+    is_dynamic: true
+    dynamic_placeholder: "{issue}"
+    sort_order: 101

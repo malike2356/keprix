@@ -66,7 +66,7 @@ export function useModelControls({ activeSessionId, queryClient, requestGateway 
 
   // Returns whether the switch succeeded so callers can await it before
   // applying follow-up changes (e.g. editing a model's reasoning/fast must land
-  // on the right active model — bail rather than write to the previous one).
+  // on the right active model; bail rather than write to the previous one).
   const selectModel = useCallback(
     async (selection: ModelSelection): Promise<boolean> => {
       const includeGlobal = selection.persistGlobal || !activeSessionId

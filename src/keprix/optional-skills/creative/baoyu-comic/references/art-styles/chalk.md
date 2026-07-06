@@ -77,24 +77,24 @@ Classic classroom chalkboard aesthetic with hand-drawn chalk illustrations. Nost
 
 ## Quality Markers
 
-- ✓ Authentic chalk texture throughout
-- ✓ Imperfect, hand-drawn quality
-- ✓ Readable despite sketchy style
-- ✓ Nostalgic classroom feel
-- ✓ Effective color hierarchy
-- ✓ Playful educational aesthetic
+-  Authentic chalk texture throughout
+-  Imperfect, hand-drawn quality
+-  Readable despite sketchy style
+-  Nostalgic classroom feel
+-  Effective color hierarchy
+-  Playful educational aesthetic
 
 ## Compatibility
 
 | Tone | Fit | Notes |
 |------|-----|-------|
-| neutral | ✓✓ | Classic educational |
-| warm | ✓✓ | Nostalgic feel |
-| dramatic | ✗ | Style mismatch |
-| vintage | ✓ | Old school feel |
-| romantic | ✗ | Style mismatch |
-| energetic | ✓✓ | Fun learning |
-| action | ✗ | Style mismatch |
+| neutral |  | Classic educational |
+| warm |  | Nostalgic feel |
+| dramatic |  | Style mismatch |
+| vintage |  | Old school feel |
+| romantic |  | Style mismatch |
+| energetic |  | Fun learning |
+| action |  | Style mismatch |
 
 ## Best For
 

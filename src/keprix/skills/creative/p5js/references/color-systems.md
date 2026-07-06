@@ -11,8 +11,8 @@ colorMode(HSB, 360, 100, 100, 100);
 // Brightness: 0-100 (black to full)
 // Alpha: 0-100
 
-fill(200, 80, 90);        // blue, vivid, bright
-fill(200, 80, 90, 50);    // 50% transparent
+fill(200, 80, 90); // blue, vivid, bright
+fill(200, 80, 90, 50); // 50% transparent
 ```
 
 HSB advantages:
@@ -34,14 +34,14 @@ colorMode(HSL, 360, 100, 100, 100);
 ### RGB
 
 ```javascript
-colorMode(RGB, 255, 255, 255, 255);  // default
+colorMode(RGB, 255, 255, 255, 255); // default
 // Direct channel control, less intuitive for procedural palettes
 ```
 
 ## Color Objects
 
 ```javascript
-let c = color(200, 80, 90);    // create color object
+let c = color(200, 80, 90); // create color object
 fill(c);
 
 // Extract components
@@ -55,7 +55,7 @@ let a = alpha(c);
 
 // Hex colors work everywhere
 fill('#e8d5b7');
-fill('#e8d5b7cc');  // with alpha
+fill('#e8d5b7cc'); // with alpha
 
 // Modify via setters
 c.setAlpha(128);
@@ -67,9 +67,9 @@ c.setRed(200);
 ### lerpColor
 
 ```javascript
-let c1 = color(0, 80, 100);    // red
-let c2 = color(200, 80, 100);  // blue
-let mixed = lerpColor(c1, c2, 0.5);  // midpoint blend
+let c1 = color(0, 80, 100); // red
+let c2 = color(200, 80, 100); // blue
+let mixed = lerpColor(c1, c2, 0.5); // midpoint blend
 // Works in current colorMode
 ```
 
@@ -84,7 +84,7 @@ let colors = [
   color('#EE6C4D'),
   color('#F5E663')
 ];
-let c = paletteLerp(colors, t);  // t = 0..1, interpolates through all
+let c = paletteLerp(colors, t); // t = 0..1, interpolates through all
 ```
 
 ### Manual Multi-Stop Gradient
@@ -262,21 +262,21 @@ const CLAY     = ['#3b2f2f', '#6b4c4c', '#9e7676', '#c9a0a0', '#e8caca'];
 ## Blend Modes
 
 ```javascript
-blendMode(BLEND);       // default — alpha compositing
-blendMode(ADD);         // additive — bright glow effects
-blendMode(MULTIPLY);    // darkening — shadows, texture overlay
-blendMode(SCREEN);      // lightening — soft glow
-blendMode(OVERLAY);     // contrast boost — high/low emphasis
-blendMode(DIFFERENCE);  // color subtraction — psychedelic
-blendMode(EXCLUSION);   // softer difference
-blendMode(REPLACE);     // overwrite (no alpha blending)
-blendMode(REMOVE);      // subtract alpha
-blendMode(LIGHTEST);    // keep brighter pixel
-blendMode(DARKEST);     // keep darker pixel
-blendMode(BURN);        // darken + saturate
-blendMode(DODGE);       // lighten + saturate
-blendMode(SOFT_LIGHT);  // subtle overlay
-blendMode(HARD_LIGHT);  // strong overlay
+blendMode(BLEND); // default; alpha compositing
+blendMode(ADD); // additive; bright glow effects
+blendMode(MULTIPLY); // darkening; shadows, texture overlay
+blendMode(SCREEN); // lightening; soft glow
+blendMode(OVERLAY); // contrast boost; high/low emphasis
+blendMode(DIFFERENCE); // color subtraction; psychedelic
+blendMode(EXCLUSION); // softer difference
+blendMode(REPLACE); // overwrite (no alpha blending)
+blendMode(REMOVE); // subtract alpha
+blendMode(LIGHTEST); // keep brighter pixel
+blendMode(DARKEST); // keep darker pixel
+blendMode(BURN); // darken + saturate
+blendMode(DODGE); // lighten + saturate
+blendMode(SOFT_LIGHT); // subtle overlay
+blendMode(HARD_LIGHT); // strong overlay
 
 // ALWAYS reset after use
 blendMode(BLEND);

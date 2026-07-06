@@ -35,7 +35,7 @@ interface Labelable {
 /**
  * Disambiguate groups whose basename collides (worktrees all end in the same
  * `apps/desktop`, sibling repos share a folder name, etc.) by walking up the
- * path and prepending parent segments until each colliding label is unique —
+ * path and prepending parent segments until each colliding label is unique;
  * e.g. `hermes-agent/desktop` vs `hermes-agent-wt-rtl/desktop`. Groups with a
  * unique basename keep their short label untouched.
  */
@@ -110,7 +110,7 @@ export function workspaceGroupsFor(
   if (!options.preserveSessionOrder) {
     // Groups keep recency order (Map insertion = first-seen in the recency-sorted
     // input, so an active project floats up), but rows *within* a group sort by
-    // creation time so they don't reshuffle every time a message lands — keeps
+    // creation time so they don't reshuffle every time a message lands; keeps
     // muscle memory intact.
     for (const group of groups.values()) {
       group.sessions.sort((a, b) => b.started_at - a.started_at)
@@ -201,7 +201,7 @@ function placeWorkspace(path: string, resolver?: WorktreeResolver): WorkspacePla
       parentLabel: baseName(info.repoRoot) ?? info.repoRoot,
       parentPath: info.repoRoot,
       worktreeKey: info.worktreeRoot,
-      // The main checkout's branch is transient — it changes as you work, so a
+      // The main checkout's branch is transient; it changes as you work, so a
       // branch label would misattribute every past session to whatever branch
       // is checked out *now*. Label it by directory. Linked worktrees are
       // per-branch by construction, so branch is the clearest label there.
@@ -213,7 +213,7 @@ function placeWorkspace(path: string, resolver?: WorktreeResolver): WorkspacePla
   return placeByHeuristic(path)
 }
 
-/** Unique, non-empty session cwds — the batch to probe for worktree info. */
+/** Unique, non-empty session cwds; the batch to probe for worktree info. */
 export function uniqueCwds(sessions: SessionInfo[]): string[] {
   const seen = new Set<string>()
 

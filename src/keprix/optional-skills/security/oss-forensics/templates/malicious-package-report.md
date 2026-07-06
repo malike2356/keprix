@@ -2,7 +2,7 @@
 
 ---
 
-## 📦 Package Metadata
+##  Package Metadata
 - **Package Name**: 
 - **Registry**: [NPM / PyPI / RubyGems / etc.]
 - **Affected Versions**: 
@@ -12,7 +12,7 @@
 
 ---
 
-## 🚩 Indicators of Compromise (IOCs)
+##  Indicators of Compromise (IOCs)
 - **Malicious URL(s)**: 
 - **Exfiltrated Data Types**: [Environment variables, ~/.ssh/id_rsa, /etc/shadow, etc.]
 - **Exfiltration Method**: [DNS tunneling, HTTP POST to C2, etc.]
@@ -20,7 +20,7 @@
 
 ---
 
-## 🛠️ Analysis Summary
+##  Analysis Summary
 - **Primary Mechanism**: [Typosquatting / Dependency Confusion / Maintainer Takeover]
 - **Behavior Description**: 
   - [Example: Installs a postinstall script that exfiltrates environment variables.]
@@ -28,7 +28,7 @@
 
 ---
 
-## 🔍 Evidence Registry
+##  Evidence Registry
 | Evidence ID | Type | Source | Description |
 |-------------|------|--------|-------------|
 | EV-XXXX     | ioc  | NPM    | Package install script snapshot |
@@ -36,7 +36,7 @@
 
 ---
 
-## 🛡️ Recommended Mitigations
+##  Recommended Mitigations
 1. [ ] Unpublish/Report the package to the registry.
 2. [ ] Audit `package-lock.json` or `requirements.txt` across all projects.
 3. [ ] Rotate secrets exfiltrated via environment variables.

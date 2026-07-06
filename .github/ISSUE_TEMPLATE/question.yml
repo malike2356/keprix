@@ -1,0 +1,23 @@
+name: Question
+description: Ask a usage question (Discussions preferred).
+title: "[Question]: "
+labels: ["needs-info"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For usage questions, GitHub Discussions Q&A is preferred when no bug is involved.
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you tried so far?
+    validations:
+      required: true

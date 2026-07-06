@@ -1,0 +1,34 @@
+{
+  "templates": [
+    {
+      "id": "daily-standup",
+      "name": "daily-standup",
+      "display_name": "Daily Standup",
+      "description": "Summarises open tasks and recent activity into standup bullets.",
+      "category": "productivity",
+      "tier": "free",
+      "icon": "standup",
+      "featured": true
+    },
+    {
+      "id": "research-brief",
+      "name": "research-brief",
+      "display_name": "Research Brief",
+      "description": "Turns a topic into a structured literature-style brief.",
+      "category": "research",
+      "tier": "pro",
+      "icon": "science",
+      "featured": true
+    },
+    {
+      "id": "invoice-review",
+      "name": "invoice-review",
+      "display_name": "Invoice Review",
+      "description": "Extracts line items and flags anomalies from invoice text.",
+      "category": "finance",
+      "tier": "pro",
+      "icon": "receipt",
+      "featured": false
+    }
+  ]
+}

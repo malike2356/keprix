@@ -8,7 +8,7 @@ Bloom, CRT scanlines, chromatic aberration, and feedback glow patterns for live 
 
 ### Built-in Bloom TOP
 
-TD's `bloomTOP` is the fastest path — GPU-accelerated, no shader needed.
+TD's `bloomTOP` is the fastest path; GPU-accelerated, no shader needed.
 
 ```python
 bloom = root.create(bloomTOP, 'bloom1')
@@ -29,7 +29,7 @@ bloom.par.strength.expr = "op('audio_env')['envelope'][0] * 3.0 + 0.5"
 For multi-pass bloom with color tinting:
 
 ```glsl
-// bloom_pixel.glsl — pass1: threshold + tint
+// bloom_pixel.glsl; pass1: threshold + tint
 out vec4 fragColor;
 uniform float uThreshold;
 uniform vec3 uBloomColor;
@@ -48,15 +48,15 @@ Then blur with `blurTOP` (size ~0.02-0.05), composite back over source with `add
 
 ## CRT / Scanlines
 
-Pure GLSL — create a `glslTOP` and paste into its `_pixel` DAT.
+Pure GLSL; create a `glslTOP` and paste into its `_pixel` DAT.
 
 ```glsl
 // crt_pixel.glsl
 out vec4 fragColor;
 uniform float uTime;
-uniform float uScanlineIntensity;  // 0.0 - 1.0, default 0.4
-uniform float uCurvature;          // 0.0 - 0.15, default 0.05
-uniform float uVignette;           // 0.0 - 1.0, default 0.8
+uniform float uScanlineIntensity; // 0.0 - 1.0, default 0.4
+uniform float uCurvature; // 0.0 - 0.15, default 0.05
+uniform float uVignette; // 0.0 - 1.0, default 0.8
 
 vec2 curveUV(vec2 uv, float amount) {
     uv = uv * 2.0 - 1.0;
@@ -105,7 +105,7 @@ Splits RGB channels and offsets them along screen axes.
 
 ```glsl
 out vec4 fragColor;
-uniform float uAmount;   // 0.001 - 0.02, default 0.006
+uniform float uAmount; // 0.001 - 0.02, default 0.006
 
 void main() {
     vec2 uv = vUV.st;
@@ -120,7 +120,7 @@ void main() {
 }
 ```
 
-**Audio-reactive variant** — spike aberration on beats:
+**Audio-reactive variant**; spike aberration on beats:
 ```glsl
 uniform float uBeat;
 void main() {
@@ -142,13 +142,13 @@ Warm persistent trails for glow effects.
 
 ```glsl
 out vec4 fragColor;
-uniform float uDecay;     // 0.92 - 0.98 for slow trails
-uniform vec3 uGlowColor;  // tint accumulated feedback
+uniform float uDecay; // 0.92 - 0.98 for slow trails
+uniform vec3 uGlowColor; // tint accumulated feedback
 
 void main() {
     vec2 uv = vUV.st;
-    vec4 prev = texture(sTD2DInputs[0], uv);  // feedback input
-    vec4 curr = texture(sTD2DInputs[1], uv);  // current frame
+    vec4 prev = texture(sTD2DInputs[0], uv); // feedback input
+    vec4 curr = texture(sTD2DInputs[1], uv); // current frame
 
     vec3 glow = prev.rgb * uDecay * uGlowColor;
     vec3 result = max(glow, curr.rgb);

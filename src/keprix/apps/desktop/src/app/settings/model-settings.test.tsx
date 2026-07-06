@@ -36,7 +36,7 @@ beforeEach(() => {
   getGlobalModelOptions.mockResolvedValue({
     providers: [
       { name: 'Nous', slug: 'nous', models: ['hermes-4', 'hermes-4-mini'], authenticated: true },
-      // An unconfigured api_key provider — surfaced by the full-universe payload.
+      // An unconfigured api_key provider; surfaced by the full-universe payload.
       { name: 'DeepSeek', slug: 'deepseek', models: [], authenticated: false, auth_type: 'api_key', key_env: 'DEEPSEEK_API_KEY' }
     ]
   })
@@ -67,7 +67,7 @@ describe('ModelSettings', () => {
     await waitFor(() => expect(getGlobalModelInfo).toHaveBeenCalled())
     await waitFor(() => expect(getGlobalModelOptions).toHaveBeenCalled())
 
-    // Open the provider Select — every provider from the full payload should be
+    // Open the provider Select; every provider from the full payload should be
     // listed, including the unconfigured one with its "set up" hint.
     const triggers = await screen.findAllByRole('combobox')
     fireEvent.click(triggers[0])

@@ -142,10 +142,10 @@ const PROFILE_INITIAL_PAGE = 5
 //   tall    → each section is shrink-0, capped, its own scroller; Sessions is flex-1.
 //   compact → COMPACT_FLAT drops the caps so the whole stack scrolls as one.
 // Sections stay shrink-0 so none can be squeezed below its content and bleed onto
-// the next — the flexbox `min-height: auto` overlap trap that caused the bug.
+// the next; the flexbox `min-height: auto` overlap trap that caused the bug.
 const COMPACT_FLAT = 'compact:max-h-none compact:overflow-visible'
 
-// Vertical scroll only — never a horizontal bar from glow bleed, long titles, etc.
+// Vertical scroll only; never a horizontal bar from glow bleed, long titles, etc.
 const SCROLL_Y = 'overflow-y-auto overflow-x-hidden overscroll-contain'
 
 // A non-session group's scroll body: own scroller when tall, flattened when compact.
@@ -153,12 +153,12 @@ const GROUP_BODY = cn(SCROLL_Y, COMPACT_FLAT)
 
 // Sidebar reordering is a strictly vertical list. The dragged item's transform
 // is rendered Y-only in useSortableBindings (no x, no scale); this just stops
-// dnd-kit's auto-scroll from dragging the rail — or the window — sideways when
+// dnd-kit's auto-scroll from dragging the rail; or the window; sideways when
 // the pointer nears an edge, killing the horizontal "drag to valhalla".
 const reorderAutoScroll = { threshold: { x: 0, y: 0.2 } }
 
 // One self-contained, nesting-safe reorderable list. It owns its DndContext, so a
-// drag only ever collides with THIS list's own items — drop it at any depth (repos,
+// drag only ever collides with THIS list's own items; drop it at any depth (repos,
 // worktrees, sessions) and reordering "just works" without leaking into the lists
 // around or inside it. Pair each item with useSortableBindings(id); the list reports
 // the new id order and the caller persists it. This is the single generic primitive
@@ -219,7 +219,7 @@ function orderByIds<T>(items: T[], getId: (item: T) => string, orderIds: string[
 
   // Items missing from the persisted order are new since it was last
   // reconciled. Callers pass recency-sorted lists (newest first), so surface
-  // these at the TOP instead of burying them beneath the saved order —
+  // these at the TOP instead of burying them beneath the saved order;
   // otherwise a brand-new session sinks to the bottom of the sidebar and reads
   // as "my latest session never showed up".
   const fresh = items.filter(item => !seen.has(getId(item)))
@@ -415,7 +415,7 @@ export function ChatSidebar({
     [sessions, showAllProfiles, profileScope]
   )
 
-  // Agent session order is pinned to creation time (started_at), NOT activity —
+  // Agent session order is pinned to creation time (started_at), NOT activity;
   // a new message must never float a session to the top. Position only changes
   // for a brand-new session or an explicit manual drag (agentOrderIds).
   const sortedSessions = useMemo(
@@ -431,7 +431,7 @@ export function ChatSidebar({
     const map = new Map<string, SessionInfo>()
 
     // Cron sessions are listed separately but can still be pinned, so index
-    // them too — otherwise a pinned cron job can't resolve into the Pinned
+    // them too; otherwise a pinned cron job can't resolve into the Pinned
     // section. Recents take precedence on id collisions (set last).
     for (const s of [...cronSessions, ...visibleSessions]) {
       map.set(s.id, s)
@@ -706,7 +706,7 @@ export function ChatSidebar({
 
   // Pagination is scope-aware. In "All profiles" mode it tracks the global
   // unified set. When scoped to one profile it must compare that profile's own
-  // loaded rows against that profile's total — otherwise a huge default profile
+  // loaded rows against that profile's total; otherwise a huge default profile
   // keeps "Load more" stuck on while you browse a small one (the aggregator's
   // total sums every profile). Per-profile totals come from the aggregator
   // (children excluded); fall back to the global total / loaded count.
@@ -765,7 +765,7 @@ export function ChatSidebar({
   const showSessionSections = showSessionSkeletons || sortedSessions.length > 0
 
   // Each reorderable list reports its OWN new id order; persisting is a direct,
-  // typed write — no id-prefix sniffing to figure out which level moved.
+  // typed write; no id-prefix sniffing to figure out which level moved.
   const reorderSessions = (ids: string[]) => {
     setSidebarSessionOrderManual(true)
     setSidebarSessionOrderIds(ids)
@@ -800,7 +800,7 @@ export function ChatSidebar({
           ? 'border-(--sidebar-edge-border) bg-(--ui-sidebar-surface-background) opacity-100'
           : 'pointer-events-none border-transparent bg-transparent opacity-0',
         // While floated by PaneShell's hover-reveal, force visible + interactive
-        // — on hover (group-hover/reveal) or when keyboard-pinned (data-forced).
+        //; on hover (group-hover/reveal) or when keyboard-pinned (data-forced).
         'in-data-[pane-hover-reveal=open]:pointer-events-auto in-data-[pane-hover-reveal=open]:border-(--sidebar-edge-border) in-data-[pane-hover-reveal=open]:bg-(--ui-sidebar-surface-background) in-data-[pane-hover-reveal=open]:opacity-100',
         'group-hover/reveal:pointer-events-auto group-hover/reveal:border-(--sidebar-edge-border) group-hover/reveal:bg-(--ui-sidebar-surface-background) group-hover/reveal:opacity-100'
       )}
@@ -942,7 +942,7 @@ export function ChatSidebar({
                   // Separate profile sections clearly in the ALL view; rows inside
                   // each group keep their own tight gap-px rhythm.
                   showAllProfiles ? 'gap-3' : 'gap-px',
-                  // Flatten into the single scroll when compact — unless this is the
+                  // Flatten into the single scroll when compact; unless this is the
                   // virtualized long list, which must keep its own scroller.
                   !recentsVirtualizes && COMPACT_FLAT
                 )}
@@ -964,7 +964,7 @@ export function ChatSidebar({
                 groups={displayAgentGroups}
                 headerAction={
                   // Always reserve the icon-xs (size-6) slot so the header keeps the
-                  // same height whether or not the toggle renders — otherwise the
+                  // same height whether or not the toggle renders; otherwise the
                   // "Sessions" label jumps when switching to the ALL-profiles view.
                   // Grouping operates on unpinned recents; if everything is pinned
                   // the toggle does nothing, and it's irrelevant in the ALL-profiles
@@ -1423,7 +1423,7 @@ function SidebarWorkspaceGroup({
         // minmax(0,1fr): pin the single column to the rail width. A bare `grid`
         // auto column sizes to the widest child's MAX-content (the full,
         // untruncated label), overflowing the rail so overflow-x-hidden clips the
-        // +/grabber off-screen — the inner truncate never gets a bounded width.
+        // +/grabber off-screen; the inner truncate never gets a bounded width.
         'grid grid-cols-[minmax(0,1fr)] gap-px data-[dragging=true]:z-10 data-[dragging=true]:rounded-md data-[dragging=true]:bg-(--ui-sidebar-surface-background) data-[dragging=true]:will-change-transform',
         className
       )}
@@ -1491,7 +1491,7 @@ interface SidebarWorkspaceParentProps extends React.ComponentProps<'div'> {
   renderRows: (sessions: SessionInfo[]) => React.ReactNode
   onNewSession?: (path: null | string) => void
   // When set, this parent's worktrees reorder inside their OWN ReorderableList, so a
-  // worktree drag only ever collides with its siblings — never the repos around it.
+  // worktree drag only ever collides with its siblings; never the repos around it.
   onReorderWorktree?: (parentId: string, ids: string[]) => void
   dndSensors?: ReturnType<typeof useSensors>
   // Whether this parent itself is draggable (set by useSortableBindings).
@@ -1675,7 +1675,7 @@ function WorkspaceReorderHandle({
   )
 }
 
-// "+" affordance shared by repo and worktree headers — reveals on header hover.
+// "+" affordance shared by repo and worktree headers; reveals on header hover.
 function WorkspaceAddButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <Tip label={label}>

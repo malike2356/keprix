@@ -1,0 +1,30 @@
+id: survey_analysis
+name: Survey Analysis
+description: Import a survey dataset, validate codebook, run statistics, and generate a report.
+domain: generic
+steps:
+  - id: import_dataset
+    title: Import dataset
+    action: dataset.import
+    risk: low
+  - id: create_codebook
+    title: Create codebook
+    action: dataset.codebook
+    risk: low
+  - id: validate_missing
+    title: Validate missing values
+    action: dataset.validate_missing
+    risk: medium
+  - id: descriptive_stats
+    title: Generate descriptive statistics
+    action: stats.descriptive
+    risk: medium
+  - id: statistical_tests
+    title: Run selected statistical tests
+    action: stats.tests
+    risk: high
+    requires_review: true
+  - id: generate_report
+    title: Generate report
+    action: report.generate
+    risk: medium

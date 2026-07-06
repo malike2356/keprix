@@ -9,11 +9,11 @@ metadata:
     category: email
 ---
 
-# AgentMail — Agent-Owned Email Inboxes
+# AgentMail; Agent-Owned Email Inboxes
 
 ## Requirements
 
-- **AgentMail API key** (required) — sign up at https://console.agentmail.to (free tier: 3 inboxes, 3,000 emails/month; paid plans from $20/mo)
+- **AgentMail API key** (required); sign up at https://console.agentmail.to (free tier: 3 inboxes, 3,000 emails/month; paid plans from $20/mo)
 - Node.js 18+ (for the MCP server)
 
 ## When to Use
@@ -35,7 +35,7 @@ AgentMail gives the agent its own identity and inbox.
 - Create an account and generate an API key (starts with `am_`)
 
 ### 2. Configure MCP Server
-Add to `~/.keprix/config.yaml` (paste your actual key — MCP env vars are not expanded from .env):
+Add to `~/.keprix/config.yaml` (paste your actual key; MCP env vars are not expanded from .env):
 ```yaml
 mcp_servers:
   agentmail:
@@ -110,7 +110,7 @@ All 11 AgentMail tools are now available automatically.
 - Emails come from `@agentmail.to` domain on free tier (custom domains on paid plans)
 - Node.js (18+) is required for the MCP server (`npx -y agentmail-mcp`)
 - The `mcp` Python package must be installed: `pip install mcp`
-- Real-time inbound email (webhooks) requires a public server — use `list_threads` polling via cronjob instead for personal use
+- Real-time inbound email (webhooks) requires a public server; use `list_threads` polling via cronjob instead for personal use
 
 ## Verification
 After setup, test with:

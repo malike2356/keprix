@@ -18,7 +18,7 @@ const BACKSLASH = 92
 const isSpace = (c: number) => c === SPACE || c === TAB
 
 /**
- * Index of the last top-level block start — the char after the most recent
+ * Index of the last top-level block start; the char after the most recent
  * blank line that sits outside any open code fence or `$$` math block. An
  * unclosed fence/math always begins after that blank, so it stays wholly
  * inside the window without separate tracking. One cheap char pass, no regex.

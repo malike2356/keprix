@@ -38,7 +38,7 @@ Final paragraph with ~~strike~~ and unfinished [link text](https://exa
 
 /**
  * Render-equivalence oracle: full-text remend and tail-bounded remend may
- * differ in raw string output ONLY in ways that cannot affect rendering —
+ * differ in raw string output ONLY in ways that cannot affect rendering;
  * i.e. after block splitting, every block must be identical. (Streamdown
  * renders blocks independently, so block-level equality IS render equality.)
  */
@@ -92,7 +92,7 @@ describe('tailBoundedRemend', () => {
     // Full remend scans the whole document and appends `**` for an opener
     // left dangling in an EARLIER block, dumping stray asterisks into the
     // unrelated tail block ("|**"). Because Streamdown splits into blocks
-    // after the repair, that opener never renders as bold either way — the
+    // after the repair, that opener never renders as bold either way; the
     // tail-bounded result is the cleaner of the two. This test documents
     // the divergence so a future remend upgrade that changes the behavior
     // gets noticed.

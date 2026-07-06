@@ -14,6 +14,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse, Response
 
 from keprix.api.admin_routes import router as admin_router
+from keprix.api.audio_routes import router as audio_router
 from keprix.api.analytics_routes import router as analytics_router
 from keprix.analytics.workspace_routes import router as analytics_workspace_router
 from keprix.api.auth import PUBLIC_PATHS, require_admin  # noqa: F401 - documents public routes
@@ -79,6 +80,7 @@ from keprix.api.admin_workspace_routes import router as admin_workspace_router
 from keprix.api.conversation_routes import router as conversation_router
 from keprix.api.stats_routes import router as dashboard_stats_router
 from keprix.api.dashboard_routes import router as dashboard_router
+from keprix.api.admin_dashboard_routes import router as admin_dashboard_router
 from keprix.ui_contract.routes import router as ui_contract_router
 from keprix.coding.routes import router as coding_router
 from keprix.code_agent.routes import router as code_agent_router
@@ -106,6 +108,7 @@ from keprix.hub.routes import router as hub_router
 from keprix.pack_gate.routes import router as pack_gate_router
 from keprix.notify_external.routes import router as notify_external_router
 from keprix.agent_apps.routes import router as agent_apps_router
+from keprix.agent_apps.public_routes import router as agent_apps_public_router
 from keprix.personas.routes import router as personas_router
 from keprix.kernel.routes import router as kernel_router
 from keprix.documents.routes import router as documents_router
@@ -318,8 +321,10 @@ def create_app() -> FastAPI:
         app.include_router(billing_router)
 
     app.include_router(health_router)
+    app.include_router(audio_router)
     app.include_router(stats_router)
     app.include_router(dashboard_router)
+    app.include_router(admin_dashboard_router)
     app.include_router(conversation_router)
     app.include_router(usage_router)
     app.include_router(admin_workspace_router)
@@ -362,6 +367,7 @@ def create_app() -> FastAPI:
     app.include_router(hub_router)
     app.include_router(pack_gate_router)
     app.include_router(agent_apps_router)
+    app.include_router(agent_apps_public_router)
     app.include_router(personas_router)
     app.include_router(kernel_router)
     app.include_router(documents_router)

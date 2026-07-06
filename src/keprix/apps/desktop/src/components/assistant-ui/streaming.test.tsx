@@ -423,7 +423,7 @@ describe('assistant-ui streaming renderer', () => {
 
   // Scroll behavior (follow-at-bottom, escape-on-scroll-up, re-engage) is owned
   // by the use-stick-to-bottom library and covered by its own test suite. We
-  // don't re-assert its scrollTop mechanics here — doing so in jsdom (no real
+  // don't re-assert its scrollTop mechanics here; doing so in jsdom (no real
   // layout, spring animation via rAF) only produces brittle change-detector
   // tests. The rendering/streaming-content tests below remain the contract.
 
@@ -494,7 +494,7 @@ describe('assistant-ui streaming renderer', () => {
     expect(container.textContent).toContain('Interim answer.')
   })
 
-  it('does not render an inline todo panel — todos live in the composer status stack', () => {
+  it('does not render an inline todo panel; todos live in the composer status stack', () => {
     const { container } = render(
       <TodoHarness
         message={assistantTodoMessage([

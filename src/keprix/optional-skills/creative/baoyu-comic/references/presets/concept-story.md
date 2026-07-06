@@ -106,13 +106,13 @@ Every page MUST have a narrative title:
 
 ## Quality Markers
 
-- ✓ Each major concept has a recurring visual symbol
-- ✓ Dialogue and visual metaphors work together (not one replacing the other)
-- ✓ Clear growth arc from problem to transformation
-- ✓ Original characters suited to the content domain
-- ✓ Warm, professional atmosphere throughout
-- ✓ Visual symbols recur and accumulate through the story
-- ✓ Final page integrates all concept symbols with transformation callback
+-  Each major concept has a recurring visual symbol
+-  Dialogue and visual metaphors work together (not one replacing the other)
+-  Clear growth arc from problem to transformation
+-  Original characters suited to the content domain
+-  Warm, professional atmosphere throughout
+-  Visual symbols recur and accumulate through the story
+-  Final page integrates all concept symbols with transformation callback
 
 ## Best For
 

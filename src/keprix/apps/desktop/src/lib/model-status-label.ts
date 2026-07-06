@@ -76,7 +76,7 @@ export function displayModelName(model: string): string {
   return modelDisplayParts(model).name
 }
 
-/** Status bar trigger label — model name plus the live session state (effort/fast). */
+/** Status bar trigger label; model name plus the live session state (effort/fast). */
 export function formatModelStatusLabel(
   model: string,
   options?: { fastMode?: boolean; reasoningEffort?: string }

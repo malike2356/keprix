@@ -5,7 +5,7 @@ import { type DroppedFile, partitionDroppedFiles } from './use-composer-actions'
 // A Finder/Explorer drop carries a native File handle; an in-app drag (project
 // tree, gutter line ref) is path-only. The split decides whether a drop becomes
 // an inline @file: ref (in-app, workspace-relative, gateway-resolvable) or goes
-// through the upload pipeline (OS drop — absolute local path a remote gateway
+// through the upload pipeline (OS drop; absolute local path a remote gateway
 // can't read, plus image bytes for vision).
 const osDrop = (path: string): DroppedFile => ({ file: new File(['x'], path.split('/').pop() || 'f'), path })
 const inAppRef = (path: string, extra: Partial<DroppedFile> = {}): DroppedFile => ({ path, ...extra })

@@ -73,8 +73,15 @@ dependencies = [
   # HTML sanitisation (LLM output in research reports)
   "nh3==0.2.21",
 
+  # PDF export (deep research deliverables, workspace documents)
+  "weasyprint>=63.0",
+
   # Scheduling
   "croniter==6.0.0",
+
+  # Email and contacts
+  "vobject==0.9.9",
+  "Metaphone==0.6",
 
   # Misc
   "certifi==2026.5.20",
@@ -92,6 +99,15 @@ dev = [
   "httpx==0.28.1",
   "ruff==0.11.12",
   "mypy==1.16.0",
+]
+tui = [
+  "textual>=1.0.0",
+]
+analytics = [
+  "duckdb>=1.0.0",
+  "openpyxl>=3.1.0",
+  "pyreadstat>=1.2.0",
+  "pandas>=2.2.0",
 ]
 
 [project.scripts]

@@ -1,0 +1,58 @@
+import type { TablerIcon } from "@tabler/icons-react";
+import {
+  IconApi,
+  IconApps,
+  IconArchive,
+  IconBrain,
+  IconCalendar,
+  IconChartBar,
+  IconChartLine,
+  IconClock,
+  IconCode,
+  IconDatabase,
+  IconFolder,
+  IconLayoutGrid,
+  IconLock,
+  IconMail,
+  IconMessages,
+  IconNotes,
+  IconPhoto,
+  IconPlug,
+  IconRoute,
+  IconSettings,
+  IconShield,
+  IconSparkles,
+  IconUsers,
+} from "@tabler/icons-react";
+
+const NAV_ICON_MAP: Record<string, TablerIcon> = {
+  hub: IconLayoutGrid,
+  chat: IconMessages,
+  folder: IconFolder,
+  notes: IconNotes,
+  tasks: IconRoute,
+  calendar: IconCalendar,
+  email: IconMail,
+  contacts: IconUsers,
+  users: IconUsers,
+  image: IconPhoto,
+  memory: IconBrain,
+  science: IconSparkles,
+  compare: IconChartLine,
+  monitoring: IconChartBar,
+  playbook: IconDatabase,
+  lock: IconLock,
+  schedule: IconClock,
+  extension: IconPlug,
+  backup: IconArchive,
+  settings: IconSettings,
+  code: IconCode,
+  skills: IconApps,
+  apps: IconApps,
+  payments: IconApi,
+  shield: IconShield,
+};
+
+export function getNavIcon(name: string): TablerIcon {
+  return NAV_ICON_MAP[name] || IconLayoutGrid;
+}

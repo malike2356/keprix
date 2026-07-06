@@ -1,0 +1,1 @@
+"""Scout product extension package."""

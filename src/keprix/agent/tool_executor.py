@@ -720,6 +720,17 @@ def execute_tool_calls_concurrent(agent, assistant_message, messages: list, effe
             except Exception as cb_err:
                 logging.debug(f"Tool complete callback error: {cb_err}")
 
+        try:
+            from keprix.mutation.quality import maybe_record_generated_tool_use
+
+            maybe_record_generated_tool_use(
+                name,
+                getattr(agent, "session_id", None),
+                function_result,
+            )
+        except Exception as quality_err:
+            logging.debug("mutation quality hook failed: %s", quality_err)
+
         function_result = maybe_persist_tool_result(
             content=function_result,
             tool_name=name,
@@ -1357,6 +1368,17 @@ def execute_tool_calls_sequential(agent, assistant_message, messages: list, effe
                 agent.tool_complete_callback(tool_call.id, function_name, function_args, function_result)
             except Exception as cb_err:
                 logging.debug(f"Tool complete callback error: {cb_err}")
+
+        try:
+            from keprix.mutation.quality import maybe_record_generated_tool_use
+
+            maybe_record_generated_tool_use(
+                function_name,
+                getattr(agent, "session_id", None),
+                function_result,
+            )
+        except Exception as quality_err:
+            logging.debug("mutation quality hook failed: %s", quality_err)
 
         function_result = maybe_persist_tool_result(
             content=function_result,

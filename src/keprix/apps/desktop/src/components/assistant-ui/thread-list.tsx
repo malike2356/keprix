@@ -35,10 +35,10 @@ type MessageGroup = { id: string; weight: number } & (
 
 // DOM is bounded by a rendered-PART budget, not a message/turn count: a single
 // assistant message folds every tool call into a part, so heavy sessions are
-// ~40 turns / ~100 messages but ~1000 parts — and parts are what drive node
+// ~40 turns / ~100 messages but ~1000 parts; and parts are what drive node
 // count. "Show earlier" prepends another page; whole turns stay intact so the
 // sticky human bubble never loses its turn. This is the long-session perf lever
-// WITHOUT a virtualizer — pure rendering, never touches scrollTop, so it can't
+// WITHOUT a virtualizer; pure rendering, never touches scrollTop, so it can't
 // fight use-stick-to-bottom (the single scroll owner).
 const RENDER_BUDGET = 300
 
@@ -107,7 +107,7 @@ const ThreadMessageListInner: FC<ThreadMessageListProps> = ({
   const renderEmpty = groups.length === 0 && Boolean(emptyPlaceholder)
 
   // use-stick-to-bottom owns scrollTop (single writer): follow while locked,
-  // escape on user scroll-up, re-lock at bottom. Snap instantly, not spring — a
+  // escape on user scroll-up, re-lock at bottom. Snap instantly, not spring; a
   // spring can't tell live-token growth from a session-switch bulk relayout, and
   // chasing the latter reads as the view scrolling to random spots before
   // settling. Its refs hang off our own DOM so the sticky human bubbles survive.
@@ -175,7 +175,7 @@ const ThreadMessageListInner: FC<ThreadMessageListProps> = ({
   // Reset the cap and pin to bottom on mount + every session switch (messages
   // swap in place on a long-lived runtime, so sessionKey is the only signal).
   // The swap is multi-step and lays out over many frames; letting the library
-  // follow re-pins every frame to a moving target — visible as ~10 scroll jumps.
+  // follow re-pins every frame to a moving target; visible as ~10 scroll jumps.
   // Instead: quiet it, glue to the true bottom until the height holds steady,
   // then hand back locked. Live streaming afterward uses the normal resize follow.
   useLayoutEffect(() => {

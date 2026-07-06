@@ -116,3 +116,17 @@ async def test_gdpr_health_last_retention_run_updates() -> None:
     assert get_last_retention_run() is None or isinstance(get_last_retention_run(), str)
     await apply_retention_policies()
     assert get_last_retention_run() is not None
+
+
+def test_retention_policy_round_trip(tmp_path, monkeypatch) -> None:
+    from keprix.privacy import retention as retention_module
+
+    monkeypatch.setattr(retention_module, "_privacy_dir", lambda: tmp_path)
+    row = retention_module.set_retention_policy(
+        "run_logs",
+        retain_days=120,
+        action="delete",
+    )
+    assert row["data_category"] == "run_logs"
+    policies = retention_module.get_retention_policies()
+    assert any(p["data_category"] == "run_logs" and p["retain_days"] == 120 for p in policies)

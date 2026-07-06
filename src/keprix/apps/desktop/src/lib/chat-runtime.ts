@@ -121,7 +121,7 @@ export function coerceGatewayText(value: unknown): string {
  *
  * Only the leading status prefix (e.g. "Hermes is thinking...") and the
  * obvious placeholder echoes are stripped. We deliberately do NOT trim
- * the delta — reasoning streams as small chunks (often individual tokens
+ * the delta; reasoning streams as small chunks (often individual tokens
  * with leading or trailing spaces), and trimming each chunk before
  * concatenation collapses adjacent words together. Whitespace between
  * tokens belongs to the data, not chrome.
@@ -179,7 +179,7 @@ export function attachmentDisplayText(attachment: ComposerAttachment): string | 
  * `DirectiveContent` runs `extractEmbeddedImages` first, so a raw `data:` URL
  * renders as an inline thumbnail with zero network. An `@image:<localpath>` ref
  * would instead route through `/api/media`, which in remote mode 403s ("Path
- * outside media roots") on a local path the gateway can't read yet — flashing a
+ * outside media roots") on a local path the gateway can't read yet; flashing a
  * fallback chip until submit uploads the bytes. The preview also survives the
  * post-sync rewrite (bytes go to the agent via the attached-image pipeline, not
  * this display ref), so the thumbnail stays stable instead of remounting.

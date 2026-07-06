@@ -17,8 +17,8 @@ metadata:
 
 There are two places a SKILL.md can live:
 
-1. **User-local:** `~/.keprix/skills/<maybe-category>/<name>/SKILL.md` — personal, not shared. Created via `skill_manage(action='create')`.
-2. **In-repo (this skill is about this case):** `/home/bb/keprix/skills/<category>/<name>/SKILL.md` — committed, shipped with the package. Use `write_file` + `git add`. `skill_manage(action='create')` does NOT target this tree.
+1. **User-local:** `~/.keprix/skills/<maybe-category>/<name>/SKILL.md`; personal, not shared. Created via `skill_manage(action='create')`.
+2. **In-repo (this skill is about this case):** `/home/bb/keprix/skills/<category>/<name>/SKILL.md`; committed, shipped with the package. Use `write_file` + `git add`. `skill_manage(action='create')` does NOT target this tree.
 
 ## When to Use
 
@@ -53,7 +53,7 @@ metadata:
 ---
 ```
 
-`version` / `author` / `license` / `metadata` are NOT enforced by the validator, but every peer has them — omit and your skill sticks out.
+`version` / `author` / `license` / `metadata` are NOT enforced by the validator, but every peer has them; omit and your skill sticks out.
 
 ## Size Limits
 
@@ -123,7 +123,7 @@ Pick the closest existing category. Don't invent new top-level categories casual
    assert len(content) <= 100_000
    ```
 5. **Git add + commit** on the active branch.
-6. **Note:** the CURRENT session's skill loader is cached — `skill_view` / `skills_list` will not see the new skill until a new session. This is expected, not a bug.
+6. **Note:** the CURRENT session's skill loader is cached; `skill_view` / `skills_list` will not see the new skill until a new session. This is expected, not a bug.
 
 ## Cross-Referencing Other Skills
 
@@ -134,7 +134,7 @@ Pick the closest existing category. Don't invent new top-level categories casual
 - **Small fix (typo, added pitfall, tightened trigger):** `skill_manage(action='patch', name=..., old_string=..., new_string=...)` works fine on in-repo skills.
 - **Major rewrite:** `write_file` the whole SKILL.md. `skill_manage(action='edit')` also works but requires supplying the full new content.
 - **Adding supporting files:** `write_file` to `skills/<category>/<name>/references/<file>.md`, `templates/<file>`, or `scripts/<file>`. `skill_manage(action='write_file')` also works and enforces the references/templates/scripts/assets subdir allowlist.
-- **Always commit** the edit — in-repo skills are source, not runtime state.
+- **Always commit** the edit; in-repo skills are source, not runtime state.
 
 ## Common Pitfalls
 

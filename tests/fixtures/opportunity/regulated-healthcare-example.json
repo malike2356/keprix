@@ -1,0 +1,11 @@
+{
+  "title": "Healthcare compliance automation",
+  "niche": "healthcare medical records",
+  "market": "regulated healthcare",
+  "goal": "Validate HIPAA-aware workflow automation",
+  "geography": "United States",
+  "buyer_type": "Clinic administrators",
+  "research_depth": "deep",
+  "scenario": "regulated_warnings",
+  "expect_regulated": true
+}

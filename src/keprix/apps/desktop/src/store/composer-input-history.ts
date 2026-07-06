@@ -4,14 +4,14 @@ import { atom } from 'nanostores'
  * Per-session input history browse state.
  *
  * The user-text ring is **derived from the live session messages** on each
- * keypress — it is not mirrored anywhere. This keeps a single source of truth
+ * keypress; it is not mirrored anywhere. This keeps a single source of truth
  * and avoids the entire class of seeding/dedup bugs that come from trying to
  * keep a parallel ring in sync with submit/queue/voice paths.
  *
  * We only persist the cursor and the saved draft:
- *   - `cursor` — index into the derived user-text ring (0 = newest, larger = older).
+ *   - `cursor`; index into the derived user-text ring (0 = newest, larger = older).
  *     `-1` means "not browsing".
- *   - `draftSnapshot` — the composer text at the moment the user started
+ *   - `draftSnapshot`; the composer text at the moment the user started
  *     browsing, so ArrowDown back to the "present" restores it.
  */
 export interface SessionBrowseState {

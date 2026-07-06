@@ -63,26 +63,26 @@ Full-color realistic manga style using digital painting techniques. Features ana
 
 ## Quality Markers
 
-- ✓ Anatomically accurate proportions
-- ✓ Smooth color gradients (not flat fills)
-- ✓ Realistic material textures
-- ✓ Detailed, atmospheric backgrounds
-- ✓ Natural lighting with soft shadows
-- ✓ Expressive but subtle expressions
-- ✓ Professional aesthetic
-- ✓ Clean speech bubbles
+-  Anatomically accurate proportions
+-  Smooth color gradients (not flat fills)
+-  Realistic material textures
+-  Detailed, atmospheric backgrounds
+-  Natural lighting with soft shadows
+-  Expressive but subtle expressions
+-  Professional aesthetic
+-  Clean speech bubbles
 
 ## Compatibility
 
 | Tone | Fit | Notes |
 |------|-----|-------|
-| neutral | ✓✓ | Professional content |
-| warm | ✓✓ | Nostalgic stories |
-| dramatic | ✓✓ | High drama |
-| vintage | ✓✓ | Period pieces |
-| romantic | ✗ | Style mismatch |
-| energetic | ✗ | Too refined |
-| action | ✓ | Serious action |
+| neutral |  | Professional content |
+| warm |  | Nostalgic stories |
+| dramatic |  | High drama |
+| vintage |  | Period pieces |
+| romantic |  | Style mismatch |
+| energetic |  | Too refined |
+| action |  | Serious action |
 
 ## Best For
 

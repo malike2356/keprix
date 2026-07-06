@@ -27,7 +27,7 @@ transport:
 install:
   type: git
   url: https://github.com/CyberSamuraiX/keprix-n8n-mcp.git
-  # Pin to a commit/tag. Required — manifests do not float HEAD.
+  # Pin to a commit/tag. Required; manifests do not float HEAD.
   ref: main
   # Bootstrap commands run inside the cloned directory after clone.
   bootstrap:
@@ -35,9 +35,9 @@ install:
     - ".venv/bin/pip install -r requirements.txt"
 
 # Authentication. Three shapes:
-#   type: api_key  — prompt for env vars, write to ~/.keprix/.env
-#   type: oauth    — provider-mediated or remote MCP native OAuth (case 1/2)
-#   type: none     — no credentials needed
+#   type: api_key; prompt for env vars, write to ~/.keprix/.env
+#   type: oauth; provider-mediated or remote MCP native OAuth (case 1/2)
+#   type: none; no credentials needed
 auth:
   type: api_key
   env:

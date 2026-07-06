@@ -6,24 +6,24 @@
 
 ```javascript
 noiseSeed(42);
-noiseDetail(4, 0.5);  // octaves, falloff
+noiseDetail(4, 0.5); // octaves, falloff
 
-// 1D noise — smooth undulation
-let y = noise(x * 0.01);  // returns 0.0 to 1.0
+// 1D noise; smooth undulation
+let y = noise(x * 0.01); // returns 0.0 to 1.0
 
-// 2D noise — terrain/texture
+// 2D noise; terrain/texture
 let v = noise(x * 0.005, y * 0.005);
 
-// 3D noise — animated 2D field (z = time)
+// 3D noise; animated 2D field (z = time)
 let v = noise(x * 0.005, y * 0.005, frameCount * 0.005);
 ```
 
 The scale factor (0.005 etc.) is critical:
-- `0.001` — very smooth, large features
-- `0.005` — smooth, medium features
-- `0.01` — standard generative art scale
-- `0.05` — detailed, small features
-- `0.1` — near-random, grainy
+- `0.001`; very smooth, large features
+- `0.005`; smooth, medium features
+- `0.01`; standard generative art scale
+- `0.05`; detailed, small features
+- `0.1`; near-random, grainy
 
 ### Fractal Brownian Motion (fBM)
 
@@ -65,7 +65,7 @@ function domainWarp(x, y, scale, strength, time) {
 
 ### Curl Noise
 
-Divergence-free noise field. Particles following curl noise never converge or diverge — they flow in smooth, swirling patterns.
+Divergence-free noise field. Particles following curl noise never converge or diverge; they flow in smooth, swirling patterns.
 
 ```javascript
 function curlNoise(x, y, scale, time) {
@@ -126,7 +126,7 @@ class FlowParticle {
 
   follow(field) {
     let force = field.lookup(this.pos.x, this.pos.y);
-    force.mult(0.5);  // force magnitude
+    force.mult(0.5); // force magnitude
     this.acc.add(force);
   }
 
@@ -144,7 +144,7 @@ class FlowParticle {
     if (this.pos.x < 0) this.pos.x = width;
     if (this.pos.y > height) this.pos.y = 0;
     if (this.pos.y < 0) this.pos.y = height;
-    this.prev = this.pos.copy();  // prevent wrap line
+    this.prev = this.pos.copy(); // prevent wrap line
   }
 
   display(buffer) {
@@ -273,9 +273,9 @@ for (let y = 0; y < height; y++) {
     let a = pixels[idx + 3];
 
     // Modify
-    pixels[idx] = 255 - r;       // invert red
-    pixels[idx + 1] = 255 - g;   // invert green
-    pixels[idx + 2] = 255 - b;   // invert blue
+    pixels[idx] = 255 - r; // invert red
+    pixels[idx + 1] = 255 - g; // invert green
+    pixels[idx + 2] = 255 - b; // invert blue
   }
 }
 updatePixels();
@@ -301,14 +301,14 @@ updatePixels();
 ### Built-in Filters
 
 ```javascript
-filter(BLUR, 3);        // Gaussian blur (radius)
+filter(BLUR, 3); // Gaussian blur (radius)
 filter(THRESHOLD, 0.5); // Black/white threshold
-filter(INVERT);          // Color inversion
-filter(POSTERIZE, 4);    // Reduce color levels
-filter(GRAY);            // Desaturate
-filter(ERODE);           // Thin bright areas
-filter(DILATE);          // Expand bright areas
-filter(OPAQUE);          // Remove transparency
+filter(INVERT); // Color inversion
+filter(POSTERIZE, 4); // Reduce color levels
+filter(GRAY); // Desaturate
+filter(ERODE); // Thin bright areas
+filter(DILATE); // Expand bright areas
+filter(OPAQUE); // Remove transparency
 ```
 
 ## Texture Generation
@@ -391,10 +391,10 @@ function draw() {
 
   feedback.push();
   feedback.translate(width/2, height/2);
-  feedback.scale(1.005);  // slow zoom
+  feedback.scale(1.005); // slow zoom
   feedback.rotate(0.002); // slow rotation
   feedback.translate(-width/2, -height/2);
-  feedback.tint(255, 245);  // slight fade
+  feedback.tint(255, 245); // slight fade
   feedback.image(temp, 0, 0);
   feedback.pop();
 
@@ -430,17 +430,17 @@ function draw() {
 
   // 2. Build bloom: downsample → blur → upscale
   bloomBuf.clear();
-  bloomBuf.image(scene, 0, 0, width / 4, height / 4);  // 4x downsample
-  bloomBuf.filter(BLUR, 6);  // blur the small version
+  bloomBuf.image(scene, 0, 0, width / 4, height / 4); // 4x downsample
+  bloomBuf.filter(BLUR, 6); // blur the small version
 
   // 3. Composite: scene + additive bloom
   background(0);
-  image(scene, 0, 0);           // base layer
-  blendMode(ADD);               // additive = glow
-  tint(255, 80);                // control bloom intensity (0-255)
-  image(bloomBuf, 0, 0, width, height);  // upscale back to full size
+  image(scene, 0, 0); // base layer
+  blendMode(ADD); // additive = glow
+  tint(255, 80); // control bloom intensity (0-255)
+  image(bloomBuf, 0, 0, width, height); // upscale back to full size
   noTint();
-  blendMode(BLEND);             // ALWAYS reset blend mode
+  blendMode(BLEND); // ALWAYS reset blend mode
 }
 ```
 
@@ -450,7 +450,7 @@ function draw() {
 - Tint alpha (40-120, controls glow intensity)
 - Update bloom every N frames to save perf: `if (frameCount % 2 === 0) { ... }`
 
-**Common mistake:** Forgetting `blendMode(BLEND)` after the ADD pass — everything drawn after will be additive.
+**Common mistake:** Forgetting `blendMode(BLEND)` after the ADD pass; everything drawn after will be additive.
 
 ### Trail Buffer Brightness
 
@@ -475,15 +475,15 @@ trailBuf.rect(0, 0, width, height);
 
 ```javascript
 // WRONG: low fade + low stroke = invisible
-trailBuf.fill(0, 0, 0, 5);     // long trails
+trailBuf.fill(0, 0, 0, 5); // long trails
 trailBuf.rect(0, 0, W, H);
-trailBuf.stroke(255, 30);       // too dim to ever accumulate
+trailBuf.stroke(255, 30); // too dim to ever accumulate
 trailBuf.line(px, py, x, y);
 
 // RIGHT: low fade + high stroke = visible long trails
 trailBuf.fill(0, 0, 0, 5);
 trailBuf.rect(0, 0, W, H);
-trailBuf.stroke(255, 100);      // bright enough to persist through fade
+trailBuf.stroke(255, 100); // bright enough to persist through fade
 trailBuf.line(px, py, x, y);
 ```
 
@@ -585,7 +585,7 @@ Grammar-based recursive growth for trees, plants, fractals.
 class LSystem {
   constructor(axiom, rules) {
     this.axiom = axiom;
-    this.rules = rules;  // { 'F': 'F[+F]F[-F]F' }
+    this.rules = rules; // { 'F': 'F[+F]F[-F]F' }
     this.sentence = axiom;
   }
 
@@ -637,7 +637,7 @@ class PackedCircle {
 
   overlaps(other) {
     let d = dist(this.x, this.y, other.x, other.y);
-    return d < this.r + other.r + 2;  // +2 gap
+    return d < this.r + other.r + 2; // +2 gap
   }
 
   atEdge() {
@@ -682,7 +682,7 @@ function drawVoronoi(points, colors) {
       let minDist = Infinity;
       let closest = 0;
       for (let i = 0; i < points.length; i++) {
-        let d = (x - points[i].x) ** 2 + (y - points[i].y) ** 2;  // magSq
+        let d = (x - points[i].x) ** 2 + (y - points[i].y) ** 2; // magSq
         if (d < minDist) { minDist = d; closest = i; }
       }
       let idx = 4 * (y * width + x);
@@ -754,7 +754,7 @@ function deJongAttractor(a, b, c, d, iterations) {
 
 ### Poisson Disk Sampling
 
-Even distribution that looks natural — better than pure random for placing elements.
+Even distribution that looks natural; better than pure random for placing elements.
 
 ```javascript
 function poissonDiskSampling(r, k = 30) {
@@ -817,7 +817,7 @@ function poissonDiskSampling(r, k = 30) {
 
 ## Addon Libraries
 
-### p5.brush — Natural Media
+### p5.brush; Natural Media
 
 Hand-drawn, organic aesthetics. Watercolor, charcoal, pen, marker. Requires **p5.js 2.x + WEBGL**.
 
@@ -828,9 +828,9 @@ Hand-drawn, organic aesthetics. Watercolor, charcoal, pen, marker. Requires **p5
 ```javascript
 function setup() {
   createCanvas(1200, 1200, WEBGL);
-  brush.scaleBrushes(3);  // essential for proper sizing
-  translate(-width/2, -height/2);  // WEBGL origin is center
-  brush.pick('2B');  // pencil brush
+  brush.scaleBrushes(3); // essential for proper sizing
+  translate(-width/2, -height/2); // WEBGL origin is center
+  brush.pick('2B'); // pencil brush
   brush.stroke(50, 50, 50);
   brush.strokeWeight(2);
   brush.line(100, 100, 500, 500);
@@ -843,7 +843,7 @@ function setup() {
 Built-in brushes: `2B`, `HB`, `2H`, `cpencil`, `pen`, `rotring`, `spray`, `marker`, `charcoal`, `hatch_brush`.
 Built-in vector fields: `hand`, `curved`, `zigzag`, `waves`, `seabed`, `spiral`, `columns`.
 
-### p5.grain — Film Grain & Texture
+### p5.grain; Film Grain & Texture
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/p5.grain@0.7.0/p5.grain.min.js"></script>
@@ -852,12 +852,12 @@ Built-in vector fields: `hand`, `curved`, `zigzag`, `waves`, `seabed`, `spiral`,
 ```javascript
 function draw() {
   // ... render scene ...
-  applyMonochromaticGrain(42);   // uniform grain
+  applyMonochromaticGrain(42); // uniform grain
   // or: applyChromaticGrain(42); // per-channel randomization
 }
 ```
 
-### CCapture.js — Deterministic Video Capture
+### CCapture.js; Deterministic Video Capture
 
 Records canvas at fixed framerate regardless of actual render speed. Essential for complex generative art.
 
@@ -890,6 +890,6 @@ function draw() {
 
 function stopRecording() {
   capturer.stop();
-  capturer.save();  // triggers download
+  capturer.save(); // triggers download
 }
 ```

@@ -22,7 +22,7 @@ export const $composerAttachments = atom<ComposerAttachment[]>([])
 export const $composerTerminalSelections = atom<Record<string, string>>({})
 
 // Per-thread draft stash for the decoupled composer. Session lifecycle never
-// touches this — only ChatBar's scope swap reads/writes it. Text mirrors to
+// touches this; only ChatBar's scope swap reads/writes it. Text mirrors to
 // localStorage; attachments are memory-only (blobs, upload state).
 export const SESSION_DRAFTS_STORAGE_KEY = 'hermes:composer-drafts:v3'
 
@@ -74,7 +74,7 @@ function persistDraftTexts() {
       window.localStorage.setItem(SESSION_DRAFTS_STORAGE_KEY, JSON.stringify(Object.fromEntries(entries)))
     }
   } catch {
-    // Best-effort only — quota/private-mode must never break typing.
+    // Best-effort only; quota/private-mode must never break typing.
   }
 }
 
@@ -152,7 +152,7 @@ export function removeComposerAttachment(id: string): ComposerAttachment | null 
 }
 
 /** Replace an existing attachment in place by id. No-op (returns false) when the
- * id is gone — e.g. the user removed the chip while an eager upload was still in
+ * id is gone; e.g. the user removed the chip while an eager upload was still in
  * flight, so a late success must NOT resurrect it. Use this instead of
  * addComposerAttachment for async results that may land after a removal. */
 export function updateComposerAttachment(attachment: ComposerAttachment): boolean {

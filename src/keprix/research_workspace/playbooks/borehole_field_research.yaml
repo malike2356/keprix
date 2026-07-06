@@ -1,0 +1,27 @@
+id: borehole_field_research
+name: Borehole Field Research
+description: Ghana groundwater field study workflow for borehole advisory research.
+domain: borehole_drilling
+steps:
+  - id: collect_sources
+    title: Collect borehole domain sources
+    action: sources.collect_domain
+    risk: low
+  - id: groundwater_notes
+    title: Build Ghana groundwater notes
+    action: obsidian.groundwater_notes
+    risk: low
+  - id: build_dataset
+    title: Build dataset and codebook
+    action: dataset.import
+    risk: medium
+  - id: analyze_field_data
+    title: Analyze field data
+    action: stats.descriptive
+    risk: high
+    requires_review: true
+  - id: operational_report
+    title: Generate operational insight report
+    action: report.operational_insight
+    risk: high
+    requires_review: true

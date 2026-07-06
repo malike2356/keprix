@@ -1,7 +1,7 @@
 # RCA: SSL CA cert bundle corruption after `keprix update`
 
 **Status:** resolved by `fix(ssl): surface broken CA bundles before provider calls`
-**Severity:** P2 — degrades the agent into opaque provider/client failures until the user repairs deps or CA configuration.
+**Severity:** P2; degrades the agent into opaque provider/client failures until the user repairs deps or CA configuration.
 
 ## Summary
 

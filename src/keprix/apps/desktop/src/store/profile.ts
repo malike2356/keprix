@@ -39,7 +39,7 @@ export function setActiveProfile(name: string): void {
 
 // ── Rail order ─────────────────────────────────────────────────────────────
 // User-defined order for the named (non-default) profile squares in the rail.
-// Names absent from the list fall back to alphabetical, appended at the tail —
+// Names absent from the list fall back to alphabetical, appended at the tail;
 // so a freshly created profile lands at the end until the user drags it.
 const PROFILE_ORDER_STORAGE_KEY = 'hermes.desktop.profileOrder'
 
@@ -182,7 +182,7 @@ let gatewaySwitch: Promise<void> | null = null
 // Keep the renderer's $connection (mode / baseUrl / profile) in lockstep with
 // the profile the live gateway is now on. $connection seeds from the PRIMARY
 // (window) backend at boot and otherwise only refreshes on a sleep/wake
-// reconnect — so activating a *background* profile left $connection describing
+// reconnect; so activating a *background* profile left $connection describing
 // the primary, with the wrong `mode` for everything that branches on
 // local-vs-remote. Headline symptom: with a local primary and a remote pool
 // profile active, image attachments went out via the path-based `image.attach`
@@ -207,7 +207,7 @@ async function syncConnectionToActiveProfile(profile: string): Promise<void> {
 
 // Make `profile`'s backend the active gateway, lazily opening its socket if it
 // isn't live yet. Unlike the old single-socket swap, background profiles keep
-// their sockets — so their sessions keep streaming concurrently. A null/empty
+// their sockets; so their sessions keep streaming concurrently. A null/empty
 // target means "no explicit profile" → keep the current gateway (a plain new
 // chat stays put; single-profile users never leave the primary).
 export async function ensureGatewayProfile(profile: string | null | undefined): Promise<void> {
@@ -242,7 +242,7 @@ export async function ensureGatewayProfile(profile: string | null | undefined): 
   $gatewaySwapTarget.set(target)
   gatewaySwitch = (async () => {
     // ensureGatewayForProfile opens (or reuses) the target's socket and points
-    // the active gateway at it — without closing the profile you came from.
+    // the active gateway at it; without closing the profile you came from.
     await ensureGatewayForProfile(target)
     $activeGatewayProfile.set(target)
     // The active backend just changed; resync $connection so remote-aware
@@ -277,7 +277,7 @@ $showAllProfiles.subscribe(value => persistBoolean(SHOW_ALL_PROFILES_STORAGE_KEY
 // The profile context the sidebar is currently showing: a concrete profile key,
 // or ALL_PROFILES for the unified grouped view. Concrete scope is tied to the
 // gateway so opening/selecting a profile (which swaps the gateway) moves the
-// whole sidebar with it — a real context switch, not a separate filter to keep
+// whole sidebar with it; a real context switch, not a separate filter to keep
 // in sync.
 export const $profileScope = computed([$showAllProfiles, $activeGatewayProfile], (showAll, gateway) =>
   showAll ? ALL_PROFILES : normalizeProfileKey(gateway)
@@ -303,7 +303,7 @@ export function selectProfile(name: string): void {
 
 // Start a fresh session in `name` WITHOUT collapsing the "All profiles" browse
 // view. Unlike selectProfile, it leaves $showAllProfiles untouched, so the
-// unified sidebar stays put — used by the per-profile "+" in the all-profiles
+// unified sidebar stays put; used by the per-profile "+" in the all-profiles
 // session list, where switching scope would throw away the browse state the user
 // is in. Points new chats at the profile and opens its backend so the next
 // message lands in the right place.
@@ -340,7 +340,7 @@ function orderedProfileKeys(): string[] {
   return hasDefault ? ['default', ...named] : named
 }
 
-// Switch to the default (root ~/.hermes) profile — bound to ⌘1.
+// Switch to the default (root ~/.hermes) profile; bound to ⌘1.
 export function switchToDefaultProfile(): void {
   const def = $profiles.get().find(profile => profile.is_default)
 

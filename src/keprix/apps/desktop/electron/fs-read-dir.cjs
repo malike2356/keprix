@@ -81,7 +81,7 @@ async function readDirForIpc(dirPath, options = {}) {
   let resolved
 
   try {
-    ;({ resolvedPath: resolved } = await resolveDirectoryForIpc(dirPath, {
+;({ resolvedPath: resolved } = await resolveDirectoryForIpc(dirPath, {
       fs: fsImpl,
       purpose: 'Directory read'
     }))

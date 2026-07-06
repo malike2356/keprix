@@ -29,7 +29,7 @@ class HookManager:
         for hook in self._hooks.get(event_type, []):
             hook(dict(payload))
 
-    def feed_scout(self, scout_sink: HookCallable | None, event_type: str, **payload: Any) -> None:
+    def feed_governance(self, governance_sink: HookCallable | None, event_type: str, **payload: Any) -> None:
         self.emit(event_type, **payload)
-        if scout_sink:
-            scout_sink({"event_type": event_type, **payload})
+        if governance_sink:
+            governance_sink({"event_type": event_type, **payload})

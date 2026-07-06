@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { useRef, useState } from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
 
-// No global setupFiles registers auto-cleanup, so unmount between tests —
+// No global setupFiles registers auto-cleanup, so unmount between tests;
 // otherwise a second render() leaks the first editor and getByTestId('editor')
 // matches multiple nodes.
 afterEach(cleanup)
@@ -58,7 +58,7 @@ function Harness({ onPayload }: { onPayload: (hasPayload: boolean) => void }) {
   )
 }
 
-describe('composer IME composition — send button visibility (#39614)', () => {
+describe('composer IME composition; send button visibility (#39614)', () => {
   it('shows the send button after committing CJK text without a trailing edit', async () => {
     let hasPayload = false
     const { getByTestId } = render(<Harness onPayload={p => (hasPayload = p)} />)
@@ -66,7 +66,7 @@ describe('composer IME composition — send button visibility (#39614)', () => {
 
     // Compose "你好" the way a Windows Chinese IME does: compositionstart, then
     // input events carrying uncommitted preedit text, then compositionend with
-    // the committed text already in the DOM — and crucially NO input event
+    // the committed text already in the DOM; and crucially NO input event
     // afterwards.
     await act(async () => {
       fireEvent.compositionStart(editor)

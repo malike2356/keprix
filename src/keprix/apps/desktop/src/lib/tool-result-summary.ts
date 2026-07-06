@@ -214,7 +214,7 @@ function formatFieldValue(value: unknown, depth: number): string {
 }
 
 // "Returned N items" / "0 items" / "Returned an empty object" are all
-// noise — better to render nothing and let the title carry the signal.
+// noise; better to render nothing and let the title carry the signal.
 function formatArraySummary(value: unknown[], depth: number): string {
   if (!value.length) {
     return ''

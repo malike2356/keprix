@@ -22,7 +22,7 @@ graph, comments to steer creative direction, approves the final cut.
   orchestration guidance for free; `kanban-orchestrator` is the deeper
   decomposition playbook. Add `creative-ideation` if the brief is wide-open
   and needs framing help.
-- **Personality:** Tied to the brand voice — see `assets/soul.md.tmpl`
+- **Personality:** Tied to the brand voice; see `assets/soul.md.tmpl`
 
 The director has the same toolset as everyone else, but its `SOUL.md` rules
 **forbid** execution. The "decompose, don't execute" discipline is enforced
@@ -58,7 +58,7 @@ follow. Often produces still reference frames using image-generation APIs or
 local skills.
 
 - **Toolsets:** kanban, terminal, file
-- **Skills:** `kanban-worker` plus any project-specific design skill —
+- **Skills:** `kanban-worker` plus any project-specific design skill;
   `claude-design` (UI/web), `sketch` (quick mockup variants),
   `popular-web-designs` (matching known web aesthetic), `pixel-art` (retro),
   `ascii-art` (terminal/retro), `excalidraw` (hand-drawn frames),
@@ -71,7 +71,7 @@ Maps the brief to a beat-by-beat shot list with timing. Critical for narrative
 film and music video. Often pairs with a diagramming tool.
 
 - **Toolsets:** kanban, file
-- **Skills:** `kanban-worker` plus a diagram skill — `excalidraw` (sketch),
+- **Skills:** `kanban-worker` plus a diagram skill; `excalidraw` (sketch),
   `architecture-diagram` (technical/system), `concept-diagrams` (educational/
   scientific)
 - **Outputs:** `storyboard.md` with one row per scene/shot, optional
@@ -120,9 +120,9 @@ instead of overloading one. Each loads a different creative skill.
 | `renderer-pixel` | `pixel-art` | Retro game aesthetic with era-correct palettes |
 | `renderer-comic` | `baoyu-comic` | Knowledge-comic style narrative scenes |
 | `renderer-meme` | `meme-generation` *(optional)* | Meme-style stills for satirical/social content |
-| `renderer-procedural` | (none — Python with PIL + ffmpeg directly) | Custom procedural content where no skill fits |
+| `renderer-procedural` | (none; Python with PIL + ffmpeg directly) | Custom procedural content where no skill fits |
 | `renderer-video` | (external image-to-video API: Runway / Kling / Luma) | Animating still images in narrative film |
-| `renderer-motion-graphics` | (external — Remotion CLI) | Motion graphics, kinetic typography, UI animations |
+| `renderer-motion-graphics` | (external; Remotion CLI) | Motion graphics, kinetic typography, UI animations |
 
 For external-API renderers, the profile holds the API client logic; only
 `kanban-worker` is loaded, plus the terminal toolset and the API key.
@@ -160,9 +160,9 @@ audio's energy.
 
 - **Toolsets:** kanban, terminal, file
 - **Skills:** `kanban-worker`, `songsee` (audio visualization), plus one of:
-  - `songwriting-and-ai-music` — when commissioning lyrics + Suno prompts
-  - `heartmula` — when generating music with the open-source local model
-  - `spotify` — when sourcing existing tracks
+  - `songwriting-and-ai-music`; when commissioning lyrics + Suno prompts
+  - `heartmula`; when generating music with the open-source local model
+  - `spotify`; when sourcing existing tracks
 - **Outputs:** `audio/track.mp3`, `audio/beats.json`, optional
   `audio/track-spectrogram.png`
 
@@ -201,7 +201,7 @@ transitions. Reviews each clip for pacing and quality before assembly.
 
 ### colorist
 
-Color grading. Usually optional — if the renderers already produce
+Color grading. Usually optional; if the renderers already produce
 brand-consistent output and the editor just stitches, the colorist is overkill.
 Worth including for narrative film with hero shots.
 
@@ -255,7 +255,7 @@ production) and the editor (who reviews for assembly).
 
 ### brand-cop
 
-Reviews specifically for brand compliance — colors, typography, voice. Use
+Reviews specifically for brand compliance; colors, typography, voice. Use
 when the brand guidelines are detailed and a generic reviewer might miss
 violations.
 
@@ -263,7 +263,7 @@ violations.
 - **Skills:** `kanban-worker`
 - **Outputs:** comments + `brand-review.md`
 
-## Composing teams — heuristics
+## Composing teams; heuristics
 
 - **Always:** director + at least one renderer + editor.
 - **Add writer** if scripted dialogue / narration / on-screen text exceeds a

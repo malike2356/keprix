@@ -36,7 +36,7 @@ describe('ComposerTriggerPopover i18n', () => {
   it('renders localized loading copy for slash commands', () => {
     renderPopover('/', true)
 
-    // While loading the popover shows only the spinner + loading copy — the
+    // While loading the popover shows only the spinner + loading copy; the
     // `/help` empty-state hint is reserved for the resolved (not-loading) state.
     expect(screen.getByText('查找中…')).toBeTruthy()
   })

@@ -1,6 +1,6 @@
 # Keprix Achievements
 
-> **Bundled with Keprix.** Originally authored by [@PCinkusz](https://github.com/PCinkusz) at https://github.com/PCinkusz/keprix-achievements — vendored into `plugins/keprix-achievements/` so it ships with the dashboard out-of-the-box and stays in lockstep with Keprix feature changes. Upstream repo remains the staging ground for new badges and UI iteration.
+> **Bundled with Keprix.** Originally authored by [@PCinkusz](https://github.com/PCinkusz) at https://github.com/PCinkusz/keprix-achievements; vendored into `plugins/keprix-achievements/` so it ships with the dashboard out-of-the-box and stays in lockstep with Keprix feature changes. Upstream repo remains the staging ground for new badges and UI iteration.
 >
 > When Keprix is installed via `pip install keprix` or cloned from source, this plugin auto-registers as a dashboard tab on first `keprix dashboard` launch. No separate install step. See [Built-in Plugins → keprix-achievements](../../website/docs/user-guide/features/built-in-plugins.md) in the main docs.
 
@@ -28,9 +28,9 @@ Keprix Achievements scans local Keprix sessions and unlocks badges based on real
 
 Achievements have three visible states:
 
-- **Unlocked** — earned at least one tier
-- **Discovered** — known achievement, progress visible, not earned yet
-- **Secret** — hidden until Keprix detects the first related signal
+- **Unlocked**; earned at least one tier
+- **Discovered**; known achievement, progress visible, not earned yet
+- **Secret**; hidden until Keprix detects the first related signal
 
 Most achievements level through:
 

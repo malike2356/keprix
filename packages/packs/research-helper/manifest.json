@@ -1,0 +1,19 @@
+{
+  "name": "research-helper",
+  "version": "1.0.0",
+  "type": "skill_pack",
+  "author": "Keprix",
+  "license": "MIT",
+  "description": "Starter skill pack for literature review workflows.",
+  "permissions": ["filesystem:read"],
+  "files": ["skills/research-helper/SKILL.md"],
+  "dependencies": [],
+  "setup_requirements": [],
+  "data_touched": ["~/.keprix/hub/installed/skill_pack/research-helper"],
+  "network_hosts": [],
+  "risk_level": "low",
+  "uninstall_plan": ["remove skills/research-helper"],
+  "tests": [],
+  "trust_label": "official",
+  "review_score": 4.5
+}

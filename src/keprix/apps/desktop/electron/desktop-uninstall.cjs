@@ -7,7 +7,7 @@
  * it after the app quits, and build that cleanup script for each OS.
  *
  * Kept standalone (no `require('electron')`) so it can be unit-tested with
- * `node --test` — same pattern as connection-config.cjs / backend-probes.cjs.
+ * `node --test`; same pattern as connection-config.cjs / backend-probes.cjs.
  * main.cjs requires these and wires them into the electron-coupled IPC layer.
  *
  * The three modes mirror the CLI's options exactly:
@@ -22,7 +22,7 @@
  * `hermes` command runs from, and every mode may need to delete the running
  * app bundle (locked on macOS/Windows while the process is alive). So we hand
  * the work to a detached child that waits for this app's PID to exit, runs the
- * Python uninstall, then removes the app bundle — then the app quits. Same
+ * Python uninstall, then removes the app bundle; then the app quits. Same
  * shape as the self-update swap-and-relaunch flow already in main.cjs.
  */
 
@@ -34,7 +34,7 @@ const UNINSTALL_MODES = ['gui', 'lite', 'full']
  * Map an uninstall mode to the `python -m hermes_cli.uninstall` argv (after the
  * python executable). Uses the dedicated lightweight module entrypoint (not
  * `hermes_cli.main`) so it can run under a system Python OUTSIDE the venv that
- * lite/full delete — see the Finding-3 note in buildWindowsCleanupScript.
+ * lite/full delete; see the Finding-3 note in buildWindowsCleanupScript.
  * Throws on an unknown mode so a typo can't silently become a full wipe.
  */
 function uninstallArgsForMode(mode) {
@@ -70,7 +70,7 @@ function resolveRemovableAppPath(execPath, platform, env = {}) {
   if (!exe) return null
 
   // Use the path flavor that matches the TARGET platform, not the host running
-  // this code — so the Windows branch parses backslash paths correctly even
+  // this code; so the Windows branch parses backslash paths correctly even
   // when these pure helpers are unit-tested on Linux/macOS CI.
   const p = platform === 'win32' ? path.win32 : path.posix
 
@@ -167,7 +167,7 @@ function buildPosixCleanupScript({ desktopPid, pythonExe, pythonPath, agentRoot,
  * match, so no redundant `| find` (which would substring-match 99→990).
  *
  * Removal: even after the desktop PID is gone, Windows releases directory
- * handles lazily, so a single `rmdir /s /q` can half-fail — retry up to 10x.
+ * handles lazily, so a single `rmdir /s /q` can half-fail; retry up to 10x.
  */
 function buildWindowsCleanupScript({ desktopPid, pythonExe, pythonPath, agentRoot, uninstallArgs, appPath, hermesHome }) {
   const pid = Number(desktopPid) || 0
@@ -187,7 +187,7 @@ function buildWindowsCleanupScript({ desktopPid, pythonExe, pythonPath, agentRoo
   lines.push(
     'set /a waited=0',
     ':waitloop',
-    'rem /FI "PID eq %PID%" is an EXACT filter — tasklist outputs the one task',
+    'rem /FI "PID eq %PID%" is an EXACT filter; tasklist outputs the one task',
     'rem row for that PID, or "INFO: No tasks..." otherwise. /NH drops the',
     'rem header; findstr matches the PID as a whole space-delimited token so',
     'rem PID 99 cannot match 990 (the substring trap of a bare `find`).',

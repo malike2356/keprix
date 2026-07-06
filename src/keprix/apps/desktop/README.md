@@ -1,4 +1,4 @@
-# Keprix Desktop ☤
+# Keprix Desktop 
 
 <p align="center">
   <a href="https://github.com/NousResearch/keprix/releases"><img src="https://img.shields.io/badge/Download-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux-FFD700?style=for-the-badge" alt="Download"></a>
@@ -7,7 +7,7 @@
   <a href="https://github.com/NousResearch/keprix/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
 </p>
 
-**The native desktop app for [Keprix](../../README.md) — the self-improving AI agent from [Nous Research](https://nousresearch.com).** Same agent, same skills, same memory as the CLI and gateway, in a polished native window — chat with streaming tool output, side-by-side previews, a file browser, voice, and settings, no terminal required. Available for **macOS, Windows, and Linux**.
+**The native desktop app for [Keprix](../../README.md); the self-improving AI agent from [Nous Research](https://nousresearch.com).** Same agent, same skills, same memory as the CLI and gateway, in a polished native window; chat with streaming tool output, side-by-side previews, a file browser, voice, and settings, no terminal required. Available for **macOS, Windows, and Linux**.
 
 <table>
 <tr><td><b>Chat with the full agent</b></td><td>Streaming responses, live tool activity, structured tool summaries, and the same conversation history as every other Keprix surface.</td></tr>
@@ -30,7 +30,7 @@ Already have the Keprix CLI? Just run:
 keprix desktop
 ```
 
-It builds and launches the GUI against your existing install — same config, keys, sessions, and skills. On first launch Keprix walks you through picking a provider and model; nothing else to configure.
+It builds and launches the GUI against your existing install; same config, keys, sessions, and skills. On first launch Keprix walks you through picking a provider and model; nothing else to configure.
 
 ### Prebuilt installers
 
@@ -59,7 +59,7 @@ The installer handles everything for you (Python 3.11+, a portable Git, ripgrep)
 Want to hack on the app itself? Install workspace deps from the repo root once, then run the dev server from this directory:
 
 ```bash
-npm install          # from repo root — links apps/desktop, web, apps/shared
+npm install          # from repo root; links apps/desktop, web, apps/shared
 cd apps/desktop
 npm run dev          # Vite renderer + Electron, which boots the Python backend
 ```
@@ -85,7 +85,7 @@ Installers are built and uploaded to GitHub Releases manually. macOS/Windows sig
 
 ### How it works
 
-The packaged app ships only the Electron shell. On first launch it installs the Keprix runtime into `KEPRIX_HOME` (`~/.keprix`, or `%LOCALAPPDATA%\keprix` on Windows) — the **same layout a CLI install uses**, so the two are interchangeable. The renderer (React, in `src/`) talks to a `keprix dashboard` backend over the standard gateway APIs and reuses the embedded TUI rather than reimplementing chat. The install, backend-resolution, and self-update logic all live in `electron/main.cjs`.
+The packaged app ships only the Electron shell. On first launch it installs the Keprix runtime into `KEPRIX_HOME` (`~/.keprix`, or `%LOCALAPPDATA%\keprix` on Windows); the **same layout a CLI install uses**, so the two are interchangeable. The renderer (React, in `src/`) talks to a `keprix dashboard` backend over the standard gateway APIs and reuses the embedded TUI rather than reimplementing chat. The install, backend-resolution, and self-update logic all live in `electron/main.cjs`.
 
 ### Verification
 
@@ -100,7 +100,7 @@ npm run test:desktop:all
 
 ### Troubleshooting
 
-Boot logs land in `KEPRIX_HOME/logs/desktop.log` (includes backend output and recent Python tracebacks) — check it first if the app reports a boot failure.
+Boot logs land in `KEPRIX_HOME/logs/desktop.log` (includes backend output and recent Python tracebacks); check it first if the app reports a boot failure.
 
 **macOS / Linux:**
 
@@ -128,14 +128,14 @@ Remove-Item -Recurse -Force "$env:LOCALAPPDATA\keprix\keprix\venv"
 
 ## Community
 
-- 💬 [Discord](https://discord.gg/NousResearch)
-- 📖 [Documentation](https://keprix.nousresearch.com/docs/)
-- 🐛 [Issues](https://github.com/NousResearch/keprix/issues)
+-  [Discord](https://discord.gg/NousResearch)
+-  [Documentation](https://keprix.nousresearch.com/docs/)
+- BUG:  [Issues](https://github.com/NousResearch/keprix/issues)
 
 ---
 
 ## License
 
-MIT — see [LICENSE](../../LICENSE).
+MIT; see [LICENSE](../../LICENSE).
 
 Built by [Nous Research](https://nousresearch.com).

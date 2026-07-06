@@ -47,7 +47,7 @@ export function collapseModelFamilies(models: readonly string[]): ModelFamily[] 
     }
 
     if (/-fast$/i.test(model) && present.has(model.replace(/-fast$/i, ''))) {
-      // Represented by its base entry — the base attaches it as `fastId`.
+      // Represented by its base entry; the base attaches it as `fastId`.
       continue
     }
 
@@ -81,7 +81,7 @@ function loadVisible(): Set<string> | null {
 }
 
 /** Explicit set of visible `provider::model` keys, or null when the user
- *  hasn't customized — in which case the curated default applies. */
+ *  hasn't customized; in which case the curated default applies. */
 export const $visibleModels = atom<Set<string> | null>(loadVisible())
 
 export const $modelVisibilityOpen = atom(false)
@@ -145,7 +145,7 @@ export function effectiveVisibleKeys(
     }
   }
 
-  // Strip sentinel keys — they are bookkeeping, not real visibility entries.
+  // Strip sentinel keys; they are bookkeeping, not real visibility entries.
   for (const key of [...next]) {
     if (isProviderSentinel(key)) {
       next.delete(key)

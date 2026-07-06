@@ -1,12 +1,12 @@
 # disk-cleanup
 
 Auto-tracks and cleans up ephemeral files created during Keprix
-sessions — test scripts, temp outputs, cron logs, stale chrome profiles.
+sessions; test scripts, temp outputs, cron logs, stale chrome profiles.
 Scoped strictly to `$KEPRIX_HOME` and `/tmp/keprix-*`.
 
 Originally contributed by [@LVT382009](https://github.com/LVT382009) as a
 skill in PR #12212.  Ported to the plugin system so the behaviour runs
-automatically via `post_tool_call` and `on_session_end` hooks — the agent
+automatically via `post_tool_call` and `on_session_end` hooks; the agent
 never needs to remember to call a tool.
 
 ## How it works
@@ -46,6 +46,6 @@ Deletion rules (same as the original PR):
 - The state directory `$KEPRIX_HOME/disk-cleanup/` is itself excluded
 - `$KEPRIX_HOME/logs/`, `memories/`, `sessions/`, `skills/`, `plugins/`,
   and config files are never tracked
-- Backup/restore is scoped to `tracked.json` — the plugin never touches
+- Backup/restore is scoped to `tracked.json`; the plugin never touches
   agent logs
 - Atomic writes: `.tmp` → backup → rename

@@ -10,9 +10,27 @@ from typing import Any
 
 import markdown
 import nh3
+from pathlib import Path
+
+_RESEARCH_CSS_PATH = Path(__file__).resolve().parent / "templates" / "research_report.css"
 
 
-def markdown_to_html(source: str, *, title: str = "") -> str:
+def _load_research_stylesheet() -> str:
+    if _RESEARCH_CSS_PATH.is_file():
+        return _RESEARCH_CSS_PATH.read_text(encoding="utf-8")
+    return ""
+
+
+def _default_stylesheet() -> str:
+    return """
+    body { font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; line-height: 1.55; }
+    pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ddd; padding: 0.5rem; }
+    """
+
+
+def markdown_to_html(source: str, *, title: str = "", template: str = "default") -> str:
     """Convert Markdown to sanitized HTML."""
     source = _strip_remote_images(source)
     body = markdown.markdown(
@@ -41,24 +59,25 @@ def markdown_to_html(source: str, *, title: str = "") -> str:
             "blockquote",
             "hr",
             "img",
+            "div",
+            "span",
         },
         attributes={"*": {"class", "id"}, "a": {"href", "title"}, "img": {"src", "alt", "title"}},
         link_rel=None,
     )
     page_title = html.escape(title or "Export")
+    stylesheet = _load_research_stylesheet() if template == "research" else _default_stylesheet()
+    body_class = ' class="research-report"' if template == "research" else ""
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
   <title>{page_title}</title>
   <style>
-    body {{ font-family: system-ui, sans-serif; max-width: 760px; margin: 2rem auto; line-height: 1.55; }}
-    pre {{ background: #f4f4f4; padding: 1rem; overflow-x: auto; }}
-    table {{ border-collapse: collapse; width: 100%; }}
-    th, td {{ border: 1px solid #ddd; padding: 0.5rem; }}
+{stylesheet}
   </style>
 </head>
-<body>
+<body{body_class}>
 {safe_body}
 </body>
 </html>"""
@@ -138,6 +157,7 @@ def export_document(
     include_signatory: bool = False,
     signatory_data: dict[str, Any] | None = None,
     document_resolver: Callable[[str], str] | None = None,
+    html_template: str = "default",
 ) -> dict[str, Any]:
     """Render export in the requested format.
 
@@ -165,7 +185,7 @@ def export_document(
     if input_type == "structured_json":
         html_doc = structured_json_to_html(source, title=title)
     else:
-        html_doc = markdown_to_html(source, title=title)
+        html_doc = markdown_to_html(source, title=title, template=html_template)
 
     if include_cover:
         from keprix.export.cover_page import generate_cover_html
@@ -185,10 +205,26 @@ def export_document(
     if fmt == "html":
         return {"format": "html", "content": html_doc, "mime": "text/html"}
     if fmt == "pdf":
-        from keprix.export.pdf_engine import render_pdf
+        from keprix.export.pdf_engine import render_pdf_from_html, weasyprint_available
+
         try:
-            pdf_bytes = render_pdf(title=title, markdown_source=source)
-            return {"format": "pdf", "content": pdf_bytes, "mime": "application/pdf"}
+            pdf_bytes = render_pdf_from_html(
+                html_doc,
+                fallback_title=title,
+                fallback_markdown=source,
+            )
+            payload = {
+                "format": "pdf",
+                "content": pdf_bytes,
+                "mime": "application/pdf",
+                "renderer": "weasyprint" if weasyprint_available() else "text-fallback",
+            }
+            if not weasyprint_available():
+                payload["format_returned"] = "pdf-text-fallback"
+                payload["setup_instructions"] = (
+                    "Styled PDF requires weasyprint. Run: pip install weasyprint, then restart the API."
+                )
+            return payload
         except Exception:
             return {"format": "html", "content": html_doc, "mime": "text/html", "format_returned": "html"}
     raise ValueError(f"Unsupported export format: {format}")

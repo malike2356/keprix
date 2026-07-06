@@ -1,0 +1,12 @@
+{
+  "bibtex_sample": "@article{smith2023water,\n  author = {Smith, John and Doe, Jane},\n  title = {Water table trends},\n  year = {2023},\n  journal = {Hydro Review},\n  doi = {10.1000/example}\n}",
+  "better_bibtex_sample": "@article{smith2023water,\n  citationKey = {smith2023water},\n  author = {Smith, John},\n  title = {Water table trends},\n  year = {2023},\n  journal = {Hydro Review}\n}",
+  "expected": {
+    "citation_key": "smith2023water",
+    "author_count": 2,
+    "first_author": "Smith, John",
+    "year": "2023",
+    "doi": "10.1000/example",
+    "report_contains": "## Bibliography"
+  }
+}

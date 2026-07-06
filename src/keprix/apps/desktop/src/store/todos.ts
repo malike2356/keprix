@@ -7,7 +7,7 @@ import type { TodoItem } from '@/lib/todos'
  * (the inline transcript panel is gone). Fed from two places:
  *
  * - live `todo` tool events (use-message-stream)
- * - stored-session hydration (desktop-controller) — but only when the list is
+ * - stored-session hydration (desktop-controller); but only when the list is
  *   still in flight, so reopening an old chat doesn't pin its finished plan
  *   above the composer forever.
  */

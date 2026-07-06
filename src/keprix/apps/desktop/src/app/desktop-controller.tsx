@@ -205,7 +205,7 @@ export function DesktopController() {
   const terminalTakeover = useStore($terminalTakeover)
   const panesFlipped = useStore($panesFlipped)
   const profileScope = useStore($profileScope)
-  // Below SIDEBAR_COLLAPSE_BREAKPOINT_PX there's no room for a docked rail —
+  // Below SIDEBAR_COLLAPSE_BREAKPOINT_PX there's no room for a docked rail;
   // collapse both sidebars (without touching their stored open state) so the
   // hover-reveal overlay becomes the way in. Restores once it's wide again.
   const narrowViewport = useMediaQuery(SIDEBAR_COLLAPSE_MEDIA_QUERY)
@@ -282,7 +282,7 @@ export function DesktopController() {
     return () => unsubscribe?.()
   }, [navigate])
 
-  // Notification action button (Approve/Reject) — resolve in place, no navigation.
+  // Notification action button (Approve/Reject); resolve in place, no navigation.
   useEffect(() => {
     const unsubscribe = window.hermesDesktop?.onNotificationAction?.(({ actionId, sessionId }) => {
       void respondToApprovalAction(sessionId ?? null, actionId)
@@ -293,7 +293,7 @@ export function DesktopController() {
 
   // hermes:// deep links (e.g. a docs "Send to App" button for an automation blueprint).
   // Build the equivalent /blueprint slash command from the payload and drop
-  // it into the composer — the user reviews/edits, then sends; the agent (or
+  // it into the composer; the user reviews/edits, then sends; the agent (or
   // the shared command handler) creates the job. Signal readiness so a link
   // that arrived during boot is flushed exactly once.
   useEffect(() => {
@@ -371,7 +371,7 @@ export function DesktopController() {
       })
 
       // Drop any non-messaging source the broad exclude didn't catch (custom
-      // sources) — those stay in local recents, not a platform section.
+      // sources); those stay in local recents, not a platform section.
       const rows = result.sessions.filter(s => isMessagingSource(s.source))
 
       setMessagingSessions(prev => (sameCronSignature(prev, rows) ? prev : rows))
@@ -437,7 +437,7 @@ export function DesktopController() {
       // always-newest rows can't consume the recents page budget.
       // Scope the fetch to the active profile (not always 'all') so a profile
       // with few recent sessions isn't windowed out of the cross-profile
-      // recency page — the empty-history-on-profile-switch bug.
+      // recency page; the empty-history-on-profile-switch bug.
       const sessionProfile = profileScope === ALL_PROFILES ? 'all' : profileScope
 
       const result = await listAllProfileSessions(limit, 1, 'exclude', 'recent', sessionProfile, {
@@ -604,7 +604,7 @@ export function DesktopController() {
             storedSessionId
           )
 
-          // Seed the status stack's todo group from history — but only while
+          // Seed the status stack's todo group from history; but only while
           // the plan is still in flight, so reopening an old chat doesn't pin
           // its finished todo list above the composer forever.
           const todos = latestSessionTodos(messages)
@@ -698,7 +698,7 @@ export function DesktopController() {
 
   // Swapping the live gateway to another profile must re-pull that profile's
   // global model + active-profile pill. Both are nanostores, so the blanket
-  // invalidateQueries() the profile store fires on swap doesn't touch them —
+  // invalidateQueries() the profile store fires on swap doesn't touch them;
   // without this the statusbar keeps showing the previous profile's model
   // (the "forgets the LLM setting" report). gatewayState stays 'open' across a
   // swap (background sockets persist), so the open→open effect won't re-run.

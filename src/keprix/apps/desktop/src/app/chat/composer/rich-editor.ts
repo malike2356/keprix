@@ -3,7 +3,7 @@
  * HTML, walk the DOM back to plain `@kind:value` text, and place the caret.
  *
  * Chip values are always wrapped in backticks/quotes so REF_RE stops at the
- * fence — without that, typing after a chip would get re-absorbed on the next
+ * fence; without that, typing after a chip would get re-absorbed on the next
  * plain-text round-trip.
  */
 import {
@@ -38,7 +38,7 @@ export function refLabel(id: string) {
   return id.split(/[\\/]/).filter(Boolean).pop() || id
 }
 
-/** Always-quote variant of formatRefValue — chips need a fence even for safe values. */
+/** Always-quote variant of formatRefValue; chips need a fence even for safe values. */
 export function quoteRefValue(value: string) {
   if (!value.includes('`')) {
     return `\`${value}\``
@@ -145,7 +145,7 @@ function composerSelectionRange(editor: HTMLElement) {
 }
 
 /** Insert plain text at the caret (replacing any selection). Pastes use this
- *  instead of `execCommand('insertText')` — Chromium's editing pipeline is
+ *  instead of `execCommand('insertText')`; Chromium's editing pipeline is
  *  ~O(n²) on large multiline blobs. */
 export function insertPlainTextAtCaret(editor: HTMLElement, text: string) {
   const hit = composerSelectionRange(editor)

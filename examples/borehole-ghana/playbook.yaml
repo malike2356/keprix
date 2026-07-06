@@ -1,0 +1,22 @@
+id: ghana-borehole-advisor
+domain: borehole_drilling
+workspace_language: en-GH
+supported_input_languages:
+  - en-GH
+  - ak-GH
+  - tw-GH
+  - gaa-GH
+  - ee-GH
+default_output_mode: text_and_voice_when_available
+glossary_id: borehole_drilling_ghana_v1
+human_review_below_confidence: 0.72
+intake_fields:
+  - community
+  - gps_location
+  - soil_type
+  - nearby_wells
+  - household_count
+  - budget_range
+safety_notice: >
+  This assistant collects borehole drilling intake only.
+  It does not replace a licensed hydrogeologist or drilling engineer.

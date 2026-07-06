@@ -4,7 +4,7 @@ import { Codicon } from '@/components/ui/codicon'
 import { cn } from '@/lib/utils'
 
 // Solid (filled) glyphs for in-thread tool rows. Codicons are an outline icon
-// *font*, so an outline glyph has no separate fillable region — a filled look
+// *font*, so an outline glyph has no separate fillable region; a filled look
 // can't be derived from it (stroke-thickening just bolds the outline). To get
 // the Cursor-style filled tool icons we render dedicated solid SVG paths,
 // keyed by the same names used in `TOOL_META` (tool-fallback-model.ts).

@@ -81,7 +81,7 @@ export const $sidebarCronOpen = atom(storedBoolean(SIDEBAR_CRON_OPEN_STORAGE_KEY
 export const $sidebarMessagingOpenIds = atom<string[]>(storedStringArray(SIDEBAR_MESSAGING_OPEN_STORAGE_KEY))
 export const $sidebarAgentsGrouped = atom(storedBoolean(SIDEBAR_AGENTS_GROUPED_STORAGE_KEY, false))
 // When true, the sessions sidebar moves to the right and the file browser +
-// preview rail move to the left — a mirror of the default layout.
+// preview rail move to the left; a mirror of the default layout.
 export const $panesFlipped = atom(storedBoolean(PANES_FLIPPED_STORAGE_KEY, false))
 export const $isSidebarResizing = atom(false)
 export const $sessionsLimit = atom(SIDEBAR_SESSIONS_PAGE_SIZE)

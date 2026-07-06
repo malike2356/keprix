@@ -1,0 +1,135 @@
+Screen {
+    background: #000000;
+    color: #00FF41;
+}
+
+Header {
+    background: #050505;
+    color: #00FF41;
+}
+
+Footer {
+    background: #050505;
+    color: #008F11;
+}
+
+#sidebar {
+    width: 28;
+    background: #050505;
+    border-right: solid #003B00;
+}
+
+#sidebar-title {
+    padding: 1 1;
+    color: #00FF41;
+    text-style: bold;
+}
+
+#session-list {
+    height: 1fr;
+    background: #000000;
+}
+
+ListItem {
+    background: #000000;
+    color: #00FF41;
+}
+
+ListItem:hover {
+    background: #001A00;
+    color: #00FF41;
+}
+
+ListItem.--highlight {
+    background: #003B00;
+    color: #00FF41;
+}
+
+#chat-panel {
+    width: 1fr;
+}
+
+#header {
+    height: 3;
+    background: #001A00;
+    border-bottom: solid #003B00;
+    padding: 0 1;
+    color: #00FF41;
+}
+
+#message-log {
+    height: 1fr;
+    background: #000000;
+    padding: 1 2;
+    color: #00FF41;
+}
+
+#thinking-panel {
+    height: auto;
+    max-height: 10;
+    background: #001A00;
+    border-top: dashed #003B00;
+    padding: 0 1;
+    display: none;
+    color: #008F11;
+}
+
+#thinking-panel.visible {
+    display: block;
+}
+
+#stream-panel {
+    height: auto;
+    max-height: 16;
+    background: #000800;
+    border-top: solid #003B00;
+    padding: 0 2;
+    display: none;
+    color: #00CC33;
+}
+
+#stream-panel.visible {
+    display: block;
+}
+
+#stream-panel MarkdownTable {
+    width: 100%;
+}
+
+#input-bar {
+    height: auto;
+    min-height: 3;
+    max-height: 8;
+    background: #001A00;
+    border: tall #003B00;
+    padding: 1 2;
+    color: #00FF41;
+}
+
+#input-bar:focus {
+    border: tall #00FF41;
+}
+
+#status-bar {
+    height: 1;
+    background: #050505;
+    color: #008F11;
+    padding: 0 1;
+}
+
+.user-line {
+    color: #00FF41;
+    text-style: bold;
+}
+
+.agent-line {
+    color: #00CC33;
+}
+
+.system-line {
+    color: #008F11;
+}
+
+.error-line {
+    color: #FF0000;
+}

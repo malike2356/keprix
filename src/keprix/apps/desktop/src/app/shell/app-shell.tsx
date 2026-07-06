@@ -37,7 +37,7 @@ interface AppShellProps {
   onOpenSettings: () => void
   overlays?: ReactNode
   // Rails that sit at the window's left edge in the flipped layout but never
-  // force-collapse to hover-reveal overlays — so they cover the top-left traffic
+  // force-collapse to hover-reveal overlays; so they cover the top-left traffic
   // lights (and zero the titlebar inset) even below the collapse breakpoint.
   previewPaneOpen?: boolean
   statusbarItems?: readonly StatusbarItem[]
@@ -186,7 +186,7 @@ export function AppShell({
             the panes' z-20 resize handles, keeping every pane resizable. */}
         {mainOverlays}
 
-        {/* The compact pop-out drops the statusbar — it's a scratch window, not
+        {/* The compact pop-out drops the statusbar; it's a scratch window, not
             the full shell. */}
         {!isSecondaryWindow() && <StatusbarControls items={statusbarItems} leftItems={leftStatusbarItems} />}
       </main>
@@ -197,7 +197,7 @@ export function AppShell({
       <KeybindPanel />
 
       {/* Mounted at the shell root (after overlays) so success/error toasts
-          surface above every route and overlay — not just the chat view. */}
+          surface above every route and overlay; not just the chat view. */}
       <NotificationStack />
     </SidebarProvider>
   )

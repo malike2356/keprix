@@ -1,0 +1,17 @@
+name: Security Report
+description: Report a security vulnerability privately.
+title: "Security: use SECURITY.md"
+labels: ["security"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include vulnerability details in this public issue.
+
+        Report privately using [SECURITY.md](../../SECURITY.md):
+        email **security@carinaai.uk**.
+
+        We acknowledge reports within 48 hours and follow a 90-day coordinated
+        disclosure policy.
+
+        Close this issue after you have sent your report by email.

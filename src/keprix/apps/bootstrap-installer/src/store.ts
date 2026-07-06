@@ -3,7 +3,7 @@ import { listen, type UnlistenFn } from '@tauri-apps/api/event'
 import { invoke } from '@tauri-apps/api/core'
 
 /*
- * Bootstrap state store — single source of truth for installer screens.
+ * Bootstrap state store; single source of truth for installer screens.
  *
  * Lives in nanostores per the project's TypeScript guidelines (apps/desktop
  * AGENTS.md): "Prefer small nanostores over component state when state is
@@ -15,7 +15,7 @@ import { invoke } from '@tauri-apps/api/core'
  */
 
 // ---------------------------------------------------------------------------
-// Types — mirror src-tauri/src/events.rs
+// Types; mirror src-tauri/src/events.rs
 // ---------------------------------------------------------------------------
 
 export interface StageInfo {
@@ -208,7 +208,7 @@ export async function initialize(): Promise<void> {
           currentStage: null
         })
         // Install: show the "launch Hermes" success screen. Update: this is a
-        // hand-off — the installer relaunches the desktop and exits within a
+        // hand-off; the installer relaunches the desktop and exits within a
         // few hundred ms, so routing to success just flashes that screen
         // before the window closes. Stay on progress until we exit.
         if ($mode.get() !== 'update') {

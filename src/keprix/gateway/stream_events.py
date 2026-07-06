@@ -168,4 +168,11 @@ __all__ = [
     "LongToolHint",
     "GatewayNotice",
     "StreamEvent",
+    "GatewayStreamEvent",
+    "map_gateway_event_to_ndjson",
 ]
+
+from keprix.interfaces.web_ui_stream_events import (  # noqa: E402
+    GatewayStreamEvent,
+    map_gateway_event_to_ndjson,
+)

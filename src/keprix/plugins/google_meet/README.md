@@ -7,9 +7,9 @@ in it, and do the followup work afterwards.
 
 | Version | What | Status |
 |---|---|---|
-| v1 | Transcribe-only: Playwright joins Meet, scrapes captions to transcript file | ✓ ships by default |
-| v2 | Realtime duplex audio: bot speaks in-call via OpenAI Realtime + BlackHole/PulseAudio null-sink | ✓ opt in with `mode='realtime'` |
-| v3 | Remote node host: run the bot on a different machine than the gateway | ✓ opt in with `node='<name>'` |
+| v1 | Transcribe-only: Playwright joins Meet, scrapes captions to transcript file |  ships by default |
+| v2 | Realtime duplex audio: bot speaks in-call via OpenAI Realtime + BlackHole/PulseAudio null-sink |  opt in with `mode='realtime'` |
+| v3 | Remote node host: run the bot on a different machine than the gateway |  opt in with `node='<name>'` |
 
 ## Architecture
 
@@ -49,7 +49,7 @@ Without v2: the "realtime" path is skipped; transcribe runs alone.
 | Path | Purpose |
 |---|---|
 | `plugin.yaml` | manifest |
-| `__init__.py` | `register(ctx)` — registers 5 tools + `on_session_end` hook + `keprix meet` CLI |
+| `__init__.py` | `register(ctx)`; registers 5 tools + `on_session_end` hook + `keprix meet` CLI |
 | `meet_bot.py` | Playwright bot subprocess (standalone, `python -m plugins.google_meet.meet_bot`) |
 | `process_manager.py` | local bot lifecycle + `enqueue_say` |
 | `tools.py` | agent-facing tools + node-routing helper |
@@ -87,12 +87,12 @@ keprix meet say "Good morning everyone, I'm the note-taker bot."
 macOS:
 ```bash
 keprix meet install --realtime     # runs: brew install blackhole-2ch ffmpeg
-# then — manually! — open System Settings → Sound → Input → BlackHole 2ch
+# then; manually!; open System Settings → Sound → Input → BlackHole 2ch
 echo 'OPENAI_API_KEY=sk-...' >> ~/.keprix/.env
 keprix meet join https://meet.google.com/abc-defg-hij --mode realtime
 ```
 
-On macOS, keprix will **not** switch your system audio input automatically — the
+On macOS, keprix will **not** switch your system audio input automatically; the
 user has to do it. This is deliberate: switching default input on a whim would
 be a surprising side effect.
 
@@ -119,13 +119,13 @@ keprix meet node ping my-mac
 - URL gate: only `https://meet.google.com/abc-defg-hij`, `/new`, `/lookup/<id>`.
 - No calendar scanning, no auto-dial, no auto-consent announcement.
 - Node server uses bearer-token auth; no key exchange, no TLS termination
-  built in — run it on a LAN or behind a reverse proxy you trust.
+  built in; run it on a LAN or behind a reverse proxy you trust.
 - One active meeting per (gateway, node) pair. A second `meet_join` leaves the first.
 - `meet_say` refuses unless the active meeting was started with `mode='realtime'`.
 
 ## Out of scope
 
-- **Calendar scanning** — deliberately not implemented. Join URLs must be explicit.
-- **Multi-tenant node sharing** — a node serves one gateway at a time.
-- **Windows** — audio bridging isn't tested; `register()` no-ops on Windows.
-- **System audio input switching on macOS** — user responsibility, not the bot's.
+- **Calendar scanning**; deliberately not implemented. Join URLs must be explicit.
+- **Multi-tenant node sharing**; a node serves one gateway at a time.
+- **Windows**; audio bridging isn't tested; `register()` no-ops on Windows.
+- **System audio input switching on macOS**; user responsibility, not the bot's.

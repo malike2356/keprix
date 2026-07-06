@@ -11,7 +11,7 @@ interface OverlaySearchInputProps {
   value: string
 }
 
-// Borderless underline search — matches the tools/skills page (PageSearchShell).
+// Borderless underline search; matches the tools/skills page (PageSearchShell).
 export function OverlaySearchInput({
   containerClassName,
   inputRef,

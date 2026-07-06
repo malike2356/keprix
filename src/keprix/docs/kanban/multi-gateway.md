@@ -1,6 +1,6 @@
 # Multi-gateway deployment
 
-Keprix supports multiple gateway processes running concurrently — one per profile
+Keprix supports multiple gateway processes running concurrently; one per profile
 (default, writer, admin, coder, researcher). Each gateway opens its own connection
 to platform APIs and delivers messages for its profile's subscribers.
 
@@ -36,4 +36,4 @@ Or set the env var: `KEPRIX_KANBAN_DISPATCH_IN_GATEWAY=false`
 | writer, admin, coder, etc. | false | no | no |
 
 Non-dispatch gateways still deliver messages for their own platform adapters
-(Telegram, Discord, etc.) — they just don't poll kanban boards.
+(Telegram, Discord, etc.); they just don't poll kanban boards.

@@ -1,0 +1,19 @@
+id: borehole_drilling_ghana_v1
+domain: borehole_drilling
+entries:
+  - term: yield test
+    approved_equivalent: yield test
+    notes: Do not translate as crop yield. This means water output from a borehole.
+    forbidden_translations:
+      - crop yield
+      - harvest yield
+  - term: casing
+    approved_equivalent: borehole casing
+    notes: Protect as a technical drilling component.
+    forbidden_translations:
+      - container
+      - cover
+  - term: aquifer
+    approved_equivalent: underground water-bearing layer
+    notes: Use a simple explanation when no trusted local equivalent exists.
+    forbidden_translations: []

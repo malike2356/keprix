@@ -2281,6 +2281,7 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         # preserve the queue.
         self._queued_events: Dict[str, List[MessageEvent]] = {}
         self._pending_native_image_paths_by_session: Dict[str, List[str]] = {}
+        self._localization_ctx_by_session: Dict[str, Any] = {}
         self._busy_ack_ts: Dict[str, float] = {}  # last busy-ack timestamp per session (debounce)
         self._session_run_generation: Dict[str, int] = {}
         # Startup restore gate: while restart-interrupted sessions are being
@@ -8037,6 +8038,30 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                         image_paths,
                     )
 
+            if audio_paths or (
+                message_text.strip()
+                and event.message_type not in {MessageType.AUDIO, MessageType.DOCUMENT}
+            ):
+                try:
+                    from keprix.backend.gateway.localization_hook import (
+                        apply_inbound_localization,
+                        should_apply_gateway_localization,
+                    )
+
+                    if should_apply_gateway_localization(source.platform):
+                        _loc_text, _loc_ctx = await apply_inbound_localization(
+                            platform=source.platform,
+                            user_id=source.user_id,
+                            text=message_text,
+                            voice_paths=audio_paths,
+                        )
+                        if _loc_text is not None and _loc_ctx is not None:
+                            message_text = _loc_text
+                            audio_paths = []
+                            self._localization_ctx_by_session[session_key] = _loc_ctx
+                except Exception as _loc_exc:
+                    logger.debug("Inbound localization skipped (non-fatal): %s", _loc_exc)
+
             if audio_paths:
                 message_text, _successful_transcripts = await self._enrich_message_with_transcription(
                     message_text,
@@ -9027,6 +9052,34 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                 response = _normalize_empty_agent_response(
                     agent_result, response, history_len=len(history),
                 )
+                _loc_ctx = self._localization_ctx_by_session.pop(session_key, None)
+                if _loc_ctx and response:
+                    try:
+                        from keprix.backend.gateway.localization_hook import apply_outbound_localization
+
+                        response, _loc_audio_url, _loc_meta = await apply_outbound_localization(
+                            _loc_ctx,
+                            response,
+                        )
+                        if _loc_audio_url:
+                            _loc_adapter = self.adapters.get(source.platform)
+                            if _loc_adapter and hasattr(_loc_adapter, "send_voice"):
+                                try:
+                                    await _loc_adapter.send_voice(
+                                        source.chat_id,
+                                        _loc_audio_url,
+                                        metadata=self._thread_metadata_for_source(
+                                            source,
+                                            self._reply_anchor_for_event(event),
+                                        ),
+                                    )
+                                except Exception as _loc_audio_exc:
+                                    logger.debug(
+                                        "Localized voice reply failed (non-fatal): %s",
+                                        _loc_audio_exc,
+                                    )
+                    except Exception as _loc_exc:
+                        logger.debug("Outbound localization skipped (non-fatal): %s", _loc_exc)
                 response = _sanitize_gateway_final_response(source.platform, response)
 
             # Ordering contract: the agent thread already updated the contextvar
@@ -16793,6 +16846,14 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
     success = await runner.start()
     if not success:
         return False
+
+    try:
+        from keprix.config.service import start_self_config_service
+
+        start_self_config_service(runner.adapters)
+    except Exception as exc:
+        logger.debug("Self-configuration health monitor failed to start: %s", exc)
+
     if runner.should_exit_cleanly:
         if runner.exit_reason:
             logger.error("Gateway exiting cleanly: %s", runner.exit_reason)

@@ -1,0 +1,1 @@
+"""Legal acceptance gate."""

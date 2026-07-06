@@ -9,8 +9,8 @@ import { setGatewayState } from '@/store/session'
 // Concurrent sessions across profiles need concurrent sockets: the renderer's
 // event handler is already session-keyed, so the only thing stopping two
 // profiles streaming at once was the single swapping socket. We keep that one
-// socket as the PRIMARY (window) backend — owned by use-gateway-boot, with all
-// its boot-progress / sleep-wake machinery — and add one persistent SECONDARY
+// socket as the PRIMARY (window) backend; owned by use-gateway-boot, with all
+// its boot-progress / sleep-wake machinery; and add one persistent SECONDARY
 // socket per *other* profile that has live work. Every socket feeds the same
 // handleGatewayEvent, so background sessions keep painting. Single-profile users
 // only ever have the primary, so their path is byte-for-byte unchanged.
@@ -121,7 +121,7 @@ function scheduleReconnect(entry: Secondary): void {
     return
   }
 
-  // 1s, 2s, 4s … capped at 15s — same backoff shape as the primary.
+  // 1s, 2s, 4s … capped at 15s; same backoff shape as the primary.
   const delay = Math.min(15_000, 1_000 * 2 ** Math.min(entry.reconnectAttempt, 4))
   entry.reconnectAttempt += 1
   entry.reconnectTimer = setTimeout(() => {

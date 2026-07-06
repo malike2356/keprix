@@ -1,0 +1,8 @@
+name: human_review
+allow_bash: true
+require_human_review: true
+use_filemap: true
+allow_commit: false
+allow_push: false
+allow_destructive_git: false
+max_files_per_run: 10

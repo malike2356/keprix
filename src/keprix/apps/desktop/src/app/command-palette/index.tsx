@@ -64,7 +64,7 @@ import { prettyName } from '../settings/helpers'
 import { MarketplaceThemePage } from './marketplace-theme-page'
 
 interface PaletteItem {
-  /** Keybind action id — its live combo renders as a hotkey hint. */
+  /** Keybind action id; its live combo renders as a hotkey hint. */
   action?: string
   icon: IconComponent
   id: string
@@ -184,7 +184,7 @@ const THEME_MODES: ReadonlyArray<{ icon: IconComponent; mode: ThemeMode }> = [
 
 // Which Light/Dark groups a theme belongs in. Built-ins render in both modes
 // (the engine synthesises the missing side). Imported VS Code themes only carry
-// the variant(s) the extension shipped — a single dark theme like Dracula lives
+// the variant(s) the extension shipped; a single dark theme like Dracula lives
 // under Dark only, while a GitHub/Solarized family (light + dark) lives in both.
 function themeSupportsMode(name: string, target: 'light' | 'dark'): boolean {
   if (!isUserTheme(name)) {
@@ -408,7 +408,7 @@ export function CommandPalette() {
   }, [go, settingsSectionLabel, t])
 
   // The long, granular lists (settings fields, API keys, MCP servers, archived
-  // chats) only surface once the user types — otherwise they'd bury the
+  // chats) only surface once the user types; otherwise they'd bury the
   // navigation entries on an empty palette.
   const searchGroups = useMemo<PaletteGroup[]>(() => {
     if (!search.trim()) {

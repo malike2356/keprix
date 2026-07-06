@@ -17,13 +17,13 @@ import { $threadJumpButtonVisible, requestScrollToBottom } from '@/store/thread-
  * away from the bottom; clicking re-arms sticky-bottom and pins the viewport.
  *
  * When the turn is BLOCKED on an approval, this same control morphs into an
- * "Approval needed" pill — the only response surface is the inline Run/Reject
+ * "Approval needed" pill; the only response surface is the inline Run/Reject
  * bar on the parked tool row, which is always the bottom-most content, so the
  * existing scroll-to-bottom action lands the user right on it. One control, no
  * collision, no second scroll path (native scrollIntoView would scroll
  * overflow:hidden ancestors that can't scroll back and wreck the layout).
  *
- * Enter/exit motion lives in styles.css under `.thread-jump-button` — a
+ * Enter/exit motion lives in styles.css under `.thread-jump-button`; a
  * directional scale (contract in from 1.1, contract out to 0.9) keyed off
  * `data-state`. `idle` (never-shown) stays silent so it can't flash on mount;
  * `in`/`out` only swap once it has actually appeared.

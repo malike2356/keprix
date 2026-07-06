@@ -264,7 +264,7 @@ test('cookiesHaveSession is false for an empty value', () => {
 })
 
 test('cookiesHaveSession ignores unrelated cookies (AT-only by design)', () => {
-  // cookiesHaveSession is deliberately access-token-only — a lone RT cookie
+  // cookiesHaveSession is deliberately access-token-only; a lone RT cookie
   // is NOT an access token, so this returns false. Connectivity callers must
   // use cookiesHaveLiveSession instead (see below).
   assert.equal(cookiesHaveSession([{ name: 'hermes_session_rt', value: 'x' }]), false)
@@ -285,7 +285,7 @@ test('RT_COOKIE_VARIANTS covers all three deploy shapes', () => {
   assert.deepEqual(RT_COOKIE_VARIANTS, ['__Host-hermes_session_rt', '__Secure-hermes_session_rt', 'hermes_session_rt'])
 })
 
-// --- cookiesHaveLiveSession (AT or RT — the connectivity check) ---
+// --- cookiesHaveLiveSession (AT or RT; the connectivity check) ---
 
 test('cookiesHaveLiveSession is true for a live access-token cookie', () => {
   assert.equal(cookiesHaveLiveSession([{ name: 'hermes_session_at', value: 'x' }]), true)
@@ -295,7 +295,7 @@ test('cookiesHaveLiveSession is true for a live access-token cookie', () => {
 
 test('cookiesHaveLiveSession is true for an RT cookie even with NO access-token cookie', () => {
   // This is the bug-fix case: the AT cookie has lapsed (dropped from the jar)
-  // but the 24h RT cookie is still alive. The session is still connectable —
+  // but the 24h RT cookie is still alive. The session is still connectable;
   // the gateway rotates a fresh AT from the RT on the next request.
   assert.equal(cookiesHaveLiveSession([{ name: 'hermes_session_rt', value: 'x' }]), true)
   assert.equal(cookiesHaveLiveSession([{ name: '__Host-hermes_session_rt', value: 'x' }]), true)
@@ -349,7 +349,7 @@ test('tokenPreview returns a masked suffix for long tokens', () => {
 // --- resolveTestWsUrl ---
 //
 // The "Test remote" button must exercise the same WS transport the app uses,
-// and must FAIL (not skip) when an OAuth session can't mint a ws-ticket — that
+// and must FAIL (not skip) when an OAuth session can't mint a ws-ticket; that
 // is the exact false-positive PR #39098 set out to eliminate.
 
 test('resolveTestWsUrl (token mode) builds a ?token= URL the WS probe can use', async () => {
@@ -357,7 +357,7 @@ test('resolveTestWsUrl (token mode) builds a ?token= URL the WS probe can use', 
   assert.equal(url, 'wss://gw.example.com/api/ws?token=tok123')
 })
 
-test('resolveTestWsUrl (token mode, no token) returns null — genuine skip', async () => {
+test('resolveTestWsUrl (token mode, no token) returns null; genuine skip', async () => {
   assert.equal(await resolveTestWsUrl('https://gw.example.com', 'token', null), null)
 })
 
@@ -368,7 +368,7 @@ test('resolveTestWsUrl (oauth, mint ok) builds a ?ticket= URL', async () => {
   assert.equal(url, 'wss://gw.example.com/api/ws?ticket=tkt-9')
 })
 
-test('resolveTestWsUrl (oauth, mint FAILS) throws — must NOT skip WS validation', async () => {
+test('resolveTestWsUrl (oauth, mint FAILS) throws; must NOT skip WS validation', async () => {
   await assert.rejects(
     () =>
       resolveTestWsUrl('https://gw.example.com', 'oauth', null, {

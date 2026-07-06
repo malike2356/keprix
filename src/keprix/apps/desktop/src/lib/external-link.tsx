@@ -12,7 +12,7 @@ const titleSubs = new Map<string, Set<(value: string) => void>>()
 const URL_RE =
   /(?:https?:\/\/|www\.)[^\s<>"'`]+[^\s<>"'`.,;:!?)]|[a-z0-9](?:[a-z0-9-]*\.)+[a-z]{2,}(?:\/[^\s<>"'`.,;:!?)]*)?/gi
 
-// Explicit-scheme / www. URLs only — no bare-domain matching. Used where the
+// Explicit-scheme / www. URLs only; no bare-domain matching. Used where the
 // surrounding text is full of filename-shaped tokens (e.g. `agent.log`,
 // `errors.log` in a /debug report) that the bare-domain branch of URL_RE would
 // otherwise mistake for domains and linkify.

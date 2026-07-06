@@ -9,7 +9,7 @@ type DismissedToolRows = Record<string, true>
 //
 // Kept in module memory (not localStorage, unlike $toolDisclosureStates) on
 // purpose: the thread is virtualized, so a dismissed row's component unmounts
-// and remounts as it scrolls — component-local state would forget the dismissal
+// and remounts as it scrolls; component-local state would forget the dismissal
 // and the row would pop back. Storing it here survives those remounts for the
 // life of the app session, while a reload restores every row in place rather
 // than permanently rewriting history from a stray click.

@@ -1,7 +1,7 @@
 # Design System: Replicate
 
 
-> **Keprix — Implementation Notes**
+> **Keprix; Implementation Notes**
 >
 > The original site uses proprietary fonts. For self-contained HTML output, use these CDN substitutes:
 > - **Primary:** `Inter` | **Mono:** `JetBrains Mono`
@@ -15,11 +15,11 @@
 
 ## 1. Visual Theme & Atmosphere
 
-Replicate's interface is a developer playground crackling with creative energy — a bold, high-contrast design that feels more like a music festival poster than a typical API platform. The hero section explodes with a vibrant orange-red-magenta gradient that immediately signals "this is where AI models come alive," while the body of the page grounds itself in a clean white canvas where code snippets and model galleries take center stage.
+Replicate's interface is a developer playground crackling with creative energy; a bold, high-contrast design that feels more like a music festival poster than a typical API platform. The hero section explodes with a vibrant orange-red-magenta gradient that immediately signals "this is where AI models come alive," while the body of the page grounds itself in a clean white canvas where code snippets and model galleries take center stage.
 
-The design personality is defined by two extreme choices: **massive display typography** (up to 128px) using the custom rb-freigeist-neue face, and **exclusively pill-shaped geometry** (9999px radius on everything). The display font is thick, bold, and confident — its heavy weight at enormous sizes creates text that feels like it's shouting with joy rather than whispering authority. Combined with basier-square for body text (a clean geometric sans) and JetBrains Mono for code, the system serves developers who want power and playfulness in equal measure.
+The design personality is defined by two extreme choices: **massive display typography** (up to 128px) using the custom rb-freigeist-neue face, and **exclusively pill-shaped geometry** (9999px radius on everything). The display font is thick, bold, and confident; its heavy weight at enormous sizes creates text that feels like it's shouting with joy rather than whispering authority. Combined with basier-square for body text (a clean geometric sans) and JetBrains Mono for code, the system serves developers who want power and playfulness in equal measure.
 
-What makes Replicate distinctive is its community-powered energy. The model gallery with AI-generated images, the dotted-underline links, the green status badges, and the "Imagine what you can build" closing manifesto all create a space that feels alive and participatory — not a corporate product page but a launchpad for creative developers.
+What makes Replicate distinctive is its community-powered energy. The model gallery with AI-generated images, the dotted-underline links, the green status badges, and the "Imagine what you can build" closing manifesto all create a space that feels alive and participatory; not a corporate product page but a launchpad for creative developers.
 
 **Key Characteristics:**
 - Explosive orange-red-magenta gradient hero (#ea2804 brand anchor)
@@ -34,8 +34,8 @@ What makes Replicate distinctive is its community-powered energy. The model gall
 ## 2. Color Palette & Roles
 
 ### Primary
-- **Replicate Dark** (`#202020`): The primary text color and dark surface — a near-black that's the anchor of all text and borders. Slightly warmer than pure #000.
-- **Replicate Red** (`#ea2804`): The core brand color — a vivid, saturated orange-red used in the hero gradient, accent borders, and high-signal moments.
+- **Replicate Dark** (`#202020`): The primary text color and dark surface; a near-black that's the anchor of all text and borders. Slightly warmer than pure #000.
+- **Replicate Red** (`#ea2804`): The core brand color; a vivid, saturated orange-red used in the hero gradient, accent borders, and high-signal moments.
 - **Secondary Red** (`#dd4425`): A slightly warmer variant for button borders and link hover states.
 
 ### Secondary & Accent
@@ -71,23 +71,23 @@ What makes Replicate distinctive is its community-powered energy. The model gall
 |------|------|------|--------|-------------|----------------|-------|
 | Display Mega | rb-freigeist-neue | 128px (8rem) | 700 | 1.00 (tight) | normal | The maximum: closing manifesto |
 | Display / Hero | rb-freigeist-neue | 72px (4.5rem) | 700 | 1.00 (tight) | -1.8px | Hero section headline |
-| Section Heading | rb-freigeist-neue | 48px (3rem) | 400–700 | 1.00 (tight) | normal | Feature section titles |
+| Section Heading | rb-freigeist-neue | 48px (3rem) | 400-700 | 1.00 (tight) | normal | Feature section titles |
 | Sub-heading | rb-freigeist-neue | 30px (1.88rem) | 600 | 1.20 (tight) | normal | Card headings |
 | Sub-heading Sans | basier-square | 38.4px (2.4rem) | 400 | 0.83 (ultra-tight) | normal | Large body headings |
 | Feature Title | basier-square / rb-freigeist-neue | 18px (1.13rem) | 600 | 1.56 | normal | Small section titles, labels |
 | Body Large | basier-square | 20px (1.25rem) | 400 | 1.40 | normal | Intro paragraphs |
-| Body / Button | basier-square | 16–18px (1–1.13rem) | 400–600 | 1.50–1.56 | normal | Standard text, buttons |
-| Caption | basier-square | 14px (0.88rem) | 400–600 | 1.43 | -0.35px to normal | Metadata, descriptions |
+| Body / Button | basier-square | 16-18px (1-1.13rem) | 400-600 | 1.50-1.56 | normal | Standard text, buttons |
+| Caption | basier-square | 14px (0.88rem) | 400-600 | 1.43 | -0.35px to normal | Metadata, descriptions |
 | Small / Tag | basier-square | 12px (0.75rem) | 400 | 1.33 | normal | Tags (lowercase transform) |
 | Code | jetbrains-mono | 14px (0.88rem) | 400 | 1.43 | normal | Code snippets, API examples |
 | Code Small | jetbrains-mono | 11px (0.69rem) | 400 | 1.50 | normal | Tiny code references |
 
 ### Principles
 - **Heavy display, light body**: rb-freigeist-neue at 700 weight creates thundering headlines, while basier-square at 400 handles body text with quiet efficiency. The contrast is extreme and intentional.
-- **128px is a real size**: The closing manifesto "Imagine what you can build." uses 128px — bigger than most mobile screens. This is the design equivalent of shouting from a rooftop.
+- **128px is a real size**: The closing manifesto "Imagine what you can build." uses 128px; bigger than most mobile screens. This is the design equivalent of shouting from a rooftop.
 - **Negative tracking on hero**: -1.8px letter-spacing at 72px creates dense, impactful hero text.
-- **Lowercase tags**: 12px basier-square uses `text-transform: lowercase` — an unusual choice that creates a casual, developer-friendly vibe.
-- **Weight 600 as emphasis**: When basier-square needs emphasis, it uses 600 (semibold) — never bold (700), which is reserved for rb-freigeist-neue display text.
+- **Lowercase tags**: 12px basier-square uses `text-transform: lowercase`; an unusual choice that creates a casual, developer-friendly vibe.
+- **Weight 600 as emphasis**: When basier-square needs emphasis, it uses 600 (semibold); never bold (700), which is reserved for rb-freigeist-neue display text.
 
 ## 4. Component Stylings
 
@@ -99,7 +99,7 @@ What makes Replicate distinctive is its community-powered energy. The model gall
 - Padding: 0px 4px (extremely compact)
 - Outline: Replicate Dark 4px solid
 - Radius: pill-shaped (implied by system)
-- Maximum emphasis — dark pill on light surface
+- Maximum emphasis; dark pill on light surface
 
 **White Outlined**
 - Background: Pure White (`#ffffff`)
@@ -111,7 +111,7 @@ What makes Replicate distinctive is its community-powered energy. The model gall
 **Transparent Glass**
 - Background: `rgba(255, 255, 255, 0.1)` (frosted glass)
 - Text: Replicate Dark (`#202020`)
-- Padding: 6px 56px 6px 28px (asymmetric — icon/search layout)
+- Padding: 6px 56px 6px 28px (asymmetric; icon/search layout)
 - Border: transparent
 - Outline: Light Silver (`#bbbbbb`) 1px solid
 - Used for search/input-like buttons
@@ -174,7 +174,7 @@ What makes Replicate distinctive is its community-powered energy. The model gall
 - Base unit: 8px
 - Scale: 1px, 2px, 4px, 6px, 8px, 10px, 12px, 16px, 24px, 32px, 48px, 64px, 96px, 160px, 192px
 - Button padding: varies widely (0px 4px to 6px 56px)
-- Section vertical spacing: very generous (96–192px)
+- Section vertical spacing: very generous (96-192px)
 
 ### Grid & Container
 - Fluid width with responsive constraints
@@ -206,31 +206,31 @@ What makes Replicate distinctive is its community-powered energy. The model gall
 ## 7. Do's and Don'ts
 
 ### Do
-- Use pill-shaped (9999px) radius on EVERYTHING — buttons, images, badges, containers
-- Use rb-freigeist-neue at weight 700 for display text — go big (72px+) or go home
+- Use pill-shaped (9999px) radius on EVERYTHING; buttons, images, badges, containers
+- Use rb-freigeist-neue at weight 700 for display text; go big (72px+) or go home
 - Use the orange-red brand gradient for hero sections
-- Use Replicate Dark (#202020) as the primary dark — not pure black
+- Use Replicate Dark (#202020) as the primary dark; not pure black
 - Apply dotted underline decoration on text links (#bbbbbb)
 - Use Status Green (#2b9a66) for operational/success badges
-- Keep body text in basier-square at 400–600 weight
+- Keep body text in basier-square at 400-600 weight
 - Use JetBrains Mono for all code content
 - Create a "manifesto" section with 128px type for emotional impact
 
 ### Don't
-- Don't use any border-radius other than 9999px — the pill system is absolute
-- Don't use the brand red (#ea2804) as a surface/background color — it's for gradients and accent borders
-- Don't reduce display text below 48px on desktop — the heavy display font needs size to breathe
-- Don't use light/thin font weights on rb-freigeist-neue — 600–700 is the range
-- Don't use solid underlines on links — dotted is the signature
-- Don't add drop shadows — depth comes from borders and background color
-- Don't use warm neutrals — the gray scale is purely neutral (#202020 → #bbbbbb)
-- Don't skip the code examples — they're primary content, not decoration
-- Don't make the hero gradient subtle — it should be BOLD and vibrant
+- Don't use any border-radius other than 9999px; the pill system is absolute
+- Don't use the brand red (#ea2804) as a surface/background color; it's for gradients and accent borders
+- Don't reduce display text below 48px on desktop; the heavy display font needs size to breathe
+- Don't use light/thin font weights on rb-freigeist-neue; 600-700 is the range
+- Don't use solid underlines on links; dotted is the signature
+- Don't add drop shadows; depth comes from borders and background color
+- Don't use warm neutrals; the gray scale is purely neutral (#202020 → #bbbbbb)
+- Don't skip the code examples; they're primary content, not decoration
+- Don't make the hero gradient subtle; it should be BOLD and vibrant
 
 ## 8. Responsive Behavior
 
 ### Breakpoints
-*No explicit breakpoints detected — likely using fluid/container-query responsive system.*
+*No explicit breakpoints detected; likely using fluid/container-query responsive system.*
 
 ### Touch Targets
 - Pill buttons with generous padding
@@ -267,8 +267,8 @@ What makes Replicate distinctive is its community-powered energy. The model gall
 - "Design a code block: dark background (#24292e), JetBrains Mono at 14px, white text. Pill-shaped container."
 
 ### Iteration Guide
-1. Everything is pill-shaped — never specify any other border-radius
-2. Display text is HEAVY — weight 700, sizes 48px+
-3. Links use dotted underline (#bbbbbb) — never solid
-4. The gradient hero is the visual anchor — make it bold
+1. Everything is pill-shaped; never specify any other border-radius
+2. Display text is HEAVY; weight 700, sizes 48px+
+3. Links use dotted underline (#bbbbbb); never solid
+4. The gradient hero is the visual anchor; make it bold
 5. Use basier-square for body, rb-freigeist-neue for display, JetBrains Mono for code

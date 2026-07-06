@@ -96,14 +96,14 @@ Always include:
 
 ## Quality Markers
 
-- ✓ Dynamic action poses with sense of motion
-- ✓ Ink brush aesthetic in line work
-- ✓ Visible qi/energy effects
-- ✓ High contrast dramatic lighting
-- ✓ Atmospheric backgrounds with Chinese elements
-- ✓ Flowing fabric and hair movement
-- ✓ Impactful combat moments
-- ✓ Speed lines and impact effects
+-  Dynamic action poses with sense of motion
+-  Ink brush aesthetic in line work
+-  Visible qi/energy effects
+-  High contrast dramatic lighting
+-  Atmospheric backgrounds with Chinese elements
+-  Flowing fabric and hair movement
+-  Impactful combat moments
+-  Speed lines and impact effects
 
 ## Best For
 

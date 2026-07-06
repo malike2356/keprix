@@ -16,7 +16,7 @@ Hand-drawn doodle illustration with warm Morandi color tones and cozy bullet jou
 - Washi tape strip decorations (diagonal stripes pattern, beige and brown)
 - Rounded card containers for brand/option items
 - Hand-drawn rulers, scales, and progress bars with emoji quality indicators
-- Smiley/frowny faces as quality markers (😊✓ 😐 ☹️✗)
+- Smiley/frowny faces as quality markers (  )
 - Dotted line frames around sections
 - Connecting arrows and dotted lines between modules
 - Corner decorations: tiny houses, stars, sparkles, clouds
@@ -41,7 +41,7 @@ Hand-drawn doodle illustration with warm Morandi color tones and cozy bullet jou
 
 ## Style Enforcement
 
-- All imagery must maintain hand-drawn/doodle aesthetic—no digital precision
+- All imagery must maintain hand-drawn/doodle aesthetic;no digital precision
 - Organic, slightly imperfect shapes throughout
 - Sketch-like quality with visible line weight variations
 - Warm and cozy journal feel, not clinical or corporate

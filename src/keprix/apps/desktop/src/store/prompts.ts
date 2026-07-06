@@ -9,8 +9,8 @@ import { $activeSessionId } from './session'
 //
 // Like clarify, every prompt is parked under the runtime session id that raised
 // it (not one shared slot), so a *background* session running concurrently can
-// raise an approval/sudo/secret prompt and have it wait — surfaced via the
-// sidebar "needs input" badge — until the user switches to that chat. The
+// raise an approval/sudo/secret prompt and have it wait; surfaced via the
+// sidebar "needs input" badge; until the user switches to that chat. The
 // exported $*Request view is scoped to the active session, so a background
 // prompt never hijacks the foreground.
 
@@ -100,7 +100,7 @@ export const $secretRequest = secret.$active
 export const setSecretRequest = secret.set
 export const clearSecretRequest = secret.clear
 
-// Drop in-flight prompts for `sessionId` (a turn ended) across all three kinds —
+// Drop in-flight prompts for `sessionId` (a turn ended) across all three kinds;
 // or every parked prompt when no session is given (global reset / tests).
 export function clearAllPrompts(sessionId?: string | null): void {
   if (sessionId === undefined) {

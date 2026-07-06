@@ -23,12 +23,12 @@ High-DPI displays render at 2x by default. This doubles memory usage and halves 
 // Force 1x for consistent export and performance
 pixelDensity(1);
 
-// Match display (default) — sharp on retina but expensive
+// Match display (default); sharp on retina but expensive
 pixelDensity(displayDensity());
 
 // ALWAYS call before createCanvas()
 function setup() {
-  pixelDensity(1);        // first
+  pixelDensity(1); // first
   createCanvas(1920, 1080); // second
 }
 ```
@@ -63,7 +63,7 @@ function windowResized() {
 
 ```javascript
 function preload() {
-  // Load assets before setup — fonts, images, JSON, CSV
+  // Load assets before setup; fonts, images, JSON, CSV
   // Blocks execution until all loads complete
   font = loadFont('font.otf');
   img = loadImage('texture.png');
@@ -88,10 +88,10 @@ function draw() {
 ### Frame Control
 
 ```javascript
-frameRate(30);           // set target FPS
-noLoop();                // stop draw loop (static pieces)
-loop();                  // restart draw loop
-redraw();                // call draw() once (manual refresh)
+frameRate(30); // set target FPS
+noLoop(); // stop draw loop (static pieces)
+loop(); // restart draw loop
+redraw(); // call draw() once (manual refresh)
 frameCount              // frames since start (integer)
 deltaTime               // milliseconds since last frame (float)
 millis()                // milliseconds since sketch started
@@ -128,9 +128,9 @@ pop();
 
 ```javascript
 push();
-  translate(cx, cy);       // move origin to center
-  rotate(angle);           // rotate around that center
-  translate(-cx, -cy);     // move origin back
+  translate(cx, cy); // move origin to center
+  rotate(angle); // rotate around that center
+  translate(-cx, -cy); // move origin back
   // draw at original coordinates, but rotated around (cx, cy)
   rect(cx - 50, cy - 50, 100, 100);
 pop();
@@ -139,10 +139,10 @@ pop();
 ## Offscreen Buffers (createGraphics)
 
 Offscreen buffers are separate canvases you can draw to and composite. Essential for:
-- **Layered composition** — background, midground, foreground
-- **Persistent trails** — draw to buffer, fade with semi-transparent rect, never clear
-- **Masking** — draw mask to buffer, apply with `image()` or pixel operations
-- **Post-processing** — render scene to buffer, apply effects, draw to main canvas
+- **Layered composition**; background, midground, foreground
+- **Persistent trails**; draw to buffer, fade with semi-transparent rect, never clear
+- **Masking**; draw mask to buffer, apply with `image()` or pixel operations
+- **Post-processing**; render scene to buffer, apply effects, draw to main canvas
 
 ```javascript
 let layer;
@@ -154,7 +154,7 @@ function setup() {
 
 function draw() {
   // Draw to offscreen buffer
-  layer.background(0, 10);  // semi-transparent clear = trails
+  layer.background(0, 10); // semi-transparent clear = trails
   layer.fill(255);
   layer.ellipse(mouseX, mouseY, 20);
 
@@ -177,7 +177,7 @@ function setup() {
 function draw() {
   // Fade previous frame (lower alpha = longer trails)
   trailBuffer.noStroke();
-  trailBuffer.fill(0, 0, 0, 15);  // RGBA — 15/255 alpha
+  trailBuffer.fill(0, 0, 0, 15); // RGBA; 15/255 alpha
   trailBuffer.rect(0, 0, width, height);
 
   // Draw new content
@@ -202,14 +202,14 @@ function setup() {
 }
 
 function draw() {
-  // Background — drawn once or slowly evolving
+  // Background; drawn once or slowly evolving
   renderBackground(bgLayer);
 
-  // Content — main visual elements
+  // Content; main visual elements
   contentLayer.clear();
   renderContent(contentLayer);
 
-  // FX — overlays, vignettes, grain
+  // FX; overlays, vignettes, grain
   fxLayer.clear();
   renderEffects(fxLayer);
 
@@ -219,7 +219,7 @@ function draw() {
   image(contentLayer, 0, 0);
   blendMode(MULTIPLY);
   image(fxLayer, 0, 0);
-  blendMode(BLEND);  // reset
+  blendMode(BLEND); // reset
 }
 ```
 
@@ -271,7 +271,7 @@ for (let i = 0; i < n; i++) {
 ### Margin-Aware Composition
 
 ```javascript
-const MARGIN = 80;  // pixels from edge
+const MARGIN = 80; // pixels from edge
 const drawW = width - 2 * MARGIN;
 const drawH = height - 2 * MARGIN;
 
@@ -286,15 +286,15 @@ function mapY(t) { return MARGIN + t * drawH; }
 
 ```javascript
 randomSeed(42);
-let x = random(100);        // always same value for seed 42
-let y = random(-1, 1);      // range
-let item = random(myArray);  // random element
+let x = random(100); // always same value for seed 42
+let y = random(-1, 1); // range
+let item = random(myArray); // random element
 ```
 
 ### Gaussian Random
 
 ```javascript
-let x = randomGaussian(0, 1);  // mean=0, stddev=1
+let x = randomGaussian(0, 1); // mean=0, stddev=1
 // Useful for natural-looking distributions
 ```
 
@@ -302,10 +302,10 @@ let x = randomGaussian(0, 1);  // mean=0, stddev=1
 
 ```javascript
 noiseSeed(42);
-noiseDetail(4, 0.5);  // 4 octaves, 0.5 falloff
+noiseDetail(4, 0.5); // 4 octaves, 0.5 falloff
 
-let v = noise(x * 0.01, y * 0.01);  // returns 0.0 to 1.0
-// Scale factor (0.01) controls feature size — smaller = smoother
+let v = noise(x * 0.01, y * 0.01); // returns 0.0 to 1.0
+// Scale factor (0.01) controls feature size; smaller = smoother
 ```
 
 ## Math Utilities
@@ -347,12 +347,12 @@ async function setup() {
 ### New Color Modes
 
 ```javascript
-colorMode(OKLCH);  // perceptually uniform — better gradients
+colorMode(OKLCH); // perceptually uniform; better gradients
 // L: 0-1 (lightness), C: 0-0.4 (chroma), H: 0-360 (hue)
-fill(0.7, 0.15, 200);  // medium-bright saturated blue
+fill(0.7, 0.15, 200); // medium-bright saturated blue
 
-colorMode(OKLAB);  // perceptually uniform, no hue angle
-colorMode(HWB);    // Hue-Whiteness-Blackness
+colorMode(OKLAB); // perceptually uniform, no hue angle
+colorMode(HWB); // Hue-Whiteness-Blackness
 ```
 
 ### splineVertex() replaces curveVertex()
@@ -360,14 +360,14 @@ colorMode(HWB);    // Hue-Whiteness-Blackness
 No more doubling first/last control points:
 
 ```javascript
-// p5.js 1.x — must repeat first and last
+// p5.js 1.x; must repeat first and last
 beginShape();
-curveVertex(pts[0].x, pts[0].y);  // doubled
+curveVertex(pts[0].x, pts[0].y); // doubled
 for (let p of pts) curveVertex(p.x, p.y);
-curveVertex(pts[pts.length-1].x, pts[pts.length-1].y);  // doubled
+curveVertex(pts[pts.length-1].x, pts[pts.length-1].y); // doubled
 endShape();
 
-// p5.js 2.x — clean
+// p5.js 2.x; clean
 beginShape();
 for (let p of pts) splineVertex(p.x, p.y);
 endShape();
@@ -390,7 +390,7 @@ let myShader = baseMaterialShader().modify({
 ### Variable Fonts
 
 ```javascript
-textWeight(700);  // dynamic weight without loading multiple files
+textWeight(700); // dynamic weight without loading multiple files
 ```
 
 ### textToContours() and textToModel()

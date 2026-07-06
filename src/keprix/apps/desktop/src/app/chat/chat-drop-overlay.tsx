@@ -13,7 +13,7 @@ const ICONS: Record<'files' | 'session', string> = {
 /**
  * Full-bleed affordance shown while files or a session are dragged over the chat
  * area. Always `pointer-events-none` so the drop lands on the real element
- * underneath and the drop-zone handler claims it — the overlay is purely visual.
+ * underneath and the drop-zone handler claims it; the overlay is purely visual.
  * Copy adapts to whatever is being dragged; the last kind is held through the
  * fade-out so the label doesn't blank.
  */

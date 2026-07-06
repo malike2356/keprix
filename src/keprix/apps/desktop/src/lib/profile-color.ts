@@ -1,5 +1,5 @@
 // Deterministic per-profile color so a profile is glanceable across the app
-// (the sidebar profile rail). The default/root profile has no color — named
+// (the sidebar profile rail). The default/root profile has no color; named
 // profiles get a stable hue derived from the name, so the same profile always
 // reads the same color without persisting anything.
 
@@ -45,7 +45,7 @@ export function resolveProfileColor(
   return overrides[key] ?? profileColor(key)
 }
 
-// Curated swatches for the rail color picker — evenly spaced hues at the same
+// Curated swatches for the rail color picker; evenly spaced hues at the same
 // saturation/lightness as the deterministic palette, so picks stay cohesive.
 export const PROFILE_SWATCHES: readonly string[] = Array.from(
   { length: 12 },

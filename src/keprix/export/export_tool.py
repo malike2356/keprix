@@ -52,15 +52,18 @@ def _handle_export(args: dict[str, Any]) -> str:
     title = args.get("title", "Export")
     fmt = args.get("format", "pdf")
 
-    if input_type in ("document_id", "note_id"):
-        return json.dumps({"error": "document_resolver not available in agent context; use markdown or structured_json"})
-
     cover_data: dict[str, Any] = {
         "document_type": args.get("document_type", ""),
         "version": args.get("version", ""),
         "prepared_by": args.get("prepared_by", ""),
         "classification": args.get("classification", ""),
     }
+
+    resolver = None
+    if input_type in ("document_id", "note_id"):
+        from keprix.export.resolver import make_document_resolver
+
+        resolver = make_document_resolver("local")
 
     try:
         result = export_document(
@@ -72,21 +75,27 @@ def _handle_export(args: dict[str, Any]) -> str:
             cover_data=cover_data,
             include_signatory=bool(args.get("include_signatory", False)),
             signatory_data=args.get("signatory_data"),
+            document_resolver=resolver,
         )
     except Exception as exc:
         return json.dumps({"error": str(exc)})
 
+    from keprix.export.store import get_export_store
+
     fmt_returned = result.get("format_returned", result["format"])
+    record = get_export_store().save(
+        title=title,
+        content=result["content"],
+        mime=result["mime"],
+        format_returned=fmt_returned,
+    )
     output: dict[str, Any] = {
         "format_returned": fmt_returned,
         "title": title,
+        "file_id": record.file_id,
+        "file_url": f"/api/export/{record.file_id}",
+        "size_bytes": record.size_bytes,
     }
-    if isinstance(result["content"], bytes):
-        output["size_bytes"] = len(result["content"])
-        output["note"] = "PDF generated. Use /api/export/download to retrieve the file."
-    else:
-        output["size_bytes"] = len(result["content"].encode())
-        output["note"] = "HTML generated."
     return json.dumps(output)
 
 

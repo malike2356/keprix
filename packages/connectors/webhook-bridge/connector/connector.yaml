@@ -1,0 +1,7 @@
+name: webhook-bridge
+version: 1.0.0
+hosts:
+  - api.example.com
+events:
+  - review.completed
+  - export.ready

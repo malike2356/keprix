@@ -36,7 +36,7 @@ function setup() {
 </script>
 ```
 
-Google Fonts work without `loadFont()` but only for `text()` — not for `textToPoints()`. For particle text, you need `loadFont()` with an OTF/TTF file.
+Google Fonts work without `loadFont()` but only for `text()`; not for `textToPoints()`. For particle text, you need `loadFont()` with an OTF/TTF file.
 
 ## Text Rendering
 
@@ -51,21 +51,21 @@ text('Hello World', width/2, height/2);
 ### Text Properties
 
 ```javascript
-textSize(48);                    // pixel size
-textAlign(LEFT, TOP);            // horizontal: LEFT, CENTER, RIGHT
+textSize(48); // pixel size
+textAlign(LEFT, TOP); // horizontal: LEFT, CENTER, RIGHT
                                  // vertical: TOP, CENTER, BOTTOM, BASELINE
-textLeading(40);                 // line spacing (for multi-line text)
-textStyle(BOLD);                 // NORMAL, BOLD, ITALIC, BOLDITALIC
-textWrap(WORD);                  // WORD or CHAR (for text() with max width)
+textLeading(40); // line spacing (for multi-line text)
+textStyle(BOLD); // NORMAL, BOLD, ITALIC, BOLDITALIC
+textWrap(WORD); // WORD or CHAR (for text() with max width)
 ```
 
 ### Text Metrics
 
 ```javascript
-let w = textWidth('Hello');      // pixel width of string
-let a = textAscent();            // height above baseline
-let d = textDescent();           // height below baseline
-let totalH = a + d;              // full line height
+let w = textWidth('Hello'); // pixel width of string
+let a = textAscent(); // height above baseline
+let d = textDescent(); // height below baseline
+let totalH = a + d; // full line height
 ```
 
 ### Text Bounding Box
@@ -79,15 +79,15 @@ let bounds = myFont.textBounds('Hello', x, y, size);
 ### Multi-Line Text
 
 ```javascript
-// With max width — auto wraps
+// With max width; auto wraps
 textWrap(WORD);
 text('Long text that wraps within the given width', x, y, maxWidth);
 
-// With max width AND height — clips
+// With max width AND height; clips
 text('Very long text', x, y, maxWidth, maxHeight);
 ```
 
-## textToPoints() — Text as Particles
+## textToPoints(); Text as Particles
 
 Convert text outline to array of points. Requires a loaded font (OTF/TTF via `loadFont()`).
 
@@ -96,7 +96,7 @@ let font;
 let points;
 
 function preload() {
-  font = loadFont('font.otf');  // MUST be loadFont, not CSS
+  font = loadFont('font.otf'); // MUST be loadFont, not CSS
 }
 
 function setup() {
@@ -208,7 +208,7 @@ class Typewriter {
     this.str = str;
     this.x = x;
     this.y = y;
-    this.speed = speed;  // ms per character
+    this.speed = speed; // ms per character
     this.startTime = millis();
     this.cursor = true;
   }
@@ -282,8 +282,8 @@ function draw() {
   loadPixels();
   textBuffer.loadPixels();
   for (let i = 0; i < pixels.length; i += 4) {
-    let maskVal = textBuffer.pixels[i];  // white = show, black = hide
-    pixels[i + 3] = maskVal;  // set alpha from mask
+    let maskVal = textBuffer.pixels[i]; // white = show, black = hide
+    pixels[i + 3] = maskVal; // set alpha from mask
   }
   updatePixels();
 }

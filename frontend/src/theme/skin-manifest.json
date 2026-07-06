@@ -1,0 +1,291 @@
+{
+  "skins": [
+    {
+      "id": "amber-minimal",
+      "label": "Amber Minimal",
+      "primary": "#f59e0b",
+      "background": "#ffffff",
+      "foreground": "#262626"
+    },
+    {
+      "id": "amethyst-haze",
+      "label": "Amethyst Haze",
+      "primary": "#8a79ab",
+      "background": "#f8f7fa",
+      "foreground": "#3d3c4f"
+    },
+    {
+      "id": "bold-tech",
+      "label": "Bold Tech",
+      "primary": "#8b5cf6",
+      "background": "#ffffff",
+      "foreground": "#312e81"
+    },
+    {
+      "id": "bubblegum",
+      "label": "Bubblegum",
+      "primary": "#d04f99",
+      "background": "#f6e6ee",
+      "foreground": "#5b5b5b"
+    },
+    {
+      "id": "caffeine",
+      "label": "Caffeine",
+      "primary": "#644a40",
+      "background": "#f9f9f9",
+      "foreground": "#202020"
+    },
+    {
+      "id": "candyland",
+      "label": "Candyland",
+      "primary": "#ffc0cb",
+      "background": "#f7f9fa",
+      "foreground": "#333333"
+    },
+    {
+      "id": "catppuccin",
+      "label": "Catppuccin",
+      "primary": "#8839ef",
+      "background": "#eff1f5",
+      "foreground": "#4c4f69"
+    },
+    {
+      "id": "claude",
+      "label": "Claude",
+      "primary": "#c96442",
+      "background": "#faf9f5",
+      "foreground": "#3d3929"
+    },
+    {
+      "id": "claymorphism",
+      "label": "Claymorphism",
+      "primary": "#6366f1",
+      "background": "#e7e5e4",
+      "foreground": "#1e293b"
+    },
+    {
+      "id": "clean-slate",
+      "label": "Clean Slate",
+      "primary": "#6366f1",
+      "background": "#f8fafc",
+      "foreground": "#1e293b"
+    },
+    {
+      "id": "cosmic-night",
+      "label": "Cosmic Night",
+      "primary": "#6e56cf",
+      "background": "#f5f5ff",
+      "foreground": "#2a2a4a"
+    },
+    {
+      "id": "default",
+      "label": "Default",
+      "primary": "#171717",
+      "background": "#ffffff",
+      "foreground": "#0a0a0a"
+    },
+    {
+      "id": "doom27",
+      "label": "Doom27",
+      "primary": "#b71c1c",
+      "background": "#cccccc",
+      "foreground": "#1f1f1f"
+    },
+    {
+      "id": "elegant-luxury",
+      "label": "Elegant Luxury",
+      "primary": "#9b2c2c",
+      "background": "#faf7f5",
+      "foreground": "#1a1a1a"
+    },
+    {
+      "id": "graphite",
+      "label": "Graphite",
+      "primary": "#606060",
+      "background": "#f0f0f0",
+      "foreground": "#333333"
+    },
+    {
+      "id": "kodama-grove",
+      "label": "Kodama Grove",
+      "primary": "#8d9d4f",
+      "background": "#e4d7b0",
+      "foreground": "#5c4b3e"
+    },
+    {
+      "id": "matrix-terminal",
+      "label": "Matrix Terminal",
+      "primary": "#00FF41",
+      "background": "#000000",
+      "foreground": "#00FF41"
+    },
+    {
+      "id": "midnight-bloomer",
+      "label": "Midnight Bloomer",
+      "primary": "#6c5ce7",
+      "background": "#f9f9f9",
+      "foreground": "#333333"
+    },
+    {
+      "id": "mocha-mousse",
+      "label": "Mocha Mousse",
+      "primary": "#A37764",
+      "background": "#F1F0E5",
+      "foreground": "#56453F"
+    },
+    {
+      "id": "modern-minimal",
+      "label": "Modern Minimal",
+      "primary": "#3b82f6",
+      "background": "#ffffff",
+      "foreground": "#333333"
+    },
+    {
+      "id": "mono",
+      "label": "Mono",
+      "primary": "#737373",
+      "background": "#ffffff",
+      "foreground": "#0a0a0a"
+    },
+    {
+      "id": "nature",
+      "label": "Nature",
+      "primary": "#2e7d32",
+      "background": "#f8f5f0",
+      "foreground": "#3e2723"
+    },
+    {
+      "id": "neo-brutalism",
+      "label": "Neo Brutalism",
+      "primary": "#ff3333",
+      "background": "#ffffff",
+      "foreground": "#000000"
+    },
+    {
+      "id": "northern-lights",
+      "label": "Northern Lights",
+      "primary": "#34a85a",
+      "background": "#f9f9fa",
+      "foreground": "#333333"
+    },
+    {
+      "id": "notebook",
+      "label": "Notebook",
+      "primary": "#606060",
+      "background": "#f9f9f9",
+      "foreground": "#3a3a3a"
+    },
+    {
+      "id": "oceean-breeze",
+      "label": "Oceean Breeze",
+      "primary": "#22c55e",
+      "background": "#f0f8ff",
+      "foreground": "#374151"
+    },
+    {
+      "id": "origin-ui",
+      "label": "Origin Ui",
+      "primary": "#18181b",
+      "background": "#ffffff",
+      "foreground": "#0a0a0a"
+    },
+    {
+      "id": "pastel-dream",
+      "label": "Pastel Dream",
+      "primary": "#a78bfa",
+      "background": "#f7f3f9",
+      "foreground": "#374151"
+    },
+    {
+      "id": "perpetuity",
+      "label": "Perpetuity",
+      "primary": "#06858e",
+      "background": "#e8f0f0",
+      "foreground": "#0a4a55"
+    },
+    {
+      "id": "quantum-rose",
+      "label": "Quantum Rose",
+      "primary": "#e6067a",
+      "background": "#fff0f8",
+      "foreground": "#91185c"
+    },
+    {
+      "id": "retro-arcade",
+      "label": "Retro Arcade",
+      "primary": "#d33682",
+      "background": "#fdf6e3",
+      "foreground": "#073642"
+    },
+    {
+      "id": "soft-pop",
+      "label": "Soft Pop",
+      "primary": "#4f46e5",
+      "background": "#f7f9f3",
+      "foreground": "#000000"
+    },
+    {
+      "id": "solar-dusk",
+      "label": "Solar Dusk",
+      "primary": "#B45309",
+      "background": "#FDFBF7",
+      "foreground": "#4A3B33"
+    },
+    {
+      "id": "starry-night",
+      "label": "Starry Night",
+      "primary": "#3a5ba0",
+      "background": "#f5f7fa",
+      "foreground": "#1a2238"
+    },
+    {
+      "id": "sunset-horizon",
+      "label": "Sunset Horizon",
+      "primary": "#ff7e5f",
+      "background": "#fff9f5",
+      "foreground": "#3d3436"
+    },
+    {
+      "id": "supabase",
+      "label": "Supabase",
+      "primary": "#72e3ad",
+      "background": "#fcfcfc",
+      "foreground": "#171717"
+    },
+    {
+      "id": "tangerine",
+      "label": "Tangerine",
+      "primary": "#e05d38",
+      "background": "#e8ebed",
+      "foreground": "#333333"
+    },
+    {
+      "id": "twitter",
+      "label": "Twitter",
+      "primary": "#1e9df1",
+      "background": "#ffffff",
+      "foreground": "#0f1419"
+    },
+    {
+      "id": "vintage-paper",
+      "label": "Vintage Paper",
+      "primary": "#a67c52",
+      "background": "#f5f1e6",
+      "foreground": "#4a3f35"
+    },
+    {
+      "id": "violet-bloom",
+      "label": "Violet Bloom",
+      "primary": "#7033ff",
+      "background": "#fdfdfd",
+      "foreground": "#000000"
+    },
+    {
+      "id": "z3-chat",
+      "label": "Z3 Chat",
+      "primary": "#a84370",
+      "background": "#faf5fa",
+      "foreground": "#501854"
+    }
+  ]
+}

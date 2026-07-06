@@ -121,8 +121,8 @@ _UPDATE_CHECK_CACHE_SECONDS = 6 * 3600
 # (e.g. nix-built keprix — no local git history to count against).
 UPDATE_AVAILABLE_NO_COUNT = -1
 
-_UPSTREAM_REPO_URL = "https://github.com/NousResearch/keprix.git"
-_OFFICIAL_REPO_CANONICAL = "github.com/nousresearch/keprix"
+_UPSTREAM_REPO_URL = "https://github.com/malike2356/keprix.git"
+_OFFICIAL_REPO_CANONICAL = "github.com/malike2356/keprix"
 
 
 def _canonical_github_remote(url: str | None) -> str:
@@ -427,7 +427,7 @@ def get_git_banner_state(repo_dir: Optional[Path] = None) -> Optional[dict]:
     return {"upstream": upstream, "local": local, "ahead": max(ahead, 0)}
 
 
-_RELEASE_URL_BASE = "https://github.com/NousResearch/keprix/releases/tag"
+_RELEASE_URL_BASE = "https://github.com/malike2356/keprix/releases/tag"
 _latest_release_cache: Optional[tuple] = None  # (tag, url) once resolved
 
 
@@ -471,6 +471,14 @@ def get_latest_release_tag(repo_dir: Optional[Path] = None) -> Optional[tuple]:
     url = f"{_RELEASE_URL_BASE}/{tag}"
     _latest_release_cache = (tag, url)
     return _latest_release_cache
+
+
+def print_community_edition_banner() -> None:
+    """Print the non-telemetry community edition startup banner."""
+    from keprix.config.constants import HOMEPAGE, PRODUCT_NAME
+
+    print(f"keprix v{VERSION} - The keprix Agent")
+    print(f"Community Edition - {PRODUCT_NAME} - {HOMEPAGE}")
 
 
 def format_banner_version_label() -> str:
@@ -565,6 +573,7 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
         get_toolset_for_tool: Callable to map tool name -> toolset name.
         context_length: Model's context window size in tokens.
     """
+    from keprix.config.constants import PRODUCT_NAME
     from model_tools import check_tool_availability, TOOLSET_REQUIREMENTS
     from rich.panel import Panel
     from rich.table import Table
@@ -614,7 +623,7 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
     if len(model_short) > 28:
         model_short = model_short[:25] + "..."
     ctx_str = f" [dim {dim}]·[/] [dim {dim}]{_format_context_length(context_length)} context[/]" if context_length else ""
-    left_lines.append(f"[{accent}]{model_short}[/]{ctx_str} [dim {dim}]·[/] [dim {dim}]Nous Research[/]")
+    left_lines.append(f"[{accent}]{model_short}[/]{ctx_str} [dim {dim}]·[/] [dim {dim}]{PRODUCT_NAME}[/]")
 
     if os.getenv("KEPRIX_YOLO_MODE"):
         left_lines.append(f"[bold red]⚠ YOLO mode[/] [dim {dim}]— all approval prompts bypassed[/]")

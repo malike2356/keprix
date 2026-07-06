@@ -594,30 +594,30 @@ def org_chart(lm):
 #### 1. Use Specific Patterns
 
 ```python
-# ✅ Good: Specific pattern
+# Done:  Good: Specific pattern
 lm += gen("age", regex=r"[0-9]{1,3}")  # Fast
 
-# ❌ Bad: Overly broad pattern
+# Failed:  Bad: Overly broad pattern
 lm += gen("age", regex=r"[0-9]+")  # Slower
 ```
 
 #### 2. Limit Max Tokens
 
 ```python
-# ✅ Good: Reasonable limit
+# Done:  Good: Reasonable limit
 lm += gen("name", max_tokens=30)
 
-# ❌ Bad: No limit
+# Failed:  Bad: No limit
 lm += gen("name")  # May generate forever
 ```
 
 #### 3. Use stop Sequences
 
 ```python
-# ✅ Good: Stop at newline
+# Done:  Good: Stop at newline
 lm += gen("line", stop="\n")
 
-# ❌ Bad: Rely on max_tokens
+# Failed:  Bad: Rely on max_tokens
 lm += gen("line", max_tokens=100)
 ```
 
@@ -642,10 +642,10 @@ lm = reusable_pattern(lm)
 #### 5. Avoid Overlapping Constraints
 
 ```python
-# ✅ Good: Clear constraints
+# Done:  Good: Clear constraints
 lm += gen("age", regex=r"[0-9]+", max_tokens=3)
 
-# ❌ Bad: Conflicting constraints
+# Failed:  Bad: Conflicting constraints
 lm += gen("age", regex=r"[0-9]{2}", max_tokens=10)  # max_tokens unnecessary
 ```
 

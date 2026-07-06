@@ -71,11 +71,11 @@
           <div><span class="out">schedule: "0 7 * * *"</span></div>
           <div><span class="out">steps:</span></div>
           <div><span class="out">&nbsp; - tool: fetch_drilling_reports</span></div>
-          <div><span class="out">&nbsp;   params: { region: "northern", days: 1 }</span></div>
+          <div><span class="out">&nbsp; params: { region: "northern", days: 1 }</span></div>
           <div><span class="out">&nbsp; - tool: summarise_reports</span></div>
-          <div><span class="out">&nbsp;   params: { format: "markdown" }</span></div>
+          <div><span class="out">&nbsp; params: { format: "markdown" }</span></div>
           <div><span class="out">&nbsp; - tool: send_telegram_message</span></div>
-          <div class="info">&nbsp;   params: { chat_id: "$OPERATOR_CHAT" }</div>
+          <div class="info">&nbsp; params: { chat_id: "$OPERATOR_CHAT" }</div>
         </div>
       </div>
 

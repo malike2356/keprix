@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 
 import type { DesktopTerminalPalette } from '@/themes/types'
 
-// VS Code's default integrated-terminal palette (terminalColorRegistry.ts) — a
+// VS Code's default integrated-terminal palette (terminalColorRegistry.ts); a
 // fixed table per theme type, not luminance-derived. Light/dark diverge on
 // purpose so each stays legible (e.g. mustard yellow on white).
 const DARK_THEME: ITheme = {
@@ -57,7 +57,7 @@ const LIGHT_THEME: ITheme = {
 // Palette by painted mode, optionally overlaid with an imported theme's ANSI
 // palette (Solarized terminal for the Solarized skin, etc.). `palette` only
 // fills the slots it defines, so a partial import keeps the mode defaults for
-// the rest. `background` is a fallback only — withSurface swaps in the live skin
+// the rest. `background` is a fallback only; withSurface swaps in the live skin
 // surface at runtime (keeping transparency); minimumContrastRatio keeps colors
 // crisp against it.
 export function terminalTheme(mode: 'light' | 'dark', palette?: DesktopTerminalPalette): ITheme {

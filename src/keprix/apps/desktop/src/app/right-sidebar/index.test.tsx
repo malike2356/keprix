@@ -16,7 +16,7 @@ function ok(entries: { name: string; path: string; isDirectory: boolean }[]): He
 }
 
 function installBridge() {
-  ;(
+;(
     window as unknown as {
       hermesDesktop: {
         readDir: typeof readDir

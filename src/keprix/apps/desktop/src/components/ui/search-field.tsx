@@ -21,7 +21,7 @@ interface SearchFieldProps {
 
 /**
  * Shared search field used everywhere (sessions sidebar, pages, overlays,
- * command center, cron). No box — borderless until focus, then an underline.
+ * command center, cron). No box; borderless until focus, then an underline.
  * Width/placement come from `containerClassName`.
  */
 export function SearchField({
@@ -51,7 +51,7 @@ export function SearchField({
         aria-label={ariaLabel}
         className={cn(
           // `field-sizing: content` grows the input to fit the placeholder/typed
-          // text, capped by the container's max-width — no awkward empty space.
+          // text, capped by the container's max-width; no awkward empty space.
           'h-7 max-w-full bg-transparent text-sm text-foreground [field-sizing:content] placeholder:text-muted-foreground focus:outline-none',
           inputClassName
         )}

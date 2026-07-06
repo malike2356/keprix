@@ -60,7 +60,7 @@ export const HERMES_PATHS_MIME = 'application/x-hermes-paths'
  * triples. Internal Hermes sources (e.g. the project tree) ride on a custom
  * MIME and produce path-only entries; OS drops produce File-bearing entries.
  *
- * Must be called synchronously from inside the drop handler — `DataTransfer`
+ * Must be called synchronously from inside the drop handler; `DataTransfer`
  * items are detached as soon as the handler returns, and `webUtils.getPathForFile`
  * also requires the original (non-cloned) File reference.
  */
@@ -70,7 +70,7 @@ export function extractDroppedFiles(transfer: DataTransfer): DroppedFile[] {
   const seenFiles = new Set<File>()
   const getPath = window.hermesDesktop?.getPathForFile
 
-  // In-app drags first — they carry richer metadata (isDirectory) than the
+  // In-app drags first; they carry richer metadata (isDirectory) than the
   // File-based fallback can provide, and produce no overlapping native files.
   try {
     const internalRaw = transfer.getData(HERMES_PATHS_MIME)
@@ -104,7 +104,7 @@ export function extractDroppedFiles(transfer: DataTransfer): DroppedFile[] {
       }
     }
   } catch {
-    // Malformed payload — fall through to native files.
+    // Malformed payload; fall through to native files.
   }
 
   const fileList = transfer.files
@@ -188,7 +188,7 @@ export function extractDroppedFiles(transfer: DataTransfer): DroppedFile[] {
  *
  * The distinction is load-bearing: an in-app path is workspace-relative and
  * resolves on the gateway as-is, so it stays an inline `@file:`/`@line:` ref.
- * An OS drop is an absolute path on *this* machine — the gateway can't read it
+ * An OS drop is an absolute path on *this* machine; the gateway can't read it
  * in remote mode, and an image needs its bytes uploaded to get vision either
  * way. So OS drops must go through the attachment/upload pipeline rather than
  * leaking a local path into the prompt text.

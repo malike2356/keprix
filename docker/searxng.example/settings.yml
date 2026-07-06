@@ -1,0 +1,16 @@
+# Committed SearXNG config for local / Compose use.
+# Keprix calls /search?format=json; json must be listed under search.formats.
+# Copy to docker/searxng/ if you need a writable config (that path is gitignored).
+
+use_default_settings: true
+
+server:
+  bind_address: "0.0.0.0"
+  port: 8080
+  secret_key: "keprix-local-dev-change-me"
+  limiter: false
+
+search:
+  formats:
+    - html
+    - json

@@ -12,7 +12,7 @@ export interface ClarifyRequest {
 // Pending clarify requests keyed by the runtime session id that raised them.
 // Storing per-session (instead of one shared slot) lets a *background* session
 // park its clarify request while the user is looking at a different chat, then
-// resolve it once they switch over — without a second concurrent clarify
+// resolve it once they switch over; without a second concurrent clarify
 // clobbering the first. A request with no session id lands under the empty key.
 const keyFor = (sessionId: string | null | undefined): string => sessionId ?? ''
 

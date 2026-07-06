@@ -1,6 +1,6 @@
 ---
 name: dcf-model
-description: Build institutional-quality DCF valuation models in Excel — revenue projections, FCF build, WACC, terminal value, Bear/Base/Bull scenarios, 5x5 sensitivity tables. Pairs with excel-author. Use for intrinsic-value equity analysis.
+description: Build institutional-quality DCF valuation models in Excel; revenue projections, FCF build, WACC, terminal value, Bear/Base/Bull scenarios, 5x5 sensitivity tables. Pairs with excel-author. Use for intrinsic-value equity analysis.
 version: 1.0.0
 author: Anthropic (adapted by Nous Research)
 license: Apache-2.0
@@ -13,7 +13,7 @@ metadata:
 
 ## Environment
 
-This skill assumes **headless openpyxl** — you are producing an .xlsx file on disk.
+This skill assumes **headless openpyxl**; you are producing an .xlsx file on disk.
 Follow the `excel-author` skill's conventions for cell coloring, formulas, named ranges, and sensitivity tables.
 Recalculate before delivery: `python /path/to/excel-author/scripts/recalc.py ./out/model.xlsx`.
 
@@ -32,10 +32,10 @@ This skill creates institutional-quality DCF models for equity valuation followi
 These constraints apply throughout all DCF model building. Review before starting:
 
 **Formulas Over Hardcodes (NON-NEGOTIABLE):**
-- Every projection, margin, discount factor, PV, and sensitivity cell MUST be a live Excel formula — never a value computed in Python and written as a number
+- Every projection, margin, discount factor, PV, and sensitivity cell MUST be a live Excel formula; never a value computed in Python and written as a number
 - When using openpyxl: `ws["D20"] = "=D19*(1+$B$8)"` is correct; `ws["D20"] = calculated_revenue` is WRONG
 - The only hardcoded numbers permitted are: (1) raw historical inputs, (2) assumption drivers (growth rates, WACC inputs, terminal g), (3) current market data (share price, debt balance)
-- If you catch yourself computing something in Python and writing the result — STOP. The model must flex when the user changes an assumption.
+- If you catch yourself computing something in Python and writing the result; STOP. The model must flex when the user changes an assumption.
 
 **Verify Step-by-Step With the User (DO NOT build end-to-end):**
 - After data retrieval → show the user the raw inputs block (revenue, margins, shares, net debt) and confirm before projecting
@@ -43,11 +43,11 @@ These constraints apply throughout all DCF model building. Review before startin
 - After FCF build → show the full FCF schedule, confirm logic before computing WACC
 - After WACC → show the calculation and inputs, confirm before discounting
 - After terminal value + PV → show the equity bridge (EV → equity value → per share), confirm before sensitivity tables
-- Catch errors at each stage — a wrong margin assumption discovered after sensitivity tables are built means rebuilding everything downstream
+- Catch errors at each stage; a wrong margin assumption discovered after sensitivity tables are built means rebuilding everything downstream
 
 **Sensitivity Tables:**
-- **Use an ODD number of rows and columns** (standard: 5×5, sometimes 7×7) — this guarantees a true center cell
-- **Center cell = base case.** Build the axis values so the middle row header and middle column header exactly equal the model's actual assumptions (e.g., if base WACC = 9.0%, the middle row is 9.0%; if terminal g = 3.0%, the middle column is 3.0%). The center cell's output must therefore equal the model's actual implied share price — this is the sanity check that the table is built correctly.
+- **Use an ODD number of rows and columns** (standard: 5×5, sometimes 7×7); this guarantees a true center cell
+- **Center cell = base case.** Build the axis values so the middle row header and middle column header exactly equal the model's actual assumptions (e.g., if base WACC = 9.0%, the middle row is 9.0%; if terminal g = 3.0%, the middle column is 3.0%). The center cell's output must therefore equal the model's actual implied share price; this is the sanity check that the table is built correctly.
 - **Highlight the center cell** with the medium-blue fill (`#BDD7EE`) + bold font so it's immediately visible which cell is the base case.
 - Populate ALL cells (typically 3 tables × 25 cells = 75) with full DCF recalculation formulas
 - Use openpyxl loops to write formulas programmatically
@@ -522,7 +522,7 @@ Each sensitivity table must be fully populated with formulas that recalculate th
 
 **Implementation approach - CONCRETE EXAMPLE:**
 
-**Table Structure — 5×5 grid (ODD dimensions, base case centered):**
+**Table Structure; 5×5 grid (ODD dimensions, base case centered):**
 
 If the model's base WACC = 9.0% and base terminal growth = 3.0%, build the axes symmetrically around those values:
 
@@ -530,16 +530,16 @@ If the model's base WACC = 9.0% and base terminal growth = 3.0%, build the axes 
 WACC vs Terminal Growth,  2.0%,  2.5%,  3.0%,  3.5%,  4.0%
               8.0%,       [fml], [fml], [fml], [fml], [fml]
               8.5%,       [fml], [fml], [fml], [fml], [fml]
-              9.0%,       [fml], [fml], [★  ], [fml], [fml]   ← middle row = base WACC
+              9.0%,       [fml], [fml], [  ], [fml], [fml]   ← middle row = base WACC
               9.5%,       [fml], [fml], [fml], [fml], [fml]
              10.0%,       [fml], [fml], [fml], [fml], [fml]
                                    ↑
                           middle col = base terminal g
 ```
 
-**★ = the center cell.** Its formula output MUST equal the model's actual implied share price (from the valuation summary). Apply the medium-blue fill (`#BDD7EE`) and bold font to this cell so the base case is visually anchored.
+** = the center cell.** Its formula output MUST equal the model's actual implied share price (from the valuation summary). Apply the medium-blue fill (`#BDD7EE`) and bold font to this cell so the base case is visually anchored.
 
-**Rule for axis values:** `axis_values = [base - 2*step, base - step, base, base + step, base + 2*step]` — symmetric around the base, odd count guarantees a center.
+**Rule for axis values:** `axis_values = [base - 2*step, base - step, base, base + step, base + 2*step]`; symmetric around the base, odd count guarantees a center.
 
 **Formula Pattern - Cell B88 (WACC=8.0%, Terminal Growth=2.0%):**
 
@@ -594,8 +594,8 @@ B105: =B88/(1+(E48-0.07))      // Doesn't recalculate full DCF
 ```
 
 **Don't confuse terminology:**
-- ❌ "Sensitivity tables need Excel's Data Table feature" (NO - that's a specific Excel tool we can't use)
-- ✅ "Sensitivity tables are simple grids with formulas in each cell" (YES - this is what we build)
+- Failed:  "Sensitivity tables need Excel's Data Table feature" (NO - that's a specific Excel tool we can't use)
+- Done:  "Sensitivity tables are simple grids with formulas in each cell" (YES - this is what we build)
 
 **Why these shortcuts are wrong:**
 - Linear approximation formulas don't actually recalculate the DCF - they just apply simple math adjustments
@@ -843,15 +843,15 @@ The script will:
 - **Black text (RGB: 0,0,0)**: ALL formulas and calculations
 - **Green text (RGB: 0,128,0)**: Links to other sheets (WACC sheet references)
 
-**Layer 2: Fill Colors — Professional Blue/Grey Palette (Default unless user specifies otherwise)**
-- **Keep it minimal** — use only blues and greys for fills. Do NOT introduce greens, yellows, oranges, or multiple accent colors. A model with too many colors looks amateurish.
+**Layer 2: Fill Colors; Professional Blue/Grey Palette (Default unless user specifies otherwise)**
+- **Keep it minimal**; use only blues and greys for fills. Do NOT introduce greens, yellows, oranges, or multiple accent colors. A model with too many colors looks amateurish.
 - **Default fill palette:**
   - **Section headers**: Dark blue (RGB: 31,78,121 / `#1F4E79`) background with white bold text
   - **Sub-headers/column headers**: Light blue (RGB: 217,225,242 / `#D9E1F2`) background with black bold text
-  - **Input cells**: Light grey (RGB: 242,242,242 / `#F2F2F2`) background with blue font — or just white with blue font if you want maximum minimalism
+  - **Input cells**: Light grey (RGB: 242,242,242 / `#F2F2F2`) background with blue font; or just white with blue font if you want maximum minimalism
   - **Calculated cells**: White background with black font
   - **Output/summary rows** (per-share value, EV, etc.): Medium blue (RGB: 189,215,238 / `#BDD7EE`) background with black bold font
-- **That's it — 3 blues + 1 grey + white.** Resist the urge to add more.
+- **That's it; 3 blues + 1 grey + white.** Resist the urge to add more.
 - User-provided templates or explicit color preferences ALWAYS override these defaults.
 
 **How the layers work together:**
@@ -1253,11 +1253,11 @@ Before delivering DCF model:
 - Tax rate 21-28%
 - File naming: `[Ticker]_DCF_Model_[Date].xlsx`
 
-## Data sources — MCP first, web fallback
+## Data sources; MCP first, web fallback
 
 Many passages below say "use the S&P Kensho MCP / Daloopa MCP / FactSet MCP". Those are commercial financial-data MCPs from the original Cowork plugin context. In Keprix:
 
-- **If you have any structured financial-data MCP configured** (Keprix supports MCP — see `native-mcp` skill), prefer it for point-in-time comps, precedent transactions, and filings.
+- **If you have any structured financial-data MCP configured** (Keprix supports MCP; see `native-mcp` skill), prefer it for point-in-time comps, precedent transactions, and filings.
 - **Otherwise**, fall back to:
   - `web_search` / `web_extract` against SEC EDGAR (`https://www.sec.gov/cgi-bin/browse-edgar`) for US filings
   - Company IR pages for press releases, earnings decks

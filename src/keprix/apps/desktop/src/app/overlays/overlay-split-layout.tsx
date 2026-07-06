@@ -76,7 +76,7 @@ export function OverlayMain({ children, className }: OverlayMainProps) {
 }
 
 // Boxless "+ New …" action that tops an OverlaySidebar list (profiles, cron, …).
-// The text variant underlines on hover, which also strokes the icon glyph — so
+// The text variant underlines on hover, which also strokes the icon glyph; so
 // we keep the button itself underline-free and underline only the label span.
 export function OverlayNewButton({
   icon = 'add',

@@ -28,9 +28,9 @@ if tokenizer.is_fast:
 | Feature                  | Fast (Rust)    | Slow (Python) |
 |--------------------------|----------------|---------------|
 | Speed                    | 5-10× faster   | Baseline      |
-| Alignment tracking       | ✅ Full support | ❌ Limited     |
-| Batch processing         | ✅ Optimized    | ⚠️ Slower      |
-| Offset mapping           | ✅ Yes          | ❌ No          |
+| Alignment tracking       | Done:  Full support | Failed:  Limited     |
+| Batch processing         | Done:  Optimized    | WARNING:  Slower      |
+| Offset mapping           | Done:  Yes          | Failed:  No          |
 | Installation             | `tokenizers`   | Built-in      |
 
 **Always use fast tokenizers when available.**

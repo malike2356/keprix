@@ -30,7 +30,7 @@ const EFFORT_OPTIONS = [
   { value: 'xhigh', labelKey: 'max' }
 ] as const
 
-/** How "fast" is achieved for a given model — two different mechanisms:
+/** How "fast" is achieved for a given model; two different mechanisms:
  *  - `param`: the Anthropic/OpenAI `speed=fast` request parameter.
  *  - `variant`: a separate `…-fast` sibling model selected via the model field.
  */
@@ -142,7 +142,7 @@ export function ModelEditSubmenu({
 
   const toggleFast = (enabled: boolean) => {
     if (fastControl.kind === 'variant') {
-      // Fast is a separate model id — swap to it (or back to the base).
+      // Fast is a separate model id; swap to it (or back to the base).
       void onSelectModel(enabled ? fastControl.fastId : fastControl.baseId)
 
       return

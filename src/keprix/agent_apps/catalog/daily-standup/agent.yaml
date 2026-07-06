@@ -1,0 +1,29 @@
+name: daily-standup
+version: 1.0.0
+display_name: Daily Standup
+description: Summarises open tasks and recent activity into standup bullets.
+category: productivity
+icon: standup
+runtime: agent
+required_env:
+  - KEPRIX_DEFAULT_PROVIDER
+required_permissions:
+  - network
+tools:
+  - tools/tasks.yaml
+inputs:
+  - id: focus
+    label: What should I focus on?
+    type: textarea
+    required: false
+    placeholder: Optional focus area for today's standup
+outputs:
+  - id: markdown
+    type: markdown
+eval_suite: evals/basic.yaml
+schedule:
+  suggested: "0 9 * * 1-5"
+  timezone: user
+billing:
+  tier: free
+  meter: runs_per_month

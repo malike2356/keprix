@@ -227,6 +227,17 @@ def persist_env_value(key: str, value: str) -> None:
         _upsert_env_file(env_file, key, cleaned)
 
 
+def remove_env_value(key: str) -> None:
+    os.environ.pop(key, None)
+    env_file = _resolve_env_file()
+    if env_file is None or not env_file.exists():
+        return
+    prefix = f"{key}="
+    lines = env_file.read_text(encoding="utf-8").splitlines(keepends=True)
+    output = [line for line in lines if not line.startswith(prefix)]
+    env_file.write_text("".join(output), encoding="utf-8")
+
+
 def save_provider_settings(
     provider_id: str,
     *,
@@ -263,3 +274,36 @@ def test_provider_settings(provider_id: str) -> dict[str, Any]:
         model = entry.get("default_model") or "configured"
         return {"ok": True, "message": f"{label} connected ({model})"}
     return {"ok": False, "message": "Not configured"}
+
+
+def delete_provider_settings(provider_id: str) -> dict[str, Any]:
+    spec = _spec_for_ui_id(provider_id)
+    if spec is None:
+        raise KeyError(provider_id)
+
+    keys: list[str] = list(spec.env_keys or ())
+    if spec.env_key and spec.env_key not in keys:
+        keys.append(spec.env_key)
+    keys.append(f"KEPRIX_{spec.ui_id.upper().replace('-', '_')}_DEFAULT_MODEL")
+
+    for key in keys:
+        remove_env_value(key)
+
+    if os.getenv("KEPRIX_DEFAULT_PROVIDER", "").strip().lower() == spec.ui_id:
+        remove_env_value("KEPRIX_DEFAULT_PROVIDER")
+
+    from keprix.api.chat_inference import invalidate_provider_cache
+
+    invalidate_provider_cache()
+    return provider_settings_snapshot()[provider_id]
+
+
+def set_default_provider(provider_id: str) -> dict[str, Any]:
+    cleaned = provider_id.strip()
+    if not cleaned:
+        raise ValueError("Provider id is required")
+    persist_env_value("KEPRIX_DEFAULT_PROVIDER", cleaned)
+    from keprix.api.chat_inference import invalidate_provider_cache
+
+    invalidate_provider_cache()
+    return {"default_provider": cleaned}

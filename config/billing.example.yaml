@@ -1,0 +1,171 @@
+# billing.yaml; example product billing configuration for Keprix
+# Copy to your extension directory or set KEPRIX_BILLING_CONFIG to this path.
+# Enable with KEPRIX_BILLING_PROVIDER=stripe (or KEPRIX_BILLING_ENABLED=true for mock mode).
+
+product:
+  id: "example-saas"
+  name: "Example SaaS"
+  company: "Example Ltd"
+  company_address: "Portsmouth, UK"
+  vat_number: ""
+  support_email: "billing@example.com"
+  website: "https://example.com"
+  trial_days: 14
+
+plans:
+  - id: "community"
+    name: "Community"
+    description: "Free tier for individual users"
+    price: 0
+    currency: "gbp"
+    interval: null
+    seats: 1
+    metadata:
+      highlight: false
+    feature_flags:
+      tools_all: true
+      workflows: 5
+      governance: "local"
+      audit_retention_days: 7
+      support: "community"
+      api_access: false
+      sso: false
+      agent_apps.enabled: true
+      agent_apps.marketplace: true
+      agent_apps.pro_templates: false
+      agent_apps.scheduled: false
+
+  - id: "pro"
+    name: "Pro"
+    description: "For professionals"
+    prices:
+      - amount: 4900
+        currency: "gbp"
+        interval: "month"
+      - amount: 49000
+        currency: "gbp"
+        interval: "year"
+        discount_text: "Save 17%"
+    seats: 1
+    metadata:
+      highlight: true
+      badge: "Most Popular"
+    feature_flags:
+      tools_all: true
+      workflows: 15
+      governance: "full"
+      audit_retention_days: 90
+      support: "email"
+      api_access: false
+      sso: false
+      agent_apps.enabled: true
+      agent_apps.marketplace: true
+      agent_apps.pro_templates: true
+      agent_apps.scheduled: true
+      agent_apps.webhooks: false
+
+  - id: "team"
+    name: "Team"
+    description: "For teams and organizations"
+    prices:
+      - amount: 12900
+        currency: "gbp"
+        interval: "month"
+      - amount: 129000
+        currency: "gbp"
+        interval: "year"
+        discount_text: "Save 17%"
+    seats: 10
+    metadata:
+      highlight: false
+    feature_flags:
+      tools_all: true
+      workflows: 15
+      governance: "full"
+      audit_retention_days: 365
+      support: "priority"
+      api_access: true
+      sso: false
+      dark_web_tools: true
+      agent_apps.enabled: true
+      agent_apps.marketplace: true
+      agent_apps.pro_templates: true
+      agent_apps.scheduled: true
+      agent_apps.webhooks: true
+      agent_apps.publish: true
+
+addons:
+  - id: "extra_seats"
+    name: "Extra Seats"
+    description: "Additional team members beyond plan limit"
+    price: 1500
+    currency: "gbp"
+    interval: "month"
+    applies_to: ["team"]
+
+  - id: "sso"
+    name: "Single Sign-On"
+    description: "SAML/OIDC enterprise SSO"
+    price: 9900
+    currency: "gbp"
+    interval: "month"
+    applies_to: ["team"]
+
+tax:
+  regions:
+    - code: "GB"
+      name: "United Kingdom"
+      rate: 0.20
+      rule: "always"
+      vat_validation: "hmrc"
+    - code: "EU"
+      name: "European Union"
+      rate: null
+      rule: "b2b_reverse"
+      vat_validation: "vies"
+    - code: "US"
+      name: "United States"
+      rate: 0
+      rule: "none"
+    - code: "ROW"
+      name: "Rest of World"
+      rate: 0
+      rule: "none"
+
+dunning:
+  enabled: true
+  retry_schedule:
+    - days: 1
+      action: "retry"
+    - days: 3
+      action: "retry"
+      notify: true
+      notify_template: "payment_failed"
+    - days: 7
+      action: "retry"
+      notify: true
+      notify_template: "payment_failed"
+      degrade_features: true
+    - days: 14
+      action: "retry"
+      notify: true
+      notify_template: "payment_at_risk"
+    - days: 30
+      action: "cancel"
+
+webhooks:
+  signing_secret_env: "STRIPE_WEBHOOK_SECRET"
+  events:
+    - checkout.session.completed
+    - customer.subscription.created
+    - customer.subscription.updated
+    - customer.subscription.deleted
+    - invoice.paid
+    - invoice.payment_failed
+    - invoice.payment_succeeded
+    - invoice.upcoming
+    - customer.subscription.trial_will_end
+    - payment_method.attached
+    - payment_method.detached
+    - charge.refunded
+    - charge.dispute.created

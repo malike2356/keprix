@@ -39,7 +39,7 @@ import { previewTargetFromMarkdownHref } from '@/lib/preview-targets'
 import { tailBoundedRemend } from '@/lib/remend-tail'
 import { cn } from '@/lib/utils'
 
-// Math rendering plugin (KaTeX). Configured once at module scope — the
+// Math rendering plugin (KaTeX). Configured once at module scope; the
 // plugin is stateless beyond its internal cache so re-creating per-render
 // would needlessly thrash. We use a memoizing wrapper around rehype-katex
 // (see lib/katex-memo.ts) so that during streaming we re-katex only the
@@ -54,7 +54,7 @@ import { cn } from '@/lib/utils'
 const mathPlugin = createMemoizedMathPlugin({ singleDollarTextMath: true })
 
 // Replaces Streamdown's `parseIncompleteMarkdown` (full-text remend per
-// flush) with a tail-bounded repair — see lib/remend-tail.ts. Must stay
+// flush) with a tail-bounded repair; see lib/remend-tail.ts. Must stay
 // module-scope so the prop identity is stable across renders.
 function preprocessWithTailRepair(text: string): string {
   return tailBoundedRemend(preprocessMarkdown(text))
@@ -62,12 +62,12 @@ function preprocessWithTailRepair(text: string): string {
 
 // Memoized block splitter. Streamdown calls `parseMarkdownIntoBlocks` (a full
 // `marked` lex of the entire message, ~1.6ms per 28KB) inside a useMemo keyed
-// on the text — but the same text is re-lexed every time a message REMOUNTS
+// on the text; but the same text is re-lexed every time a message REMOUNTS
 // (virtualizer scroll, session switch) and whenever multiple surfaces render
 // the same content (deferred + smooth reveal republish). A small module-level
 // LRU keyed by the exact source string removes all of those repeat parses
 // with zero correctness risk (same input → same output). Streaming tail
-// growth misses the cache by design (every flush is a new string) — that
+// growth misses the cache by design (every flush is a new string); that
 // single lex is the irreducible cost.
 const BLOCK_CACHE_MAX = 64
 const BLOCK_CACHE_MIN_LENGTH = 1024
@@ -290,7 +290,7 @@ function MarkdownImage({ className, src, alt, ...props }: ComponentProps<'img'>)
 
 // Steady character-reveal for streaming text: decouples visible cadence from
 // bursty arrival so text flows instead of popping (cf. assistant-ui's useSmooth,
-// reimplemented for a tunable rate). Proportional drain — each frame reveals a
+// reimplemented for a tunable rate). Proportional drain; each frame reveals a
 // slice of the backlog so the reveal converges within ~REVEAL_DRAIN_MS whatever
 // the size; the per-frame cap stops a huge dump rendering as one slab. The loop
 // is gated on backlog, not isRunning, so a stream that completes mid-reveal
@@ -299,7 +299,7 @@ const REVEAL_DRAIN_MS = 500
 const REVEAL_MAX_CHARS_PER_FRAME = 30
 // Floor between reveal commits. Each commit republishes the text context and
 // re-runs the whole Streamdown pipeline (preprocess → remend → lex → micromark
-// on the open block) over the full accumulated text — at raw rAF cadence
+// on the open block) over the full accumulated text; at raw rAF cadence
 // that's 60 full parses/second and was the dominant streaming cost for
 // reasoning text. ~33ms keeps the reveal visually fluid (2 frames) while
 // halving the parse work.
@@ -337,7 +337,7 @@ function useSmoothReveal(text: string, isRunning: boolean): string {
       const now = performance.now()
       const dt = now - lastTickRef.current
 
-      // Skip this frame if the floor hasn't elapsed — the backlog math below
+      // Skip this frame if the floor hasn't elapsed; the backlog math below
       // is dt-proportional, so delayed commits reveal proportionally more.
       if (dt < REVEAL_MIN_COMMIT_MS) {
         frameRef.current = requestAnimationFrame(tick)
@@ -409,7 +409,7 @@ function SmoothStreamingText({ children }: { children: ReactNode }) {
  *     urgent task (typing, scrolling, layout work elsewhere)
  *
  * Net effect: per-token CPU is unchanged but the *blocking* part of that work
- * goes away — typing-while-streaming stays a single-frame paint, scroll
+ * goes away; typing-while-streaming stays a single-frame paint, scroll
  * stutter disappears, and the longtask histogram tightens because long
  * commits can be interrupted and discarded.
  *
@@ -479,7 +479,7 @@ function MarkdownTextSurface({ containerClassName, containerProps }: MarkdownTex
         ),
         p: ({ className, ...props }: ComponentProps<'p'>) => (
           // Vertical rhythm is owned by styles.css (`--paragraph-gap`), which
-          // must out-specify Tailwind Typography's `prose` margins — so no
+          // must out-specify Tailwind Typography's `prose` margins; so no
           // `my-*` here on purpose.
           <p className={cn('wrap-anywhere leading-(--dt-line-height)', className)} {...props} />
         ),
@@ -542,7 +542,7 @@ function MarkdownTextSurface({ containerClassName, containerProps }: MarkdownTex
       mode="streaming"
       // Incomplete-markdown repair is handled by `preprocessWithTailRepair`
       // below (tail-bounded remend) instead of Streamdown's built-in pass,
-      // which re-runs remend over the ENTIRE message on every flush — ~18%
+      // which re-runs remend over the ENTIRE message on every flush; ~18%
       // of streaming script time on 50KB+ messages. The repair itself stays
       // always-on (even between flushes / for completed messages): an
       // unclosed ```python ... ``` whose body contains `$` (shell snippets,

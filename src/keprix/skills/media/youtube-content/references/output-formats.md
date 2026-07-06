@@ -28,7 +28,7 @@ A review of prior work in the field, covering approaches A, B, and C.
 ## Thread (Twitter/X)
 
 ```
-1/ Just watched an incredible talk on [topic]. Here are the key takeaways: 🧵
+1/ Just watched an incredible talk on [topic]. Here are the key takeaways: 
 
 2/ First insight: [point]. This matters because [reason].
 
@@ -51,6 +51,6 @@ Full article with:
 ## Quotes
 
 ```
-"The most important thing is not the model size, but the data quality." — 05:32
-"We found that scaling past 70B parameters gave diminishing returns." — 12:18
+"The most important thing is not the model size, but the data quality."; 05:32
+"We found that scaling past 70B parameters gave diminishing returns."; 12:18
 ```

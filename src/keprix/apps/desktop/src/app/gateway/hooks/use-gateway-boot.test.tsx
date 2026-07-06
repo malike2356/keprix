@@ -14,7 +14,7 @@ import { useGatewayBoot } from './use-gateway-boot'
 //
 // The previous test (gateway-connecting-overlay.test.tsx) hand-set the stores
 // and asserted the overlays; this one proves the HOOK actually PRODUCES that
-// stuck store combo — closing the "inferred by reading code" gap on the
+// stuck store combo; closing the "inferred by reading code" gap on the
 // post-boot reconnect loop.
 
 type Listener = (ev: unknown) => void
@@ -49,7 +49,7 @@ class FakeWebSocket {
   }
 
   addEventListener(type: string, fn: Listener) {
-    ;(this.listeners[type] ??= new Set()).add(fn)
+;(this.listeners[type] ??= new Set()).add(fn)
   }
 
   removeEventListener(type: string, fn: Listener) {
@@ -120,8 +120,8 @@ beforeEach(() => {
   vi.useFakeTimers()
   FakeWebSocket.mode = 'open'
   FakeWebSocket.instances = []
-  ;(globalThis as { WebSocket: unknown }).WebSocket = FakeWebSocket
-  ;(window as { hermesDesktop?: unknown }).hermesDesktop = fakeDesktop()
+;(globalThis as { WebSocket: unknown }).WebSocket = FakeWebSocket
+;(window as { hermesDesktop?: unknown }).hermesDesktop = fakeDesktop()
   $gatewayState.set('idle')
   $desktopBoot.set({
     error: null,
@@ -138,7 +138,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup()
   vi.useRealTimers()
-  ;(globalThis as { WebSocket: unknown }).WebSocket = originalWebSocket
+;(globalThis as { WebSocket: unknown }).WebSocket = originalWebSocket
   delete (window as { hermesDesktop?: unknown }).hermesDesktop
 })
 
@@ -174,12 +174,12 @@ describe('useGatewayBoot remote reconnect loop (real hook, fake socket)', () => 
           rejectConn = reject
         })
     )
-    ;(window as { hermesDesktop?: unknown }).hermesDesktop = desktop
+;(window as { hermesDesktop?: unknown }).hermesDesktop = desktop
 
     render(<Harness />)
     await flushAsync()
 
-    // getConnection is still pending — the dead-VPS wait. No socket was ever
+    // getConnection is still pending; the dead-VPS wait. No socket was ever
     // created, gatewayState never left idle, boot.error is null.
     expect(FakeWebSocket.instances).toHaveLength(0)
     expect($gatewayState.get()).not.toBe('open')
@@ -220,7 +220,7 @@ describe('useGatewayBoot remote reconnect loop (real hook, fake socket)', () => 
 
     expect($gatewayState.get()).not.toBe('open')
     expect($desktopBoot.get().error).toBeNull()
-    // It is actively retrying, not idle — more sockets were minted.
+    // It is actively retrying, not idle; more sockets were minted.
     expect(FakeWebSocket.instances.length).toBeGreaterThan(1)
   })
 

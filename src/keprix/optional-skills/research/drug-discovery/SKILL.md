@@ -26,7 +26,7 @@ Use this skill for all pharma/chemistry research tasks.
 
 ## Core Workflows
 
-### 1 — Bioactive Compound Search (ChEMBL)
+### 1; Bioactive Compound Search (ChEMBL)
 
 Search ChEMBL (the world's largest open bioactivity database) for compounds
 by target, activity, or molecule name. No API key required.
@@ -82,10 +82,10 @@ print(f\"QED        : {props.get('qed_weighted','N/A')}\")
 "
 ```
 
-### 2 — Drug-Likeness Calculation (Lipinski Ro5 + Veber)
+### 2; Drug-Likeness Calculation (Lipinski Ro5 + Veber)
 
 Assess any molecule against established oral bioavailability rules using
-PubChem's free property API — no RDKit install needed.
+PubChem's free property API; no RDKit install needed.
 
 ```bash
 COMPOUND="$1"
@@ -102,21 +102,21 @@ hba  = int(props.get('HBondAcceptorCount', 0))
 rot  = int(props.get('RotatableBondCount', 0))
 tpsa = float(props.get('TPSA', 0))
 print('=== Lipinski Rule of Five (Ro5) ===')
-print(f'  MW   {mw:.1f} Da    {\"✓\" if mw<=500 else \"✗ VIOLATION (>500)\"}')
-print(f'  LogP {logp:.2f}       {\"✓\" if logp<=5 else \"✗ VIOLATION (>5)\"}')
-print(f'  HBD  {hbd}           {\"✓\" if hbd<=5 else \"✗ VIOLATION (>5)\"}')
-print(f'  HBA  {hba}           {\"✓\" if hba<=10 else \"✗ VIOLATION (>10)\"}')
+print(f'  MW   {mw:.1f} Da    {\"\" if mw<=500 else \" VIOLATION (>500)\"}')
+print(f'  LogP {logp:.2f}       {\"\" if logp<=5 else \" VIOLATION (>5)\"}')
+print(f'  HBD  {hbd}           {\"\" if hbd<=5 else \" VIOLATION (>5)\"}')
+print(f'  HBA  {hba}           {\"\" if hba<=10 else \" VIOLATION (>10)\"}')
 viol = sum([mw>500, logp>5, hbd>5, hba>10])
 print(f'  Violations: {viol}/4  {\"→ Likely orally bioavailable\" if viol<=1 else \"→ Poor oral bioavailability predicted\"}')
 print()
 print('=== Veber Oral Bioavailability Rules ===')
-print(f'  TPSA         {tpsa:.1f} Å²   {\"✓\" if tpsa<=140 else \"✗ VIOLATION (>140)\"}')
-print(f'  Rot. bonds   {rot}           {\"✓\" if rot<=10 else \"✗ VIOLATION (>10)\"}')
+print(f'  TPSA         {tpsa:.1f} Å²   {\"\" if tpsa<=140 else \" VIOLATION (>140)\"}')
+print(f'  Rot. bonds   {rot}           {\"\" if rot<=10 else \" VIOLATION (>10)\"}')
 print(f'  Both rules met: {\"Yes → good oral absorption predicted\" if tpsa<=140 and rot<=10 else \"No → reduced oral absorption\"}')
 "
 ```
 
-### 3 — Drug Interaction & Safety Lookup (OpenFDA)
+### 3; Drug Interaction & Safety Lookup (OpenFDA)
 
 ```bash
 DRUG="$1"
@@ -156,7 +156,7 @@ for r in results[:10]:
 "
 ```
 
-### 4 — PubChem Compound Search
+### 4; PubChem Compound Search
 
 ```bash
 COMPOUND="$1"
@@ -173,7 +173,7 @@ print(f\"InChIKey   : {p.get('InChIKey','N/A')}\")
 "
 ```
 
-### 5 — Target & Disease Literature (OpenTargets)
+### 5; Target & Disease Literature (OpenTargets)
 
 ```bash
 GENE="$1"
@@ -188,7 +188,7 @@ if not hits:
     print('Target not found.')
     sys.exit()
 obj=hits[0]['object']
-print(f\"Target: {obj.get('approvedSymbol')} — {obj.get('approvedName')}\")
+print(f\"Target: {obj.get('approvedSymbol')}; {obj.get('approvedName')}\")
 assoc=obj.get('associatedDiseases',{})
 print(f\"Associated with {assoc.get('count',0)} diseases. Top associations:\")
 for row in assoc.get('rows',[]):
@@ -200,11 +200,11 @@ for row in assoc.get('rows',[]):
 
 When analysing drug-likeness or molecular properties, always:
 
-1. **State raw values first** — MW, LogP, HBD, HBA, TPSA, RotBonds
-2. **Apply rule sets** — Ro5 (Lipinski), Veber, Ghose filter where relevant
-3. **Flag liabilities** — metabolic hotspots, hERG risk, high TPSA for CNS penetration
-4. **Suggest optimizations** — bioisosteric replacements, prodrug strategies, ring truncation
-5. **Cite the source API** — ChEMBL, PubChem, OpenFDA, or OpenTargets
+1. **State raw values first**; MW, LogP, HBD, HBA, TPSA, RotBonds
+2. **Apply rule sets**; Ro5 (Lipinski), Veber, Ghose filter where relevant
+3. **Flag liabilities**; metabolic hotspots, hERG risk, high TPSA for CNS penetration
+4. **Suggest optimizations**; bioisosteric replacements, prodrug strategies, ring truncation
+5. **Cite the source API**; ChEMBL, PubChem, OpenFDA, or OpenTargets
 
 For ADMET questions, reason through Absorption, Distribution, Metabolism, Excretion, Toxicity systematically. See references/ADMET_REFERENCE.md for detailed guidance.
 

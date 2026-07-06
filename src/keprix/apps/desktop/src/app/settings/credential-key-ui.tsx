@@ -142,7 +142,7 @@ function CredentialDocsLink({ href }: { href: string }) {
   )
 }
 
-/** One credential row — collapsible; description and docs link expand on click. */
+/** One credential row; collapsible; description and docs link expand on click. */
 export function CredentialKeyCard({
   expanded,
   info,
@@ -230,7 +230,7 @@ export function CredentialKeyCard({
   )
 }
 
-/** Provider API key group — collapsible card; description, docs link, and advanced fields expand on click. */
+/** Provider API key group; collapsible card; description, docs link, and advanced fields expand on click. */
 export function ProviderKeyRows({ expanded, group, onExpand, onToggle, rowProps }: ProviderKeyRowsProps) {
   const { t } = useI18n()
   const docsUrl = group.docsUrl?.trim()

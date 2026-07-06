@@ -1,4 +1,4 @@
-// REAL streaming measurement — no React internals.
+// REAL streaming measurement; no React internals.
 //
 // Measures:
 //   1) rAF frame intervals during a verified live stream (long-frame histogram)
@@ -7,7 +7,7 @@
 //   4) PerformanceObserver `longtask` entries (any task > 50ms blocks input)
 //
 // Detects REAL stream by waiting for assistant-message DOM count to grow past baseline.
-// Does NOT cancel — lets the stream run to completion or hits TIMEOUT_MS.
+// Does NOT cancel; lets the stream run to completion or hits TIMEOUT_MS.
 
 const CDP_HTTP = 'http://127.0.0.1:9222'
 const PROMPT = process.env.PROMPT || 'count from 1 to 80, one number per line'
@@ -137,7 +137,7 @@ async function main() {
     })()
   `)
 
-  // Poll for REAL stream (assistant count > baseline). 30 seconds — accommodates
+  // Poll for REAL stream (assistant count > baseline). 30 seconds; accommodates
   // slow first-token latencies on big providers.
   let realStreamT = null
   for (let i = 0; i < 600; i++) {
@@ -151,7 +151,7 @@ async function main() {
     `))
     if (s.n > base.assistantCount) {
       realStreamT = Date.now()
-      console.log('REAL stream started after', realStreamT - submitT0, 'ms — busy=', s.busy, 'text=', s.text)
+      console.log('REAL stream started after', realStreamT - submitT0, 'ms; busy=', s.busy, 'text=', s.text)
       // Arm mutation observer on the new message
       await cdp.eval('window.__MO__.arm()')
       break
@@ -242,7 +242,7 @@ async function main() {
   console.log('window:', (frameTotal / 1000).toFixed(1), 's | frames:', frames.length, '| avgFps:', avgFps, '| maxFrame:', maxFrame.toFixed(1), 'ms')
   console.log('frame histogram:', buckets)
   console.log('slow frames (>33ms):', slowFrames, '| very slow (>100ms):', veryslowFrames)
-  console.log('longtasks:', longtasks.length, 'total', ltMs.toFixed(0), 'ms — max', ltMax.toFixed(1), 'ms')
+  console.log('longtasks:', longtasks.length, 'total', ltMs.toFixed(0), 'ms; max', ltMax.toFixed(1), 'ms')
   console.log('text grew', firstLen, '→', lastLen, 'chars (', charsPerSec, 'char/s )')
   console.log('mutations on streaming msg:', mutTotal, '| inter-mutation p50:', mutP50.toFixed(1), 'ms', 'p95:', mutP95.toFixed(1), 'ms')
 
