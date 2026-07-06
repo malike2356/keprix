@@ -7,7 +7,7 @@ import uuid
 from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, field_validator
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -16,16 +16,42 @@ from starlette.responses import JSONResponse, Response
 from keprix.api.admin_routes import router as admin_router
 from keprix.api.analytics_routes import router as analytics_router
 from keprix.analytics.workspace_routes import router as analytics_workspace_router
-from keprix.api.auth import PUBLIC_PATHS  # noqa: F401 - documents public routes
+from keprix.api.auth import PUBLIC_PATHS, require_admin  # noqa: F401 - documents public routes
+from keprix.api.cron_routes import router as cron_router
 from keprix.api.diagnostics_routes import router as diagnostics_router
 from keprix.api.health_routes import router as health_router
 from keprix.api.public_v1_routes import router as public_v1_router
 from keprix.auth.admin_routes import router as admin_users_router
+from keprix.auth.invite_routes import router as auth_invite_router
 from keprix.auth.routes import router as auth_router
 from keprix.compare.routes import router as compare_router
+from keprix.evals.routes import router as evals_router
 from keprix.contacts.routes import router as contacts_router
 from keprix.contacts.sync.scheduler import start_contact_sync_scheduler, stop_contact_sync_scheduler
+from keprix.extensions.registry import (
+    get_governance_router,
+    load_active_extensions,
+    start_extension_hooks,
+    stop_extension_hooks,
+)
 from keprix.contacts.sync_routes import router as contacts_sync_router
+from keprix.voice_templates.routes import router as voice_templates_router
+from keprix.voice.routes import router as voice_wake_router
+from keprix.backend.localization.routes import router as localization_router
+from keprix.backend.localization.routes_corrections import router as localization_corrections_router
+from keprix.backend.notifications.routes import router as notifications_router
+from keprix.backend.builder.routes import router as builder_router
+from keprix.backend.domain_packs.routes import router as domain_packs_router
+from keprix.backend.migration.routes import router as migration_router
+from keprix.backend.messaging.routes import router as rooms_router
+from keprix.backend.tools.adapters.routes import router as tool_adapters_router
+from keprix.backend.evals.routes import router as eval_benchmarks_router
+from keprix.backend.multiagent.routes import router as multiagent_router
+from keprix.backend.control_center.routes import router as control_center_router
+from keprix.backend.observability.routes import router as observability_router
+from keprix.usage.routes import router as usage_router
+from keprix.mobile.companion.routes import router as companion_router
+from keprix.backend.intent.routes import router as intent_router
 from keprix.email.pollers import start_email_poller, stop_email_poller
 from keprix.email.routes import router as email_router
 from keprix.config.constants import PRODUCT_NAME, PRODUCT_VERSION
@@ -43,18 +69,23 @@ from keprix.public_api.openai_compat import router as openai_compat_router
 from keprix.public_api.responses import router as responses_router
 from keprix.research.routes import router as research_router
 from keprix.research.routes import search_router
+from keprix.opportunity.routes import router as opportunity_router
+from keprix.teams.routes import router as teams_router
+from keprix.agents_runtime.routes import router as agents_runtime_router
 from keprix.agent.keprix.routes import router as mutation_router
 from keprix.sdk.routes import router as sdk_router
 from keprix.slash.routes import router as slash_router
 from keprix.api.admin_workspace_routes import router as admin_workspace_router
 from keprix.api.conversation_routes import router as conversation_router
-from keprix.api.stats_routes import router as stats_router
+from keprix.api.stats_routes import router as dashboard_stats_router
 from keprix.api.dashboard_routes import router as dashboard_router
 from keprix.ui_contract.routes import router as ui_contract_router
 from keprix.coding.routes import router as coding_router
 from keprix.code_agent.routes import router as code_agent_router
+from keprix.typed_agents.routes import router as typed_agents_router
 from keprix.interfaces.routes import router as interfaces_router
 from keprix.improvement.routes import router as improvement_router
+from keprix.mutation.routes import router as mutation_pipeline_router
 from keprix.setup.routes import router as setup_router
 from keprix.security.cors import EXPOSED_HEADERS, add_cors, allowed_origins
 from keprix.security.headers import SecurityHeadersMiddleware
@@ -65,8 +96,34 @@ from keprix.security.vault_routes import router as vault_router
 from keprix.export.routes import router as export_router
 import keprix.export.export_tool  # noqa: F401 - registers export_document tool on import
 from keprix.privacy.routes import router as privacy_router
-from keprix.scout.routes import router as scout_router
+from keprix.review_gateway.routes import api_router as review_gateway_router
+from keprix.review_gateway.routes import public_router as review_public_router
+from keprix.legal.routes import router as legal_router
+from keprix.legal.middleware import LegalGateMiddleware
+from keprix.browser.routes import router as browser_router
+from keprix.browser.harness_routes import harness_router
+from keprix.hub.routes import router as hub_router
+from keprix.pack_gate.routes import router as pack_gate_router
+from keprix.notify_external.routes import router as notify_external_router
+from keprix.agent_apps.routes import router as agent_apps_router
+from keprix.personas.routes import router as personas_router
+from keprix.kernel.routes import router as kernel_router
+from keprix.documents.routes import router as documents_router
+from keprix.rag_pipeline.routes import router as rag_pipeline_router
+from keprix.analytics.jamovi.routes import router as jamovi_router
+from keprix.support.routes import router as support_router
+from keprix.fleet.routes import router as fleet_router
 from keprix.data_plane.routes import router as data_plane_router
+from keprix.jobs.routes import router as jobs_router
+from keprix.ml_workspace.routes import router as ml_workspace_router
+from keprix.research_workspace.routes import router as research_workspace_router
+from keprix.research_workspace.dataset_routes import router as research_dataset_router
+from keprix.research_workspace.notebook_routes import router as research_notebook_router
+from keprix.research_workspace.playbook_routes import router as research_playbook_router
+from keprix.research_workspace.pspp_routes import router as research_pspp_router
+from keprix.research_workspace.obsidian_routes import router as research_obsidian_router
+from keprix.research_workspace.zotero_routes import router as research_zotero_router
+from keprix.stats.routes import router as stats_router
 from keprix.skills.routes import router as skills_router
 from keprix.workspace.backup_routes import router as backup_router
 from keprix.workspace.routes import (
@@ -177,27 +234,98 @@ def _error_payload(status_code: int, detail: Any) -> dict[str, str]:
 
 
 def create_app() -> FastAPI:
+    try:
+        from pathlib import Path
+
+        from keprix_cli.env_loader import load_keprix_dotenv
+
+        load_keprix_dotenv(project_env=Path(__file__).resolve().parents[3] / ".env")
+    except Exception:
+        pass
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         start_email_poller()
         start_contact_sync_scheduler()
+        load_active_extensions()
+        from keprix.products.loader import load_products_config
+
+        load_products_config()
+        await start_extension_hooks()
+        from keprix.usage.budget_alert_scheduler import start_llm_budget_alert_scheduler
+        from keprix.usage.budget import ensure_budget_tables
+
+        await ensure_budget_tables()
+        start_llm_budget_alert_scheduler()
+        from keprix.billing.engine import bootstrap_billing
+
+        app.state.billing = await bootstrap_billing()
+        try:
+            from keprix.usage.retention import prune_llm_usage_events_async
+
+            pruned = await prune_llm_usage_events_async()
+            if pruned:
+                import logging
+
+                logging.getLogger(__name__).info("Pruned %d llm usage events on startup", pruned)
+        except Exception:
+            pass
+        try:
+            from keprix.mutation.startup import load_mutation_tools_on_startup_async
+
+            loaded = await load_mutation_tools_on_startup_async()
+            if loaded:
+                import logging
+
+                logging.getLogger(__name__).info("Loaded %d mutation tools on startup", loaded)
+        except Exception:
+            pass
+        try:
+            from keprix.mutation.retention import prune_mutations_if_due_async
+
+            pruned = await prune_mutations_if_due_async()
+            if pruned:
+                import logging
+
+                logging.getLogger(__name__).info("Pruned %d mutation records on startup", pruned)
+        except Exception:
+            pass
         yield
+        await stop_extension_hooks()
         await stop_email_poller()
+        from keprix.usage.budget_alert_scheduler import stop_llm_budget_alert_scheduler
+
+        await stop_llm_budget_alert_scheduler()
         await stop_contact_sync_scheduler()
 
-    app = FastAPI(title=PRODUCT_NAME, version=PRODUCT_VERSION, lifespan=lifespan)
+    app = FastAPI(title=PRODUCT_NAME,
+                  version=PRODUCT_VERSION, lifespan=lifespan)
     add_cors(app)
     app.add_middleware(RequestLoggingMiddleware)
     app.add_middleware(StrictOriginMiddleware)
     app.add_middleware(RateLimitMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(RequestIdMiddleware)
+    app.add_middleware(LegalGateMiddleware)
+
+    from keprix.billing.config_loader import load_billing_config
+
+    if load_billing_config() is not None:
+        from keprix.billing.feature_gates.middleware import FeatureGateMiddleware
+        from keprix.billing.portal.routes import router as billing_router
+
+        app.add_middleware(FeatureGateMiddleware)
+        app.include_router(billing_router)
 
     app.include_router(health_router)
     app.include_router(stats_router)
     app.include_router(dashboard_router)
     app.include_router(conversation_router)
+    app.include_router(usage_router)
     app.include_router(admin_workspace_router)
+    from keprix_cli.mcp_admin_routes import router as mcp_admin_router
+
+    app.include_router(mcp_admin_router, dependencies=[Depends(require_admin)])
     app.include_router(analytics_router)
     app.include_router(analytics_workspace_router)
     app.include_router(diagnostics_router)
@@ -207,23 +335,53 @@ def create_app() -> FastAPI:
     app.include_router(embeddings_router)
     app.include_router(developer_router)
     app.include_router(mutation_router)
+    app.include_router(mutation_pipeline_router)
     app.include_router(sdk_router)
     app.include_router(slash_router)
     app.include_router(ui_contract_router)
     app.include_router(coding_router)
     app.include_router(code_agent_router)
+    app.include_router(typed_agents_router)
     app.include_router(interfaces_router)
     app.include_router(improvement_router)
     app.include_router(public_v1_router)
     app.include_router(admin_router)
     app.include_router(auth_router)
+    app.include_router(auth_invite_router)
     app.include_router(admin_users_router)
     app.include_router(vault_router)
     app.include_router(backup_router)
+    app.include_router(cron_router)
     app.include_router(export_router)
     app.include_router(privacy_router)
-    app.include_router(scout_router)
+    app.include_router(review_gateway_router)
+    app.include_router(review_public_router)
+    app.include_router(legal_router)
+    app.include_router(browser_router)
+    app.include_router(harness_router)
+    app.include_router(hub_router)
+    app.include_router(pack_gate_router)
+    app.include_router(agent_apps_router)
+    app.include_router(personas_router)
+    app.include_router(kernel_router)
+    app.include_router(documents_router)
+    app.include_router(rag_pipeline_router)
+    app.include_router(jamovi_router)
+    app.include_router(get_governance_router())
+    app.include_router(support_router)
+    app.include_router(fleet_router)
     app.include_router(data_plane_router)
+    app.include_router(jobs_router)
+    app.include_router(research_workspace_router)
+    app.include_router(research_dataset_router)
+    app.include_router(research_pspp_router)
+    app.include_router(research_notebook_router)
+    app.include_router(research_playbook_router)
+    app.include_router(research_obsidian_router)
+    app.include_router(research_zotero_router)
+    app.include_router(ml_workspace_router)
+    app.include_router(dashboard_stats_router)
+    app.include_router(stats_router)
     app.include_router(skills_router)
     app.include_router(document_router)
     app.include_router(draft_router)
@@ -244,12 +402,36 @@ def create_app() -> FastAPI:
     app.include_router(setup_router)
     app.include_router(research_router)
     app.include_router(search_router)
+    app.include_router(opportunity_router)
+    app.include_router(teams_router)
+    app.include_router(agents_runtime_router)
     app.include_router(compare_router)
+    app.include_router(evals_router)
+    app.include_router(eval_benchmarks_router)
+    app.include_router(multiagent_router)
+    app.include_router(control_center_router)
+    app.include_router(observability_router)
     app.include_router(playbook_router)
     app.include_router(playbook_run_router)
     app.include_router(contacts_sync_router)
+    app.include_router(voice_templates_router)
+    app.include_router(voice_wake_router)
 
-    @app.exception_handler(HTTPException)
+    from keprix.voice.gateway_handlers import try_register_with_tui_gateway
+
+    try_register_with_tui_gateway()
+    app.include_router(localization_router)
+    app.include_router(localization_corrections_router)
+    app.include_router(notifications_router)
+    app.include_router(builder_router)
+    app.include_router(domain_packs_router)
+    app.include_router(migration_router)
+    app.include_router(rooms_router)
+    app.include_router(tool_adapters_router)
+    app.include_router(companion_router)
+    app.include_router(notify_external_router)
+    app.include_router(intent_router)
+
     async def http_exception_handler(_request: Request, exc: HTTPException) -> JSONResponse:
         return JSONResponse(
             status_code=exc.status_code,
