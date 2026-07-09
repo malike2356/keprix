@@ -9,6 +9,7 @@ import { alpha } from "@mui/material/styles";
 import { motion } from "motion/react";
 import { IconBrandGithub, IconBrandX, IconBrandDiscord } from "@tabler/icons-react";
 import { KeprixLogo } from "@/components/shared/KeprixLogo";
+import { DEVELOPER_ECOSYSTEM, DEVELOPER_ECOSYSTEM_LABEL } from "@/lib/developer-ecosystem";
 import { KEPRIX_COLORS } from "@/theme/keprix-theme";
 
 const CARD_BG = "#0d0d11";
@@ -57,6 +58,8 @@ const SOCIAL_LINKS = [
   { icon: IconBrandX, label: "X", href: "https://x.com/keprixai" },
   { icon: IconBrandDiscord, label: "Discord", href: "https://discord.gg/keprix" },
 ] as const;
+
+/** Sibling products: see frontend/src/lib/developer-ecosystem.ts and /verlox/ecosystem-links.json */
 
 function TextHoverEffect({ text, duration = 0 }: { text: string; duration?: number }) {
   const svgRef = React.useRef<SVGSVGElement>(null);
@@ -255,6 +258,28 @@ export function Footer() {
                 sx={{ fontSize: "0.875rem", color: alpha("#fff", 0.45), lineHeight: 1.75, mb: 2, maxWidth: 260 }}
               >
                 Self-hosted, MIT-licensed AI agent OS. Synthesises new tools on demand and installs them live.
+              </Typography>
+              <Typography sx={{ fontSize: "0.75rem", color: alpha("#fff", 0.32), lineHeight: 1.6, maxWidth: 280 }}>
+                {DEVELOPER_ECOSYSTEM_LABEL}:{" "}
+                {DEVELOPER_ECOSYSTEM.map((item, index) => (
+                  <React.Fragment key={item.label}>
+                    {index > 0 ? " · " : null}
+                    <Box
+                      component="a"
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={item.title}
+                      sx={{
+                        color: alpha("#fff", 0.42),
+                        textDecoration: "none",
+                        "&:hover": { color: KEPRIX_COLORS.primary },
+                      }}
+                    >
+                      {item.label}
+                    </Box>
+                  </React.Fragment>
+                ))}
               </Typography>
             </Box>
 

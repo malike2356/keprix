@@ -69,6 +69,22 @@ See [docs/community/contributing.md](docs/community/contributing.md) for backend
 
 Browse locally: `bash scripts/serve-docs.sh` then open http://127.0.0.1:8000
 
+## Related projects
+
+Keprix CE is maintained alongside other products by the same developer. They are separate products with their own sites and licences:
+
+| Product | Site |
+| --- | --- |
+| Keprix (this repo) | [GitHub](https://github.com/malike2356/keprix) |
+| Carina (AI agent platform) | [carinaai.uk](https://carinaai.uk) |
+| Aiva (managed AI workers) | [hireaiva.co.uk](https://hireaiva.co.uk) |
+| Scout (governance console) | [labyrinthscout.com](https://labyrinthscout.com) |
+| Propreneur (property investor OS) | [propreneur.uk](https://propreneur.uk) |
+| TuinApp (workforce SaaS) | [tuinapp.uk](https://tuinapp.uk) |
+| PropCalc (property calculators) | [propcalc.uk](https://propcalc.uk) |
+
+Details: [docs/community/related-projects.md](docs/community/related-projects.md)
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE). Third-party notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

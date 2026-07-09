@@ -82,3 +82,7 @@ For incorporated code (Hermes Agent), the upstream copyright is preserved in
 [THIRD_PARTY_NOTICES.md](https://github.com/malike2356/keprix/blob/main/THIRD_PARTY_NOTICES.md).
 
 For the 20 research-only frameworks: no licence obligation applies, but this page exists because transparency about research foundations is the right practice in open-source software development.
+
+## Related projects
+
+The maintainer also builds [Keprix](https://github.com/malike2356/keprix), [Carina](https://carinaai.uk), [Aiva](https://hireaiva.co.uk), [Scout](https://labyrinthscout.com), [Propreneur](https://propreneur.uk), [TuinApp](https://tuinapp.uk), and [PropCalc](https://propcalc.uk). See [Related projects](related-projects.md) for scope and boundaries.

@@ -1,11 +1,12 @@
 "use client";
 
+import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { IconPlus } from "@tabler/icons-react";
 import NextLink from "next/link";
-import { getCEUser } from "@/lib/ce-api";
+import { useCESession } from "@/lib/ce-auth";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -15,9 +16,24 @@ function getGreeting(): string {
   return "Working late";
 }
 
+function displayFirstName(user: { display_name?: string | null; username?: string | null }): string {
+  const raw = (user.display_name ?? user.username ?? "").trim();
+  if (!raw) return "there";
+  if (raw.includes("@")) return raw.split("@")[0] || "there";
+  return raw.split(" ")[0] || "there";
+}
+
 export default function GreetingBar() {
-  const user = getCEUser();
-  const firstName = (user?.display_name ?? user?.username ?? "").split(" ")[0] || "there";
+  const { user } = useCESession();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Match SSR and first client paint; personalize only after mount.
+  const greeting = mounted ? getGreeting() : "Hello";
+  const firstName = mounted && user ? displayFirstName(user) : "there";
 
   return (
     <Box
@@ -31,7 +47,7 @@ export default function GreetingBar() {
     >
       <Box>
         <Typography variant="h4" fontWeight={600} gutterBottom={false}>
-          {getGreeting()}, {firstName}.
+          {greeting}, {firstName}.
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           Your agent is ready.

@@ -29,7 +29,8 @@ export function WovenHeroBackground({ className }: WovenHeroBackgroundProps) {
     mount.appendChild(renderer.domElement);
 
     const mouse = new THREE.Vector2(0, 0);
-    const clock = new THREE.Clock();
+    const timer = new THREE.Timer();
+    timer.connect(document);
 
     const particleCount =
       window.innerWidth < 768 ? PARTICLE_COUNT_MOBILE : PARTICLE_COUNT_DESKTOP;
@@ -92,9 +93,10 @@ export function WovenHeroBackground({ className }: WovenHeroBackgroundProps) {
     };
 
     let frameId = 0;
-    const animate = () => {
+    const animate = (timestamp: number) => {
       frameId = window.requestAnimationFrame(animate);
-      const elapsedTime = clock.getElapsedTime();
+      timer.update(timestamp);
+      const elapsedTime = timer.getElapsed();
       const mouseWorld = new THREE.Vector3(mouse.x * 3, mouse.y * 3, 0);
 
       for (let i = 0; i < particleCount; i++) {
@@ -137,7 +139,7 @@ export function WovenHeroBackground({ className }: WovenHeroBackgroundProps) {
     };
 
     resize();
-    animate();
+    frameId = window.requestAnimationFrame(animate);
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("resize", resize);
 
@@ -149,6 +151,7 @@ export function WovenHeroBackground({ className }: WovenHeroBackgroundProps) {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("resize", resize);
       resizeObserver.disconnect();
+      timer.dispose();
       geometry.dispose();
       material.dispose();
       torusKnot.dispose();
