@@ -237,48 +237,21 @@ def build_gateway_parser(subparsers, *, cmd_gateway: Callable, cmd_proxy: Callab
     )
 
     # =========================================================================
-    # proxy command — local OpenAI-compatible proxy that attaches the user's
-    # OAuth-authenticated provider credentials to outbound requests. Lets
-    # external apps (OpenViking, Karakeep, Open WebUI, ...) ride a logged-in
-    # subscription without copy-pasting static API keys.
+    # proxy command — credential injection proxy (Prompt 239) plus OAuth upstream
+    # proxy for Nous/xAI subscriptions.
     # =========================================================================
+    from keprix.proxy.cli_handlers import build_credential_proxy_parsers
+
     proxy_parser = subparsers.add_parser(
         "proxy",
-        help="Local OpenAI-compatible proxy to OAuth providers",
+        help="Credential injection proxy and OAuth upstream proxy",
         description=(
-            "Run a local HTTP server that forwards OpenAI-compatible requests "
-            "to an OAuth-authenticated provider (e.g. Nous Portal). External "
-            "apps can point at the proxy with any bearer token; the proxy "
-            "attaches your real credentials."
+            "Run a local credential-injection proxy that fetches secrets from an "
+            "external vault at request time, or start the OAuth upstream proxy "
+            "for Nous Portal / xAI Grok."
         ),
     )
     proxy_subparsers = proxy_parser.add_subparsers(dest="proxy_command")
-
-    proxy_start = proxy_subparsers.add_parser(
-        "start", help="Run the proxy in the foreground"
-    )
-    proxy_start.add_argument(
-        "--provider",
-        default="nous",
-        help="Upstream provider: nous or xai (default: nous). See `keprix proxy providers`.",
-    )
-    proxy_start.add_argument(
-        "--host",
-        default=None,
-        help="Bind address (default: 127.0.0.1). Use 0.0.0.0 to expose on LAN.",
-    )
-    proxy_start.add_argument(
-        "--port",
-        type=int,
-        default=None,
-        help="Bind port (default: 8645)",
-    )
-
-    proxy_subparsers.add_parser(
-        "status", help="Show which proxy upstreams are ready"
-    )
-    proxy_subparsers.add_parser(
-        "providers", help="List available proxy upstream providers"
-    )
+    build_credential_proxy_parsers(proxy_subparsers)
     proxy_parser.set_defaults(func=cmd_proxy)
     gateway_parser.set_defaults(func=cmd_gateway)

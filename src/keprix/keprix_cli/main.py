@@ -2360,12 +2360,10 @@ def cmd_gateway(args):
 
 
 def cmd_proxy(args):
-    """Local OpenAI-compatible proxy to OAuth providers."""
-    # Lazy import — pulls in aiohttp, which is gated behind an extras install
-    # for users who don't run the proxy or the messaging gateway.
-    from keprix_cli.proxy.cli import cmd_proxy as _cmd_proxy
+    """Credential injection proxy and OAuth upstream proxy."""
+    from keprix.proxy.cli_handlers import dispatch_credential_proxy
 
-    rc = _cmd_proxy(args)
+    rc = dispatch_credential_proxy(args)
     if isinstance(rc, int) and rc != 0:
         raise SystemExit(rc)
 

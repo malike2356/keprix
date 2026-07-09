@@ -119,6 +119,7 @@ nav:
       - Architecture: security/architecture.md
       - Privacy and data handling: security/privacy.md
       - Vault: security/vault.md
+      - Credential proxy: security/credential-proxy.md
       - CE scope: security/scope.md
       - Governance: security/governance.md
       - Review gateway: security/review-gateway.md
