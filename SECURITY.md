@@ -41,5 +41,5 @@ There is no paid bug bounty at this time. Security researchers are credited in
 
 ## Related policies
 
-- Contributor expectations: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- Contributor expectations: [docs/community/code-of-conduct.md](docs/community/code-of-conduct.md)
 - Contribution workflow: [CONTRIBUTING.md](CONTRIBUTING.md)

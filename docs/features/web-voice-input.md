@@ -2,10 +2,6 @@
 
 Push-to-talk speech input for the workspace web chat. Users record in the browser, the server transcribes audio, and the transcript lands in the composer for review before Send.
 
-**Status:** Shipped (prompts **187-192**).
-
-Architecture reference: `planning/prompts/reference/187-web-voice-architecture.md`.
-
 ## How to use the mic in chat
 
 1. Open workspace chat at `/chat` or `/chat/[sessionId]`.

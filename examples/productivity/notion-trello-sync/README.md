@@ -28,4 +28,3 @@ See [`playbook.yaml`](playbook.yaml). Steps use agent prompts so you can run the
 - MCP admin: `/admin/mcp`
 - Notion RAG indexing (search, not live edit): `/rag-pipeline?source=notion`
 - Routing skill: `productivity-integrations` in `/skills`
-- Architecture: `planning/prompts/reference/171-productivity-notion-trello-architecture-reference.md`

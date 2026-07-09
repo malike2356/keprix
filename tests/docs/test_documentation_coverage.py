@@ -10,8 +10,8 @@ CATALOG = ROOT / "frontend" / "src" / "lib" / "docs-catalog.ts"
 MKDOCS = ROOT / "mkdocs.yml"
 
 
-def test_docs_roadmap_exists() -> None:
-    assert (DOCS / "DOCUMENTATION_ROADMAP.md").is_file()
+def test_docs_index_exists() -> None:
+    assert (DOCS / "index.md").is_file()
 
 
 def test_mkdocs_lists_workspace_features() -> None:

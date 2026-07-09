@@ -40,6 +40,7 @@ This site is the complete operator and developer reference for every workspace s
 | --- | --- | --- |
 | Skills Hub | `/skills` | [Skills and plugins](features/skills.md) |
 | Hub / packs | `/hub`, `/domain-packs` | [Hub and domain packs](features/hub-and-packs.md) |
+| Built apps | `/apps/[slug]` | [Built apps navigation](features/built-apps-navigation.md) |
 | Deep research | `/research` | [Research](features/research.md) |
 | Compare models | `/compare` | [Compare models](features/compare-models.md) |
 | Opportunities | `/opportunities` | [Opportunity engine](opportunity-engine.md) |
@@ -58,7 +59,7 @@ This site is the complete operator and developer reference for every workspace s
 | Agent Studio | `/agent-studio` | [Agent Studio](features/agent-studio.md) |
 | Agent Apps | `/agent-apps` | [Agent Apps](features/agent-apps.md) |
 | MCP | `/admin/mcp` | [MCP](integrations/mcp.md), [Notion & Trello](integrations/productivity-notion-trello.md) |
-| Control Center | `/control-center` | (see [roadmap](DOCUMENTATION_ROADMAP.md)) |
+| Control Center | `/control-center` | [Control Center](features/control-center.md) |
 
 ### Security, governance, admin
 
@@ -81,10 +82,6 @@ curl -s http://127.0.0.1:3333/api/health
 - Web UI: `http://localhost:3000`
 - Interactive API explorer: `http://localhost:3000/api/docs`
 - MkDocs (local): `bash scripts/serve-docs.sh` then `http://127.0.0.1:8000`
-
-## Documentation coverage
-
-See [Documentation roadmap](DOCUMENTATION_ROADMAP.md) for page-by-page status. Reference docs ([REST API](reference/api.md), [CLI](reference/cli.md)) are auto-generated on each build.
 
 ## Support
 

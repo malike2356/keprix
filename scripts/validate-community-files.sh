@@ -22,7 +22,7 @@ require_file "CONTRIBUTING.md"
 require_file "SECURITY.md"
 require_file "THIRD_PARTY_NOTICES.md"
 require_file "CHANGELOG.md"
-require_file "CODE_OF_CONDUCT.md"
+require_file "docs/community/code-of-conduct.md"
 require_file ".github/PULL_REQUEST_TEMPLATE.md"
 require_file "docs/community/contributing.md"
 
@@ -84,7 +84,7 @@ files = [
     "SECURITY.md",
     "THIRD_PARTY_NOTICES.md",
     "CHANGELOG.md",
-    "CODE_OF_CONDUCT.md",
+    "docs/community/code-of-conduct.md",
     ".github/PULL_REQUEST_TEMPLATE.md",
 ]
 files.extend(str(p) for p in pathlib.Path(".github/ISSUE_TEMPLATE").glob("*.yml"))

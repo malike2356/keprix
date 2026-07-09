@@ -23,7 +23,7 @@ See `playbook.yaml` for localization-aware playbook settings.
 ## Try it
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd keprix   # repository root after git clone
 .venv/bin/python -m pytest tests/localization/test_borehole_example.py -q
 .venv/bin/keprix language detect "Me pɛ borehole wɔ Kumasi"
 ```

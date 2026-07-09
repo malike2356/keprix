@@ -147,7 +147,7 @@ features:
     tenant_scope: multi-tenant SaaS
     rebuild_plan: Do not port. Keprix has no managed billing. Optional webhook stub only for integrators.
     test_mapping: ""
-    doc_mapping: BRAND-BOUNDARY.md
+    doc_mapping: docs/product-boundaries/what-keprix-is-not.md
 
   - id: managed-plan-gates
     name: Managed SaaS plan tier feature gates
@@ -177,7 +177,7 @@ features:
     tenant_scope: multi-tenant SaaS
     rebuild_plan: Do not port UI. Keprix uses agent apps and playbooks instead.
     test_mapping: ""
-    doc_mapping: product/boundaries/managed-saas-to-keprix-map.md
+    doc_mapping: docs/product-boundaries/commercial-products.md
 
   - id: managed-keys-service
     name: Managed SaaS Keys and remote key service
@@ -208,7 +208,7 @@ features:
     tenant_scope: per-customer SaaS
     rebuild_plan: Gate behind optional Keprix Governance provider connector; never bundle Governance provider with Keprix.
     test_mapping: tests/governance/
-    doc_mapping: product/boundaries/enterprise-gates.md
+    doc_mapping: docs/product-boundaries/petraclus.md
 
   - id: managed-governance-dashboard
     name: Managed SaaS governance and trust dashboard
@@ -238,7 +238,7 @@ features:
     tenant_scope: enterprise
     rebuild_plan: ""
     test_mapping: ""
-    doc_mapping: product/boundaries/rejected-features.md
+    doc_mapping: docs/product-boundaries/what-keprix-is-not.md
     rejected_reason: Enterprise attestation chain is not part of MIT self-host scope.
 
   - id: legacy-ops-secrets
@@ -254,7 +254,7 @@ features:
     tenant_scope: infrastructure
     rebuild_plan: ""
     test_mapping: ""
-    doc_mapping: product/boundaries/rejected-features.md
+    doc_mapping: docs/product-boundaries/what-keprix-is-not.md
     rejected_reason: Internal operational runbooks and live secret reload are not ported.
 
   - id: legacy-customer-tenant-store
@@ -270,7 +270,7 @@ features:
     tenant_scope: multi-tenant SaaS
     rebuild_plan: ""
     test_mapping: ""
-    doc_mapping: product/boundaries/rejected-features.md
+    doc_mapping: docs/product-boundaries/what-keprix-is-not.md
     rejected_reason: Customer data and private tenant records must never be copied into Keprix.
 
   - id: legacy-agent-core
@@ -286,7 +286,7 @@ features:
     tenant_scope: workspace-local
     rebuild_plan: Keprix agent spine with Legacy platform discipline patterns only.
     test_mapping: tests/agent/
-    doc_mapping: planning/prompts/00a-product-vision-and-agent-consolidation-map.md
+    doc_mapping: docs/product-boundaries/commercial-products.md
 
   - id: managed-analytics
     name: Managed SaaS managed analytics dashboard

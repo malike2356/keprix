@@ -76,6 +76,7 @@ nav:
   - Workspace:
       - Overview: features/workspace.md
       - Chat: features/chat.md
+      - Terminal UI: features/tui.md
       - Documents: features/documents.md
       - Notes: features/notes.md
       - Tasks: features/tasks.md
@@ -91,6 +92,7 @@ nav:
   - Apps and research:
       - Skills and plugins: features/skills.md
       - Hub and domain packs: features/hub-and-packs.md
+      - Built apps navigation: features/built-apps-navigation.md
       - Deep research: features/research.md
       - RAG pipelines: features/rag-pipelines.md
       - Compare models: features/compare-models.md
@@ -124,6 +126,7 @@ nav:
   - Integrations:
       - MCP: integrations/mcp.md
       - Notion and Trello: integrations/productivity-notion-trello.md
+      - n8n sidecar: integrations/n8n-sidecar.md
       - ACP: integrations/acp.md
       - Mobile: integrations/mobile.md
       - SDK: integrations/sdk.md
@@ -155,5 +158,3 @@ nav:
       - CLI: reference/cli.md
       - Changelog: reference/changelog.md
       - License: reference/license.md
-  - Meta:
-      - Documentation roadmap: DOCUMENTATION_ROADMAP.md

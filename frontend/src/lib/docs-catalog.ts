@@ -74,6 +74,7 @@ export const DOCS_SECTIONS: DocsSection[] = [
       { title: "Agent Studio", description: "Build and publish agent apps.", href: doc("features/agent-studio") },
       { title: "Agent Apps", description: "Install, run, and schedule manifest-driven apps.", href: doc("features/agent-apps") },
       { title: "MCP servers", description: "External tool connectors.", href: doc("integrations/mcp") },
+      { title: "n8n sidecar", description: "Run n8n alongside Keprix via MCP bridge.", href: doc("integrations/n8n-sidecar") },
     ],
   },
   {
@@ -99,7 +100,6 @@ export const DOCS_SECTIONS: DocsSection[] = [
       { title: "Governance integrations", description: "Optional governance provider connectors.", href: doc("integrations/scout") },
       { title: "REST API reference", description: "Auto-generated from OpenAPI.", href: doc("reference/api") },
       { title: "CLI reference", description: "Auto-generated from keprix --help.", href: doc("reference/cli") },
-      { title: "Documentation roadmap", description: "Coverage tracker for all surfaces.", href: doc("DOCUMENTATION_ROADMAP") },
     ],
   },
   {

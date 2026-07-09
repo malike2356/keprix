@@ -121,7 +121,7 @@ Maintainers aim to review within **5 business days**.
 ## Security and conduct
 
 - Security reports: [SECURITY.md](SECURITY.md)
-- Community standards: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- Community standards: [docs/community/code-of-conduct.md](docs/community/code-of-conduct.md)
 
 ## Good first issues
 

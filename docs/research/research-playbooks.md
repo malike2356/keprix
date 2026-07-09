@@ -30,7 +30,7 @@ Each run stores a `playbook_run` research object with `trace_id`, step artifacts
 ## CLI
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd keprix   # repository root after git clone
 PYTHONPATH=src .venv/bin/python -m keprix_cli.main research list
 PYTHONPATH=src .venv/bin/python -m keprix_cli.main research run rp-abc123 literature_review --dry-run
 ```
@@ -47,6 +47,6 @@ Set `dry_run: true` to execute fixture steps without writing artifacts. Live run
 ## Validation
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd keprix   # repository root after git clone
 .venv/bin/python -m pytest tests/research_workspace/test_research_playbooks.py -q
 ```

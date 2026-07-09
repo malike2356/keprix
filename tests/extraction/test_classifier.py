@@ -28,7 +28,7 @@ def test_governance_enterprise_features_are_gated() -> None:
         tenant_scope="saas",
         rebuild_plan="Gate behind governance provider connection",
         test_mapping="tests/governance/",
-        doc_mapping="product/boundaries/enterprise-gates.md",
+        doc_mapping="docs/product-boundaries/petraclus.md",
     )
     assert is_governance_gated(record)
     assert not is_governance_gated(

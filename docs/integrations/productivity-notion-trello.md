@@ -20,8 +20,6 @@ Routing guidance for the agent lives in the **`productivity-integrations`** skil
 | Vault | `/vault` |
 | Settings hub | `/settings` |
 
-Architecture reference (repository only): `planning/prompts/reference/171-productivity-notion-trello-architecture-reference.md`.
-
 Related docs: [MCP](mcp.md), [RAG pipelines](../features/rag-pipelines.md), [Skills](../features/skills.md), [Vault](../security/vault.md).
 
 ---
@@ -229,7 +227,5 @@ See `playbook.yaml` and `README.md` in that directory.
 ## Verification
 
 Automated smoke: `tests/evals/test_productivity_integrations.py` and `tests/integrations/test_productivity_notion_trello_pack.py`.
-
-Manual checklist (repository): `planning/prompts/agent-briefs/176-productivity-notion-trello-verification.md`.
 
 Eval suite: `evals/suites/productivity/notion-trello.yaml`.

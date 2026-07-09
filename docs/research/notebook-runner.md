@@ -78,7 +78,7 @@ R: tidyverse, jmv, survey (detected when installed). Additional packages require
 ## Local validation
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd keprix   # repository root after git clone
 .venv/bin/python -m pytest tests/research_workspace/test_python_runner.py \
   tests/research_workspace/test_r_runner.py \
   tests/research_workspace/test_notebook_export.py -q

@@ -65,6 +65,11 @@ frontend/public/guide/
 
 # ---- Planning / UI references (not part of the shipped product) ----
 planning/
+product/
+marketing/
+landing/
+src/keprix/AGENTS.md
+scripts/port-openclaw-mobile.py
 
 # ---- Internal engineering docs (not operator-facing) ----
 docs/internal/

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -53,9 +54,15 @@ def run_project_tests(project_path: str | Path) -> dict[str, Any]:
 
 def deploy_to_lampp(project_path: str | Path) -> dict[str, Any]:
     path = Path(project_path).resolve()
-    htdocs = Path("/opt/lampp/htdocs")
-    if not htdocs.exists():
-        return {"ok": False, "message": "LAMPP htdocs not found"}
+    htdocs_raw = os.environ.get("KEPRIX_LAMPP_HTDOCS", "").strip()
+    if not htdocs_raw:
+        return {
+            "ok": False,
+            "message": "Set KEPRIX_LAMPP_HTDOCS to your Apache document root (optional local deploy target)",
+        }
+    htdocs = Path(htdocs_raw).expanduser()
+    if not htdocs.is_dir():
+        return {"ok": False, "message": f"KEPRIX_LAMPP_HTDOCS is not a directory: {htdocs}"}
     link_name = path.name
     link_path = htdocs / link_name
     if not link_path.exists():

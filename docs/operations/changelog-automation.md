@@ -84,15 +84,6 @@ sections; git-cliff is for preview and drift checks only.
 
 Scopes map to Keprix areas: `mutation`, `billing`, `frontend`, `auth`, `research`, etc.
 
-### Implementation prompts (complete)
-
-| Prompt | Title |
-| --- | --- |
-| `planning/prompts/reference/163-changelog-automation-architecture.md` | Architecture and tool boundaries |
-| `planning/prompts/prompts-archive/completed/164-changelog-auto-01-conventional-commits-enforcement.md` | commitlint + PR checks |
-| `planning/prompts/prompts-archive/completed/165-changelog-auto-02-git-cliff-generation.md` | cliff.toml + preview + CI |
-| `planning/prompts/prompts-archive/completed/166-changelog-auto-03-release-please-workflow.md` | release PRs + tag automation |
-
 ### Contributor and maintainer checklist
 
 **Contributors:**
@@ -104,7 +95,7 @@ Scopes map to Keprix areas: `mutation`, `billing`, `frontend`, `auth`, `research
 
 - Merge the release-please PR to cut a release (tag + GitHub Release).
 - Edit release PR changelog text only for major announcements or corrections.
-- Follow [RELEASE_CHECKLIST.md](../../RELEASE_CHECKLIST.md) before merging a release PR.
+- Review the release-please PR changelog against `bash scripts/changelog-preview.sh` before merging.
 
 ### First automated release (migration)
 

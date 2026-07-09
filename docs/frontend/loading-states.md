@@ -3,10 +3,6 @@
 Keprix uses **shape-accurate skeleton placeholders** while API data loads. Slow responses
 are acceptable; layout collapse and blank screens are not.
 
-Reference architecture: `planning/prompts/reference/167-skeleton-loading-architecture.md`.
-
-UI.UX pattern spec: `/opt/lampp/htdocs/verlox/UI.UX/patterns/skeleton-loading-states.md`.
-
 ## Module location
 
 ```text
@@ -149,7 +145,6 @@ skeleton wave animation when the user prefers reduced motion.
 | Admin normalization + CI contract | 170 | Shipped |
 
 Series prompts: **167** (architecture), **168** (primitives), **169** (workspace), **170** (admin + contract).
-Archived under `planning/prompts/prompts-archive/completed/`.
 
 ### Batch A: Workspace core (169)
 
