@@ -9,7 +9,7 @@ import Skeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
 import NextLink from "next/link";
 import useSWR from "swr";
-import { fetchDashboardStats, type DashboardStats } from "@/lib/admin-dashboard-api";
+import { fetchHomeBrainStats, type HomeBrainStats } from "@/lib/home-api";
 
 function StatRow({ label, value, href, loading }: {
   label: string;
@@ -36,9 +36,9 @@ function StatRow({ label, value, href, loading }: {
 }
 
 export default function MemoryStatsWidget() {
-  const { data, isLoading } = useSWR<DashboardStats>(
-    "home-stats",
-    fetchDashboardStats,
+  const { data, isLoading } = useSWR<HomeBrainStats>(
+    "home-brain-stats",
+    fetchHomeBrainStats,
     { revalidateOnFocus: false },
   );
 
@@ -51,14 +51,14 @@ export default function MemoryStatsWidget() {
         <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
           <StatRow
             label="Memory documents"
-            value={data?.memoryDocuments ?? 0}
+            value={data?.memoryCount ?? 0}
             href="/memory"
             loading={isLoading}
           />
           <Divider />
           <StatRow
             label="Custom tools"
-            value={data?.tools ?? 0}
+            value={data?.toolCount ?? 0}
             href="/skills"
             loading={isLoading}
           />

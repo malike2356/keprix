@@ -10,7 +10,7 @@ import TasksWidget from "@/components/home/TasksWidget";
 import DiscoveryCard from "@/components/home/DiscoveryCard";
 import WelcomeEmptyState from "@/components/home/WelcomeEmptyState";
 import { fetchConversations, type WorkspaceSession } from "@/lib/workspace-api";
-import { fetchDashboardStats, type DashboardStats } from "@/lib/admin-dashboard-api";
+import { fetchHomeBrainStats, type HomeBrainStats } from "@/lib/home-api";
 
 export default function LauncherPage() {
   const { data: sessions } = useSWR<WorkspaceSession[]>(
@@ -19,15 +19,15 @@ export default function LauncherPage() {
     { revalidateOnFocus: false },
   );
 
-  const { data: stats } = useSWR<DashboardStats>(
-    "home-stats",
-    fetchDashboardStats,
+  const { data: stats } = useSWR<HomeBrainStats>(
+    "home-brain-stats",
+    fetchHomeBrainStats,
     { revalidateOnFocus: false },
   );
 
   const conversationCount = sessions?.length ?? 0;
-  const memoryCount = stats?.memoryDocuments ?? 0;
-  const toolCount = stats?.tools ?? 0;
+  const memoryCount = stats?.memoryCount ?? 0;
+  const toolCount = stats?.toolCount ?? 0;
 
   const isEmpty = sessions !== undefined && sessions.length === 0;
 
