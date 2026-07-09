@@ -165,7 +165,7 @@ export default function GovernancePage() {
                   <Link href={SCOUT_PRICING} target="_blank" rel="noopener noreferrer">
                     labyrinthscout.com/pricing
                   </Link>
-                  , or use Scout included with Aiva or Carina Builder/Scale.
+                  , or bundled Scout plans from your vendor if applicable.
                 </Typography>
               </ListItem>
               <ListItem component="li" disablePadding sx={{ display: "list-item", mb: 1 }}>

@@ -1,4 +1,4 @@
-import { CarinaApp, Domain, Entity, Field, Operation } from "../src/index.js";
+import { KeprixApp, Domain, Entity, Field, Operation } from "../src/index.js";
 
 const domain: Domain = {
   name: "invoicing",
@@ -22,9 +22,9 @@ const domain: Domain = {
   ],
 };
 
-const app = new CarinaApp({
+const app = new KeprixApp({
   name: "invoice-example-ts",
-  carinaUrl: process.env.KEPRIX_URL || "http://localhost:3333",
+  keprixUrl: process.env.KEPRIX_URL || "http://localhost:3333",
   apiToken: process.env.KEPRIX_API_TOKEN || "demo-token",
 });
 

@@ -16,7 +16,7 @@ def intent_env(tmp_path, monkeypatch):
     repo_root = Path(__file__).resolve().parents[2]
     monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
     monkeypatch.setenv("KEPRIX_INTENT_HEURISTIC_ONLY", "true")
-    monkeypatch.setenv("KEPRIX_ENABLED_PRODUCTS", "abbis_borehole")
+    monkeypatch.setenv("KEPRIX_ENABLED_PRODUCTS", "example_vertical")
     monkeypatch.setenv("KEPRIX_PRODUCTS_CONFIG", str(repo_root / "config" / "products.example.yaml"))
     reset_products_cache()
     reset_skill_loader(base_dir=tmp_path / "intent")

@@ -18,7 +18,7 @@ const FOOTER_COLS = [
     heading: "Product",
     links: [
       { label: "Features", href: "/#features" },
-      { label: "Integrations", href: "/integrations" },
+      { label: "Integrations", href: "/#integrations" },
       { label: "Pricing", href: "/pricing" },
       { label: "Changelog", href: "/changelog" },
       { label: "Roadmap", href: "/docs" },
@@ -255,11 +255,6 @@ export function Footer() {
                 sx={{ fontSize: "0.875rem", color: alpha("#fff", 0.45), lineHeight: 1.75, mb: 2, maxWidth: 260 }}
               >
                 Self-hosted, MIT-licensed AI agent OS. Synthesises new tools on demand and installs them live.
-              </Typography>
-              <Typography
-                sx={{ fontSize: "0.72rem", color: alpha("#fff", 0.25), fontStyle: "italic" }}
-              >
-                Sponsored by Carina
               </Typography>
             </Box>
 

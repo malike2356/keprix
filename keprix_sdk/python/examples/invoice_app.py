@@ -8,7 +8,7 @@ import os
 import sqlite3
 from pathlib import Path
 
-from keprix_sdk import ActionPlan, CarinaApp, Domain, Entity, ExecutionResult, Field, Operation
+from keprix_sdk import ActionPlan, KeprixApp, Domain, Entity, ExecutionResult, Field, Operation
 
 
 DB_PATH = Path(__file__).with_name("invoice_example.db")
@@ -99,7 +99,7 @@ def execute_plan(conn: sqlite3.Connection, plan: ActionPlan) -> ExecutionResult:
 
 async def main() -> None:
     conn = init_db()
-    app = CarinaApp(
+    app = KeprixApp(
         name="invoice-example",
         keprix_url=os.environ.get("KEPRIX_URL", "http://localhost:3333"),
         api_token=os.environ.get("KEPRIX_API_TOKEN", "demo-token"),

@@ -9,11 +9,11 @@ pip install -e keprix_sdk/python
 Quick start:
 
 ```python
-from keprix_sdk import CarinaApp, Domain, Entity, Field, Operation
+from keprix_sdk import KeprixApp, Domain, Entity, Field, Operation
 
-app = CarinaApp(
+app = KeprixApp(
     name="my-app",
-    carina_url="http://localhost:3333",
+    keprix_url="http://localhost:3333",
     api_token="your-api-key",
 )
 ```

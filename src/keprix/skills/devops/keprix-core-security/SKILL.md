@@ -18,13 +18,13 @@ WARDEN defensive security skill pack for the Keprix platform and user-owned infr
 - Structured security audits with severity ratings
 - Configuration hardening recommendations
 - Incident response templates
-- Out-of-scope refusal for offensive operations (Petraclus domain)
+- Out-of-scope refusal for offensive operations (external tooling)
 
 ## Scope
 
 **In scope:** audits, hardening, privacy scanning, dependency advisories, access review guidance.
 
-**Out of scope:** penetration testing, OSINT, forensics, SIEM, threat intel (Petraclus).
+**Out of scope:** penetration testing, OSINT, forensics, SIEM, threat intel (use dedicated offensive-security products).
 
 ## Reporting
 

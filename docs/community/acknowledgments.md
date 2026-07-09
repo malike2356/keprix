@@ -23,7 +23,7 @@ at the project root, as the MIT licence requires.
 | Upstream | [Hermes Agent](https://github.com/nousresearch/hermes-agent) by Nous Research |
 | Licence | MIT, Copyright (c) 2025 Nous Research |
 | What was taken | CLI runtime: the interactive REPL, toolset dispatch, bootstrap layer, skill loader, and terminal interface |
-| What Keprix added above it | Workspace OS, multi-tenancy, operator dashboard, Aiva/Carina integration, Scout governance, vault, playbooks, agent teams, and the full feature set described in this documentation |
+| What Keprix added above it | Workspace OS, multi-tenancy, operator dashboard, optional Scout governance connector, vault, playbooks, agent teams, and the full feature set described in this documentation |
 
 ---
 
@@ -65,8 +65,7 @@ The table above covers where Keprix drew from existing work. The following are K
 - The workspace OS: multi-tenancy, operator workspaces, user isolation, and the full workspace shell
 - The opportunity engine and growth loop
 - The COMPASS persona system and mutation engine
-- The Scout governance bridge and commercial tier gate model
-- The Aiva and Carina integration layer
+- The Scout governance bridge (optional connector)
 - The operator dashboard, feature flags, and control center
 - The combined synthesis: one self-hosted system that unifies agent runtime, workspace tools, developer platform, messaging channels, and governance under a single operator-controlled deployment
 

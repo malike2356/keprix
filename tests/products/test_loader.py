@@ -31,8 +31,8 @@ def test_no_products_enabled_by_default(products_env, monkeypatch) -> None:
     assert get_default_audit_domain_pack() is None
 
 
-def test_abbis_borehole_loads_intent_config(products_env, monkeypatch) -> None:
-    monkeypatch.setenv("KEPRIX_ENABLED_PRODUCTS", "abbis_borehole")
+def test_example_vertical_loads_intent_config(products_env, monkeypatch) -> None:
+    monkeypatch.setenv("KEPRIX_ENABLED_PRODUCTS", "example_vertical")
     reset_products_cache()
     from keprix.backend.intent.registry import reset_intent_registry
     from keprix.backend.intent.domain_intents import load_product_domain_intents
@@ -41,16 +41,16 @@ def test_abbis_borehole_loads_intent_config(products_env, monkeypatch) -> None:
     assert any(row.name == "request_drilling_quote" for row in intents)
 
 
-def test_compass_compliance_sets_audit_domain_pack(products_env, monkeypatch) -> None:
-    monkeypatch.setenv("KEPRIX_ENABLED_PRODUCTS", "compass_compliance")
-    monkeypatch.setenv("COMPASS_ENABLED", "true")
+def test_example_compliance_sets_audit_domain_pack(products_env, monkeypatch) -> None:
+    monkeypatch.setenv("KEPRIX_ENABLED_PRODUCTS", "example_compliance")
+    monkeypatch.setenv("EXAMPLE_COMPLIANCE_ENABLED", "true")
     reset_products_cache()
     load_products_config(force=True)
-    assert get_default_audit_domain_pack() == "compass-compliance"
+    assert get_default_audit_domain_pack() == "example-compliance"
 
 
 def test_regulated_domains_include_defaults_and_product_domains(products_env, monkeypatch) -> None:
-    monkeypatch.setenv("KEPRIX_ENABLED_PRODUCTS", "abbis_borehole")
+    monkeypatch.setenv("KEPRIX_ENABLED_PRODUCTS", "example_vertical")
     reset_products_cache()
     domains = get_regulated_domains()
     assert "healthcare" in domains

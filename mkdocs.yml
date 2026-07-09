@@ -119,12 +119,14 @@ nav:
       - Architecture: security/architecture.md
       - Privacy and data handling: security/privacy.md
       - Vault: security/vault.md
+      - CE scope: security/scope.md
       - Governance: security/governance.md
       - Review gateway: security/review-gateway.md
       - Audit log: security/audit-log.md
       - Hardening: security/hardening.md
   - Integrations:
       - MCP: integrations/mcp.md
+      - Connector catalog: integrations/connector-catalog.md
       - Notion and Trello: integrations/productivity-notion-trello.md
       - n8n sidecar: integrations/n8n-sidecar.md
       - ACP: integrations/acp.md
@@ -132,7 +134,6 @@ nav:
       - SDK: integrations/sdk.md
       - OpenAI-compatible API: integrations/openai-api.md
       - Scout: integrations/scout.md
-      - Petraclus: integrations/petraclus.md
   - Operations:
       - Admin dashboard: operations/admin-dashboard.md
       - Changelog automation: operations/changelog-automation.md
@@ -149,10 +150,6 @@ nav:
       - Good first issues: community/good-first-issues.md
       - Discussions: community/discussions.md
       - Labels: community/labels.md
-  - Product boundaries:
-      - Commercial products: product-boundaries/commercial-products.md
-      - Petraclus boundary: product-boundaries/petraclus.md
-      - What Keprix is not: product-boundaries/what-keprix-is-not.md
   - Reference:
       - REST API: reference/api.md
       - CLI: reference/cli.md

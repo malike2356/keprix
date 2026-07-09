@@ -109,7 +109,7 @@ ACP enables workflows where a primary Keprix instance orchestrates multiple spec
 ```
 Orchestrator Keprix
   -> [ACP delegate] Research agent (Keprix B)
-  -> [ACP delegate] Security scanner (Petraclus instance)
+  -> [ACP delegate] Security scanner (external instance)
   -> [ACP delegate] Report writer (Keprix C)
   -> Aggregate results and produce final output
 ```

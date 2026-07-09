@@ -30,7 +30,7 @@ export function CTABand() {
     >
       <DottedSurfaceBackground />
 
-      {/* Vignette (matches Carina marketing surface-vignette) */}
+      {/* Vignette */}
       <Box
         aria-hidden
         sx={{

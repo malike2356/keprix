@@ -13,7 +13,7 @@ from keprix.products.loader import reset_products_cache
 @pytest.fixture(autouse=True)
 def abbis_product_env(monkeypatch):
     repo_root = Path(__file__).resolve().parents[2]
-    monkeypatch.setenv("KEPRIX_ENABLED_PRODUCTS", "abbis_borehole")
+    monkeypatch.setenv("KEPRIX_ENABLED_PRODUCTS", "example_vertical")
     monkeypatch.setenv("KEPRIX_PRODUCTS_CONFIG", str(repo_root / "config" / "products.example.yaml"))
     reset_products_cache()
     reset_glossary_service()

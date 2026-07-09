@@ -20,8 +20,8 @@ Mobile clients use the same REST API as the web frontend:
 
 ## Paths
 
-- iOS: `mobile/ios/` (Swift, Carina rename from OpenClaw)
-- Android: `mobile/android/` (`applicationId = com.verlox.carinakeprix`)
+- iOS: `mobile/ios/` (Swift companion client)
+- Android: `mobile/android/` (Kotlin companion client)
 - macOS reference: `mobile/macos/`
 - Companion pairing backend: `src/keprix/mobile/companion/`
 - Push backend: `src/keprix/backend/notifications/push.py`

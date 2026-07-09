@@ -112,10 +112,10 @@ def test_deduplication_doc_references_canonical_modules() -> None:
         assert module in content
 
 
-def test_licence_boundary_covers_petraclus_and_connectors() -> None:
-    content = (DOCS / "reference-agent-licence-boundary.md").read_text(encoding="utf-8")
-    assert "Petraclus" in content
+def test_ce_scope_doc_covers_connectors_and_offensive_boundary() -> None:
+    content = (DOCS / "security/scope.md").read_text(encoding="utf-8")
     assert "connector" in content.lower()
+    assert "offensive" in content.lower()
     assert "extraction/inventory.yaml" in content
 
 

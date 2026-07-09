@@ -198,7 +198,7 @@ class TestForgeCodeReview:
 
 
 # ---------------------------------------------------------------------------
-# WARDEN (Prompt 98) -- compliance audit and Petraclus boundary
+# WARDEN (Prompt 98) -- compliance audit and offensive-security boundary
 # ---------------------------------------------------------------------------
 
 

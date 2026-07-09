@@ -1,6 +1,6 @@
-# Products built on Keprix (config-driven)
+# Config-driven product extensions
 
-Keprix core does not hardcode product names (COMPASS, AbbiS, Scout, etc.). Enable products via configuration.
+Keprix core does not hardcode vertical product names. Enable optional product packs via configuration when you extend a self-hosted deployment.
 
 ## Quick start
 
@@ -13,9 +13,9 @@ cp config/products.example.yaml config/products.yaml
 2. Enable one or more products:
 
 ```bash
-export KEPRIX_ENABLED_PRODUCTS=compass_compliance
-# or per-product env flag:
-export COMPASS_ENABLED=true
+export KEPRIX_ENABLED_PRODUCTS=scout
+# or per-product env flag from your registry entry
+export SCOUT_ENABLED=true
 ```
 
 3. Optional: override config path:
@@ -48,10 +48,6 @@ export KEPRIX_PRODUCTS_CONFIG=/path/to/products.yaml
 - **Products** (`config/products.yaml`): declarative assets, feature flags, audit defaults.
 
 A product may reference an extension via `extension_name: scout`.
-
-## COMPASS Clinical Safety
-
-Enable with `KEPRIX_ENABLED_PRODUCTS=compass_compliance` or `COMPASS_ENABLED=true`. Implementation lives in `src/keprix/compass_compliance/` (see compass-00). Do not confuse with the Keprix **COMPASS** strategy persona (`personas/compass/`); see compass-65.
 
 ## Review gateway
 

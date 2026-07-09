@@ -69,6 +69,7 @@ product/
 marketing/
 landing/
 src/keprix/AGENTS.md
+src/keprix/REUSE-NOTICE.md
 scripts/port-openclaw-mobile.py
 
 # ---- Internal engineering docs (not operator-facing) ----

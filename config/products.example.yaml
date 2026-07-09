@@ -1,10 +1,10 @@
 # Keprix products registry (example). Copy to config/products.yaml and enable products.
 #
 # No product-specific logic belongs in Keprix core. Enable products here or via:
-#   KEPRIX_ENABLED_PRODUCTS=abbis_borehole,compass_compliance
+#   KEPRIX_ENABLED_PRODUCTS=scout,example_vertical
 #   KEPRIX_PRODUCTS_CONFIG=/path/to/products.yaml
 #
-# Per-product env flags (e.g. COMPASS_ENABLED) also enable a product when set true.
+# Per-product env flags also enable a product when set true.
 
 version: 1
 
@@ -17,8 +17,15 @@ defaults:
     - construction
 
 products:
-  abbis_borehole:
-    display_name: "AbbiS Borehole Advisor"
+  # Optional governance connector (Labyrinth Scout extension).
+  scout:
+    display_name: "Scout"
+    enabled: false
+    extension_name: scout
+
+  # Example vertical pack (disabled). Replace paths with your own domain assets.
+  example_vertical:
+    display_name: "Example vertical pack"
     enabled: false
     domain_packs:
       - borehole_drilling
@@ -33,17 +40,13 @@ products:
     regulated_domains:
       - borehole_drilling
 
-  compass_compliance:
-    display_name: "COMPASS Clinical Safety"
+  # Example regulated vertical with audit defaults (disabled).
+  example_compliance:
+    display_name: "Example compliance pack"
     enabled: false
-    env_flag: COMPASS_ENABLED
-    audit_domain_pack: compass-compliance
+    env_flag: EXAMPLE_COMPLIANCE_ENABLED
+    audit_domain_pack: example-compliance
     domain_packs:
-      - compass-compliance
+      - example-compliance
     feature_flags:
-      compass_compliance: true
-
-  scout:
-    display_name: "Scout"
-    enabled: false
-    extension_name: scout
+      example_compliance: true
