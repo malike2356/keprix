@@ -41,7 +41,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         <CommandPalette open={open} onClose={closePalette} />
         <Box sx={{ display: "flex", flex: 1, flexDirection: "column", minHeight: 0 }}>
           <Box component="main" sx={{ flex: 1, p: { xs: 2, md: 3 }, overflow: "auto", bgcolor: "background.default" }}>
-            <Box sx={{ width: "100%" }}>{children}</Box>
+            <Box sx={{ width: "100%" }}><React.Suspense>{children}</React.Suspense></Box>
           </Box>
           <WorkspaceFooter />
         </Box>

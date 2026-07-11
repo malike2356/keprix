@@ -13,7 +13,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { IconPlayerPlay, IconUpload, IconUsers } from "@tabler/icons-react";
 import NextLink from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import CrewMessageFeed from "@/components/teams/CrewMessageFeed";
@@ -34,6 +34,14 @@ import {
 } from "@/lib/teams-api";
 
 export default function AgentTeamsPage() {
+  return (
+    <Suspense>
+      <AgentTeamsPageInner />
+    </Suspense>
+  );
+}
+
+function AgentTeamsPageInner() {
   const searchParams = useSearchParams();
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [yaml, setYaml] = useState(SAMPLE_TEAM_YAML);
