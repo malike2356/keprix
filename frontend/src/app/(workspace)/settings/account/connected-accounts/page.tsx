@@ -178,7 +178,7 @@ export default function ConnectedAccountsPage() {
                 border: "1px solid",
                 borderColor: isLinked ? "success.main" : "divider",
                 borderRadius: 1,
-                opacity: isConfigured || isLinked ? 1 : 0.6,
+                opacity: 1,
               }}
             >
               <ProviderIcon name={def.name} />
