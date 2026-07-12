@@ -1,0 +1,4 @@
+name: memory
+description: Run the capture → store → read → visualize memory loop
+risk: low
+approval_required: false

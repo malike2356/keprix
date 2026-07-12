@@ -1,0 +1,7 @@
+cases:
+  - name: produces script
+    input: Agent OS
+    expect_contains: Video package
+  - name: includes topic
+    input: Agent OS
+    expect_contains: Agent OS

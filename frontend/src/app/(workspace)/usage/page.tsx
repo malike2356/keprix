@@ -10,6 +10,7 @@ import {
   IconHash,
 } from "@tabler/icons-react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
@@ -26,16 +27,35 @@ import {
   fetchUsageSummary,
   fetchUsageTimeseries,
   readStoredUsagePeriod,
+  storeUsagePeriod,
+  USAGE_PERIOD_OPTIONS,
   type UsagePeriodDays,
 } from "@/lib/usage-api";
 import { formatTokenCount, formatUsdCost } from "@/lib/usage-format";
 
+function coercePeriod(raw: string | null | undefined): UsagePeriodDays {
+  const n = Number(raw);
+  if (USAGE_PERIOD_OPTIONS.includes(n as UsagePeriodDays)) return n as UsagePeriodDays;
+  return readStoredUsagePeriod();
+}
+
 export default function UsagePage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [periodDays, setPeriodDays] = React.useState<UsagePeriodDays>(30);
 
   React.useEffect(() => {
-    setPeriodDays(readStoredUsagePeriod());
-  }, []);
+    setPeriodDays(coercePeriod(searchParams.get("days")));
+  }, [searchParams]);
+
+  const setPeriod = (days: UsagePeriodDays) => {
+    storeUsagePeriod(days);
+    setPeriodDays(days);
+    const next = new URLSearchParams(searchParams.toString());
+    next.set("days", String(days));
+    router.replace(`${pathname}?${next.toString()}`);
+  };
 
   const query = React.useMemo(() => ({ days: periodDays }), [periodDays]);
 
@@ -50,6 +70,10 @@ export default function UsagePage() {
   const { data: breakdown, isLoading: breakdownLoading } = useSWR(
     `usage-breakdown-model-${periodDays}`,
     () => fetchUsageBreakdown("model", query),
+  );
+  const { data: agentBreakdown, isLoading: agentBreakdownLoading } = useSWR(
+    `usage-breakdown-agent-${periodDays}`,
+    () => fetchUsageBreakdown("agent", query),
   );
   const { data: events, isLoading: eventsLoading } = useSWR(
     `usage-events-${periodDays}`,
@@ -66,7 +90,7 @@ export default function UsagePage() {
         description="Token consumption and estimated spend for your account."
       />
       <UsageBudgetBanner budget={budget} />
-      <UsagePeriodToolbar value={periodDays} onChange={setPeriodDays} />
+      <UsagePeriodToolbar value={periodDays} onChange={setPeriod} />
 
       {isEmpty ? (
         <Box
@@ -137,7 +161,15 @@ export default function UsagePage() {
             }}
           >
             <UsageTimeseriesChart data={timeseries} loading={timeseriesLoading} />
-            <UsageModelBreakdownChart data={breakdown} loading={breakdownLoading} />
+            <UsageModelBreakdownChart data={breakdown} loading={breakdownLoading} title="By model" />
+          </Box>
+
+          <Box sx={{ mb: 3 }}>
+            <UsageModelBreakdownChart
+              data={agentBreakdown}
+              loading={agentBreakdownLoading}
+              title="By agent"
+            />
           </Box>
 
           <UsageRecentTable items={events?.items} loading={eventsLoading} />

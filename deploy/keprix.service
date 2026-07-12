@@ -1,0 +1,46 @@
+[Unit]
+Description=Keprix API (VPS bare-metal profile)
+Documentation=file:///opt/lampp/htdocs/verlox/keprix/docs/operations/vps-deploy.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=@KEPRIX_USER@
+Group=@KEPRIX_USER@
+WorkingDirectory=@KEPRIX_ROOT@
+EnvironmentFile=-/etc/keprix.env
+Environment=PYTHONPATH=@KEPRIX_ROOT@/src
+Environment=KEPRIX_HOME=@KEPRIX_HOME@
+Environment=KEPRIX_LOGS_DIR=@KEPRIX_HOME@/logs
+Environment=BACKEND_PORT=3333
+# Bind localhost only. Terminate TLS at Caddy/nginx on :443.
+ExecStart=@KEPRIX_ROOT@/.venv/bin/python -m uvicorn keprix.api.main:app --host 127.0.0.1 --port 3333
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=@KEPRIX_HOME@ @KEPRIX_ROOT@/data @KEPRIX_ROOT@/backups
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+UMask=0077
+
+# Journal size hint (host may also ship journald drop-in)
+LogRateLimitIntervalSec=30s
+LogRateLimitBurst=1000
+
+[Install]
+WantedBy=multi-user.target

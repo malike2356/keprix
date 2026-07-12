@@ -1,0 +1,7 @@
+cases:
+  - name: produces package
+    input: agent os, memory vault
+    expect_contains: SEO package
+  - name: includes keyword
+    input: agent os
+    expect_contains: agent os

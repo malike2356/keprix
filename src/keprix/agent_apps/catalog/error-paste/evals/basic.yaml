@@ -1,0 +1,4 @@
+cases:
+  - name: classifies module missing
+    input: ModuleNotFoundError: No module named foo
+    expect_contains: Missing Python dependency

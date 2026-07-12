@@ -1,0 +1,4 @@
+cases:
+  - name: produces package
+    input: founders
+    expect_contains: Outreach package

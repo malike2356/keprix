@@ -5,7 +5,7 @@ ready to build next.
 
 ## Current status
 
-**Pending queue is empty** (2026-07-12). Next builds come from `../reference/` or new numbered prompts.
+**Agent OS UI polish (301-315)** completed 2026-07-12. Hub/subnav, milestones on onboarding, Ship defaults on glass, nav sync, period selector, onboard vs onboarding IA, shared Empty/Error/skeletons, breadcrumbs to glass, Memory Galaxy tabs + node click + force layout, glass tasks links, board header links, frosted panels, usage↔glass `?days=` sync, and API/feature docs. Archived under `../prompts-archive/completed/301-*.md` through `315-*.md`. Build order: `../reference/301-agent-os-ui-polish-build-order.md`.
 
 **Open-amount coffee donation (300)** completed 2026-07-12. Footer donate sheet + `POST /api/billing/donation/checkout` `{ amount_gbp }` via Stripe `price_data` (min £1). Archived: `../prompts-archive/completed/300-open-amount-coffee-donation.md`.
 
@@ -98,9 +98,24 @@ Prior series **117-212** archived under `../prompts-archive/completed/`.
 
 | # | File | Status |
 | --- | --- | --- |
+| 301 | `301-agent-os-hub-subnav.md` | PENDING (start here) |
+| 302 | `302-agent-os-milestones-onboarding-ui.md` | PENDING |
+| 303 | `303-agent-os-ship-defaults-glass-panel.md` | PENDING |
+| 304 | `304-agent-os-nav-fallback-sync.md` | PENDING |
+| 305 | `305-agent-os-glass-period-selector.md` | PENDING |
+| 306 | `306-agent-os-onboard-onboarding-ia.md` | PENDING |
+| 307 | `307-agent-os-shared-empty-error-skeletons.md` | PENDING |
+| 308 | `308-agent-os-breadcrumbs-fix.md` | PENDING |
+| 309 | `309-memory-galaxy-tabs-node-click.md` | PENDING |
+| 310 | `310-agent-os-glass-tasks-links.md` | PENDING |
+| 311 | `311-agent-os-action-board-header-links.md` | PENDING |
+| 312 | `312-agent-os-frosted-glass-treatment.md` | PENDING (nice) |
+| 313 | `313-memory-galaxy-force-layout.md` | PENDING (nice) |
+| 314 | `314-usage-glass-period-sync.md` | PENDING (nice) |
+| 315 | `315-agent-os-api-docs-glass-milestones-phase5.md` | PENDING (nice) |
 | 223 | `../reference/223-built-apps-navigation-architecture-reference.md` | Reference |
 
-**Agentic OS (256-265):** Chase AI adoption pack archived completed. Build order: `../reference/255-agentic-os-adoption-build-order.md`.
+**MVP demo for 301-315:** ship **301 + 302 + 303 + 304 + 305 + 306**, then polish 307-311, then nice 312-315.
 
 **Chase five tools (267-272):** Series archived completed. OSS tool patterns from Chase AI video. Build order: `../reference/266-chase-five-tools-adoption-build-order.md`.
 
@@ -113,10 +128,6 @@ Prior series **117-212** archived under `../prompts-archive/completed/`.
 **Built apps navigation (223-228):** Two-layer nav: collapsible Keprix platform sidebar + in-content `BuiltAppLayout` for products at `/apps/[slug]/*`. Reference: `../reference/223-built-apps-navigation-architecture-reference.md`. Build order: `../reference/223-built-apps-navigation-build-order.md`.
 
 Series **224-228** archived completed.
-
-| # | File | Status |
-| --- | --- | --- |
-| (empty) | Queue clear after Fable pack 292-297 | Ready for next series |
 
 **Fable-class product power (292-297):** Completed and archived. Build order `../reference/292-fable-class-product-power-build-order.md`. MVP demo: **292 + 293 + 294**.
 
@@ -136,6 +147,8 @@ Series **224-228** archived completed.
 | `../reference/220-tui-first-run-onboarding-architecture-reference.md` | TUI setup/onboarding map |
 | `../reference/292-fable-class-product-power-master-reference.md` | Fable-class product power map |
 | `../reference/292-fable-class-product-power-build-order.md` | Prompts 292-297 order |
+| `../reference/301-agent-os-ui-polish-master-reference.md` | Agent OS UI polish map (after Prompt 270) |
+| `../reference/301-agent-os-ui-polish-build-order.md` | Prompts 301-315 order |
 | `../PROMPT-IMPLEMENTATION-AUDIT.md` | Implementation status |
 | `../prompts-archive/completed/` | Shipped prompts |
 

@@ -1,0 +1,28 @@
+name: error-paste
+version: 1.0.0
+display_name: Error Paste Loop
+description: Paste an error → classify → fix plan → re-run → paste again.
+category: productivity
+icon: bug
+runtime: python
+entrypoint: agents.main:run
+required_env: []
+required_permissions: []
+tools:
+  - tools/analyze.yaml
+inputs:
+  - id: error_text
+    label: Error / traceback
+    type: textarea
+    required: true
+  - id: context
+    label: Extra context
+    type: textarea
+    required: false
+outputs:
+  - id: markdown
+    type: markdown
+eval_suite: evals/basic.yaml
+billing:
+  tier: free
+  meter: runs_per_month

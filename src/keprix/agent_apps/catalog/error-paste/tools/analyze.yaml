@@ -1,0 +1,4 @@
+name: analyze
+description: Classify a pasted error and propose a fix loop
+risk: low
+approval_required: false

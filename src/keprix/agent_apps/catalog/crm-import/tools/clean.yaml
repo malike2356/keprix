@@ -1,0 +1,4 @@
+name: clean
+description: Clean and map CSV rows for CRM import
+risk: low
+approval_required: false

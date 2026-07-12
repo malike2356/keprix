@@ -1,0 +1,35 @@
+# OPTIONAL: backend-only Fly sketch (no frontend, no Postgres, no Redis, scale-to-zero).
+# Prefer fly.fullstack.toml + managed Postgres/Redis, or VPS Compose+Caddy.
+#
+#   fly deploy -c fly.backend-only.toml
+
+app = "keprix-api"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "docker/Dockerfile.backend"
+
+[env]
+  BACKEND_PORT = "8080"
+  KEPRIX_GUARDRAILS_DEFAULT = "true"
+  KEPRIX_VAULT_AUTO_BACKUP = "true"
+  KEPRIX_VAULT_AUTO_CAPTURE = "true"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "30s"
+    method = "GET"
+    path = "/api/health"
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1

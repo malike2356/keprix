@@ -1,0 +1,4 @@
+name: generate
+description: Generate a video package from a topic
+risk: low
+approval_required: false

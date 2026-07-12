@@ -1,0 +1,34 @@
+name: seo-agent
+version: 1.0.0
+display_name: SEO Agent
+description: Keywords + website → competitor gaps, outline, draft, internal links, ranking checklist.
+category: marketing
+icon: search
+runtime: python
+entrypoint: agents.main:run
+required_env: []
+required_permissions: []
+tools:
+  - tools/generate.yaml
+inputs:
+  - id: keywords
+    label: Keywords
+    type: textarea
+    required: true
+    placeholder: primary, secondary, tertiary
+  - id: website
+    label: Website
+    type: text
+    required: false
+    default: https://example.com
+  - id: title
+    label: Optional title
+    type: text
+    required: false
+outputs:
+  - id: markdown
+    type: markdown
+eval_suite: evals/basic.yaml
+billing:
+  tier: free
+  meter: runs_per_month

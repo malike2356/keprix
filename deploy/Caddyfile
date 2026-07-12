@@ -1,0 +1,35 @@
+# Caddy reverse proxy for Keprix (Docker Compose or bare-metal API on 127.0.0.1).
+# Install:
+#   sudo cp deploy/Caddyfile /etc/caddy/Caddyfile
+#   sudo sed -i 's/app.example.com/YOUR_DOMAIN/g' /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+#
+# Frontend (Next) listens on 127.0.0.1:3000 and rewrites /api to the backend.
+# Backend must stay on 127.0.0.1:3333 (never publish publicly without this proxy).
+
+app.example.com {
+	encode gzip zstd
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# Long-lived chat / voice streams
+	reverse_proxy 127.0.0.1:3000 {
+		transport http {
+			read_timeout 3600s
+			write_timeout 3600s
+		}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Forwarded-Host {host}
+		header_up X-Real-IP {remote_host}
+	}
+
+	log {
+		output file /var/log/caddy/keprix-access.log
+		format console
+	}
+}

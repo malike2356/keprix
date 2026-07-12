@@ -11,10 +11,13 @@ import {
   IconCode,
   IconDatabase,
   IconFolder,
+  IconHome,
+  IconLayoutDashboard,
   IconLayoutGrid,
   IconLock,
   IconMail,
   IconMessages,
+  IconMicrophone,
   IconNotes,
   IconPhoto,
   IconPlug,
@@ -22,11 +25,14 @@ import {
   IconSettings,
   IconShield,
   IconSparkles,
+  IconTool,
   IconUsers,
 } from "@tabler/icons-react";
 
 const NAV_ICON_MAP: Record<string, TablerIcon> = {
+  home: IconHome,
   hub: IconLayoutGrid,
+  dashboard: IconLayoutDashboard,
   chat: IconMessages,
   folder: IconFolder,
   notes: IconNotes,
@@ -51,6 +57,8 @@ const NAV_ICON_MAP: Record<string, TablerIcon> = {
   apps: IconApps,
   payments: IconApi,
   shield: IconShield,
+  tool: IconTool,
+  voice: IconMicrophone,
 };
 
 export function getNavIcon(name: string): TablerIcon {

@@ -1,0 +1,7 @@
+cases:
+  - name: reports vault
+    input: ""
+    expect_contains: Memory system
+  - name: includes graph stats
+    input: ""
+    expect_contains: Graph nodes

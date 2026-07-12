@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import time
 import uuid
 from contextlib import asynccontextmanager
@@ -21,10 +22,16 @@ from keprix.api.auth import PUBLIC_PATHS, require_admin  # noqa: F401 - document
 from keprix.api.cron_routes import router as cron_router
 from keprix.api.diagnostics_routes import router as diagnostics_router
 from keprix.api.health_routes import router as health_router
+from keprix.api.scout_dashboard_routes import router as scout_dashboard_router
 from keprix.api.public_v1_routes import router as public_v1_router
 from keprix.auth.admin_routes import router as admin_users_router
 from keprix.auth.invite_routes import router as auth_invite_router
+from keprix.auth.password_routes import router as auth_password_router
+from keprix.auth.otp_routes import router as auth_otp_router
 from keprix.auth.routes import router as auth_router
+from keprix.api.handoff_routes import router as handoff_router
+from keprix.auth.session_routes import router as auth_session_router
+from keprix.auth.sso.routes import router as auth_sso_router
 from keprix.compare.routes import router as compare_router
 from keprix.evals.routes import router as evals_router
 from keprix.contacts.routes import router as contacts_router
@@ -51,6 +58,9 @@ from keprix.backend.multiagent.routes import router as multiagent_router
 from keprix.backend.control_center.routes import router as control_center_router
 from keprix.backend.observability.routes import router as observability_router
 from keprix.usage.routes import router as usage_router
+from keprix.api.upgrade_routes import router as upgrade_router
+from keprix.api.feature_flag_routes import router as feature_flag_router
+from keprix.api.self_knowledge_routes import router as self_knowledge_router
 from keprix.mobile.companion.routes import router as companion_router
 from keprix.backend.intent.routes import router as intent_router
 from keprix.email.pollers import start_email_poller, stop_email_poller
@@ -63,6 +73,9 @@ from keprix.memory.routes import router as memory_router
 from keprix.observability.request_log import get_request_log_store
 from keprix.playbook.routes import router as playbook_router
 from keprix.playbook.run_routes import router as playbook_run_router
+from keprix.playbook.nl_builder_routes import router as playbook_nl_builder_router
+from keprix.playbook.studio_routes import callback_router as playbook_scout_callback_router
+from keprix.playbook.studio_routes import router as playbook_studio_router
 from keprix.public_api.developer_routes import router as developer_router
 from keprix.public_api.embeddings import router as embeddings_router
 from keprix.public_api.models import router as models_router
@@ -77,6 +90,10 @@ from keprix.agent.keprix.routes import router as mutation_router
 from keprix.sdk.routes import router as sdk_router
 from keprix.slash.routes import router as slash_router
 from keprix.api.admin_workspace_routes import router as admin_workspace_router
+from keprix.api.channel_config_routes import router as channel_config_router
+from keprix.api.provider_config_routes import router as provider_config_router
+from keprix.api.scout_config_routes import router as scout_config_router
+from keprix.api.wave2_config_routes import router as wave2_config_router
 from keprix.api.conversation_routes import router as conversation_router
 from keprix.api.stats_routes import router as dashboard_stats_router
 from keprix.api.dashboard_routes import router as dashboard_router
@@ -87,6 +104,54 @@ from keprix.code_agent.routes import router as code_agent_router
 from keprix.typed_agents.routes import router as typed_agents_router
 from keprix.interfaces.routes import router as interfaces_router
 from keprix.improvement.routes import router as improvement_router
+from keprix.agent_os.routes import router as agent_os_router
+from keprix.api.agent_os_skill_proposal_routes import router as agent_os_skill_proposal_router
+from keprix.api.workspace_template_routes import router as workspace_template_router
+from keprix.api.knowledge_vault_routes import router as knowledge_vault_router
+from keprix.api.ladder_routes import router as ladder_router
+from keprix.api.agent_os_promote_routes import router as agent_os_promote_router
+from keprix.api.agent_os_ledger_routes import router as agent_os_ledger_router
+from keprix.api.agent_os_board_routes import router as agent_os_board_router
+from keprix.api.agent_os_run_routes import router as agent_os_run_router
+from keprix.api.agent_os_client_kit_routes import router as agent_os_client_kit_router
+from keprix.api.agent_os_onboarding_routes import router as agent_os_onboarding_router
+from keprix.api.agent_os_onboard_routes import router as agent_os_onboard_router
+from keprix.api.agent_os_maturity_routes import router as agent_os_maturity_router
+from keprix.api.agent_os_connections_routes import router as agent_os_connections_router
+from keprix.api.agent_os_level_up_routes import router as agent_os_level_up_router
+from keprix.api.agent_os_glass_routes import router as agent_os_glass_router
+from keprix.api.agent_os_milestones_routes import router as agent_os_milestones_router
+from keprix.api.agent_os_phase5_routes import router as agent_os_phase5_router
+from keprix.api.video_ingest_routes import router as video_ingest_router
+from keprix.api.coding_preflight_routes import router as coding_preflight_router
+from keprix.api.graphiti_routes import router as graphiti_router
+from keprix.api.brain_activation_routes import router as brain_activation_router
+from keprix.api.brain_graph_routes import router as brain_graph_router
+from keprix.api.brain_health_routes import router as brain_health_router
+from keprix.api.brain_session_replay_routes import router as brain_session_replay_router
+from keprix.api.brain_export_routes import router as brain_export_router
+from keprix.api.brain_share_routes import public_router as brain_share_public_router
+from keprix.api.brain_share_routes import router as brain_share_router
+from keprix.api.notebook_research_routes import router as notebook_research_router
+from keprix.api.design_preview_routes import router as design_preview_router
+from keprix.api.vault_pack_routes import router as vault_pack_router
+from keprix.api.hot_cache_routes import router as hot_cache_router
+from keprix.api.google_workspace_routes import router as google_workspace_router
+from keprix.api.credential_audit_routes import router as credential_audit_router
+from keprix.api.rotation_routes import router as credential_rotation_router
+from keprix.api.skill_run_routes import router as skill_run_router
+from keprix.api.quota_routes import router as quota_router
+from keprix.api.tool_deferred_routes import router as tool_deferred_router
+from keprix.api.tool_acl_routes import router as tool_acl_router
+from keprix.api.client_approval_routes import router as client_approval_router
+from keprix.api.a2a_routes import router as a2a_router
+from keprix.triggers.routes import router as triggers_router
+from keprix.readiness.routes import router as readiness_router
+from keprix.api.operator_policy_routes import router as operator_policy_router
+from keprix.api.voice_routes import inbound_router as inbound_voice_router
+from keprix.api.voice_routes import router as phone_voice_router
+from keprix.gateway.twilio_media_stream import router as twilio_media_stream_router
+from keprix.gateway.twilio_voice_handler import router as twilio_voice_router
 from keprix.mutation.routes import router as mutation_pipeline_router
 from keprix.setup.routes import router as setup_router
 from keprix.security.cors import EXPOSED_HEADERS, add_cors, allowed_origins
@@ -102,9 +167,13 @@ from keprix.review_gateway.routes import api_router as review_gateway_router
 from keprix.review_gateway.routes import public_router as review_public_router
 from keprix.legal.routes import router as legal_router
 from keprix.legal.middleware import LegalGateMiddleware
+from keprix.licensing.routes import router as licensing_router
 from keprix.browser.routes import router as browser_router
 from keprix.browser.harness_routes import harness_router
+from keprix.built_apps.routes import router as built_apps_router
 from keprix.hub.routes import router as hub_router
+from keprix.integrations.connector_routes import router as integrations_router
+from keprix.integrations.governance_routes import router as integrations_governance_router
 from keprix.pack_gate.routes import router as pack_gate_router
 from keprix.notify_external.routes import router as notify_external_router
 from keprix.agent_apps.routes import router as agent_apps_router
@@ -115,6 +184,7 @@ from keprix.documents.routes import router as documents_router
 from keprix.rag_pipeline.routes import router as rag_pipeline_router
 from keprix.analytics.jamovi.routes import router as jamovi_router
 from keprix.support.routes import router as support_router
+from keprix.operator.routes import router as operator_router
 from keprix.fleet.routes import router as fleet_router
 from keprix.data_plane.routes import router as data_plane_router
 from keprix.jobs.routes import router as jobs_router
@@ -293,13 +363,71 @@ def create_app() -> FastAPI:
                 logging.getLogger(__name__).info("Pruned %d mutation records on startup", pruned)
         except Exception:
             pass
+        try:
+            raw = os.environ.get("KEPRIX_SELF_KNOWLEDGE_BOOTSTRAP", "true").strip().lower()
+            if raw not in {"0", "false", "no", "off"}:
+                import asyncio
+                import logging
+
+                async def _bootstrap_self_knowledge() -> None:
+                    try:
+                        from keprix.self_knowledge.ingestor import SelfKnowledgeIngestor
+                        result = await SelfKnowledgeIngestor(
+                            include_codebase=True,
+                            include_docs=True,
+                            max_files=int(os.environ.get("KEPRIX_SELF_KNOWLEDGE_MAX_FILES", "1500")),
+                        ).ingest()
+                        logging.getLogger(__name__).info(
+                            "Self-knowledge RAG indexed: %s",
+                            result.to_dict(),
+                        )
+                    except Exception:
+                        logging.getLogger(__name__).exception("Self-knowledge RAG bootstrap failed")
+
+                asyncio.create_task(_bootstrap_self_knowledge())
+        except Exception:
+            pass
+        trigger_tick_task = None
+        try:
+            import asyncio
+            import logging
+
+            from keprix.triggers.engine import tick_and_process, trigger_engine_enabled
+
+            if trigger_engine_enabled():
+
+                async def _trigger_ticker() -> None:
+                    log = logging.getLogger(__name__)
+                    while True:
+                        try:
+                            await asyncio.sleep(int(os.environ.get("KEPRIX_TRIGGER_TICK_SEC", "30")))
+                            await tick_and_process(limit=5)
+                        except asyncio.CancelledError:
+                            raise
+                        except Exception:
+                            log.debug("trigger ticker error", exc_info=True)
+
+                trigger_tick_task = asyncio.create_task(_trigger_ticker())
+        except Exception:
+            pass
         yield
+        if trigger_tick_task is not None:
+            trigger_tick_task.cancel()
+            try:
+                await trigger_tick_task
+            except Exception:
+                pass
         await stop_extension_hooks()
         await stop_email_poller()
         from keprix.usage.budget_alert_scheduler import stop_llm_budget_alert_scheduler
 
         await stop_llm_budget_alert_scheduler()
         await stop_contact_sync_scheduler()
+
+    if os.environ.get("KEPRIX_CREDENTIAL_ISOLATION_STRICT", "").lower() in {"1", "true", "yes", "on"}:
+        from keprix.tools.credential_validator import validate_or_raise
+
+        validate_or_raise()
 
     app = FastAPI(title=PRODUCT_NAME,
                   version=PRODUCT_VERSION, lifespan=lifespan)
@@ -314,20 +442,34 @@ def create_app() -> FastAPI:
     from keprix.billing.config_loader import load_billing_config
 
     if load_billing_config() is not None:
+        from keprix.billing.admin_routes import router as billing_admin_router
         from keprix.billing.feature_gates.middleware import FeatureGateMiddleware
         from keprix.billing.portal.routes import router as billing_router
+        from keprix.billing.wallet.routes import router as wallet_router
 
         app.add_middleware(FeatureGateMiddleware)
         app.include_router(billing_router)
+        app.include_router(billing_admin_router)
+        app.include_router(wallet_router)
 
     app.include_router(health_router)
+    app.include_router(scout_dashboard_router)
     app.include_router(audio_router)
     app.include_router(stats_router)
     app.include_router(dashboard_router)
     app.include_router(admin_dashboard_router)
     app.include_router(conversation_router)
+    from keprix.api.tui_control_routes import router as tui_control_router
+    from keprix.api.tui_slash_routes import router as tui_slash_router
+
+    app.include_router(tui_control_router)
+    app.include_router(tui_slash_router)
     app.include_router(usage_router)
     app.include_router(admin_workspace_router)
+    app.include_router(channel_config_router)
+    app.include_router(provider_config_router)
+    app.include_router(scout_config_router)
+    app.include_router(wave2_config_router)
     from keprix_cli.mcp_admin_routes import router as mcp_admin_router
 
     app.include_router(mcp_admin_router, dependencies=[Depends(require_admin)])
@@ -345,16 +487,68 @@ def create_app() -> FastAPI:
     app.include_router(slash_router)
     app.include_router(ui_contract_router)
     app.include_router(coding_router)
+    app.include_router(coding_preflight_router)
+    app.include_router(ladder_router)
     app.include_router(code_agent_router)
     app.include_router(typed_agents_router)
     app.include_router(interfaces_router)
     app.include_router(improvement_router)
+    app.include_router(agent_os_router)
+    app.include_router(agent_os_skill_proposal_router)
+    app.include_router(agent_os_promote_router)
+    app.include_router(agent_os_ledger_router)
+    app.include_router(agent_os_board_router)
+    app.include_router(agent_os_run_router)
+    app.include_router(agent_os_client_kit_router)
+    app.include_router(agent_os_onboarding_router)
+    app.include_router(agent_os_onboard_router)
+    app.include_router(agent_os_maturity_router)
+    app.include_router(agent_os_connections_router)
+    app.include_router(agent_os_level_up_router)
+    app.include_router(agent_os_glass_router)
+    app.include_router(agent_os_milestones_router)
+    app.include_router(agent_os_phase5_router)
+    app.include_router(workspace_template_router)
+    app.include_router(hot_cache_router)
+    app.include_router(google_workspace_router)
+    app.include_router(credential_audit_router)
+    app.include_router(credential_rotation_router)
+    app.include_router(skill_run_router)
+    app.include_router(quota_router)
+    app.include_router(tool_deferred_router)
+    app.include_router(tool_acl_router)
+    app.include_router(client_approval_router)
+    app.include_router(triggers_router)
+    app.include_router(readiness_router)
+    app.include_router(operator_policy_router)
+    app.include_router(phone_voice_router)
+    app.include_router(inbound_voice_router)
+    app.include_router(twilio_voice_router)
+    app.include_router(twilio_media_stream_router)
+    app.include_router(video_ingest_router)
+    app.include_router(graphiti_router)
+    app.include_router(brain_activation_router)
+    app.include_router(brain_graph_router)
+    app.include_router(brain_health_router)
+    app.include_router(brain_session_replay_router)
+    app.include_router(brain_export_router)
+    app.include_router(brain_share_router)
+    app.include_router(brain_share_public_router)
+    app.include_router(notebook_research_router)
+    app.include_router(design_preview_router)
     app.include_router(public_v1_router)
     app.include_router(admin_router)
     app.include_router(auth_router)
+    app.include_router(handoff_router)
+    app.include_router(auth_password_router)
+    app.include_router(auth_otp_router)
+    app.include_router(auth_sso_router)
+    app.include_router(auth_session_router)
     app.include_router(auth_invite_router)
     app.include_router(admin_users_router)
     app.include_router(vault_router)
+    app.include_router(knowledge_vault_router)
+    app.include_router(vault_pack_router)
     app.include_router(backup_router)
     app.include_router(cron_router)
     app.include_router(export_router)
@@ -362,12 +556,16 @@ def create_app() -> FastAPI:
     app.include_router(review_gateway_router)
     app.include_router(review_public_router)
     app.include_router(legal_router)
+    app.include_router(licensing_router)
     app.include_router(browser_router)
     app.include_router(harness_router)
     app.include_router(hub_router)
+    app.include_router(integrations_router)
+    app.include_router(integrations_governance_router)
     app.include_router(pack_gate_router)
     app.include_router(agent_apps_router)
     app.include_router(agent_apps_public_router)
+    app.include_router(built_apps_router)
     app.include_router(personas_router)
     app.include_router(kernel_router)
     app.include_router(documents_router)
@@ -375,6 +573,7 @@ def create_app() -> FastAPI:
     app.include_router(jamovi_router)
     app.include_router(get_governance_router())
     app.include_router(support_router)
+    app.include_router(operator_router)
     app.include_router(fleet_router)
     app.include_router(data_plane_router)
     app.include_router(jobs_router)
@@ -417,8 +616,12 @@ def create_app() -> FastAPI:
     app.include_router(multiagent_router)
     app.include_router(control_center_router)
     app.include_router(observability_router)
+    app.include_router(a2a_router)
     app.include_router(playbook_router)
     app.include_router(playbook_run_router)
+    app.include_router(playbook_nl_builder_router)
+    app.include_router(playbook_studio_router)
+    app.include_router(playbook_scout_callback_router)
     app.include_router(contacts_sync_router)
     app.include_router(voice_templates_router)
     app.include_router(voice_wake_router)
@@ -429,6 +632,9 @@ def create_app() -> FastAPI:
     app.include_router(localization_router)
     app.include_router(localization_corrections_router)
     app.include_router(notifications_router)
+    app.include_router(upgrade_router)
+    app.include_router(feature_flag_router)
+    app.include_router(self_knowledge_router)
     app.include_router(builder_router)
     app.include_router(domain_packs_router)
     app.include_router(migration_router)

@@ -1,0 +1,22 @@
+[Unit]
+Description=Keprix scheduled backup (off-box copy recommended)
+Documentation=file://docs/operations/backup.md
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=@KEPRIX_USER@
+Group=@KEPRIX_USER@
+EnvironmentFile=-/etc/keprix.env
+Environment=KEPRIX_HOME=@KEPRIX_HOME@
+WorkingDirectory=@KEPRIX_ROOT@
+# Archives contain vault keys. Copy off-box after snapshot.
+ExecStart=/usr/bin/env bash -lc 'set -euo pipefail; ROOT="@KEPRIX_ROOT@"; if [ -x "$ROOT/scripts/keprix-backup" ]; then "$ROOT/scripts/keprix-backup" snapshot --out "$ROOT/backups"; elif [ -x "$ROOT/.venv/bin/python" ]; then PYTHONPATH="$ROOT/src" "$ROOT/.venv/bin/python" -m keprix_cli.main backup --quick; else PYTHONPATH="$ROOT/src" python3 -m keprix_cli.main backup --quick; fi'
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=@KEPRIX_HOME@ @KEPRIX_ROOT@/backups @KEPRIX_ROOT@/data
+NoNewPrivileges=true
+PrivateTmp=true

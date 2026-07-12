@@ -1,0 +1,38 @@
+name: outreach-agent
+version: 1.0.0
+display_name: Outreach Lead Agent
+description: Audience + offer → calendar, hooks, follow-ups, and lead-stage next steps.
+category: sales
+icon: send
+runtime: python
+entrypoint: agents.main:run
+required_env: []
+required_permissions: []
+tools:
+  - tools/generate.yaml
+inputs:
+  - id: audience
+    label: Target audience
+    type: text
+    required: true
+  - id: offer
+    label: Offer
+    type: text
+    required: true
+  - id: channels
+    label: Channels (comma-separated)
+    type: text
+    required: false
+    default: linkedin,email,x
+  - id: days
+    label: Calendar days
+    type: text
+    required: false
+    default: "14"
+outputs:
+  - id: markdown
+    type: markdown
+eval_suite: evals/basic.yaml
+billing:
+  tier: free
+  meter: runs_per_month

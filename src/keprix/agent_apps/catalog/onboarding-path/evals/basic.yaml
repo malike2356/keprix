@@ -1,0 +1,7 @@
+cases:
+  - name: produces path
+    input: Keprix Agent OS
+    expect_contains: Onboarding path
+  - name: has day 30
+    input: Keprix
+    expect_contains: Day 30

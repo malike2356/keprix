@@ -1,0 +1,35 @@
+name: content-series
+version: 1.0.0
+display_name: Content Series Generator
+description: One topic → hooks, scripts, captions, and cross-platform variants ready to publish.
+category: marketing
+icon: megaphone
+runtime: python
+entrypoint: agents.main:run
+required_env: []
+required_permissions: []
+tools:
+  - tools/generate.yaml
+inputs:
+  - id: topic
+    label: Topic
+    type: text
+    required: true
+    placeholder: e.g. Agent OS onboarding
+  - id: audience_questions
+    label: Audience questions
+    type: textarea
+    required: false
+    placeholder: One question per line
+  - id: platforms
+    label: Platforms (comma-separated)
+    type: text
+    required: false
+    default: linkedin,x,youtube,instagram,email
+outputs:
+  - id: markdown
+    type: markdown
+eval_suite: evals/basic.yaml
+billing:
+  tier: free
+  meter: runs_per_month

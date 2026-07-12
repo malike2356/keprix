@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily Keprix backup timer
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=30m
+
+[Install]
+WantedBy=timers.target

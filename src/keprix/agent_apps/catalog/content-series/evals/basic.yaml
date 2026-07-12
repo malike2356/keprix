@@ -1,0 +1,7 @@
+cases:
+  - name: produces hooks
+    input: Agent OS memory
+    expect_contains: Content series
+  - name: includes topic
+    input: Agent OS memory
+    expect_contains: Agent OS memory

@@ -1,0 +1,65 @@
+# Fly.io fullstack recipe (optional helper; not the primary production path).
+#
+# Primary production: Docker Compose + Caddy on a VPS
+#   docs/operations/vps-deploy.md
+#   scripts/deploy-keprix-production.sh
+#
+# This file runs frontend + backend as Fly processes with a persistent volume.
+# Postgres and Redis are attached Fly managed services (not in-process).
+#
+# Setup:
+#   fly apps create keprix
+#   fly postgres create --name keprix-db && fly postgres attach keprix-db -a keprix
+#   fly redis create --name keprix-redis   # or set KEPRIX_REDIS_URL secret
+#   fly volumes create keprix_data --size 10 --region lhr -a keprix
+#   fly secrets set KEPRIX_JWT_SECRET=... KEPRIX_SESSION_SECRET=... KEPRIX_VAULT_KEY=... \
+#     KEPRIX_ALLOWED_ORIGINS=https://keprix.fly.dev KEPRIX_INSTANCE_URL=https://keprix.fly.dev
+#   fly deploy -c fly.fullstack.toml
+#
+# Not "one-click": managed DB/Redis + secrets + volume are required first.
+
+app = "keprix"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "docker/Dockerfile.fly"
+
+[env]
+  BACKEND_PORT = "3333"
+  PORT = "3000"
+  KEPRIX_HOME = "/data/keprix"
+  KEPRIX_LOGS_DIR = "/data/keprix/logs"
+  KEPRIX_GUARDRAILS_DEFAULT = "true"
+  KEPRIX_VAULT_AUTO_BACKUP = "true"
+  KEPRIX_VAULT_AUTO_CAPTURE = "true"
+  KEPRIX_TRUSTED_PROXIES = "fly=any"
+  NEXT_PUBLIC_API_URL = ""
+  NEXT_PUBLIC_CE_API_URL = ""
+  BACKEND_REWRITE_URL = "http://127.0.0.1:3333"
+
+[processes]
+  web = "/app/start-fly.sh"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["web"]
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "45s"
+    method = "GET"
+    path = "/"
+
+[[mounts]]
+  source = "keprix_data"
+  destination = "/data/keprix"
+
+[[vm]]
+  memory = "2gb"
+  cpu_kind = "shared"
+  cpus = 2

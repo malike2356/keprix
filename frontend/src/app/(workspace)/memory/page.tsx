@@ -13,6 +13,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import MemoryIcon from "@mui/icons-material/Memory";
 import * as React from "react";
 import useSWR from "swr";
+import BrainSectionTabs from "@/components/memory/BrainSectionTabs";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import { SkeletonTable } from "@/components/ui/loading";
@@ -52,7 +53,8 @@ export default function MemoryPage() {
   if (isLoading) {
     return (
       <Box>
-        <PageHeader title="Memory" description="Review agent memory and knowledge entries." />
+        <PageHeader title="Brain" description="Review agent memory and knowledge entries." />
+        <BrainSectionTabs value="list" />
         <SkeletonTable rows={6} columns={4} />
       </Box>
     );
@@ -61,7 +63,8 @@ export default function MemoryPage() {
   if (!memories || memories.length === 0) {
     return (
       <Box>
-        <PageHeader title="Memory" description="Review agent memory and knowledge entries." />
+        <PageHeader title="Brain" description="Review agent memory and knowledge entries." />
+        <BrainSectionTabs value="list" />
         <EmptyState
           title={empty?.title ?? "No memory entries"}
           description={empty?.description ?? "Memory will populate as you use chat and research tools."}
@@ -73,7 +76,8 @@ export default function MemoryPage() {
 
   return (
     <Box>
-      <PageHeader title="Memory" description="Review agent memory and knowledge entries." />
+      <PageHeader title="Brain" description="Review agent memory and knowledge entries." />
+      <BrainSectionTabs value="list" />
       <Table size="small">
         <TableHead>
           <TableRow>

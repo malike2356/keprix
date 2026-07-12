@@ -1,0 +1,7 @@
+cases:
+  - name: cleans email column
+    input: "Email,Name\na@b.com,Ada Lovelace\na@b.com,Ada Duplicate\n"
+    expect_contains: Clean rows
+  - name: outputs csv preview
+    input: "Email,Name\na@b.com,Ada Lovelace\n"
+    expect_contains: "```csv"

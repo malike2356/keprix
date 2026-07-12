@@ -1,0 +1,29 @@
+name: onboarding-path
+version: 1.0.0
+display_name: Onboarding Path Builder
+description: Product description → welcome sequence, first-call prep, walkthrough, day 1/7/30 checklist.
+category: productivity
+icon: route
+runtime: python
+entrypoint: agents.main:run
+required_env: []
+required_permissions: []
+tools:
+  - tools/generate.yaml
+inputs:
+  - id: product
+    label: Product or service
+    type: text
+    required: true
+  - id: audience
+    label: Audience
+    type: text
+    required: false
+    default: new users
+outputs:
+  - id: markdown
+    type: markdown
+eval_suite: evals/basic.yaml
+billing:
+  tier: free
+  meter: runs_per_month

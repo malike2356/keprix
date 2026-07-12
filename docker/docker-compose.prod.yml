@@ -1,0 +1,26 @@
+# Production overlay: no host ports for Postgres/Redis/SearXNG.
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Pin a release:
+#   KEPRIX_IMAGE_TAG=v0.16.0 docker compose ... up -d
+# Rollback = previous tag:
+#   KEPRIX_IMAGE_TAG=v0.15.2 docker compose ... up -d
+
+services:
+  keprix-backend:
+    image: keprix-backend:${KEPRIX_IMAGE_TAG:-latest}
+    environment:
+      KEPRIX_TRUSTED_PROXIES: ${KEPRIX_TRUSTED_PROXIES:-127.0.0.1,::1}
+
+  keprix-frontend:
+    image: keprix-frontend:${KEPRIX_IMAGE_TAG:-latest}
+
+  postgres:
+    ports: !override []
+
+  redis:
+    ports: !override []
+
+  searxng:
+    ports: !override []

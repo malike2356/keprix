@@ -1,0 +1,4 @@
+name: generate
+description: Generate an onboarding path package
+risk: low
+approval_required: false

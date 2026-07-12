@@ -1,0 +1,4 @@
+name: generate
+description: Generate a multi-piece content series from a topic
+risk: low
+approval_required: false

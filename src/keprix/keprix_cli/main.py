@@ -278,6 +278,7 @@ from keprix_cli.subcommands.status import build_status_parser
 from keprix_cli.subcommands.webhook import build_webhook_parser
 from keprix_cli.subcommands.hooks import build_hooks_parser
 from keprix_cli.subcommands.doctor import build_doctor_parser
+from keprix_cli.subcommands.readiness import build_readiness_parser
 from keprix_cli.subcommands.security import build_security_parser
 from keprix_cli.subcommands.dump import build_dump_parser
 from keprix_cli.subcommands.debug import build_debug_parser
@@ -305,22 +306,49 @@ from keprix_cli.subcommands.self_config import build_self_config_parsers
 from keprix_cli.subcommands.sdk import build_sdk_parser
 from keprix_cli.subcommands.slash import build_slash_parser
 from keprix_cli.subcommands.coding import build_coding_parser
+from keprix_cli.subcommands.agent_os import build_agent_os_parser
 from keprix_cli.subcommands.opportunity import build_opportunity_parser
 from keprix_cli.subcommands.mutation import build_mutation_parser
 from keprix_cli.subcommands.research import build_research_parser
 from keprix_cli.subcommands.builder import build_builder_parser
+from keprix_cli.subcommands.ingest import build_ingest_parser
+from keprix_cli.subcommands.vault import build_vault_parser
+from keprix_cli.subcommands.integrations import build_integrations_parser
+from keprix_cli.subcommands.upstream import build_upstream_parser
+from keprix_cli.subcommands.scout import build_scout_parser
+from keprix_cli.subcommands.product import build_product_parser
+from keprix_cli.subcommands.ops import build_ops_parser
+from keprix_cli.subcommands.incident import build_incident_parser
+from keprix_cli.subcommands.forensics import build_forensics_parser
+from keprix_cli.subcommands.audit import build_audit_parser
 from keprix_cli.subcommands.language import build_language_parser
 from keprix_cli.subcommands.agent_app import build_agent_app_parser
+from keprix_cli.subcommands.upgrade import build_upgrade_parser
+from keprix_cli.subcommands.policy import build_policy_parser
 from keprix_cli import self_config_commands
 from keprix_cli import sdk_commands
 from keprix_cli import slash_commands
 from keprix_cli import coding_commands
+from keprix_cli import agent_os_commands
 from keprix_cli import opportunity_commands
 from keprix.mutation import cli_commands as mutation_pipeline_commands
 from keprix_cli import research_commands
 from keprix_cli import builder_commands
+from keprix_cli import ingest_commands
+from keprix_cli import vault_commands
+from keprix_cli import integrations_commands
+from keprix_cli import upstream_commands
+from keprix_cli import scout_commands
+from keprix_cli import product_commands
+from keprix_cli import ops_commands
+from keprix_cli import incident_commands
+from keprix_cli import forensics_commands
+from keprix_cli import audit_commands
+from keprix_cli import policy_commands
 from keprix_cli import language_commands
 from keprix_cli import agent_app_commands
+from keprix_cli import upgrade_commands
+from keprix_cli import readiness_commands
 
 
 def _require_tty(command_name: str) -> None:
@@ -4219,9 +4247,32 @@ def cmd_security(args):
     if sub in ("audit", None):
         from keprix_cli.security_audit import cmd_security_audit
 
-        # Default subcommand is `audit` when no subcmd is given.
         code = cmd_security_audit(args)
         sys.exit(int(code or 0))
+    if sub == "pentest":
+        from keprix.security.pentest import run_pentest
+
+        payload = run_pentest(full=bool(getattr(args, "full", False)))
+        if getattr(args, "json", False):
+            print(json.dumps(payload, indent=2))
+        else:
+            print(f"Pentest ({payload.get('mode')}): {'PASS' if payload.get('ok') else 'FAIL'}")
+            for row in payload.get("checks") or []:
+                status = "PASS" if row.get("passed") else "FAIL"
+                print(f"  [{status}] {row.get('name')}: {row.get('detail')}")
+        sys.exit(0 if payload.get("ok") else 1)
+    if sub == "vault-audit":
+        from keprix.security.credential_vault_audit import audit_credentials
+
+        payload = audit_credentials(
+            expiring_days=getattr(args, "expiring_days", None),
+            rotation_due=bool(getattr(args, "rotation_due", False)),
+        )
+        if getattr(args, "json", False):
+            print(json.dumps(payload, indent=2))
+        else:
+            print(f"Credential vault audit ok={payload.get('ok')} issues={payload.get('issue_count')}")
+        sys.exit(0 if payload.get("ok") else 1)
     print(f"unknown security subcommand: {sub}", file=sys.stderr)
     sys.exit(2)
 
@@ -10976,13 +11027,13 @@ _BUILTIN_SUBCOMMANDS = frozenset(
         "acp", "auth", "backup", "bundles", "checkpoints", "claw", "completion",
         "computer-use",
         "approve", "configure", "config", "cron", "curator", "dashboard", "debug", "doctor",
-        "health", "proposals", "reject", "repair", "rollback",
+        "health", "proposals", "reject", "repair", "readiness", "rollback",
         "dump", "fallback", "gateway", "hooks", "import", "insights",
         "gui", "desktop", "kanban", "login", "logout", "logs", "lsp", "mcp", "memory", "migrate",
         "model", "pairing", "plugins", "portal", "postinstall", "profile", "proxy",
         "prompt-size",
         "send", "sessions", "setup",
-        "skills", "slack", "status", "tools", "uninstall", "update",
+        "skills", "slack", "status", "tools", "uninstall", "update", "upgrade",
         "version", "webhook", "whatsapp", "whatsapp-cloud", "chat", "secrets", "security",
         "builder", "research", "coding", "opportunity",
         # Help-ish invocations — plugin commands not being listed in
@@ -11355,6 +11406,14 @@ def cmd_memory(args):
             f"\n  Memory reset complete. New sessions will start with a blank slate."
         )
         print(f"  Files were in: {display_keprix_home()}/memories/\n")
+    elif sub == "index-self":
+        from keprix_cli.self_knowledge_commands import cmd_memory_index_self
+
+        return cmd_memory_index_self(args)
+    elif sub == "search-self":
+        from keprix_cli.self_knowledge_commands import cmd_memory_search_self
+
+        return cmd_memory_search_self(args)
     else:
         from keprix_cli.memory_setup import memory_command
 
@@ -11755,6 +11814,8 @@ def main():
     # =========================================================================
     build_doctor_parser(subparsers, cmd_doctor=cmd_doctor)
 
+    build_readiness_parser(subparsers, cmd_readiness=readiness_commands.cmd_readiness)
+
     # =========================================================================
     # self-configuration commands (Prompt 16)
     # =========================================================================
@@ -11787,6 +11848,9 @@ def main():
         subparsers,
         cmd_profiles=coding_commands.cmd_coding_profiles,
         cmd_run=coding_commands.cmd_coding_run,
+        cmd_preflight_run=coding_commands.cmd_coding_preflight_run,
+        cmd_preflight_show=coding_commands.cmd_coding_preflight_show,
+        cmd_preflight_config=coding_commands.cmd_coding_preflight_config,
     )
 
     build_opportunity_parser(
@@ -11831,6 +11895,71 @@ def main():
         cmd_status=builder_commands.cmd_builder_status,
         cmd_logs=builder_commands.cmd_builder_logs,
         cmd_deploy=builder_commands.cmd_builder_deploy,
+    )
+
+    build_ingest_parser(
+        subparsers,
+        cmd_video=ingest_commands.cmd_ingest_video,
+    )
+
+    build_agent_os_parser(
+        subparsers,
+        cmd_agent_os=agent_os_commands.cmd_agent_os,
+    )
+
+    build_vault_parser(
+        subparsers,
+        cmd_vault=vault_commands.cmd_vault,
+    )
+
+    build_upgrade_parser(
+        subparsers,
+        cmd_upgrade=upgrade_commands.cmd_upgrade,
+    )
+
+    build_integrations_parser(
+        subparsers,
+        cmd_integrations=integrations_commands.cmd_integrations,
+    )
+
+    build_upstream_parser(
+        subparsers,
+        cmd_upstream=upstream_commands.cmd_upstream,
+    )
+
+    build_scout_parser(
+        subparsers,
+        cmd_scout=scout_commands.cmd_scout,
+    )
+
+    build_product_parser(
+        subparsers,
+        cmd_product=product_commands.cmd_product,
+    )
+
+    build_ops_parser(
+        subparsers,
+        cmd_ops=ops_commands.cmd_ops,
+    )
+
+    build_incident_parser(
+        subparsers,
+        cmd_incident=incident_commands.cmd_incident,
+    )
+
+    build_forensics_parser(
+        subparsers,
+        cmd_forensics=forensics_commands.cmd_forensics,
+    )
+
+    build_audit_parser(
+        subparsers,
+        cmd_audit=audit_commands.cmd_audit,
+    )
+
+    build_policy_parser(
+        subparsers,
+        cmd_policy=policy_commands.cmd_policy,
     )
 
     build_language_parser(

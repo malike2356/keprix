@@ -1,0 +1,34 @@
+name: video-agent
+version: 1.0.0
+display_name: Video Agent
+description: Topic → script, storyboard, description, tags, and thumbnail text for human review.
+category: marketing
+icon: movie
+runtime: python
+entrypoint: agents.main:run
+required_env: []
+required_permissions: []
+tools:
+  - tools/generate.yaml
+inputs:
+  - id: topic
+    label: Topic
+    type: text
+    required: true
+  - id: audience
+    label: Audience
+    type: text
+    required: false
+    default: general
+  - id: length_minutes
+    label: Length (minutes)
+    type: text
+    required: false
+    default: "8"
+outputs:
+  - id: markdown
+    type: markdown
+eval_suite: evals/basic.yaml
+billing:
+  tier: free
+  meter: runs_per_month
