@@ -2,9 +2,20 @@
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import * as React from "react";
+import useSWR from "swr";
+import DonateCoffeeSheet from "@/components/shell/DonateCoffeeSheet";
 import { DEVELOPER_ECOSYSTEM, DEVELOPER_ECOSYSTEM_LABEL } from "@/lib/developer-ecosystem";
+import { fetchHealth } from "@/lib/ce-api";
 
 export default function WorkspaceFooter() {
+  const [donateOpen, setDonateOpen] = React.useState(false);
+  const { data: health } = useSWR("keprix-health-version", fetchHealth, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+  });
+  const version = health?.version || "0.16.0";
+
   return (
     <Box
       component="footer"
@@ -19,7 +30,29 @@ export default function WorkspaceFooter() {
       }}
     >
       <Typography variant="caption" color="text.secondary" display="block">
-        keprix - Community Edition
+        keprix v{version} - Community Edition
+        {" · "}
+        <Box
+          component="button"
+          type="button"
+          onClick={() => setDonateOpen(true)}
+          sx={{
+            color: "inherit",
+            textDecoration: "none",
+            background: "none",
+            border: 0,
+            padding: 0,
+            font: "inherit",
+            cursor: "pointer",
+            "&:hover": { textDecoration: "underline" },
+          }}
+        >
+          Buy us a coffee
+        </Box>
+        {" "}
+        <Box component="span" sx={{ opacity: 0.75 }}>
+          (from £1)
+        </Box>
       </Typography>
       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5, fontSize: "0.65rem" }}>
         {DEVELOPER_ECOSYSTEM_LABEL}:{" "}
@@ -39,6 +72,7 @@ export default function WorkspaceFooter() {
           </Box>
         ))}
       </Typography>
+      <DonateCoffeeSheet open={donateOpen} onClose={() => setDonateOpen(false)} />
     </Box>
   );
 }

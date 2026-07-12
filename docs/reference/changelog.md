@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Browser action engine HTTP API with approval gates for risky actions.
 - jamovi export bridge for analytics workspace workflows.
 - Community infrastructure: issue templates, PR template, CI validation, and contributor docs.
+- Open-amount "Buy us a coffee" donate sheet; `POST /api/billing/donation/checkout` with `{ amount_gbp }` (min £1) via Stripe `price_data`.
 
 ### Changed
 

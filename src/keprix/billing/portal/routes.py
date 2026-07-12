@@ -8,6 +8,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
+from starlette.responses import RedirectResponse
 
 from keprix.auth.dependencies import get_current_user
 from keprix.billing.config_loader import billing_enabled, load_billing_config
@@ -15,7 +16,8 @@ from keprix.billing.feature_gates.matrix import build_feature_matrix
 from keprix.billing.invoicing.history import get_invoice_for_user, list_billing_history
 from keprix.billing.stripe.customer_portal import create_customer_portal_session
 from keprix.billing.store import get_billing_store
-from keprix.billing.stripe.checkout import create_checkout_session
+from keprix.billing.stripe.checkout import create_checkout_session, create_donation_checkout
+from keprix.billing.stripe.credentials import stripe_credentials_configured
 from keprix.billing.subscriptions.lifecycle import cancel_subscription, start_trial
 from keprix.billing.subscriptions.seats import invite_seat, remove_seat
 from keprix.billing.webhooks.dispatcher import dispatch_webhook_event, verify_stripe_signature
@@ -76,7 +78,7 @@ async def billing_status() -> dict[str, Any]:
         return {"enabled": False}
     provider = os.environ.get("KEPRIX_BILLING_PROVIDER", "").strip().lower()
     if not provider:
-        provider = "stripe" if os.environ.get("STRIPE_SECRET_KEY", "").strip() else "mock"
+        provider = "stripe" if stripe_credentials_configured() else "mock"
     return {
         "enabled": True,
         "provider": provider,
@@ -84,7 +86,51 @@ async def billing_status() -> dict[str, Any]:
         "product_name": cfg.product.name,
         "trial_days": cfg.product.trial_days,
         "plans": _serialize_plans(),
+        "donations": [d.model_dump() for d in cfg.donations],
     }
+
+
+@router.get("/donation/checkout")
+async def donation_checkout_redirect(
+    donation_id: str = "coffee",
+    amount_gbp: float | None = None,
+) -> RedirectResponse:
+    """Public one-time donation Checkout (footer Buy me a coffee link)."""
+    if not billing_enabled() and not stripe_credentials_configured():
+        raise HTTPException(status_code=404, detail="Donations are not available on this instance")
+    try:
+        session = await create_donation_checkout(donation_id=donation_id, amount_gbp=amount_gbp)
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    url = session.get("checkout_url")
+    if not url:
+        raise HTTPException(status_code=502, detail="Stripe did not return a checkout URL")
+    return RedirectResponse(url=url, status_code=303)
+
+
+class DonationCheckoutBody(BaseModel):
+    amount_gbp: float = Field(..., ge=1, le=500, description="Donation amount in GBP (min £1)")
+    donation_id: str = "coffee"
+
+
+@router.post("/donation/checkout")
+async def donation_checkout(body: DonationCheckoutBody) -> dict[str, Any]:
+    """JSON one-time donation Checkout session with open amount (price_data)."""
+    if not billing_enabled() and not stripe_credentials_configured():
+        raise HTTPException(status_code=404, detail="Donations are not available on this instance")
+    try:
+        return await create_donation_checkout(
+            donation_id=body.donation_id,
+            amount_gbp=body.amount_gbp,
+        )
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/donate/coffee")
+async def donate_coffee(amount_gbp: float | None = None) -> RedirectResponse:
+    """Alias for the optional Buy me a coffee donation (default £1, open amount via query)."""
+    return await donation_checkout_redirect(donation_id="coffee", amount_gbp=amount_gbp)
 
 
 @router.get("/portal/account")
@@ -122,25 +168,31 @@ async def portal_invoice(invoice_id: str, user: dict = Depends(get_current_user)
 @router.post("/portal/checkout")
 async def portal_checkout(body: CheckoutBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
     _require_billing()
-    email = str(user.get("email") or f"{_user_id(user)}@local")
-    return await create_checkout_session(
-        user_id=_user_id(user),
-        email=email,
-        plan_id=body.plan_id,
-        interval=body.interval,
-    )
+    try:
+        email = str(user.get("email") or f"{_user_id(user)}@local")
+        return await create_checkout_session(
+            user_id=_user_id(user),
+            email=email,
+            plan_id=body.plan_id,
+            interval=body.interval,
+        )
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/portal/upgrade")
 async def portal_upgrade(body: UpgradeBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
     _require_billing()
-    email = str(user.get("email") or f"{_user_id(user)}@local")
-    return await create_checkout_session(
-        user_id=_user_id(user),
-        email=email,
-        plan_id=body.plan_id,
-        interval=body.interval,
-    )
+    try:
+        email = str(user.get("email") or f"{_user_id(user)}@local")
+        return await create_checkout_session(
+            user_id=_user_id(user),
+            email=email,
+            plan_id=body.plan_id,
+            interval=body.interval,
+        )
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.post("/portal/cancel")
@@ -211,6 +263,32 @@ async def stripe_webhook(request: Request) -> dict[str, Any]:
 
 @router.post("/portal/trial")
 async def portal_start_trial(body: UpgradeBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    """Start a trial.
+
+    When Stripe credentials are configured, open Checkout with trial_period_days
+    so the customer adds a payment method. Otherwise fall back to a local trial.
+    """
     _require_billing()
-    sub = await start_trial(_user_id(user), body.plan_id)
-    return {"ok": True, "subscription": sub}
+    uid = _user_id(user)
+    cfg = load_billing_config()
+    plan = cfg.plan_by_id(body.plan_id) if cfg else None
+    free_plan = False
+    if plan is not None:
+        prices = plan.resolved_prices()
+        free_plan = not prices or all(int(getattr(p, "amount", 0) or 0) == 0 for p in prices)
+
+    try:
+        if free_plan or not stripe_credentials_configured():
+            sub = await start_trial(uid, body.plan_id)
+            return {"ok": True, "mode": "local", "subscription": sub}
+
+        email = str(user.get("email") or f"{uid}@local")
+        session = await create_checkout_session(
+            user_id=uid,
+            email=email,
+            plan_id=body.plan_id,
+            interval=body.interval,
+        )
+        return {"ok": True, "mode": "stripe_checkout", **session}
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc

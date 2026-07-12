@@ -62,6 +62,32 @@ export type BillingSeat = {
   status?: string;
 };
 
+export type WalletStatus = {
+  workspace_id: string;
+  hosted?: boolean;
+  policy?: {
+    deployment_mode?: string;
+    plan_id?: string;
+    managed_ai_available?: boolean;
+    byok_default?: boolean;
+    included_credits_monthly?: number;
+    trial_credits?: number;
+    trial_daily_cap_credits?: number;
+  };
+  wallet?: {
+    balance_credits?: number;
+    included_remaining?: number;
+    available_credits?: number;
+    trial_granted?: number;
+  };
+  daily_credits_used?: number;
+  daily_cap?: number | null;
+  low_credit?: boolean;
+  exhausted?: boolean;
+  byok_available?: boolean;
+  actions_when_exhausted?: string[];
+};
+
 export class BillingApiError extends Error {
   status: number;
 
@@ -137,14 +163,15 @@ export async function startCheckout(
   return handleResponse<{ checkout_url: string }>(response, "Failed to start checkout");
 }
 
-export async function startTrial(planId: string): Promise<BillingAccount> {
+export async function startTrial(
+  planId: string,
+  interval: "month" | "year" = "month",
+): Promise<{ mode: string; checkout_url?: string; subscription?: BillingSubscription }> {
   const response = await ceApi("/api/billing/portal/trial", {
     method: "POST",
-    body: JSON.stringify({ plan_id: planId }),
+    body: JSON.stringify({ plan_id: planId, interval }),
   });
-  const data = await handleResponse<{ subscription: BillingSubscription }>(response, "Failed to start trial");
-  const account = await fetchBillingAccount();
-  return { ...account, subscription: data.subscription };
+  return handleResponse(response, "Failed to start trial");
 }
 
 export async function upgradePlan(
@@ -206,4 +233,73 @@ export async function redirectToCheckout(planId: string, interval: "month" | "ye
 export async function redirectToPaymentPortal(): Promise<void> {
   const { portal_url } = await openPaymentMethodPortal();
   window.location.href = portal_url;
+}
+
+export async function fetchWalletStatus(): Promise<WalletStatus> {
+  const response = await ceApi("/api/billing/wallet/status");
+  return handleResponse<WalletStatus>(response, "Failed to load AI wallet status");
+}
+
+export type BillingCatalogEntry = {
+  label: string;
+  price_id: string;
+  amount: number | null;
+  currency: string;
+  interval: "month" | "year" | null;
+};
+
+export type BillingAdminPlan = {
+  id: string;
+  name: string;
+  description?: string;
+  prices: BillingPrice[];
+};
+
+export async function fetchBillingAdminCatalog(): Promise<{ items: BillingCatalogEntry[]; count: number }> {
+  const response = await ceApi("/api/billing/admin/catalog");
+  return handleResponse(response, "Failed to load Stripe price catalog");
+}
+
+export async function fetchBillingAdminPricing(): Promise<{
+  config_path: string;
+  product: { id: string; name: string; trial_days?: number };
+  plans: BillingAdminPlan[];
+}> {
+  const response = await ceApi("/api/billing/admin/pricing");
+  return handleResponse(response, "Failed to load plan pricing");
+}
+
+export async function saveBillingAdminPricing(body: {
+  plans: Array<{
+    id: string;
+    prices: Array<{ interval: "month" | "year"; stripe_price_id: string | null }>;
+  }>;
+}): Promise<{ ok: boolean; config_path: string }> {
+  const response = await ceApi("/api/billing/admin/pricing", {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+  return handleResponse(response, "Failed to save plan pricing");
+}
+
+export async function createDonationCheckout(
+  amountGbp: number,
+  donationId = "coffee",
+): Promise<{
+  checkout_url: string;
+  session_id: string;
+  donation: {
+    id: string;
+    name: string;
+    amount: number;
+    amount_gbp: number;
+    currency: string;
+    pricing: string;
+  };
+}> {
+  const response = await ceApi("/api/billing/donation/checkout", {
+    method: "POST",
+    body: JSON.stringify({ amount_gbp: amountGbp, donation_id: donationId }),
+  });
+  return handleResponse(response, "Failed to start donation checkout");
 }

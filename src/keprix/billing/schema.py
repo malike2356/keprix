@@ -23,6 +23,9 @@ class PlanPriceConfig(BaseModel):
     currency: str = "gbp"
     interval: Literal["month", "year"] | None = None
     discount_text: str | None = None
+    # Existing Stripe Price ID from verlox/.stripe-credentials-and-price-id.md.
+    # Required for live Stripe; agents must never create new Stripe prices.
+    stripe_price_id: str | None = None
 
 
 class PlanConfig(BaseModel):
@@ -71,6 +74,16 @@ class AddonConfig(BaseModel):
     currency: str = "gbp"
     interval: Literal["month", "year"] = "month"
     applies_to: list[str] = Field(default_factory=list)
+    stripe_price_id: str | None = None
+
+
+class DonationConfig(BaseModel):
+    id: str = "coffee"
+    name: str = "Buy me a coffee"
+    description: str = "Optional open-amount donation from £1. Not required."
+    amount: int = 100
+    currency: str = "gbp"
+    stripe_price_id: str
 
 
 class TaxRegionConfig(BaseModel):
@@ -103,13 +116,32 @@ class WebhookConfig(BaseModel):
     events: list[str] = Field(default_factory=list)
 
 
+class AiWalletConfig(BaseModel):
+    """Managed AI credit wallet defaults for hosted deployments."""
+
+    enabled: bool = True
+    markup: float = 2.0
+    trial_credits: int = 500
+    trial_daily_cap_credits: int = 100
+    # Existing Verlox top-up price IDs only (from .stripe-credentials-and-price-id.md).
+    topup_price_ids: list[str] = Field(
+        default_factory=lambda: [
+            "price_1TrhlN2WMXleLh8enqPqXHs5",  # Pay £5 to Verlox
+            "price_1Trhnl2WMXleLh8e2zddW2ET",  # Pay £10 to Verlox
+            "price_1Trho42WMXleLh8ekL7R7Vq7",  # Pay £20 to Verlox
+        ]
+    )
+
+
 class BillingConfig(BaseModel):
     product: ProductConfig
     plans: list[PlanConfig]
     addons: list[AddonConfig] = Field(default_factory=list)
+    donations: list[DonationConfig] = Field(default_factory=list)
     tax: TaxConfig = Field(default_factory=TaxConfig)
     dunning: DunningConfig = Field(default_factory=DunningConfig)
     webhooks: WebhookConfig = Field(default_factory=WebhookConfig)
+    ai_wallet: AiWalletConfig = Field(default_factory=AiWalletConfig)
 
     @field_validator("plans")
     @classmethod
@@ -122,6 +154,12 @@ class BillingConfig(BaseModel):
         for plan in self.plans:
             if plan.id == plan_id:
                 return plan
+        return None
+
+    def donation_by_id(self, donation_id: str) -> DonationConfig | None:
+        for donation in self.donations:
+            if donation.id == donation_id:
+                return donation
         return None
 
     def community_plan(self) -> PlanConfig | None:

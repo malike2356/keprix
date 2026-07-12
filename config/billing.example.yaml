@@ -30,6 +30,10 @@ plans:
       support: "community"
       api_access: false
       sso: false
+      managed_ai: false
+      ai_included_credits: 0
+      ai_trial_credits: 500
+      ai_trial_daily_cap_credits: 100
       agent_apps.enabled: true
       agent_apps.marketplace: true
       agent_apps.pro_templates: false
@@ -39,13 +43,16 @@ plans:
     name: "Pro"
     description: "For professionals"
     prices:
+      # Verlox SaaS Pro from verlox/.stripe-credentials-and-price-id.md; never create new Stripe prices.
       - amount: 4900
         currency: "gbp"
         interval: "month"
-      - amount: 49000
+        stripe_price_id: "price_1Trhnm2WMXleLh8eevN9oBYd"
+      - amount: 44900
         currency: "gbp"
         interval: "year"
-        discount_text: "Save 17%"
+        discount_text: "Save 24%"
+        stripe_price_id: "price_1Trhnl2WMXleLh8e9zAYG7F4"
     seats: 1
     metadata:
       highlight: true
@@ -58,6 +65,10 @@ plans:
       support: "email"
       api_access: false
       sso: false
+      managed_ai: true
+      ai_included_credits: 1500
+      ai_trial_credits: 0
+      ai_trial_daily_cap_credits: 0
       agent_apps.enabled: true
       agent_apps.marketplace: true
       agent_apps.pro_templates: true
@@ -71,10 +82,12 @@ plans:
       - amount: 12900
         currency: "gbp"
         interval: "month"
+        stripe_price_id: "price_1Trhnm2WMXleLh8etXFvF1VN"
       - amount: 129000
         currency: "gbp"
         interval: "year"
         discount_text: "Save 17%"
+        stripe_price_id: "price_1Trhnm2WMXleLh8eYFIXHNDI"
     seats: 10
     metadata:
       highlight: false
@@ -87,12 +100,26 @@ plans:
       api_access: true
       sso: false
       dark_web_tools: true
+      managed_ai: true
+      ai_included_credits: 4500
+      ai_trial_credits: 0
+      ai_trial_daily_cap_credits: 0
       agent_apps.enabled: true
       agent_apps.marketplace: true
       agent_apps.pro_templates: true
       agent_apps.scheduled: true
       agent_apps.webhooks: true
       agent_apps.publish: true
+
+ai_wallet:
+  enabled: true
+  markup: 2.0
+  trial_credits: 500
+  trial_daily_cap_credits: 100
+  topup_price_ids:
+    - "price_1TrhlN2WMXleLh8enqPqXHs5"
+    - "price_1Trhnl2WMXleLh8e2zddW2ET"
+    - "price_1Trho42WMXleLh8ekL7R7Vq7"
 
 addons:
   - id: "extra_seats"
@@ -102,6 +129,7 @@ addons:
     currency: "gbp"
     interval: "month"
     applies_to: ["team"]
+    stripe_price_id: "price_1Trhnn2WMXleLh8epAMAXzFJ"
 
   - id: "sso"
     name: "Single Sign-On"
@@ -110,6 +138,15 @@ addons:
     currency: "gbp"
     interval: "month"
     applies_to: ["team"]
+    stripe_price_id: "price_1Trhno2WMXleLh8eoiU1Gasw"
+
+donations:
+  - id: "coffee"
+    name: "Buy me a coffee"
+    description: "Optional open-amount donation from £1. Not compulsory."
+    amount: 100
+    currency: "gbp"
+    stripe_price_id: "price_1Tri9T2WMXleLh8eA6gCXHbk"
 
 tax:
   regions:
