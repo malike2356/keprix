@@ -5,18 +5,64 @@ ready to build next.
 
 ## Current status
 
-**Agent OS UI polish (301-315)** completed 2026-07-12. Hub/subnav, milestones on onboarding, Ship defaults on glass, nav sync, period selector, onboard vs onboarding IA, shared Empty/Error/skeletons, breadcrumbs to glass, Memory Galaxy tabs + node click + force layout, glass tasks links, board header links, frosted panels, usage↔glass `?days=` sync, and API/feature docs. Archived under `../prompts-archive/completed/301-*.md` through `315-*.md`. Build order: `../reference/301-agent-os-ui-polish-build-order.md`.
+**gstack core + personas (360-364)** completed 2026-07-19 and archived. Built preamble loader, trigger engine, gbrain SQLite memory, sprint flow, Scout safety commands, `KeprixSkills` orchestrator, and all 11 persona SKILL.md files (NEXUS through SCOUT). Evidence: `python -m pytest tests/skills/test_preamble_loader.py tests/skills/test_trigger_engine.py tests/memory/test_gbrain.py tests/skills/test_sprint_flow.py tests/skills/test_scout_commands.py tests/skills/test_integration.py tests/skills/test_full_integration.py -q` (96 passed).
 
-**Open-amount coffee donation (300)** completed 2026-07-12. Footer donate sheet + `POST /api/billing/donation/checkout` `{ amount_gbp }` via Stripe `price_data` (min £1). Archived: `../prompts-archive/completed/300-open-amount-coffee-donation.md`.
+**Keprix TUI Command Center (350-360)** completed 2026-07-13 and archived. Build-order reference archived as `../prompts-archive/ref-350-keprix-tui-command-center-build-order.md`. Note: TUI prompt 360 (`360-tui-keyboard-polish-and-final-proof.md`) is distinct from gstack prompt 360.
 
-**Conversational channel config (298)** and **Wave 2 (299)** completed on Keprix; Carina port completed 2026-07-11. Archived under `../prompts-archive/completed/`. Carina SOP: `carina/01-devends/SOP/043-conversational-configuration.md`.
+**TUI keyboard polish and final proof (360)** completed 2026-07-13 and archived as `../prompts-archive/360-tui-keyboard-polish-and-final-proof.md`. Added the final keyboard model (`Ctrl+P`, `Ctrl+Space`, `Ctrl+L`, `Ctrl+S`, `Ctrl+M`, `Ctrl+R`, `Ctrl+K`, `?`, `Esc`), help discoverability, final Command Center proof group, docs update, and surpass script coverage. Evidence: `python -m pytest tests/tui/test_keyboard_model.py tests/tui/test_command_center_final_contract.py tests/tui/test_command_center_surpass_proof.py -q` (11 passed), `python -m pytest tests/tui -q` (295 passed), `bash scripts/check-tui-surpass-hermes.sh` passed.
 
-**MyApi Open adoption** completed 2026-07-11 and archived under `../prompts-archive/myapi-open-adoption/`.
+**TUI empty, loading, and error states (359)** completed 2026-07-13 and archived as `../prompts-archive/359-tui-empty-loading-error-states.md`. Added shared state catalog for all required normal and error states, reusable StateView, HTTP status to state mapping, terminal-size guidance, safer network error copy, and action-id validation against the command registry. Evidence: `python -m pytest tests/tui/test_tui_state_views.py tests/tui/test_tui_error_copy.py tests/tui/test_tui_loading_states.py -q` (8 passed), `python -m pytest tests/tui -q` (284 passed), `bash scripts/check-tui-surpass-hermes.sh` passed.
+
+**TUI review mode (358)** completed 2026-07-13 and archived as `../prompts-archive/358-tui-review-mode.md`. Added last-turn review report model, review screen with copy support, runtime review fields, stream event recording hooks, `Ctrl+R` review keybinding, and command palette review action while keeping reconnect on `Ctrl+Shift+R`. Evidence: `python -m pytest tests/tui/test_review_mode_model.py tests/tui/test_review_mode_partial_data.py tests/tui/test_review_mode_copy.py -q` (4 passed), `python -m pytest tests/tui -q` (276 passed), `bash scripts/check-tui-surpass-hermes.sh` passed.
+
+**TUI useful status bar (357)** completed 2026-07-13 and archived as `../prompts-archive/357-tui-useful-status-bar.md`. Added stable operational status snapshots, fixed-width rendering, health/offline clarity, transport/session/queue/busy/tokens/latency/cost/voice segments, and app wiring from runtime state. Evidence: `python -m pytest tests/tui/test_status_bar_segments.py tests/tui/test_status_bar_width.py tests/tui/test_status_bar_offline.py -q` (4 passed), `python -m pytest tests/tui -q` (272 passed), `bash scripts/check-tui-surpass-hermes.sh` passed.
+
+**TUI theme system (356)** completed 2026-07-13 and archived as `../prompts-archive/356-tui-theme-system.md`. Added exactly three persisted themes, deterministic contrast checks, renderer theme tokens, Textual theme classes, command palette theme actions, and local `/theme` switching. Evidence: `python -m pytest tests/tui/test_theme_system.py tests/tui/test_theme_contrast.py tests/tui/test_theme_persistence.py -q` (8 passed), `python -m pytest tests/tui -q` (268 passed), `bash scripts/check-tui-surpass-hermes.sh` passed.
+
+**TUI session map (355)** completed 2026-07-13 and archived as `../prompts-archive/355-tui-session-map.md`. Added session relationship metadata, compact session map model, sidebar widget, keyboard navigation model, and flat fallback for existing APIs. Evidence: `python -m pytest tests/tui/test_session_map_model.py tests/tui/test_session_map_navigation.py tests/tui/test_session_map_fallback.py -q` (7 passed), `python -m pytest tests/tui -q` (260 passed), `bash scripts/check-tui-surpass-hermes.sh` passed.
+
+**TUI inline tool cards (354)** completed 2026-07-13 and archived as `../prompts-archive/354-tui-inline-tool-cards.md`. Added pure inline tool card renderer, redaction, expandable state, ToolCard widget, and message renderer integration while preserving old compact tool summary compatibility. Evidence: `python -m pytest tests/tui/test_tool_cards_renderer.py tests/tui/test_tool_cards_redaction.py tests/tui/test_tool_cards_expand_collapse.py -q` (8 passed), `python -m pytest tests/tui -q` (253 passed), `bash scripts/check-tui-surpass-hermes.sh` passed.
+
+**TUI live runtime timeline (353)** completed 2026-07-13 and archived as `../prompts-archive/353-tui-live-runtime-timeline.md`. Added runtime timeline model, widget, runtime store event recording, and app integration for turns, transport, streaming, tools, subagents, approvals, clarify events, usage, queue, interrupts, and errors. Evidence: `python -m pytest tests/tui/test_runtime_timeline.py tests/tui/test_runtime_timeline_volume.py -q` (5 passed), `python -m pytest tests/tui -q` (245 passed), `bash scripts/check-tui-surpass-hermes.sh` passed.
+
+**TUI workspace cockpit first screen (352)** completed 2026-07-13 and archived as `../prompts-archive/352-tui-workspace-cockpit-first-screen.md`. Added a pure cockpit state/render model, Textual workspace cockpit widget, and app integration for empty transcript and offline first-screen context. Evidence: `python -m pytest tests/tui/test_workspace_cockpit.py tests/tui/test_workspace_cockpit_offline.py -q` (6 passed), `python -m pytest tests/tui -q` (240 passed), `bash scripts/check-tui-surpass-hermes.sh` passed.
+
+**TUI command palette (351)** completed 2026-07-13 and archived as `../prompts-archive/351-tui-command-palette.md`. Added command palette model, overlay, app keybindings, and action dispatch for slash commands, sessions, models, runtime actions, help, files, skills, and plugins. Evidence: `python -m pytest tests/tui/test_command_palette_model.py tests/tui/test_command_palette_widget.py tests/tui/test_command_palette_actions.py -q` (10 passed), `python -m pytest tests/tui -q` (234 passed), `bash scripts/check-tui-surpass-hermes.sh` passed.
+
+**TUI Command Center foundation (350)** completed 2026-07-13 and archived as `../prompts-archive/350-tui-command-center-foundation.md`. Added pure Command Center action, registry, state, layout, telemetry, and contract models. Evidence: `python -m pytest tests/tui/test_command_center_foundation.py tests/tui/test_command_center_contracts.py -q` (9 passed), `python -m pytest tests/tui -q` (224 passed), `bash scripts/check-tui-surpass-hermes.sh` passed.
+
+**TUI surpass Hermes (345-349)** completed 2026-07-13 and archived. Build-order reference archived as `../prompts-archive/ref-345-tui-surpass-hermes-build-order.md`.
+
+**TUI superiority proof harness (349)** completed 2026-07-13 and archived as `../prompts-archive/349-tui-superiority-proof-harness.md`. Added `src/keprix/tui/surpass_contract.py`, `tests/tui/test_tui_surpass_contract.py`, `docs/architecture/tui-surpass-hermes-contract.md`, and `scripts/check-tui-surpass-hermes.sh`. Evidence: `bash scripts/check-tui-surpass-hermes.sh` passed with `TUI parity contracts: 100/100 passed` and `TUI surpass contracts: passed`; `python -m pytest tests/tui -q` (215 passed).
+
+**TUI performance and battle hardening (348)** completed 2026-07-13 and archived as `../prompts-archive/348-tui-performance-and-battle-hardening.md`. Added hardening helpers for latency budgets, memory budgets, HTTP fault copy, safe stream JSON lines, resize coalescing, terminal minimums, and traceback-free user messages. Evidence: `python -m pytest tests/tui/test_performance_budgets.py tests/tui/test_long_session_endurance.py tests/tui/test_fault_matrix.py tests/tui/test_terminal_matrix.py tests/tui/test_overlay_recovery.py tests/tui/test_memory_budgets.py -q` (21 passed), `python -m pytest tests/tui -q` (210 passed), `bash scripts/check-tui-parity.sh` passed with `TUI parity contracts: 100/100 passed`, compile and style checks passed.
+
+**TUI agent runtime proximity (347)** completed 2026-07-13 and archived as `../prompts-archive/347-tui-agent-runtime-proximity.md`. Added `runtime_transport` with typed events, HTTP, WebSocket, in-process, selector, errors, and app wiring through `self.transport` for runtime-covered operations. Evidence: `python -m pytest tests/tui/test_runtime_transport_contract.py tests/tui/test_runtime_transport_selector.py tests/tui/test_runtime_transport_http.py tests/tui/test_runtime_transport_websocket.py tests/tui/test_runtime_transport_in_process.py tests/tui/test_runtime_event_normalization.py tests/tui/test_runtime_interrupt_latency.py -q` (14 passed), `python -m pytest tests/tui -q` (189 passed), `bash scripts/check-tui-parity.sh` passed with `TUI parity contracts: 100/100 passed`, compile and style checks passed.
+
+**TUI renderer superiority (346)** completed 2026-07-13 and archived as `../prompts-archive/346-tui-renderer-superiority.md`. Added deterministic renderer primitives for cells, Unicode and markup-safe measurement, dirty frame diffing, streaming markdown and code blocks, themed message grouping, search highlight plus selection, stable viewport helpers, snapshots, profiler, and CI benchmark helpers. Evidence: `python -m pytest tests/tui/test_renderer_cells.py tests/tui/test_renderer_measure.py tests/tui/test_renderer_diff.py tests/tui/test_renderer_markdown_streaming.py tests/tui/test_renderer_messages.py tests/tui/test_renderer_viewport_selection.py tests/tui/test_renderer_benchmarks.py -q` (18 passed), `python -m pytest tests/tui -q` (175 passed), `bash scripts/check-tui-parity.sh` passed with `TUI parity contracts: 100/100 passed`, compile and style checks passed.
+
+**TUI source granularity parity (345)** completed 2026-07-13 and archived as `../prompts-archive/345-tui-source-granularity-parity.md`. Added granular `commands`, `composer`, `contracts`, `gateway`, `layout`, `overlays`, `panels`, `renderer`, `runtime`, `search`, `sessions`, and `terminal` packages with compatibility exports. Evidence: `python -m pytest tests/tui/test_granularity_contract.py tests/tui/test_import_compatibility.py tests/tui/test_renderer_contracts.py tests/tui/test_command_contracts.py tests/tui/test_runtime_contracts.py -q` (21 passed), `python -m pytest tests/tui -q` (157 passed), `bash scripts/check-tui-parity.sh` passed with `TUI parity contracts: 100/100 passed`, compile and style checks passed.
+
+**TUI 100 percent Hermes behavior parity (341-344)** completed 2026-07-13 and archived. Prompt 341 archived as `../prompts-archive/341-tui-runtime-data-parity.md`; evidence: `python -m pytest tests/tui/test_runtime_data_parity.py -q` (3 passed), `python -m pytest tests/tui -q` (121 passed), compile and style checks passed. Prompt 342 archived as `../prompts-archive/342-tui-interaction-parity.md`; evidence: `python -m pytest tests/tui/test_slash_command_schema.py tests/tui/test_interaction_parity.py -q` (5 passed), `python -m pytest tests/tui -q` (126 passed), compile and style checks passed. Prompt 343 archived as `../prompts-archive/343-tui-reliability-parity.md`; evidence: `python -m pytest tests/tui/test_fault_injection.py -q` (4 passed), `python -m pytest tests/tui -q` (130 passed), compile and style checks passed. Prompt 344 archived as `../prompts-archive/344-tui-proof-and-contract-harness.md`; build-order reference archived as `../prompts-archive/ref-341-tui-100-percent-hermes-parity-build-order.md`. Evidence: `bash scripts/check-tui-parity.sh` passed with `TUI parity contracts: 100/100 passed`, `python -m pytest tests/tui -q` (136 passed), compile and style checks passed.
+
+**TUI parity follow-up (336-340)** completed 2026-07-13 and archived under `../prompts-archive/336-*.md` through `../prompts-archive/340-*.md`. Verification/debug pass found the previous implementation incomplete against the prompts, then added the missing TUI parity primitives: typed gateway messages and router, mouse parsing, raw mode, hit testing, typed message envelopes, message renderer, virtual history/renderer/search, terminal title/notifications/resize/startup helpers, Unicode/emoji/bidi helpers, FPS/memory/render budget, debug/log/error helpers, external CLI/link helpers, live progress/input metrics, app layout, todo/prompts/session/details panels, agents/skills/plugins hubs, message metadata, queued messages, help overlay, fuzzy matching, slash argument parsing, expanded slash completion, 10K persistent input history, and backend-safe slash fallthrough. Runtime follow-up wired visible slash command suggestions, Up/Down slash selection, `/debug`, `/open <url>`, resize refresh, and a useful Workspace sidebar. Evidence: `python -m pytest tests/tui -q` (115 passed), prompt-requested file inventory `MISSING_COUNT=0`, style scan for forbidden dash and emoji/symbol ranges passed on touched TUI files.
+
+**Keprix/Hermes core alignment and agent parity (317-335)** completed 2026-07-12. Archived under `../prompts-archive/317-*.md` through `../prompts-archive/335-*.md`, with references `../prompts-archive/ref-317-keprix-hermes-core-alignment-build-order.md` and `../prompts-archive/ref-327-hermes-agent-parity-build-order.md`. Verification/debug pass added missing architecture docs, corrected parity reporting, fixed the parity gate, fixed local `.env` test leakage, restored `keprix upstream --help`, and fixed the TUI slash input runtime crash. Evidence: `bash scripts/check-agent-parity.sh` (10/10 passed), `python -m pytest tests/tui -q` (102 passed), `python -m pytest tests/upstream tests/upgrade tests/cli -q` (89 passed).
+
+**Channel Shield (316)** completed 2026-07-12. Shared inbound protection plane across email, Slack, Teams, Telegram, WhatsApp, Discord, SMS, and web, plus Agent OS ingress/memory/outbound guards (`agentSafeContent` / `rawEvidenceRef`). Archived: `../prompts-archive/316-channel-shield-full-build.md`. Key paths: `src/keprix/channel_shield/`, `docs/features/channel-shield.md`, UI `/channel-shield`, CLI `keprix channel-shield`. Evidence: `pytest tests/channel_shield -q` (26 passed); `keprix channel-shield e2e --channel all`.
+
+**Agent OS UI polish (301-315)** completed 2026-07-12. Hub/subnav, milestones on onboarding, Ship defaults on glass, nav sync, period selector, onboard vs onboarding IA, shared Empty/Error/skeletons, breadcrumbs to glass, Memory Galaxy tabs + node click + force layout, glass tasks links, board header links, frosted panels, usage↔glass `?days=` sync, and API/feature docs. Archived under `../prompts-archive/301-*.md` through `315-*.md`. Build order: `../prompts-archive/ref-301-agent-os-ui-polish-build-order.md`.
+
+**Open-amount coffee donation (300)** completed 2026-07-12. Footer donate sheet + `POST /api/billing/donation/checkout` `{ amount_gbp }` via Stripe `price_data` (min £1). Archived: `../prompts-archive/300-open-amount-coffee-donation.md`.
+
+**Conversational channel config (298)** and **Wave 2 (299)** completed on Keprix; Carina port completed 2026-07-11. Archived under `../prompts-archive/`. Carina SOP: `carina/01-devends/SOP/043-conversational-configuration.md`.
+
+**MyApi Open adoption** completed 2026-07-11 and archived under `../prompts-archive/`.
 
 
 **Agent routing guide (292 OpenMontage AGENT_GUIDE pattern)** completed 2026-07-10 and archived. NEXUS/WARDEN/ECHO `AGENT_GUIDE.md`, mandatory prompt preamble, `guide_enforcer.py`. Note: distinct from archived Fable **292** skill-first.
 
-**Fable-class product power (292-297)** completed 2026-07-10 and archived. Skill-first, deliverable paths, deferred tool search, memory continuity, connector-first, and operator-owned policy kernel. Master reference: `../reference/292-fable-class-product-power-master-reference.md`. Build order: `../reference/292-fable-class-product-power-build-order.md`.
+**Fable-class product power (292-297)** completed 2026-07-10 and archived. Skill-first, deliverable paths, deferred tool search, memory continuity, connector-first, and operator-owned policy kernel. Master reference: `../prompts-archive/ref-292-fable-class-product-power-master-reference.md`. Build order: `../prompts-archive/ref-292-fable-class-product-power-build-order.md`.
 
 **Extension architecture (267, Prompt 84 variant)** completed and archived. Entry-point discovery, compatibility checks, lifecycle, config merge, isolation, scout extension, `keprix.yaml` via upgrade manifest. Not the Chase **267-272** video ingest series.
 
@@ -30,19 +76,19 @@ ready to build next.
 
 **Layered prompts, tool calling, and persona engineering (289-291)** completed 2026-07-10 and archived. Fable-style layered system prompt, provider-agnostic tool schema/normaliser/audit, and engineered persona prompts for all 10 specialists.
 
-**Built apps navigation (223-228)** completed 2026-07-09 and archived. Reference **223** remains in `../reference/`.
+**Built apps navigation (223-228)** completed 2026-07-09 and archived. Reference **223** remains as `../prompts-archive/ref-223-*.md`.
 
-**KNIME adoption pack (233-238)** completed 2026-07-09 and archived. Visual Playbook Studio, Connector Catalog Marketplace, Community/Enterprise gates, Scout publish telemetry, Templates/variables/coach, and Import bridges/run overlay are shipped; see `../reference/233-knime-adoption-build-order.md` and `../reference/233-knime-adoption-master-reference.md`.
+**KNIME adoption pack (233-238)** completed 2026-07-09 and archived. Visual Playbook Studio, Connector Catalog Marketplace, Community/Enterprise gates, Scout publish telemetry, Templates/variables/coach, and Import bridges/run overlay are shipped; see `../prompts-archive/ref-233-knime-adoption-build-order.md` and `../prompts-archive/ref-233-knime-adoption-master-reference.md`.
 
-**Agentic OS adoption (256-265)** completed 2026-07-09 and archived. See `../reference/255-agentic-os-adoption-build-order.md` and `../reference/255-agentic-os-adoption-master-reference.md`. Supersedes unnumbered drafts `245-structured-workspace-memory.md`, `246-session-to-skill-automation.md`, `247-headless-skill-launcher.md`, `248-universal-vault-provider.md` (do not implement those; use 256-265).
+**Agentic OS adoption (256-265)** completed 2026-07-09 and archived. See `../prompts-archive/ref-255-agentic-os-adoption-build-order.md` and `../prompts-archive/ref-255-agentic-os-adoption-master-reference.md`. Supersedes unnumbered drafts `245-structured-workspace-memory.md`, `246-session-to-skill-automation.md`, `247-headless-skill-launcher.md`, `248-universal-vault-provider.md` (do not implement those; use 256-265).
 
-**Chase five tools adoption (267-272)** completed 2026-07-09 and archived. Video ingest, notebook bridge, Graphiti MCP, design live preview, coding preflight, and Obsidian vault pack are shipped. See `../reference/266-chase-five-tools-adoption-build-order.md`, `../reference/266-chase-five-tools-adoption-master-reference.md`, and `../../competitor-research/chase-ai-five-tools-adoption.md`. Source: [IRPEfl2BD_c](https://www.youtube.com/watch?v=IRPEfl2BD_c).
+**Chase five tools adoption (267-272)** completed 2026-07-09 and archived. Video ingest, notebook bridge, Graphiti MCP, design live preview, coding preflight, and Obsidian vault pack are shipped. See `../prompts-archive/ref-266-chase-five-tools-adoption-build-order.md`, `../prompts-archive/ref-266-chase-five-tools-adoption-master-reference.md`, and `../../competitor-research/chase-ai-five-tools-adoption.md`. Source: [IRPEfl2BD_c](https://www.youtube.com/watch?v=IRPEfl2BD_c).
 
-**Nate Herk AIOS adoption (274-279)** completed 2026-07-09 and archived. Four C's audit, level-up, onboard interview, connections matrix, hot cache, and Google Workspace connector are shipped. See `../reference/273-nate-herk-aios-adoption-build-order.md`, `../reference/273-nate-herk-aios-adoption-master-reference.md`, and `../../competitor-research/nate-herk-aios-adoption.md`. Source: [bCljOfCH8Ms](https://www.youtube.com/watch?v=bCljOfCH8Ms). Amends **258**, **264**, **265**.
+**Nate Herk AIOS adoption (274-279)** completed 2026-07-09 and archived. Four C's audit, level-up, onboard interview, connections matrix, hot cache, and Google Workspace connector are shipped. See `../prompts-archive/ref-273-nate-herk-aios-adoption-build-order.md`, `../prompts-archive/ref-273-nate-herk-aios-adoption-master-reference.md`, and `../../competitor-research/nate-herk-aios-adoption.md`. Source: [bCljOfCH8Ms](https://www.youtube.com/watch?v=bCljOfCH8Ms). Amends **258**, **264**, **265**.
 
 **ML service (229-232)** completed 2026-07-09 and archived.
 
-**Credential proxy (239-243)** completed 2026-07-09 and archived. Local injection proxy, tool credential isolation/audit trail, hot credential rotation, Cordon skill pack, and vault migration/fallback are shipped. See `../prompts-archive/completed/239-credential-injection-proxy.md` through `../prompts-archive/completed/243-vault-deprecation-migration.md`, and `docs/security/credential-proxy.md`.
+**Credential proxy (239-243)** completed 2026-07-09 and archived. Local injection proxy, tool credential isolation/audit trail, hot credential rotation, Cordon skill pack, and vault migration/fallback are shipped. See `../prompts-archive/239-credential-injection-proxy.md` through `../prompts-archive/243-vault-deprecation-migration.md`, and `docs/security/credential-proxy.md`.
 
 **Structured workspace memory (245)** completed 2026-07-09 and archived. Covered by the Agentic OS memory implementation: workspace templates, auto-generated folder indexes, `KEPRIX.md` and `CLAUDE.md` navigation guides, memory-to-index bridge, CLI/API/template picker, docs, and tests.
 
@@ -92,65 +138,84 @@ ready to build next.
 
 **Account and security pack (214-219)** completed 2026-07-06 (archived).
 
-Prior series **117-212** archived under `../prompts-archive/completed/`.
+Prior series **117-212** archived under `../prompts-archive/`.
 
 ## Queue
 
 | # | File | Status |
 | --- | --- | --- |
-| 301 | `301-agent-os-hub-subnav.md` | PENDING (start here) |
-| 302 | `302-agent-os-milestones-onboarding-ui.md` | PENDING |
-| 303 | `303-agent-os-ship-defaults-glass-panel.md` | PENDING |
-| 304 | `304-agent-os-nav-fallback-sync.md` | PENDING |
-| 305 | `305-agent-os-glass-period-selector.md` | PENDING |
-| 306 | `306-agent-os-onboard-onboarding-ia.md` | PENDING |
-| 307 | `307-agent-os-shared-empty-error-skeletons.md` | PENDING |
-| 308 | `308-agent-os-breadcrumbs-fix.md` | PENDING |
-| 309 | `309-memory-galaxy-tabs-node-click.md` | PENDING |
-| 310 | `310-agent-os-glass-tasks-links.md` | PENDING |
-| 311 | `311-agent-os-action-board-header-links.md` | PENDING |
-| 312 | `312-agent-os-frosted-glass-treatment.md` | PENDING (nice) |
-| 313 | `313-memory-galaxy-force-layout.md` | PENDING (nice) |
-| 314 | `314-usage-glass-period-sync.md` | PENDING (nice) |
-| 315 | `315-agent-os-api-docs-glass-milestones-phase5.md` | PENDING (nice) |
-| 223 | `../reference/223-built-apps-navigation-architecture-reference.md` | Reference |
+| 360 | `../prompts-archive/360-gstack-core-infrastructure.md` | COMPLETED 2026-07-19 (archived; gstack, not TUI) |
+| 361 | `../prompts-archive/361-gstack-personas-think-ship.md` | COMPLETED 2026-07-19 (archived) |
+| 362 | `../prompts-archive/362-gstack-personas-plan-review-build.md` | COMPLETED 2026-07-19 (archived) |
+| 363 | `../prompts-archive/363-gstack-personas-security-test-reflect.md` | COMPLETED 2026-07-19 (archived) |
+| 364 | `../prompts-archive/364-gstack-personas-ops-governance-integration.md` | COMPLETED 2026-07-19 (archived) |
+| 350 | `../prompts-archive/350-tui-command-center-foundation.md` | COMPLETED 2026-07-13 (archived) |
+| 351 | `../prompts-archive/351-tui-command-palette.md` | COMPLETED 2026-07-13 (archived) |
+| 352 | `../prompts-archive/352-tui-workspace-cockpit-first-screen.md` | COMPLETED 2026-07-13 (archived) |
+| 353 | `../prompts-archive/353-tui-live-runtime-timeline.md` | COMPLETED 2026-07-13 (archived) |
+| 354 | `../prompts-archive/354-tui-inline-tool-cards.md` | COMPLETED 2026-07-13 (archived) |
+| 355 | `../prompts-archive/355-tui-session-map.md` | COMPLETED 2026-07-13 (archived) |
+| 356 | `../prompts-archive/356-tui-theme-system.md` | COMPLETED 2026-07-13 (archived) |
+| 357 | `../prompts-archive/357-tui-useful-status-bar.md` | COMPLETED 2026-07-13 (archived) |
+| 358 | `../prompts-archive/358-tui-review-mode.md` | COMPLETED 2026-07-13 (archived) |
+| 359 | `../prompts-archive/359-tui-empty-loading-error-states.md` | COMPLETED 2026-07-13 (archived) |
+| 360 | `../prompts-archive/360-tui-keyboard-polish-and-final-proof.md` | COMPLETED 2026-07-13 (archived) |
+| 345 | `../prompts-archive/345-tui-source-granularity-parity.md` | COMPLETED 2026-07-13 (archived) |
+| 346 | `../prompts-archive/346-tui-renderer-superiority.md` | COMPLETED 2026-07-13 (archived) |
+| 347 | `../prompts-archive/347-tui-agent-runtime-proximity.md` | COMPLETED 2026-07-13 (archived) |
+| 348 | `../prompts-archive/348-tui-performance-and-battle-hardening.md` | COMPLETED 2026-07-13 (archived) |
+| 349 | `../prompts-archive/349-tui-superiority-proof-harness.md` | COMPLETED 2026-07-13 (archived) |
+| 341 | `../prompts-archive/341-tui-runtime-data-parity.md` | COMPLETED 2026-07-13 (archived) |
+| 342 | `../prompts-archive/342-tui-interaction-parity.md` | COMPLETED 2026-07-13 (archived) |
+| 343 | `../prompts-archive/343-tui-reliability-parity.md` | COMPLETED 2026-07-13 (archived) |
+| 344 | `../prompts-archive/344-tui-proof-and-contract-harness.md` | COMPLETED 2026-07-13 (archived) |
+| 336 | `../prompts-archive/336-tui-parity-core-engine.md` | COMPLETED 2026-07-13 (archived) |
+| 337 | `../prompts-archive/337-tui-parity-streaming-input-slash.md` | COMPLETED 2026-07-13 (archived) |
+| 338 | `../prompts-archive/338-tui-parity-app-chrome-panels-hubs.md` | COMPLETED 2026-07-13 (archived) |
+| 339 | `../prompts-archive/339-tui-parity-message-display-history-terminal.md` | COMPLETED 2026-07-13 (archived) |
+| 340 | `../prompts-archive/340-tui-parity-utility-platform-polish.md` | COMPLETED 2026-07-13 (archived) |
+| 317-326 | `../prompts-archive/ref-317-keprix-hermes-core-alignment-build-order.md` | COMPLETED 2026-07-12 (archived) |
+| 327-335 | `../prompts-archive/ref-327-hermes-agent-parity-build-order.md` | COMPLETED 2026-07-12 (archived) |
+| 316 | `316-channel-shield-full-build.md` | COMPLETED 2026-07-12 (archived; Channel Shield full build) |
+| 301-315 | `../prompts-archive/ref-301-agent-os-ui-polish-build-order.md` | COMPLETED 2026-07-12 (archived) |
+| 223 | `../prompts-archive/ref-223-built-apps-navigation-architecture-reference.md` | Reference |
 
-**MVP demo for 301-315:** ship **301 + 302 + 303 + 304 + 305 + 306**, then polish 307-311, then nice 312-315.
+**Current execution order:** none. The gstack 360-364 queue and the TUI Command Center queue are complete.
 
-**Chase five tools (267-272):** Series archived completed. OSS tool patterns from Chase AI video. Build order: `../reference/266-chase-five-tools-adoption-build-order.md`.
+**Chase five tools (267-272):** Series archived completed. OSS tool patterns from Chase AI video. Build order: `../prompts-archive/ref-266-chase-five-tools-adoption-build-order.md`.
 
-**Nate Herk AIOS (274-279):** Series archived completed. Extends Agentic OS with scored maturity audit, onboard interview, connections matrix, hot cache, and Google Workspace. Build order: `../reference/273-nate-herk-aios-adoption-build-order.md`. MVP demo: **276 + 274 + 277** shipped.
+**Nate Herk AIOS (274-279):** Series archived completed. Extends Agentic OS with scored maturity audit, onboard interview, connections matrix, hot cache, and Google Workspace. Build order: `../prompts-archive/ref-273-nate-herk-aios-adoption-build-order.md`. MVP demo: **276 + 274 + 277** shipped.
 
-**KNIME adoption (233-238):** Keprix pack archived completed. Visual Studio **233**, Connector Catalog **234**, Edition gates **235**, Scout telemetry **236**, Templates/variables/coach **237**, and Import/run overlay **238** shipped. Reference: `../reference/233-knime-adoption-master-reference.md`, `../reference/233-knime-adoption-build-order.md`. Carina prompts remain in `carina/01-devends/prompts-library/pending/knime-adoption--*.md` (01-05).
+**KNIME adoption (233-238):** Keprix pack archived completed. Visual Studio **233**, Connector Catalog **234**, Edition gates **235**, Scout telemetry **236**, Templates/variables/coach **237**, and Import/run overlay **238** shipped. Reference: `../prompts-archive/ref-233-knime-adoption-master-reference.md`, `../prompts-archive/ref-233-knime-adoption-build-order.md`. Carina prompts remain in `carina/01-devends/prompts-library/pending/knime-adoption--*.md` (01-05).
 
 **ML service (229-232):** Series archived completed.
 
-**Built apps navigation (223-228):** Two-layer nav: collapsible Keprix platform sidebar + in-content `BuiltAppLayout` for products at `/apps/[slug]/*`. Reference: `../reference/223-built-apps-navigation-architecture-reference.md`. Build order: `../reference/223-built-apps-navigation-build-order.md`.
+**Built apps navigation (223-228):** Two-layer nav: collapsible Keprix platform sidebar + in-content `BuiltAppLayout` for products at `/apps/[slug]/*`. Reference: `../prompts-archive/ref-223-built-apps-navigation-architecture-reference.md`. Build order: `../prompts-archive/ref-223-built-apps-navigation-build-order.md`.
 
 Series **224-228** archived completed.
 
-**Fable-class product power (292-297):** Completed and archived. Build order `../reference/292-fable-class-product-power-build-order.md`. MVP demo: **292 + 293 + 294**.
+**Fable-class product power (292-297):** Completed and archived. Build order `../prompts-archive/ref-292-fable-class-product-power-build-order.md`. MVP demo: **292 + 293 + 294**.
 
 ## Where other prompt files live
 
 | Path | Purpose |
 | --- | --- |
-| `../reference/` | Wiring outlines and architecture maps |
-| `../reference/233-visual-playbook-studio-architecture-reference.md` | Visual playbook canvas map |
-| `../reference/233-knime-adoption-build-order.md` | KNIME pack 233-235 + Carina cross-ref |
-| `../reference/223-built-apps-navigation-architecture-reference.md` | Built apps nav map |
-| `../reference/223-built-apps-navigation-build-order.md` | Prompts 223-228 order |
-| `../reference/266-chase-five-tools-adoption-master-reference.md` | Chase five tools map |
-| `../reference/266-chase-five-tools-adoption-build-order.md` | Prompts 267-272 order |
-| `../reference/273-nate-herk-aios-adoption-master-reference.md` | Nate Herk AIOS map |
-| `../reference/273-nate-herk-aios-adoption-build-order.md` | Prompts 274-279 order |
-| `../reference/220-tui-first-run-onboarding-architecture-reference.md` | TUI setup/onboarding map |
-| `../reference/292-fable-class-product-power-master-reference.md` | Fable-class product power map |
-| `../reference/292-fable-class-product-power-build-order.md` | Prompts 292-297 order |
-| `../reference/301-agent-os-ui-polish-master-reference.md` | Agent OS UI polish map (after Prompt 270) |
-| `../reference/301-agent-os-ui-polish-build-order.md` | Prompts 301-315 order |
+| `../prompts-archive/ref-` | Wiring outlines and architecture maps |
+| `../prompts-archive/ref-233-visual-playbook-studio-architecture-reference.md` | Visual playbook canvas map |
+| `../prompts-archive/ref-233-knime-adoption-build-order.md` | KNIME pack 233-235 + Carina cross-ref |
+| `../prompts-archive/ref-223-built-apps-navigation-architecture-reference.md` | Built apps nav map |
+| `../prompts-archive/ref-223-built-apps-navigation-build-order.md` | Prompts 223-228 order |
+| `../prompts-archive/ref-266-chase-five-tools-adoption-master-reference.md` | Chase five tools map |
+| `../prompts-archive/ref-266-chase-five-tools-adoption-build-order.md` | Prompts 267-272 order |
+| `../prompts-archive/ref-273-nate-herk-aios-adoption-master-reference.md` | Nate Herk AIOS map |
+| `../prompts-archive/ref-273-nate-herk-aios-adoption-build-order.md` | Prompts 274-279 order |
+| `../prompts-archive/ref-220-tui-first-run-onboarding-architecture-reference.md` | TUI setup/onboarding map |
+| `../prompts-archive/ref-292-fable-class-product-power-master-reference.md` | Fable-class product power map |
+| `../prompts-archive/ref-292-fable-class-product-power-build-order.md` | Prompts 292-297 order |
+| `../prompts-archive/ref-301-agent-os-ui-polish-master-reference.md` | Agent OS UI polish map (after Prompt 270) |
+| `../prompts-archive/ref-301-agent-os-ui-polish-build-order.md` | Prompts 301-315 order |
 | `../PROMPT-IMPLEMENTATION-AUDIT.md` | Implementation status |
-| `../prompts-archive/completed/` | Shipped prompts |
+| `../prompts-archive/` | Shipped prompts |
 
 ## Adding a new prompt
 
