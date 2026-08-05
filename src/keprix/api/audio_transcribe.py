@@ -1,4 +1,4 @@
-"""Shared audio transcription handler for workspace API and Hermes desktop."""
+"""Shared audio transcription handler for workspace API and Keprix desktop."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ async def transcribe_audio_upload(
     *,
     check_stt_enabled: bool = True,
 ) -> dict[str, Any]:
-    """Decode a base64 data URL, transcribe audio, and return the Hermes contract."""
+    """Decode a base64 data URL, transcribe audio, and return the transcription contract."""
     if check_stt_enabled and not stt_enabled():
         raise HTTPException(status_code=403, detail="Speech-to-text is disabled")
 

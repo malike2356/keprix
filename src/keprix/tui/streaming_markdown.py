@@ -1,4 +1,4 @@
-"""Stable-boundary helpers for incremental markdown streaming (Hermes StreamingMd port)."""
+"""Stable-boundary helpers for incremental markdown streaming (ported from upstream)."""
 
 from __future__ import annotations
 

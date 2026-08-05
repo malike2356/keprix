@@ -114,6 +114,18 @@ def run_agent_app(
         bus.emit(LifecycleEvent.AFTER_RUN, {"status": result.get("status", "ok")})
         if result.get("artifact"):
             bus.emit(LifecycleEvent.ON_ARTIFACT_CREATED, {"artifact": result["artifact"]})
+        try:
+            from keprix.agent_os.auto_skill_writer import maybe_write_skill_from_app_run
+
+            skill_meta = maybe_write_skill_from_app_run(
+                app_name=manifest.name,
+                result=result if isinstance(result, dict) else {"status": "ok", "output": str(result)},
+                trace_id=bus.trace_id,
+            )
+            if skill_meta:
+                result = {**result, "auto_skill": skill_meta}
+        except Exception:
+            pass
         store_run_traces(manifest.name, bus.traces, trace_id=bus.trace_id)
         record_run_finish(
             trace_id=bus.trace_id,

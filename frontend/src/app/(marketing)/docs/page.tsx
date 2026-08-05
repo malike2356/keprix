@@ -22,7 +22,8 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckIcon from "@mui/icons-material/Check";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import { KEPRIX_COLORS } from "@/theme/keprix-theme";
+import { getMarketingColors } from "@/components/marketing/marketing-section";
+import { useThemeMode } from "@/components/providers/ThemeRegistry";
 import {
   DOCS_GITHUB_EDIT_URL,
   DOCS_SECTIONS,
@@ -93,11 +94,13 @@ function CopyButton({ code }: { code: string }) {
 }
 
 export default function DocsPage() {
-  const c = KEPRIX_COLORS;
+  const { mode } = useThemeMode();
+  const c = getMarketingColors(mode);
+  const isDark = mode === "dark";
 
   return (
-    <Box sx={{ bgcolor: "#08080f", minHeight: "100vh", position: "relative" }}>
-      <DottedSurfaceBackground fixed />
+    <Box sx={{ bgcolor: c.bgDefault, minHeight: "100vh", position: "relative", transition: "background-color 0.25s ease" }}>
+      <DottedSurfaceBackground fixed mode={isDark ? "dark" : "light"} />
 
       <Box
         aria-hidden
@@ -106,9 +109,14 @@ export default function DocsPage() {
           inset: 0,
           zIndex: 0,
           pointerEvents: "none",
-          background: `
+          background: isDark
+            ? `
             radial-gradient(ellipse at 50% 35%, ${alpha(c.primary, 0.08)} 0%, transparent 45%),
             radial-gradient(ellipse at 50% 100%, rgba(8, 8, 15, 0.35) 0%, transparent 65%)
+          `
+            : `
+            radial-gradient(ellipse at 50% 0%, ${alpha(c.primary, 0.1)} 0%, transparent 45%),
+            radial-gradient(ellipse at 80% 100%, ${alpha(c.secondary, 0.08)} 0%, transparent 50%)
           `,
         }}
       />
@@ -205,8 +213,10 @@ export default function DocsPage() {
               Get started
             </Button>
             <Button
-              component={Link}
-              href="/api/docs"
+              component="a"
+              href={docsPageUrl("reference/api")}
+              target={isExternalDocsUrl(docsPageUrl("reference/api")) ? "_blank" : undefined}
+              rel={isExternalDocsUrl(docsPageUrl("reference/api")) ? "noopener noreferrer" : undefined}
               variant="outlined"
               size="large"
               endIcon={<ApiIcon />}

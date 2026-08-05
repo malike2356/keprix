@@ -15,6 +15,8 @@ from pydantic import BaseModel, Field
 from keprix.agent.keprix.store import get_generated_tool_store
 from keprix.auth.dependencies import get_current_user, require_admin
 from keprix.auth.session import auth_manager
+from keprix.security.ingest_poison_gate import evaluate_ingest_text
+from keprix.security.audit import audit_log
 from keprix.keys.developer_identity import get_identity_status
 from keprix.memory.rag.indexer import RagIndexer
 from keprix.public_api.keys import get_api_key_store
@@ -46,31 +48,19 @@ from keprix.api.web_search_settings import (
 router = APIRouter(tags=["admin-workspace"])
 
 _rag_indexer = RagIndexer()
+# Legacy in-memory fallback kept only for REST key counts; messaging channels
+# read/write keprix.channels.channel_config_store via channel_config_service.
 _channel_config: dict[str, dict[str, Any]] = {
-    "telegram": {"configured": False, "bot_username": None, "message_count": 0},
-    "discord": {"configured": False, "message_count": 0},
     "rest": {"active_keys": 0},
 }
-_settings: dict[str, Any] = {
-    "instance_name": "Keprix",
-    "instance_url": "http://localhost:3333",
-    "timezone": "UTC",
-    "language": "en",
-    "max_tool_iterations": 20,
-    "context_compression_threshold": 60000,
-    "mutation_engine_enabled": True,
-    "mutation_sandbox_timeout": 30,
-    "auto_approve_owner_mutations": False,
-    "postgres_url": "",
-    "redis_url": "",
-    "vector_store_engine": "pgvector",
-    "max_memory_documents": 1000,
-    "governance_config": {
-        "license_key": "",
-        "audit_policy_url": "",
-        "provider_endpoint": "",
-    },
-}
+
+# Durable workspace settings (Wave 2). Keep a process cache synced from disk.
+from keprix.configure.workspace_settings_store import (  # noqa: E402
+    load_workspace_settings as _load_workspace_settings,
+    save_workspace_settings as _save_workspace_settings,
+)
+
+_settings: dict[str, Any] = _load_workspace_settings()
 _memory_docs: dict[str, dict[str, Any]] = {}
 
 _BUILTIN_TOOLS = [
@@ -186,6 +176,12 @@ class SettingsBody(BaseModel):
     language: str | None = None
     max_tool_iterations: int | None = None
     context_compression_threshold: int | None = None
+    rtk_compression_enabled: bool | None = None
+    caveman_compression_enabled: bool | None = None
+    guardrails_pii_enabled: bool | None = None
+    guardrails_injection_enabled: bool | None = None
+    semantic_cache_enabled: bool | None = None
+    combo_routing_enabled: bool | None = None
     mutation_engine_enabled: bool | None = None
     mutation_sandbox_timeout: int | None = None
     auto_approve_owner_mutations: bool | None = None
@@ -266,10 +262,14 @@ async def delete_tool(tool_id: str, _admin: dict = Depends(require_admin)) -> di
     for index, tool in enumerate(_BUILTIN_TOOLS):
         if tool["id"] == tool_id:
             raise HTTPException(status_code=400, detail="Built-in tools cannot be deleted")
-    record = get_generated_tool_store().get(tool_id)
+    store = get_generated_tool_store()
+    record = store.get(tool_id)
     if record is None:
         raise HTTPException(status_code=404, detail="Tool not found")
-    get_generated_tool_store().update(tool_id, status="deleted")
+    from keprix.agent.keprix.installer import LiveInstaller
+
+    LiveInstaller().remove_from_filesystem(record)
+    store.delete(tool_id)
     return {"ok": True}
 
 
@@ -357,11 +357,20 @@ async def upload_memory_document(
     content = payload.decode("utf-8", errors="replace")
     doc_id = str(uuid.uuid4())
     source_id = file.filename or doc_id
+    verdict = evaluate_ingest_text(
+        content,
+        source_type=_guess_doc_type(file.filename or ""),
+        source_ref=source_id,
+        metadata={"workspace_id": _user_key(user)},
+    )
+    if verdict.rejected:
+        raise HTTPException(status_code=400, detail={"error": "ingest_rejected", **verdict.to_dict()})
     chunks = await _rag_indexer.ingest(
         user_id=user_id,
         source_type=_guess_doc_type(file.filename or ""),
         source_id=source_id,
         content=content,
+        trust=verdict.trust,
     )
     doc = {
         "id": doc_id,
@@ -394,11 +403,20 @@ async def index_memory_url(body: MemoryUrlBody, user: dict = Depends(get_current
 
     display_name = title.strip() or body.url
     indexed_content = f"# {display_name}\n\nSource: {body.url}\n\n{content}"
+    verdict = evaluate_ingest_text(
+        indexed_content,
+        source_type="url",
+        source_ref=body.url,
+        metadata={"workspace_id": _user_key(user)},
+    )
+    if verdict.rejected:
+        raise HTTPException(status_code=400, detail={"error": "ingest_rejected", **verdict.to_dict()})
     chunks = await _rag_indexer.ingest(
         user_id=user_id,
         source_type="url",
         source_id=body.url,
         content=indexed_content,
+        trust=verdict.trust,
     )
     doc = {
         "id": doc_id,
@@ -430,75 +448,78 @@ def _guess_doc_type(filename: str) -> str:
 
 @router.get("/api/channels/overview")
 async def channels_overview(_admin: dict = Depends(require_admin)) -> dict[str, Any]:
+    from keprix.channels.channel_config_service import status_for_overview
+
     keys = [key for key in get_api_key_store().list_keys() if not key.revoked]
     _channel_config["rest"]["active_keys"] = len(keys)
     base_url = _settings.get("instance_url", "http://localhost:3333")
-    return {
-        "channels": [
-            {
-                "id": "telegram",
-                "name": "Telegram",
-                "status": "connected" if _channel_config["telegram"]["configured"] else "not_configured",
-                "bot_username": _channel_config["telegram"].get("bot_username"),
-                "message_count": _channel_config["telegram"].get("message_count", 0),
-            },
-            {
-                "id": "discord",
-                "name": "Discord",
-                "status": "connected" if _channel_config["discord"]["configured"] else "not_configured",
-                "message_count": _channel_config["discord"].get("message_count", 0),
-            },
-            {
-                "id": "rest",
-                "name": "REST API",
-                "status": "active",
-                "endpoint": f"{base_url}/api",
-                "active_keys": len(keys),
-            },
-        ]
-    }
+    channels = status_for_overview()
+    # Keep REST API row for dashboard compatibility
+    channels.append(
+        {
+            "id": "rest",
+            "name": "REST API",
+            "status": "active",
+            "endpoint": f"{base_url}/api",
+            "active_keys": len(keys),
+        }
+    )
+    return {"channels": channels}
 
 
 @router.get("/api/channels/telegram")
 async def get_telegram_config(_admin: dict = Depends(require_admin)) -> dict[str, Any]:
+    from keprix.channels.channel_config_service import get_channel_public
+
     base_url = _settings.get("instance_url", "http://localhost:3333")
+    row = get_channel_public("telegram") or {}
     return {
         "webhook_url": f"{base_url}/api/channels/telegram/webhook",
-        "configured": _channel_config["telegram"]["configured"],
+        "configured": bool(row.get("configured")),
+        "bot_username": (row.get("meta") or {}).get("bot_username"),
+        "requires_restart": row.get("requires_restart"),
     }
 
 
 @router.post("/api/channels/telegram")
 async def save_telegram_config(body: ChannelTokenBody, _admin: dict = Depends(require_admin)) -> dict[str, Any]:
-    _channel_config["telegram"] = {
-        "configured": bool(body.bot_token.strip()),
-        "bot_username": "@keprix_bot",
-        "message_count": _channel_config["telegram"].get("message_count", 0),
-    }
-    return {"ok": True}
+    from keprix.channels.channel_config_service import configure_and_test
+
+    result = await configure_and_test("telegram", {"bot_token": body.bot_token})
+    if not result.get("ok"):
+        raise HTTPException(status_code=400, detail=result.get("error") or "Save failed")
+    return {"ok": True, **{k: v for k, v in result.items() if k != "ok"}}
 
 
 @router.post("/api/channels/telegram/test")
 async def test_telegram(_admin: dict = Depends(require_admin)) -> dict[str, Any]:
-    if not _channel_config["telegram"]["configured"]:
-        return {"ok": False, "message": "Telegram is not configured"}
-    return {"ok": True, "message": "Connection successful"}
+    from keprix.channels.channel_config_service import test_channel_payload
+
+    probe = await test_channel_payload("telegram")
+    return {"ok": bool(probe.get("success")), "message": probe.get("message") or ""}
 
 
 @router.post("/api/channels/discord")
 async def save_discord_config(body: ChannelTokenBody, _admin: dict = Depends(require_admin)) -> dict[str, Any]:
-    _channel_config["discord"] = {
-        "configured": bool(body.bot_token.strip()),
-        "message_count": _channel_config["discord"].get("message_count", 0),
-    }
-    return {"ok": True}
+    from keprix.channels.channel_config_service import configure_and_test
+
+    creds: dict[str, str] = {"bot_token": body.bot_token}
+    if body.application_id:
+        creds["application_id"] = body.application_id
+    if body.guild_id:
+        creds["guild_id"] = body.guild_id
+    result = await configure_and_test("discord", creds)
+    if not result.get("ok"):
+        raise HTTPException(status_code=400, detail=result.get("error") or "Save failed")
+    return {"ok": True, **{k: v for k, v in result.items() if k != "ok"}}
 
 
 @router.post("/api/channels/discord/test")
 async def test_discord(_admin: dict = Depends(require_admin)) -> dict[str, Any]:
-    if not _channel_config["discord"]["configured"]:
-        return {"ok": False, "message": "Discord is not configured"}
-    return {"ok": True, "message": "Connection successful"}
+    from keprix.channels.channel_config_service import test_channel_payload
+
+    probe = await test_channel_payload("discord")
+    return {"ok": bool(probe.get("success")), "message": probe.get("message") or ""}
 
 
 @router.get("/api/api-keys")
@@ -637,6 +658,21 @@ async def delete_workspace_user(user_id: str, admin: dict = Depends(require_admi
     return {"ok": True}
 
 
+@router.post("/api/users/{user_id}/totp-reset")
+async def reset_user_totp(user_id: str, admin: dict = Depends(require_admin)) -> dict[str, bool]:
+    target = auth_manager.get_user_by_id(user_id)
+    if target is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not auth_manager.admin_reset_totp(user_id):
+        raise HTTPException(status_code=404, detail="User not found")
+    await audit_log(
+        "admin_totp_reset",
+        user_id=admin.get("id"),
+        event_data={"target": user_id},
+    )
+    return {"ok": True}
+
+
 @router.post("/api/users/invites/{invite_id}/resend")
 async def resend_workspace_invite(invite_id: str, admin: dict = Depends(require_admin)) -> dict[str, Any]:
     from keprix.auth.user_invites import InviteError, resend_workspace_invite
@@ -658,6 +694,8 @@ async def revoke_workspace_invite(invite_id: str, _admin: dict = Depends(require
 
 @router.get("/api/settings")
 async def get_settings(_admin: dict = Depends(require_admin)) -> dict[str, Any]:
+    global _settings
+    _settings = _load_workspace_settings()
     return {
         "settings": _settings,
         "providers": provider_settings_snapshot(),
@@ -670,8 +708,9 @@ async def get_settings(_admin: dict = Depends(require_admin)) -> dict[str, Any]:
 
 @router.put("/api/settings")
 async def update_settings(body: SettingsBody, _admin: dict = Depends(require_admin)) -> dict[str, Any]:
-    for key, value in body.model_dump(exclude_none=True).items():
-        _settings[key] = value
+    global _settings
+    updates = body.model_dump(exclude_none=True)
+    _settings = _save_workspace_settings(updates)
     return {"settings": _settings}
 
 

@@ -5,6 +5,32 @@ ready to build next.
 
 ## Current status
 
+**Current execution order (parallel OK):**
+
+1. `data-ops-surfaces-upgrade.md` (Must P0-P2 + P4 Analytics Must + `/data` tabs shipped; P3 RAG + Nice/Ultimate open).
+2. **Keprix close Carina parity gaps (403-415)** under `keprix-carina-parity/` (FILED PENDING 2026-08-04). Multi-tenancy, governance, AI security beyond 372-375, Scout Warden, packs, product tools, RAG admin, self-knowledge, billing promo/BYOK, workflows, CI. Source: `/opt/lampp/htdocs/verlox/archive/keprix-carina-parity-gap-2026-07-30.md`. Build order: `../prompts-archive/ref-403-keprix-carina-parity-build-order.md`. Sister: Carina inbound `carina/.../carina-keprix-parity/`.
+3. ~~**Capability mesh (389-402)**~~ completed 2026-08-04 and archived under `../prompts-archive/389-402-*.md`. Build order: `../prompts-archive/ref-389-keprix-capability-mesh-build-order.md`. Graph + DoD/audit + Telegram pilot tools (viCal/calendar/contacts) + slash + IDs + discovery; evidence `pytest tests/capability_mesh tests/vical` (36 passed).
+4. ~~**viCal booking adoption (376-388)**~~ completed 2026-08-04 and archived under `../prompts-archive/376-388-*.md`. Build order: `../prompts-archive/ref-376-keprix-vical-booking-build-order.md`. Code: `keprix/src/keprix/vical/`, hub `/vical`, guest `/book/{slug}`; evidence `pytest tests/vical tests/personas/test_echo_scheduler.py` (24 passed).
+
+Completed and archived on 2026-08-04:
+
+- **Capability mesh 389-402**: capability graph, soft DoD, gap audit, tool exposure recipe, shared object IDs, agent discovery, Telegram pilot tools, slash/outbound hook, UI related links, rollup notes, channel parity, cutover.
+- **viCal booking adoption 376-388**: domain/store, slots, lifecycle, public book, host hub, ECHO unify, ICS/reminders/webhooks, conferencing hooks, intake, deposit scaffold, cutover docs.
+
+Completed and archived on 2026-08-03:
+
+- LLM threat-model hardening **372-375**: fail-closed prompt guard, least-privilege ACL, RAG/Graphiti poison, Rule of Two + honest health. Build order: `../prompts-archive/ref-372-llm-threat-model-hardening-build-order.md`.
+
+**371 Memory / Brain world-class** completed 2026-08-02 and archived:
+`../prompts-archive/371-memory-world-class-roadmap.md`.
+
+**Private OSS ship-ready pack 365-370** completed 2026-07-27 and archived. Build order:
+`../prompts-archive/ref-365-private-oss-ship-ready-build-order.md`. Evidence:
+frontend `tsc` green; competitor baggage quarantined; TUI parity 100/100;
+TUI surpass + agent parity 10/10; `tests/api` 86 passed; private ship gate
+script green; ops docs restored; sign-off at
+`docs/architecture/private-ship-signoff.md`.
+
 **gstack core + personas (360-364)** completed 2026-07-19 and archived. Built preamble loader, trigger engine, gbrain SQLite memory, sprint flow, Scout safety commands, `KeprixSkills` orchestrator, and all 11 persona SKILL.md files (NEXUS through SCOUT). Evidence: `python -m pytest tests/skills/test_preamble_loader.py tests/skills/test_trigger_engine.py tests/memory/test_gbrain.py tests/skills/test_sprint_flow.py tests/skills/test_scout_commands.py tests/skills/test_integration.py tests/skills/test_full_integration.py -q` (96 passed).
 
 **Keprix TUI Command Center (350-360)** completed 2026-07-13 and archived. Build-order reference archived as `../prompts-archive/ref-350-keprix-tui-command-center-build-order.md`. Note: TUI prompt 360 (`360-tui-keyboard-polish-and-final-proof.md`) is distinct from gstack prompt 360.
@@ -180,7 +206,21 @@ Prior series **117-212** archived under `../prompts-archive/`.
 | 301-315 | `../prompts-archive/ref-301-agent-os-ui-polish-build-order.md` | COMPLETED 2026-07-12 (archived) |
 | 223 | `../prompts-archive/ref-223-built-apps-navigation-architecture-reference.md` | Reference |
 
-**Current execution order:** none. The gstack 360-364 queue and the TUI Command Center queue are complete.
+**Current execution order:** pending items in this folder (parallel OK):
+
+| File | Status |
+| --- | --- |
+| `data-ops-surfaces-upgrade.md` | PENDING: Must P0-P2 + P4 Analytics + `/data` tabs shipped; P3 RAG + Nice/Ultimate remain |
+| `372-fail-closed-prompt-guard-and-context-quarantine.md` | ARCHIVED 2026-08-03 |
+| `373-least-privilege-tool-acl-lethal-trifecta.md` | ARCHIVED 2026-08-03 |
+| `374-rag-graphiti-ingest-poison-controls.md` | ARCHIVED 2026-08-03 |
+| `375-rule-of-two-human-gates-honest-health.md` | ARCHIVED 2026-08-03 |
+
+Series map: `../prompts-archive/ref-372-llm-threat-model-hardening-build-order.md`.
+
+**371 Memory / Brain world-class** completed 2026-08-02 and archived as `../prompts-archive/371-memory-world-class-roadmap.md`. Hub control plane, orchestrator recall, temporal KG + dreaming, eval scripts. Remaining polish (docs rewrite, Graphiti live query, NLP extract) noted in archive as non-blocking follow-ups.
+
+Previously: gstack 360-364 and TUI Command Center queues complete.
 
 **Chase five tools (267-272):** Series archived completed. OSS tool patterns from Chase AI video. Build order: `../prompts-archive/ref-266-chase-five-tools-adoption-build-order.md`.
 

@@ -23,6 +23,13 @@ export type ContactSearchResult = {
   score: number;
 };
 
+export type ContactPreferences = {
+  user_id: string;
+  confirm_before_email: boolean;
+  confirm_before_call: boolean;
+  read_back_draft: boolean;
+};
+
 export type SyncSource = {
   id: string;
   provider: string;
@@ -31,13 +38,9 @@ export type SyncSource = {
   last_delta_sync_at?: string | null;
   last_sync_error?: string | null;
   contact_count?: number;
-};
-
-export type ContactPreferences = {
-  user_id: string;
-  confirm_before_email: boolean;
-  confirm_before_call: boolean;
-  read_back_draft: boolean;
+  sync_enabled?: boolean;
+  sync_interval_minutes?: number;
+  carddav_url?: string;
 };
 
 export async function fetchContacts(q?: string): Promise<Contact[]> {
@@ -71,15 +74,107 @@ export async function createContact(body: Partial<Contact>): Promise<Contact> {
 export async function fetchSyncSources(): Promise<SyncSource[]> {
   const response = await ceApi("/api/contacts/sync/sources");
   if (!response.ok) {
-    return [];
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(
+      (payload as { detail?: string }).detail || "Failed to load sync sources",
+    );
   }
   return response.json();
+}
+
+export async function createCardDavSource(body: {
+  display_name: string;
+  carddav_url: string;
+  carddav_username: string;
+  carddav_password: string;
+  sync_interval_minutes?: number;
+}): Promise<SyncSource & { initial_sync?: Record<string, unknown> }> {
+  const response = await ceApi("/api/contacts/sync/sources", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(
+      (payload as { detail?: string }).detail || "CardDAV setup failed",
+    );
+  }
+  return response.json();
+}
+
+export async function updateSyncSource(
+  sourceId: string,
+  body: { sync_enabled?: boolean; sync_interval_minutes?: number; display_name?: string },
+): Promise<SyncSource> {
+  const response = await ceApi(`/api/contacts/sync/sources/${sourceId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(
+      (payload as { detail?: string }).detail || "Failed to update sync source",
+    );
+  }
+  return response.json();
+}
+
+export async function deleteSyncSource(sourceId: string): Promise<void> {
+  const response = await ceApi(`/api/contacts/sync/sources/${sourceId}`, { method: "DELETE" });
+  if (!response.ok) {
+    throw new Error("Failed to remove sync source");
+  }
 }
 
 export async function triggerSync(sourceId: string): Promise<Record<string, unknown>> {
   const response = await ceApi(`/api/contacts/sync/${sourceId}/now`, { method: "POST" });
   if (!response.ok) {
-    throw new Error("Sync failed");
+    const payload = await response.json().catch(() => ({}));
+    throw new Error((payload as { detail?: string }).detail || "Sync failed");
+  }
+  return response.json();
+}
+
+export type GoogleOAuthConfig = {
+  configured: boolean;
+  source: string;
+  client_id_masked: string;
+  redirect_uri: string;
+  people_api_hint?: string;
+};
+
+export async function fetchGoogleOAuthConfig(): Promise<GoogleOAuthConfig> {
+  const response = await ceApi("/api/contacts/sync/google/config");
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(
+      (payload as { detail?: string }).detail || "Failed to load Google OAuth config",
+    );
+  }
+  return response.json();
+}
+
+export async function saveGoogleOAuthConfig(body: {
+  client_id: string;
+  client_secret: string;
+}): Promise<GoogleOAuthConfig> {
+  const response = await ceApi("/api/contacts/sync/google/config", {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(
+      (payload as { detail?: string }).detail || "Failed to save Google OAuth credentials",
+    );
+  }
+  return response.json();
+}
+
+export async function clearGoogleOAuthConfig(): Promise<GoogleOAuthConfig> {
+  const response = await ceApi("/api/contacts/sync/google/config", { method: "DELETE" });
+  if (!response.ok) {
+    throw new Error("Failed to clear Google OAuth credentials");
   }
   return response.json();
 }
@@ -87,7 +182,10 @@ export async function triggerSync(sourceId: string): Promise<Record<string, unkn
 export async function fetchGoogleAuthUrl(): Promise<string> {
   const response = await ceApi("/api/contacts/sync/google/auth");
   if (!response.ok) {
-    throw new Error("Google OAuth not configured");
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(
+      (payload as { detail?: string }).detail || "Google OAuth not configured",
+    );
   }
   const data = (await response.json()) as { auth_url: string };
   return data.auth_url;

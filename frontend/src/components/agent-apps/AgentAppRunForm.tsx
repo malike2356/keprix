@@ -125,7 +125,7 @@ export default function AgentAppRunForm({ inputs, values, onChange, errors = {},
                 disabled={disabled}
                 inputProps={{ accept: "*/*" }}
                 onChange={(e) => {
-                  const file = e.target.files?.[0];
+                  const file = (e.target as HTMLInputElement).files?.[0];
                   if (!file) {
                     setField(field.id, "");
                     return;

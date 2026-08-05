@@ -1,0 +1,9 @@
+Category A covers large rigs, deep boreholes greater than 60 metres, and commercial drilling operations.
+
+Category B covers medium rigs, boreholes from 30 to 60 metres, and institutional or community drilling.
+
+Category C covers small rigs, shallow boreholes under 30 metres, and domestic hand-pump work.
+
+The licence format is WRC/WDL/[serial]/[year]. Validity is 36 months from issue date.
+
+L.I. 1827 governs groundwater extraction and drilling activities in Ghana.

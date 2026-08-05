@@ -129,7 +129,7 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
   );
 
   return (
-    <AppRouterCacheProvider options={{ key: "mui", prepend: true }}>
+    <AppRouterCacheProvider options={{ key: "mui", prepend: true, enableCssLayer: true }}>
       <ThemeContext.Provider value={value}>
         <ThemeProvider theme={theme}>
           <CssBaseline enableColorScheme />

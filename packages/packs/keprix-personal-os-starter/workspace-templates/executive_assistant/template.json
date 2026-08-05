@@ -1,0 +1,6 @@
+{
+  "id": "executive_assistant",
+  "folders": ["context", "raw", "wiki", "outputs"],
+  "seed_files": ["wiki/hot.md", "context/about-me.md", "context/priorities.md"],
+  "description": "Personal operating context and hot knowledge."
+}

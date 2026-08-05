@@ -27,7 +27,7 @@ class ParseError(ValueError):
 
 
 def _ocr_available() -> bool:
-    return os.environ.get("KEPRIX_OCR_ENABLED", "false").lower() == "true"
+    return os.environ.get("KEPRIX_OCR_ENABLED", "true").lower() in {"1", "true", "yes", "on"}
 
 
 def parse_json(content: str) -> str:

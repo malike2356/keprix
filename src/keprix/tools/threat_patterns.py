@@ -112,6 +112,11 @@ _PATTERNS: List[Tuple[str, str, str]] = [
 
     # ── Hardcoded secrets ────────────────────────────────────────────
     (r'(?:api[_-]?key|token|secret|password)\s*[=:]\s*["\'][A-Za-z0-9+/=_-]{20,}', "hardcoded_secret", "strict"),
+    # Privacy floors (Prompt 295): never store SSN / payment numbers.
+    (r'\b(?:ssn|social\s*security)\b[:\s#-]*\d{3}[-\s]?\d{2}[-\s]?\d{4}\b', "ssn", "strict"),
+    (r'\b\d{3}-\d{2}-\d{4}\b', "ssn", "strict"),
+    (r'\b(?:4\d{3}|5[1-5]\d{2}|3[47]\d{2}|6(?:011|5\d{2}))[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b', "payment_card", "strict"),
+    (r'\b(?:card\s*(?:number|no\.?)|credit\s*card|debit\s*card)\b[:\s#]*\d{12,19}\b', "payment_card", "strict"),
 ]
 
 # Invisible / bidirectional unicode characters used in injection attacks.

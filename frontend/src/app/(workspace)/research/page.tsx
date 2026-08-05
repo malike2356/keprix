@@ -6,6 +6,7 @@ import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import FormControl from "@mui/material/FormControl";
+import IconButton from "@mui/material/IconButton";
 import InputLabel from "@mui/material/InputLabel";
 import LinearProgress from "@mui/material/LinearProgress";
 import List from "@mui/material/List";
@@ -18,14 +19,17 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import StatusPill from "@/components/ui/StatusPill";
 import ResearchWorkspaceShell from "@/components/research/ResearchWorkspaceShell";
+import NotebookDepthPanel from "./NotebookDepthPanel";
 import {
   downloadResearchExport,
+  deleteResearchJob,
   fetchResearchPresets,
   fetchResearchReport,
   fetchResearchJobs,
@@ -91,6 +95,7 @@ export default function ResearchPage() {
   const [history, setHistory] = React.useState<ResearchJob[]>([]);
   const [exportMessage, setExportMessage] = React.useState<string | null>(null);
   const [exportBusy, setExportBusy] = React.useState(false);
+  const [deleteError, setDeleteError] = React.useState<string | null>(null);
 
   const streamAbortRef = React.useRef<AbortController | null>(null);
   const watchingJobRef = React.useRef<string | null>(null);
@@ -307,6 +312,32 @@ export default function ResearchPage() {
     }
   };
 
+  const handleDeleteJob = async (jobId: string) => {
+    if (!window.confirm("Delete this research run? This cannot be undone.")) {
+      return;
+    }
+    setDeleteError(null);
+    try {
+      await deleteResearchJob(jobId);
+      if (activeJobId === jobId) {
+        streamAbortRef.current?.abort();
+        watchingJobRef.current = null;
+        setActiveJobId(null);
+        setReport(null);
+        setStatus(null);
+        setEvents([]);
+        setError(null);
+        setReconnected(false);
+        if (searchParams.get("job")) {
+          router.replace("/research", { scroll: false });
+        }
+      }
+      await refreshHistory();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Could not delete research run");
+    }
+  };
+
   const presetModels = React.useMemo(
     () => Object.entries(presets).map(([tier, preset]) => ({ tier, ...preset })),
     [presets],
@@ -314,6 +345,8 @@ export default function ResearchPage() {
 
   const deepResearchPanel = (
     <>
+      <NotebookDepthPanel />
+
       <Card variant="outlined" sx={{ mb: 2 }}>
         <CardContent>
           <TextField
@@ -398,6 +431,12 @@ export default function ResearchPage() {
       {error ? (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
+        </Alert>
+      ) : null}
+
+      {deleteError ? (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setDeleteError(null)}>
+          {deleteError}
         </Alert>
       ) : null}
 
@@ -500,6 +539,17 @@ export default function ResearchPage() {
                     primaryTypographyProps={{ noWrap: true }}
                   />
                   <StatusPill status={researchStatusKey(job.status)} />
+                  <IconButton
+                    size="small"
+                    aria-label="Delete research run"
+                    sx={{ ml: 0.5, opacity: 0.7, ".MuiListItemButton-root:hover &": { opacity: 1 } }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void handleDeleteJob(job.job_id);
+                    }}
+                  >
+                    <DeleteOutlineIcon fontSize="small" />
+                  </IconButton>
                 </ListItemButton>
               );
             })}

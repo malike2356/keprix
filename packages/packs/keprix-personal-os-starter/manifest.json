@@ -1,0 +1,26 @@
+{
+  "name": "keprix-personal-os-starter",
+  "version": "1.0.0",
+  "type": "automation_pack",
+  "author": "Keprix",
+  "license": "MIT",
+  "description": "Personal OS starter with skills, templates, and audit seed.",
+  "permissions": ["filesystem:read"],
+  "files": [
+    "skills",
+    "workspace-templates",
+    "agent-apps",
+    "connections.md.tpl",
+    "audit-seed.json",
+    "README.md"
+  ],
+  "dependencies": [],
+  "setup_requirements": ["Agent OS enabled"],
+  "data_touched": ["~/.keprix/skills", "~/.keprix/agent-apps", "~/.keprix/agent-os"],
+  "network_hosts": [],
+  "risk_level": "low",
+  "uninstall_plan": ["remove installed Personal OS starter assets manually"],
+  "tests": ["tests/agent_os/test_personal_os_pack_install.py"],
+  "trust_label": "official",
+  "review_score": 4.8
+}

@@ -1,0 +1,43 @@
+processed_versions:
+  - "0.17.0"
+
+keprix_features:
+  prompt-77: "De-brand; remove hardcoded product names"
+  prompt-78: "SaaS billing; pluggable Stripe subscriptions"
+  prompt-79: "Smart routing; combos, quota, auto-fallback"
+  prompt-80: "Compression; RTK + Caveman, PII masking, injection defense"
+  prompt-81: "A2A; agent-to-agent protocol, compliance, observability"
+  prompt-82: "Operations; prompt cache, spend tracker, format translator, headroom, credentials, proxy, CLI config, model sync"
+  prompt-83: "Notion integration; MCP tools, context loader, exporter"
+  prompt-84: "Extension architecture; products as plugins, not forks"
+  prompt-85: "Upgrade system; safe CLI, dry-run, backup, rollback"
+  prompt-86: "Upgrade alerts; notifications, GUI wizard, scheduler"
+  prompt-87: "Security architecture; 7-layer defense-in-depth"
+  prompt-88: "Scout integration; ScoutClient, ScoutListener, ScoutSync"
+  prompt-89: "Upstream monitor; Hermes release tracking and adoption pipeline"
+  agent-runtime: "conversation loop agent engine tool calling streaming sessions"
+  provider-routing: "smart routing combos quota auto-fallback model providers openai anthropic gemini"
+  compression: "RTK caveman token compression context PII masking injection defense"
+  memory-system: "workspace session memory persist colleague continuity gbrain"
+  tools-mcp: "MCP tools browser execute shell toolsets tool policy"
+  credential-vault: "credential vault API keys proxy rotation secrets"
+  prompt-cache: "prompt cache spend tracker format translator headroom"
+  tui-command-center: "textual TUI CLI command center dashboard slash commands"
+  channel-shield: "channel shield inbound email messaging quarantine"
+  scout-security: "scout signals governance sandbox hardening prompt guard"
+  billing-stripe: "SaaS billing Stripe subscriptions quotas"
+  upgrade-system: "upgrade check plan execute alerts scheduler rollback"
+  a2a-protocol: "agent-to-agent A2A protocol compliance observability"
+  playbooks: "playbooks workflows visual YAML runs approvals"
+  agent-apps: "agent apps marketplace manifests webhooks"
+  mutation-engine: "mutation engine self-improvement tools skills"
+  cron-jobs: "cron scheduler jobs terminal file toolsets"
+  mobile-client: "Android mobile client companion"
+  workspace-ui: "Next.js workspace chat documents tasks settings"
+  upstream-monitor: "Hermes upstream release tracking adoption pipeline"
+
+tracked_features: {}
+
+last_check: null
+next_prompt_number: 290
+pypi_last_version: null

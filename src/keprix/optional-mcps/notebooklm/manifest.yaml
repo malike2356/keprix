@@ -1,0 +1,23 @@
+# Optional NotebookLM-style bridge. Keprix connects to a user-managed CLI/MCP sidecar.
+manifest_version: 1
+
+name: notebooklm
+description: Notebook research bridge for adding sources, querying notebooks, and exporting grounded reports.
+source: https://notebooklm.google
+
+transport:
+  type: http
+  url_env: NOTEBOOKLM_MCP_URL
+
+auth:
+  type: env
+
+tools:
+  default_enabled:
+    - notebook_create
+    - notebook_add_source
+    - notebook_query
+    - notebook_export
+
+post_install: |
+  Run your NotebookLM-compatible sidecar, set NOTEBOOKLM_MCP_URL or NOTEBOOKLM_BRIDGE_CMD, then open /research.

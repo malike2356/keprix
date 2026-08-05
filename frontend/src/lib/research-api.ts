@@ -1,6 +1,7 @@
 import { buildApiHeaders, ceApi, getApiBaseUrl, parseApiErrorMessage } from "@/lib/ce-api";
 
 export type ResearchDepth = "quick" | "standard" | "deep";
+export type NotebookResearchDepth = "notebook" | "notebook-external";
 
 export type ResearchJob = {
   job_id: string;
@@ -51,6 +52,99 @@ export function isTerminalResearchStatus(status: string): boolean {
 
 export type ResearchExportFormat = "pdf" | "html" | "markdown" | "docx";
 
+export type NotebookSource = {
+  id?: string;
+  kind: "text" | "url" | "file" | "session_export";
+  ref: string;
+  title?: string;
+  excerpt?: string | null;
+};
+
+export type NotebookResearchJob = {
+  job_id: string;
+  depth: NotebookResearchDepth;
+  query: string;
+  sources: NotebookSource[];
+  report_md?: string | null;
+  citations: Array<Record<string, unknown>>;
+  status: string;
+  external_notebook_id?: string | null;
+  error?: string | null;
+  export_path?: string | null;
+};
+
+export type NotebookResearchConfig = {
+  enabled: boolean;
+  native_max_sources: number;
+  external_enabled: boolean;
+  graph_ingest_enabled: boolean;
+};
+
+export async function fetchNotebookResearchConfig(): Promise<NotebookResearchConfig> {
+  const response = await ceApi("/api/research/notebook/config");
+  if (!response.ok) {
+    return { enabled: false, native_max_sources: 20, external_enabled: false, graph_ingest_enabled: false };
+  }
+  return response.json();
+}
+
+export async function normalizeNotebookSource(source: Omit<NotebookSource, "id">): Promise<NotebookSource> {
+  const response = await ceApi("/api/research/notebook/sources", {
+    method: "POST",
+    body: JSON.stringify(source),
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(parseApiErrorMessage(payload, "Could not add source"));
+  }
+  const data = (await response.json()) as { source: NotebookSource };
+  return data.source;
+}
+
+export async function startNotebookResearch(
+  query: string,
+  depth: NotebookResearchDepth,
+  sources: NotebookSource[],
+): Promise<NotebookResearchJob> {
+  const response = await ceApi("/api/research/notebook", {
+    method: "POST",
+    body: JSON.stringify({ query, depth, sources }),
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(parseApiErrorMessage(payload, "Notebook research failed"));
+  }
+  const data = (await response.json()) as { job: NotebookResearchJob };
+  return data.job;
+}
+
+export async function exportNotebookResearch(jobId: string, path?: string): Promise<{ path: string }> {
+  const response = await ceApi(`/api/research/notebook/${encodeURIComponent(jobId)}/export`, {
+    method: "POST",
+    body: JSON.stringify({ path }),
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(parseApiErrorMessage(payload, "Notebook export failed"));
+  }
+  return response.json();
+}
+
+export async function sendNotebookReportToGraph(job: NotebookResearchJob): Promise<void> {
+  const response = await ceApi("/api/brain/graphiti/ingest", {
+    method: "POST",
+    body: JSON.stringify({
+      source_type: "research",
+      source_ref: job.job_id,
+      content: job.report_md || "",
+    }),
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(parseApiErrorMessage(payload, "Graph ingest failed"));
+  }
+}
+
 export async function startResearch(query: string, depth: ResearchDepth, model?: string) {
   const response = await ceApi("/api/research/start", {
     method: "POST",
@@ -97,6 +191,16 @@ export async function fetchResearchJobs(): Promise<ResearchJob[]> {
   }
   const data = (await response.json()) as { jobs: ResearchJob[] };
   return data.jobs;
+}
+
+export async function deleteResearchJob(jobId: string): Promise<void> {
+  const response = await ceApi(`/api/research/jobs/${encodeURIComponent(jobId)}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error((payload as { detail?: string }).detail || "Failed to delete research run");
+  }
 }
 
 export async function fetchResearchEvents(jobId: string, sinceId = 0): Promise<ResearchStoredEvent[]> {

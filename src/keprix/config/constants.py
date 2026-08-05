@@ -5,7 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 PRODUCT_NAME = "Keprix"
-PRODUCT_VERSION = "0.1.0"
+try:
+    from keprix_cli import __version__ as PRODUCT_VERSION
+except Exception:
+    PRODUCT_VERSION = "0.16.0"
 EDITION = "community"
 HOMEPAGE = "https://keprix.io"
 DOCS_URL = "https://keprix.io/docs"

@@ -30,6 +30,7 @@ import {
   fetchWorkspaceUsers,
   inviteWorkspaceUser,
   resendWorkspaceInvite,
+  resetWorkspaceUserTotp,
   revokeWorkspaceInvite,
   updateWorkspaceUser,
   type WorkspaceUser,
@@ -159,6 +160,21 @@ export default function WorkspaceUsersManager() {
     }
   };
 
+  const handleResetTotp = async () => {
+    if (!manageTarget || manageTarget.source === "invite") return;
+    setBusy(true);
+    setActionError(null);
+    try {
+      await resetWorkspaceUserTotp(manageTarget.id);
+      await mutate();
+      closeManage();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "2FA reset failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <>
       <Grid container spacing={2} sx={{ mb: 2 }}>
@@ -226,11 +242,16 @@ export default function WorkspaceUsersManager() {
                   <Chip size="small" color={roleChipColor(user.role)} label={roleLabel(user.role)} />
                 </TableCell>
                 <TableCell>
-                  <Chip
-                    size="small"
-                    color={user.status === "active" ? "success" : user.status === "invited" ? "warning" : "default"}
-                    label={user.status}
-                  />
+                  <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+                    <Chip
+                      size="small"
+                      color={user.status === "active" ? "success" : user.status === "invited" ? "warning" : "default"}
+                      label={user.status}
+                    />
+                    {user.source !== "invite" && user.totp_enabled ? (
+                      <Chip size="small" color="info" label="2FA" />
+                    ) : null}
+                  </Box>
                 </TableCell>
                 <TableCell>{user.joined_at ? formatTimeAgo(String(user.joined_at)) : "Invite pending"}</TableCell>
                 <TableCell>{formatTimeAgo(user.last_active_at) || "Never"}</TableCell>
@@ -296,6 +317,9 @@ export default function WorkspaceUsersManager() {
           </DialogContentText>
           {manageTarget?.source === "invite" ? null : (
             <>
+              {manageTarget?.totp_enabled ? (
+                <Alert severity="info">This user has two-factor authentication enabled.</Alert>
+              ) : null}
               <TextField select label="Role" value={editRole} onChange={(event) => setEditRole(event.target.value)}>
                 <MenuItem value="user">User</MenuItem>
                 <MenuItem value="admin">Admin</MenuItem>
@@ -325,9 +349,16 @@ export default function WorkspaceUsersManager() {
                 </Button>
               </>
             ) : (
-              <Button color="error" onClick={() => void handleDeleteUser()} disabled={busy}>
-                Delete
-              </Button>
+              <>
+                {manageTarget?.totp_enabled ? (
+                  <Button color="warning" onClick={() => void handleResetTotp()} disabled={busy}>
+                    Reset 2FA
+                  </Button>
+                ) : null}
+                <Button color="error" onClick={() => void handleDeleteUser()} disabled={busy}>
+                  Delete
+                </Button>
+              </>
             )}
           </Box>
           <Box>

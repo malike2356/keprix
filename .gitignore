@@ -4,6 +4,7 @@
 .env.*.local
 *.pem
 *.key
+.keprix/
 
 # ---- Python ----
 __pycache__/
@@ -43,6 +44,7 @@ src/keprix/skills/generated/*.yaml
 
 # ---- Keprix runtime data ----
 /data/
+keprix-data/
 
 # ---- IDE ----
 .vscode/
@@ -77,3 +79,13 @@ docs/internal/
 
 # ---- Frontend build artifacts ----
 frontend/tsconfig.tsbuildinfo
+
+# Local billing config (may reference live Stripe)
+config/billing.yaml
+
+# ---- Quarantined baggage (moved to archive/keprix-wip-bakups) ----
+1st-plan/competitor-research/
+apps-on-keprix/retired-project-compasslab/
+
+# Graphiti local secrets/runtime
+docker/.graphiti.env

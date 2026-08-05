@@ -215,8 +215,47 @@ COMMAND_REGISTRY: list[CommandDef] = [
                gateway_only=True),
     CommandDef("usage", "Show token usage and rate limits for the current session", "Info"),
     CommandDef("credits", "Show Nous credit balance and top up", "Info"),
+    CommandDef("billing", "Keprix product billing (plans, portal) plus Nous credits pointer", "Info"),
     CommandDef("insights", "Show usage insights and analytics", "Info",
                args_hint="[days]"),
+
+    # Keprix product surface (shared slash executor; surpasses Hermes-only gateway)
+    CommandDef("playbook", "Local models: scan hardware, list models, serve", "Keprix Product",
+               gateway_only=True, args_hint="[scan|models|serve <model>]"),
+    CommandDef("research", "Start deep research or manage research projects", "Keprix Product",
+               gateway_only=True, args_hint='["query"|project|export ...]'),
+    CommandDef("crew", "Run a registered agent team", "Keprix Product",
+               gateway_only=True, args_hint='<team_id> "objective"'),
+    CommandDef("opportunity", "Run Opportunity Engine playbooks", "Keprix Product",
+               gateway_only=True, args_hint='find demand for "niche"'),
+    CommandDef("slots", "Show viCal available booking slots", "Keprix Product",
+               gateway_only=True, args_hint="[count]"),
+    CommandDef("bookings", "List or cancel viCal bookings", "Keprix Product",
+               gateway_only=True, args_hint="[cancel <booking_id>]"),
+    CommandDef("governance", "Show governance status", "Keprix Product",
+               gateway_only=True, args_hint="[status]"),
+    CommandDef("data", "Import, profile, or export datasets", "Keprix Product",
+               gateway_only=True, args_hint="[import|profile|export] ..."),
+    CommandDef("jobs", "Show or retry background jobs", "Keprix Product",
+               gateway_only=True, args_hint="[retry <job_id>]"),
+    CommandDef("ml", "ML experiments and run history", "Keprix Product",
+               gateway_only=True, args_hint="[experiment|runs] ..."),
+    CommandDef("stats", "Descriptive stats and codebooks", "Keprix Product",
+               gateway_only=True, args_hint="[describe|codebook] ..."),
+    CommandDef("settings", "Show or change Keprix product settings", "Keprix Product",
+               gateway_only=True, args_hint="[set <key> <value>]"),
+    CommandDef("channels", "Show connected product channels", "Keprix Product",
+               gateway_only=True),
+    CommandDef("language", "Show or set language preferences", "Keprix Product",
+               gateway_only=True, args_hint="[set <locale>]"),
+    CommandDef("safety", "Show product safety rules", "Keprix Product",
+               gateway_only=True),
+    CommandDef("diagnostics", "Show product diagnostics", "Keprix Product",
+               gateway_only=True),
+    CommandDef("tool", "Run a named product tool", "Keprix Product",
+               gateway_only=True, args_hint='run <name> <json>'),
+    CommandDef("cancel", "Cancel a pending product slash confirmation", "Keprix Product",
+               gateway_only=True, args_hint="<token>"),
     CommandDef("platforms", "Show gateway/messaging platform status", "Info",
                cli_only=True, aliases=("gateway",)),
     CommandDef("platform", "Pause, resume, or list a failing gateway platform", "Info",
@@ -320,6 +359,22 @@ GATEWAY_KNOWN_COMMANDS: frozenset[str] = frozenset(
     if not cmd.cli_only or cmd.gateway_config_gate
     for name in (cmd.name, *cmd.aliases)
 )
+
+# Top-level product slash names surfaced in gateway /help and Telegram menus.
+# Gateway built-ins with the same name (help, status, tools, memory, approve)
+# stay on the Hermes-style handlers; these names route to keprix.slash.
+PRODUCT_GATEWAY_COMMANDS: frozenset[str] = frozenset(
+    cmd.name
+    for cmd in COMMAND_REGISTRY
+    if cmd.category == "Keprix Product"
+)
+
+
+def is_product_gateway_command(name: str | None) -> bool:
+    """Return True when ``name`` should dispatch to the product slash executor."""
+    if not name:
+        return False
+    return name.replace("_", "-").lower() in PRODUCT_GATEWAY_COMMANDS
 
 
 def is_gateway_known_command(name: str | None) -> bool:

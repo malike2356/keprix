@@ -94,7 +94,14 @@ export default function WebSearchSettingsPage() {
                     <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
                       <SearchIcon fontSize="small" color="action" />
                       <Typography variant="subtitle1">{provider.label}</Typography>
-                      {provider.badge ? <Chip size="small" label={provider.badge} /> : null}
+                      {provider.badge ? (
+                        <Chip
+                          size="small"
+                          label={provider.badge}
+                          color={/free/i.test(provider.badge) ? "success" : /paid|pro|premium/i.test(provider.badge) ? "warning" : "default"}
+                          variant={/free/i.test(provider.badge) ? "filled" : "outlined"}
+                        />
+                      ) : null}
                       {active ? <Chip size="small" color="primary" label="Active for research" /> : null}
                       {connected ? (
                         <Chip size="small" color="success" icon={<CheckCircleIcon />} label="Configured" />

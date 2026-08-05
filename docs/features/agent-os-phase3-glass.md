@@ -1,23 +1,16 @@
-# Agent OS Phase 3 glass + Memory Galaxy
+# Agent OS Phase 3 glass
 
-## Surfaces
+Stub for the Agent OS glass hub at `/agent-os/glass` (agents, memory, tasks, tokens, ship defaults).
 
-| Surface | Path |
-| --- | --- |
-| Agent OS glass | `/agent-os/glass` · `GET /api/agent-os/glass?days=` |
-| Memory Galaxy | `/memory/galaxy` · `GET /api/vault/graph` |
-| Tokens by agent | `/usage?days=` (By agent chart) · `GET /api/usage/breakdown/agent` |
-| Activation checklist | `/agent-os/onboarding` · milestones + steps |
-| Action board | `/agent-os` |
+API surface includes `GET /api/agent-os/glass`. Day 1 hello:
 
-Glass is the Agent OS hub home. Period control uses the same `days` values as Usage (7 / 30 / 90) and syncs via `?days=` plus localStorage.
+```bash
+keprix agent-os hello --name You
+```
 
-Memory Galaxy shows Brain section tabs (Graph / Galaxy / List / Health). Click a node to open the vault note in a drawer. Layout toggle: Circle or Force (Brain force layout).
+## Related
 
-## Channels
-
-Discord and Slack adapters already ship with Keprix. Configure them under `/dashboard/channels`.
-
-## Agent token metadata
-
-Usage events group by `metadata.agent_id`, then `metadata.agent`, then `metadata.app_name`, then channel.
+- [Agent OS overview](agent-os-overview.md)
+- [Action board](agent-os-action-board.md)
+- [Phase 5 polish](agent-os-phase5-polish.md)
+- [Vault auto-capture](vault-auto-capture.md)

@@ -30,7 +30,7 @@ class SimplifiedBody(BaseModel):
     simplified_mode: bool = False
     hide_terminal_coding: bool = True
     documents_read_only: bool = False
-    allowed_paths: list[str] = Field(default_factory=lambda: ["/agent-os", "/agent-apps", "/chat", "/documents", "/home", "/launcher", "/settings"])
+    allowed_paths: list[str] = Field(default_factory=lambda: ["/agent-os", "/agent-apps", "/chat", "/documents", "/launcher", "/settings"])
 
 
 def _guard_enabled() -> None:

@@ -31,6 +31,7 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 from keprix_constants import get_keprix_home
+from keprix.registries.product_hooks import check_memory_write
 from typing import Dict, Any, List, Optional
 
 from utils import atomic_replace
@@ -304,6 +305,25 @@ class MemoryStore:
         scan_error = _scan_memory_content(content)
         if scan_error:
             return {"success": False, "error": scan_error}
+
+        # Channel Shield: refuse ordinary memory writes for shielded/raw malicious content
+        try:
+            message_id = None
+            memory_kind = None
+            if content.startswith("[channel-shield-incident]"):
+                memory_kind = "incident"
+            if "channel_shield_message_id=" in content:
+                for part in content.split():
+                    if part.startswith("channel_shield_message_id="):
+                        message_id = part.split("=", 1)[1].strip()
+                        break
+            blocked = check_memory_write(
+                content, message_id=message_id, memory_kind=memory_kind
+            )
+            if blocked is not None:
+                return {"success": False, "error": blocked}
+        except Exception:
+            pass
 
         with self._file_lock(self._path_for(target)):
             # Re-read from disk under lock to pick up writes from other sessions.
@@ -805,7 +825,6 @@ registry.register(
     check_fn=check_memory_requirements,
     emoji="🧠",
 )
-
 
 
 

@@ -28,7 +28,10 @@ def mutation_chat_client(tmp_path, monkeypatch):
 
     monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path / "data"))
     monkeypatch.setenv("KEPRIX_ADMIN_PASSWORD", "admin-pass")
+    monkeypatch.setenv("KEPRIX_ADMIN_EMAIL", "")
+    monkeypatch.setenv("ADMIN_EMAIL", "")
     monkeypatch.setenv("AUTH_ENABLED", "true")
+    monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
     monkeypatch.setenv("KEPRIX_MUTATION_ENABLED", "true")
     monkeypatch.setenv("KEPRIX_MUTATION_STREAM_WAIT_APPROVAL", "false")
     monkeypatch.setenv("KEPRIX_GENERATED_TOOLS_DIR", str(tools_dir))
@@ -109,17 +112,23 @@ async def test_chat_message_streams_mutation_event(mutation_chat_client, monkeyp
             "record": asdict(record),
         }
 
-    monkeypatch.setattr(
+    fake_engine = SimpleNamespace(
+        detect_gap_async=MutationEngine().detect_gap_async,
+        run_cycle=fake_run_cycle,
+    )
+    for target in (
+        "keprix.agent.keprix.mutation.get_mutation_engine",
         "keprix.agent.keprix.mutation_hook.get_mutation_engine",
-        lambda: SimpleNamespace(
-            detect_gap_async=MutationEngine().detect_gap_async,
-            run_cycle=fake_run_cycle,
-        ),
-    )
-    monkeypatch.setattr(
+        "keprix.agent.keprix.mutation_dispatch.get_mutation_engine",
+        "keprix.agent.keprix.chat_mutation_bridge.get_mutation_engine",
+    ):
+        monkeypatch.setattr(target, lambda: fake_engine)
+    for target in (
         "keprix.agent.keprix.mutation_hook.list_runtime_tool_names",
-        lambda: ["todo", "web_search"],
-    )
+        "keprix.agent.keprix.mutation_dispatch.list_runtime_tool_names",
+        "keprix.agent.keprix.chat_mutation_bridge.list_runtime_tool_names",
+    ):
+        monkeypatch.setattr(target, lambda: ["todo", "web_search"])
 
     events = _collect_stream_events(client, session_id, "fetch AAPL stock price")
 
@@ -167,17 +176,23 @@ async def test_chat_message_streams_track_time_mutation(mutation_chat_client, mo
             "record": asdict(record),
         }
 
-    monkeypatch.setattr(
+    fake_engine = SimpleNamespace(
+        detect_gap_async=MutationEngine().detect_gap_async,
+        run_cycle=fake_run_cycle,
+    )
+    for target in (
+        "keprix.agent.keprix.mutation.get_mutation_engine",
         "keprix.agent.keprix.mutation_hook.get_mutation_engine",
-        lambda: SimpleNamespace(
-            detect_gap_async=MutationEngine().detect_gap_async,
-            run_cycle=fake_run_cycle,
-        ),
-    )
-    monkeypatch.setattr(
+        "keprix.agent.keprix.mutation_dispatch.get_mutation_engine",
+        "keprix.agent.keprix.chat_mutation_bridge.get_mutation_engine",
+    ):
+        monkeypatch.setattr(target, lambda: fake_engine)
+    for target in (
         "keprix.agent.keprix.mutation_hook.list_runtime_tool_names",
-        lambda: ["todo", "web_search"],
-    )
+        "keprix.agent.keprix.mutation_dispatch.list_runtime_tool_names",
+        "keprix.agent.keprix.chat_mutation_bridge.list_runtime_tool_names",
+    ):
+        monkeypatch.setattr(target, lambda: ["todo", "web_search"])
 
     events = _collect_stream_events(client, session_id, "Track my time on this project")
     mutation_events = [event for event in events if event.get("event") == "mutation"]
@@ -225,13 +240,17 @@ def test_non_gap_message_does_not_run_cycle(mutation_chat_client, monkeypatch):
     async def fake_stream_chat_completion(**_kwargs):
         yield "hello"
 
-    monkeypatch.setattr(
-        "keprix.agent.keprix.mutation_hook.get_mutation_engine",
-        lambda: SimpleNamespace(
-            detect_gap_async=MutationEngine().detect_gap_async,
-            run_cycle=fake_run_cycle,
-        ),
+    fake_engine = SimpleNamespace(
+        detect_gap_async=MutationEngine().detect_gap_async,
+        run_cycle=fake_run_cycle,
     )
+    for target in (
+        "keprix.agent.keprix.mutation.get_mutation_engine",
+        "keprix.agent.keprix.mutation_hook.get_mutation_engine",
+        "keprix.agent.keprix.mutation_dispatch.get_mutation_engine",
+        "keprix.agent.keprix.chat_mutation_bridge.get_mutation_engine",
+    ):
+        monkeypatch.setattr(target, lambda: fake_engine)
     monkeypatch.setattr(
         "keprix.api.chat_inference.stream_chat_completion",
         fake_stream_chat_completion,

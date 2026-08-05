@@ -52,7 +52,30 @@ async def restore_backup(
     try:
         result = backup_service.restore_backup(archive_bytes, password=password)
     except ValueError as exc:
+        try:
+            from keprix.readiness.restore_evidence import get_restore_evidence_store
+
+            get_restore_evidence_store().record(
+                ok=False,
+                restored_files=0,
+                encrypted=bool(password),
+                note=str(exc),
+            )
+        except Exception:
+            pass
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    try:
+        from keprix.readiness.restore_evidence import get_restore_evidence_store
+
+        get_restore_evidence_store().record(
+            ok=bool(result.get("ok", True)),
+            restored_files=int(result.get("restored_files") or 0),
+            encrypted=bool(password),
+            note="admin_restore",
+            detail={"restored_at": result.get("restored_at")},
+        )
+    except Exception:
+        pass
     await audit_log("backup_restore", user_id=admin.get("id"))
     return result
 

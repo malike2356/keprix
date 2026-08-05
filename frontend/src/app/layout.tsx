@@ -11,8 +11,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Keprix - The Mutant AI OS",
-  description: "Self-hosted open-source AI agent OS with a Mutation engine that builds its own tools.",
+  title: "Keprix - The agent OS that writes its own tools",
+  description: "Self-hosted open-source AI agent OS that can propose and test its own tools for your approval.",
   icons: {
     icon: [
       { url: "/favicon.ico" },

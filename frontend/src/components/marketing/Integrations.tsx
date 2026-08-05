@@ -1,15 +1,13 @@
 "use client";
 
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import { alpha, keyframes } from "@mui/material/styles";
-import Link from "next/link";
 import { useMarketingColors } from "@/components/marketing/MarketingSection";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
-import { INTEGRATION_GROUPS, INTEGRATION_PROVIDERS } from "@/components/marketing/integrations-data";
+import { INTEGRATION_PROVIDERS } from "@/components/marketing/integrations-data";
+import { useThemeMode } from "@/components/providers/ThemeRegistry";
 
 const scroll = keyframes`
   0% { transform: translateX(0); }
@@ -18,6 +16,8 @@ const scroll = keyframes`
 
 export function IntegrationsMarquee() {
   const c = useMarketingColors();
+  const { mode } = useThemeMode();
+  const isDark = mode === "dark";
   const doubled = [...INTEGRATION_PROVIDERS, ...INTEGRATION_PROVIDERS];
 
   return (
@@ -60,17 +60,21 @@ export function IntegrationsMarquee() {
                 gap: 1.5,
                 px: 2.5,
                 py: 1.25,
-                border: `1px solid rgba(255,255,255,0.07)`,
+                border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : c.divider}`,
                 borderRadius: 5,
-                bgcolor: "rgba(12,12,22,0.6)",
-                backdropFilter: "blur(12px)",
+                bgcolor: isDark ? "rgba(12,12,22,0.6)" : c.bgCard,
+                backdropFilter: isDark ? "blur(12px)" : "none",
                 whiteSpace: "nowrap",
                 flexShrink: 0,
-                boxShadow: `inset 0 1px 0 rgba(255,255,255,0.05)`,
+                boxShadow: isDark
+                  ? `inset 0 1px 0 rgba(255,255,255,0.05)`
+                  : `0 1px 2px ${alpha("#000", 0.04)}`,
                 transition: "border-color 0.2s, box-shadow 0.2s",
                 "&:hover": {
                   borderColor: alpha(p.color, 0.4),
-                  boxShadow: `0 0 16px ${alpha(p.color, 0.15)}, inset 0 1px 0 rgba(255,255,255,0.08)`,
+                  boxShadow: isDark
+                    ? `0 0 16px ${alpha(p.color, 0.15)}, inset 0 1px 0 rgba(255,255,255,0.08)`
+                    : `0 2px 8px ${alpha(p.color, 0.12)}`,
                 },
               }}
             >
@@ -81,13 +85,13 @@ export function IntegrationsMarquee() {
                   borderRadius: "50%",
                   bgcolor: p.color,
                   flexShrink: 0,
-                  boxShadow: `0 0 8px ${alpha(p.color, 0.8)}`,
+                  boxShadow: `0 0 8px ${alpha(p.color, isDark ? 0.8 : 0.45)}`,
                 }}
               />
               <Typography
                 sx={{
                   fontSize: "0.875rem",
-                  color: c.textSecondary,
+                  color: c.textPrimary,
                   fontWeight: 600,
                   letterSpacing: "-0.01em",
                 }}
@@ -98,58 +102,6 @@ export function IntegrationsMarquee() {
           ))}
         </Box>
       </Box>
-    </Box>
-  );
-}
-
-export function IntegrationsCatalog() {
-  const c = useMarketingColors();
-
-  return (
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: { xs: "1fr", md: "1fr 1fr 1fr" },
-        gap: 4,
-      }}
-    >
-      {INTEGRATION_GROUPS.map((group) => (
-        <Box key={group.label}>
-          <Typography
-            sx={{
-              fontWeight: 700,
-              fontSize: "0.8rem",
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              color: c.textPrimary,
-              mb: 2,
-            }}
-          >
-            {group.label}
-          </Typography>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-            {group.items.map((item) => (
-              <Chip
-                key={item}
-                label={item}
-                size="small"
-                variant="outlined"
-                sx={{
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  color: c.textSecondary,
-                  borderColor: alpha(c.primary, 0.2),
-                  bgcolor: alpha(c.bgCard, 0.5),
-                  "&:hover": {
-                    borderColor: alpha(c.primary, 0.45),
-                    color: c.textPrimary,
-                  },
-                }}
-              />
-            ))}
-          </Box>
-        </Box>
-      ))}
     </Box>
   );
 }
@@ -198,28 +150,6 @@ export function Integrations() {
       </Container>
 
       <IntegrationsMarquee />
-
-      <Container maxWidth="lg" sx={{ mt: { xs: 6, md: 8 }, textAlign: "center" }}>
-        <ScrollReveal>
-          <Button
-            component={Link}
-            href="/integrations"
-            variant="outlined"
-            size="large"
-            sx={{
-              fontWeight: 600,
-              borderColor: alpha(c.primary, 0.35),
-              color: c.textPrimary,
-              "&:hover": {
-                borderColor: alpha(c.primary, 0.6),
-                bgcolor: alpha(c.primary, 0.08),
-              },
-            }}
-          >
-            View all integrations
-          </Button>
-        </ScrollReveal>
-      </Container>
     </Box>
   );
 }

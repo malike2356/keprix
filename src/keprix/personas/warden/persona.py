@@ -21,4 +21,5 @@ WARDEN_PERSONA = KeprixPersona(
         "privacy-scanner",
     ],
     prompts_dir=_PROMPTS_DIR,
+    guide_path=Path(__file__).resolve().parents[2] / "skills" / "personas" / "warden" / "AGENT_GUIDE.md",
 )

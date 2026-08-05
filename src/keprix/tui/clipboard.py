@@ -12,58 +12,51 @@ def copy_text(text: str) -> bool:
     payload = text.strip()
     if not payload:
         return False
+    if _copy_with_pyperclip(payload):
+        return True
+    if _copy_with_platform_tools(payload):
+        return True
+    return osc52_copy(payload)
+
+
+def _copy_with_pyperclip(payload: str) -> bool:
     try:
         import pyperclip
 
         pyperclip.copy(payload)
         return True
     except Exception:
-        pass
+        return False
 
+
+def _copy_with_platform_tools(payload: str) -> bool:
     session = os.environ.get("XDG_SESSION_TYPE", "").lower()
     if session == "wayland" and shutil.which("wl-copy"):
-        result = subprocess.run(
-            ["wl-copy"],
-            input=payload.encode("utf-8"),
-            check=False,
-            capture_output=True,
-        )
-        return result.returncode == 0
+        return _run_clipboard(["wl-copy"], payload)
 
     if shutil.which("xclip"):
-        result = subprocess.run(
-            ["xclip", "-selection", "clipboard"],
-            input=payload.encode("utf-8"),
-            check=False,
-            capture_output=True,
-        )
-        return result.returncode == 0
+        return _run_clipboard(["xclip", "-selection", "clipboard"], payload)
 
     if shutil.which("wl-copy"):
-        result = subprocess.run(
-            ["wl-copy"],
-            input=payload.encode("utf-8"),
-            check=False,
-            capture_output=True,
-        )
-        return result.returncode == 0
+        return _run_clipboard(["wl-copy"], payload)
 
     if shutil.which("pbcopy"):
-        result = subprocess.run(
-            ["pbcopy"],
-            input=payload.encode("utf-8"),
-            check=False,
-            capture_output=True,
-        )
-        return result.returncode == 0
+        return _run_clipboard(["pbcopy"], payload)
 
-    # OSC 52 works over SSH when clipboard tools are unavailable.
-    if _osc52_copy(payload):
-        return True
     return False
 
 
-def _osc52_copy(text: str) -> bool:
+def _run_clipboard(command: list[str], payload: str) -> bool:
+    result = subprocess.run(
+        command,
+        input=payload.encode("utf-8"),
+        check=False,
+        capture_output=True,
+    )
+    return result.returncode == 0
+
+
+def osc52_copy(text: str) -> bool:
     import base64
 
     encoded = base64.b64encode(text.encode("utf-8")).decode("ascii")

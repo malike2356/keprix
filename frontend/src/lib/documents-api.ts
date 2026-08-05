@@ -55,3 +55,114 @@ export async function inspectDocumentIndex(indexId: string) {
     "inspect index",
   );
 }
+
+export async function refreshDocumentIndex(indexId: string) {
+  return parseJson<{ index_id: string; refreshed_documents: number }>(
+    await ceApi(`/api/documents/indexes/${encodeURIComponent(indexId)}/refresh`, { method: "POST" }),
+    "refresh index",
+  );
+}
+
+export async function deleteDocumentIndex(indexId: string) {
+  return parseJson<{ deleted: boolean }>(
+    await ceApi(`/api/documents/indexes/${encodeURIComponent(indexId)}`, { method: "DELETE" }),
+    "delete index",
+  );
+}
+
+export async function uploadToDocumentIndex(indexId: string, file: File) {
+  const form = new FormData();
+  form.append("file", file);
+  return parseJson<Record<string, unknown>>(
+    await ceApi(`/api/documents/indexes/${encodeURIComponent(indexId)}/upload`, {
+      method: "POST",
+      body: form,
+      headers: {},
+    }),
+    "upload to index",
+  );
+}
+
+export async function fetchDocumentConnectors() {
+  return parseJson<{ connectors: string[]; schemas: string[]; disk_roots?: string[] }>(
+    await ceApi("/api/documents/connectors"),
+    "document connectors",
+  );
+}
+
+export async function extractDocumentStructure(text: string, schemaName = "generic") {
+  return parseJson<Record<string, unknown>>(
+    await ceApi("/api/documents/extract", {
+      method: "POST",
+      body: JSON.stringify({ text, schema_name: schemaName }),
+    }),
+    "extract failed",
+  );
+}
+
+export type DiskFolderSource = {
+  id: string;
+  name: string;
+  path: string;
+  index_id: string;
+  recursive: boolean;
+  file_count: number;
+  last_sync_at?: string | null;
+  last_sync_error?: string | null;
+  also_import_workspace?: boolean;
+  initial_sync?: Record<string, unknown>;
+};
+
+export async function fetchDiskFolders(userId = "default") {
+  return parseJson<{ folders: DiskFolderSource[]; disk_roots: string[] }>(
+    await ceApi(`/api/documents/disk-folders?user_id=${encodeURIComponent(userId)}`),
+    "disk folders",
+  );
+}
+
+export async function addDiskFolder(body: {
+  path: string;
+  name?: string;
+  index_id?: string;
+  recursive?: boolean;
+  also_import_workspace?: boolean;
+  user_id?: string;
+}) {
+  return parseJson<DiskFolderSource>(
+    await ceApi("/api/documents/disk-folders", {
+      method: "POST",
+      body: JSON.stringify({ user_id: "default", recursive: true, ...body }),
+    }),
+    "add disk folder",
+  );
+}
+
+export async function syncDiskFolder(folderId: string, userId = "default") {
+  return parseJson<Record<string, unknown>>(
+    await ceApi(
+      `/api/documents/disk-folders/${encodeURIComponent(folderId)}/sync?user_id=${encodeURIComponent(userId)}`,
+      { method: "POST" },
+    ),
+    "sync disk folder",
+  );
+}
+
+export async function deleteDiskFolder(folderId: string, userId = "default") {
+  return parseJson<{ deleted: boolean }>(
+    await ceApi(
+      `/api/documents/disk-folders/${encodeURIComponent(folderId)}?user_id=${encodeURIComponent(userId)}`,
+      { method: "DELETE" },
+    ),
+    "delete disk folder",
+  );
+}
+
+export async function ingestDiskPath(indexId: string, path: string) {
+  return parseJson<Record<string, unknown>>(
+    await ceApi(`/api/documents/indexes/${encodeURIComponent(indexId)}/disk-path`, {
+      method: "POST",
+      body: JSON.stringify({ path }),
+    }),
+    "ingest disk path",
+  );
+}

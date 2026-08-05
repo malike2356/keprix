@@ -40,13 +40,16 @@ async def test_stream_chat_completion_yields_deltas(monkeypatch):
         lambda provider_id: provider_id == "deepseek",
     )
 
-    def fake_stream(*, provider, model, messages, out_queue):
-        out_queue.put("Hello")
-        out_queue.put(" there")
-        out_queue.put(None)
+    async def fake_stream_via_thread(client, resolved_model, messages, usage_holder):
+        yield "Hello"
+        yield " there"
 
-    monkeypatch.setattr(chat_inference, "_stream_completion_sync", fake_stream)
-
+    # Force the non-AsyncOpenAI path so `_stream_via_thread` is used.
+    monkeypatch.setattr(
+        "agent.auxiliary_client.resolve_provider_client",
+        lambda *args, **kwargs: (object(), "deepseek-chat"),
+    )
+    monkeypatch.setattr(chat_inference, "_stream_via_thread", fake_stream_via_thread)
     monkeypatch.setattr(chat_inference, "build_codebase_system_prompt", lambda: "system context")
 
     chunks = []

@@ -10,8 +10,12 @@ from keprix.governance.event_reporter import flush_events, queue_audit_event, re
 from keprix.governance.heartbeat import run_heartbeat_if_enabled
 from keprix.governance.kill_relay import clear_kill_state, get_kill_state
 from keprix.governance.policy_receiver import get_policy_registry, reload_policies
-from keprix.governance.store import get_governance_store
+from keprix.governance import store as governance_store
 from keprix.security.vault_service import get_vault_service
+
+
+def get_governance_store():
+    return governance_store.get_governance_store()
 
 
 class GovernanceClient:
@@ -27,8 +31,9 @@ class GovernanceClient:
         return item._value
 
     async def status(self) -> dict[str, Any]:
-        cfg = await get_governance_store().get_config()
-        policies = await get_governance_store().list_policies(active_only=True)
+        store = get_governance_store()
+        cfg = await store.get_config()
+        policies = await store.list_policies(active_only=True)
         kill = get_kill_state().to_dict()
         return {
             "enabled": bool(cfg.get("enabled")),
@@ -52,7 +57,8 @@ class GovernanceClient:
         api_key: str,
     ) -> dict[str, Any]:
         vault = get_vault_service()
-        cfg = await get_governance_store().get_config()
+        store = get_governance_store()
+        cfg = await store.get_config()
         old_vault_id = cfg.get("api_key_vault_id")
         if old_vault_id:
             await vault.delete_item(str(old_vault_id), user_id)
@@ -65,7 +71,7 @@ class GovernanceClient:
         )
         instance_id = await enroll_instance(provider_endpoint=provider_endpoint, api_key=api_key)
         now = datetime.now(timezone.utc).isoformat()
-        saved = await get_governance_store().save_config(
+        saved = await store.save_config(
             {
                 "enabled": True,
                 "provider_endpoint": provider_endpoint.rstrip("/"),
@@ -83,12 +89,13 @@ class GovernanceClient:
 
     async def disconnect(self, *, user_id: str, accept_responsibility: bool) -> dict[str, Any]:
         if not accept_responsibility:
-            raise ValueError("You must accept responsibility for ungoverned operation")
-        cfg = await get_governance_store().get_config()
+            raise ValueError("You must accept responsibility for local-only operation")
+        store = get_governance_store()
+        cfg = await store.get_config()
         vault_id = cfg.get("api_key_vault_id")
         if vault_id:
             await get_vault_service().delete_item(str(vault_id), user_id)
-        saved = await get_governance_store().save_config(
+        saved = await store.save_config(
             {
                 "enabled": False,
                 "api_key_vault_id": None,

@@ -42,6 +42,8 @@ import {
   fetchMcpCatalog,
   fetchMcpServers,
   fetchMcpVaultSecretKeys,
+  fetchOptionalMcpCatalogEntries,
+  installOptionalMcpEntry,
   setAutoMcpSpawnEnabled,
   setMcpServerEnabled,
   startMcpOAuth,
@@ -50,7 +52,9 @@ import {
   type McpCatalogEntry,
   type McpServer,
   type McpServerInput,
+  type OptionalMcpCatalogEntry,
 } from "@/lib/admin-api";
+import { docsPageUrl } from "@/lib/docs-url";
 
 type DialogState = {
   open: boolean;
@@ -90,11 +94,44 @@ const EMPTY_CATALOG_DIALOG: CatalogCredDialog = {
   vaultEnv: {},
 };
 
+type N8nInstallDialogState = {
+  open: boolean;
+  env: Record<string, string>;
+};
+
+const EMPTY_N8N_INSTALL_DIALOG: N8nInstallDialogState = {
+  open: false,
+  env: {},
+};
+
+function manifestDocsHref(docsUrl?: string | null): string | null {
+  if (!docsUrl) {
+    return null;
+  }
+  const stripped = docsUrl.replace(/^\/docs\/?/, "").replace(/^\//, "").replace(/\/$/, "");
+  return docsPageUrl(stripped);
+}
+
+function n8nBridgeStatus(entry: OptionalMcpCatalogEntry | undefined): {
+  label: string;
+  color: "default" | "success" | "warning";
+} {
+  if (!entry?.installed) {
+    return { label: "Not installed", color: "default" };
+  }
+  if (entry.enabled) {
+    return { label: "Installed and enabled", color: "success" };
+  }
+  return { label: "Installed (disabled)", color: "warning" };
+}
+
 const CREDENTIAL_HINTS: Record<string, string> = {
   GITHUB_PERSONAL_ACCESS_TOKEN: "Get your token at github.com/settings/tokens",
   NOTION_TOKEN: "Create at notion.so/my-integrations; share pages with the integration",
   TRELLO_API_KEY: "Get from trello.com/power-ups/admin",
   TRELLO_TOKEN: "Generate token from the same Power-Up admin page",
+  N8N_BASE_URL: "Default http://127.0.0.1:5678 when using local Docker n8n",
+  N8N_API_KEY: "Generate under n8n Settings → API (see n8n sidecar docs)",
 };
 
 function connectionStatusLabel(status: McpServer["connection_status"]): string {
@@ -163,6 +200,10 @@ export default function McpAdminPage() {
   const [highlightServer, setHighlightServer] = React.useState<string | null>(null);
   const [oauthConnecting, setOauthConnecting] = React.useState<string | null>(null);
   const [oauthPolling, setOauthPolling] = React.useState<string | null>(null);
+  const [n8nInstallDialog, setN8nInstallDialog] = React.useState<N8nInstallDialogState>(
+    EMPTY_N8N_INSTALL_DIALOG,
+  );
+  const [n8nInstalling, setN8nInstalling] = React.useState(false);
 
   const {
     data: servers = [],
@@ -179,6 +220,12 @@ export default function McpAdminPage() {
       setError(err instanceof Error ? err.message : "Failed to load MCP catalog");
     },
   });
+
+  const { data: optionalCatalogEntries = [], mutate: mutateOptionalCatalog } = useSWR(
+    "mcp-optional-catalog",
+    fetchOptionalMcpCatalogEntries,
+    { shouldRetryOnError: false },
+  );
 
   const { data: autoSpawnStatus, mutate: mutateAutoSpawn } = useSWR(
     "mcp-auto-spawn-status",
@@ -213,6 +260,15 @@ export default function McpAdminPage() {
   }, [oauthPolling, mutateServers, servers]);
 
   const serverNames = React.useMemo(() => new Set(servers.map((s) => s.name)), [servers]);
+
+  const n8nCatalogEntry = React.useMemo(
+    () => optionalCatalogEntries.find((entry) => entry.name === "n8n"),
+    [optionalCatalogEntries],
+  );
+
+  const n8nDocsHref =
+    manifestDocsHref(n8nCatalogEntry?.docs_url) ?? docsPageUrl("integrations/n8n-sidecar");
+  const n8nImportHref = docsPageUrl("features/migration") + "#from-n8n";
 
   React.useEffect(() => {
     setToolsByServer((prev) => {
@@ -504,6 +560,55 @@ export default function McpAdminPage() {
     await finishCatalogAdd(entry, env, Object.keys(vault_env).length ? vault_env : undefined);
   };
 
+  const openN8nInstallDialog = () => {
+    if (n8nCatalogEntry?.installed || serverNames.has("n8n")) {
+      setTab(0);
+      setHighlightServer("n8n");
+      return;
+    }
+    const env: Record<string, string> = {};
+    for (const spec of n8nCatalogEntry?.required_env ?? []) {
+      env[spec.name] = spec.name === "N8N_BASE_URL" ? "http://127.0.0.1:5678" : "";
+    }
+    setN8nInstallDialog({ open: true, env });
+  };
+
+  const handleN8nInstallSave = async () => {
+    if (!n8nCatalogEntry) {
+      return;
+    }
+    for (const spec of n8nCatalogEntry.required_env) {
+      if (spec.required && !n8nInstallDialog.env[spec.name]?.trim()) {
+        setError(`${spec.name} is required.`);
+        return;
+      }
+    }
+    setN8nInstalling(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const result = await installOptionalMcpEntry("n8n", { env: n8nInstallDialog.env });
+      await mutateOptionalCatalog();
+      await mutateServers();
+      setN8nInstallDialog(EMPTY_N8N_INSTALL_DIALOG);
+      setTab(0);
+      setHighlightServer("n8n");
+      if (result.background) {
+        setSuccess(
+          "n8n MCP install started in the background (git clone). Check action logs if it takes more than a minute.",
+        );
+      } else {
+        setSuccess("n8n MCP installed. Start a new chat session to load n8n tools.");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to install n8n MCP");
+    } finally {
+      setN8nInstalling(false);
+    }
+  };
+
+  const n8nStatus = n8nBridgeStatus(n8nCatalogEntry);
+
   return (
     <Box>
       <PageHeader
@@ -514,11 +619,16 @@ export default function McpAdminPage() {
           { label: "MCP Servers" },
         ]}
         actions={
-          tab === 0 ? (
-            <Button variant="contained" startIcon={<AddIcon />} onClick={openAddDialog}>
-              Add server
+          <Stack direction="row" spacing={1}>
+            <Button component={NextLink} href="/integrations" variant="outlined">
+              Marketplace view
             </Button>
-          ) : null
+            {tab === 0 ? (
+              <Button variant="contained" startIcon={<AddIcon />} onClick={openAddDialog}>
+                Add server
+              </Button>
+            ) : null}
+          </Stack>
         }
       />
 
@@ -549,6 +659,75 @@ export default function McpAdminPage() {
           </Button>
         </Stack>
       </Alert>
+
+      <Card variant="outlined" sx={{ mb: 2 }}>
+        <CardContent>
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            spacing={2}
+            alignItems={{ md: "flex-start" }}
+            justifyContent="space-between"
+          >
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mb: 1 }}>
+                <Typography variant="h6">n8n workflow bridge</Typography>
+                <Chip size="small" label={n8nStatus.label} color={n8nStatus.color} variant="outlined" />
+                {n8nCatalogEntry?.category ? (
+                  <Chip size="small" label={n8nCatalogEntry.category} variant="outlined" />
+                ) : null}
+              </Stack>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                {n8nCatalogEntry?.description ??
+                  "Manage and inspect n8n workflows from Keprix via a stdio MCP sidecar (no n8n nodes ported)."}
+              </Typography>
+              {n8nCatalogEntry?.default_tools?.length ? (
+                <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                  Default tools (read-mostly): {n8nCatalogEntry.default_tools.join(", ")}. Mutating tools are
+                  opt-in at install.
+                </Typography>
+              ) : null}
+              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                <Button
+                  component={NextLink}
+                  href={n8nDocsHref}
+                  size="small"
+                  variant="text"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Sidecar docs
+                </Button>
+                <Button
+                  component={NextLink}
+                  href={n8nImportHref}
+                  size="small"
+                  variant="text"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Import workflow JSON
+                </Button>
+              </Stack>
+            </Box>
+            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ flexShrink: 0 }}>
+              {n8nCatalogEntry?.installed || serverNames.has("n8n") ? (
+                <Button size="small" variant="outlined" onClick={() => openN8nInstallDialog()}>
+                  View in My servers
+                </Button>
+              ) : (
+                <Button
+                  size="small"
+                  variant="contained"
+                  disabled={!n8nCatalogEntry || n8nInstalling}
+                  onClick={() => openN8nInstallDialog()}
+                >
+                  {n8nInstalling ? "Installing..." : "Install n8n MCP"}
+                </Button>
+              )}
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
 
       {error ? (
         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
@@ -1026,6 +1205,51 @@ export default function McpAdminPage() {
             onClick={() => void handleCatalogCredSave()}
           >
             {catalogAdding ? "Adding..." : "Add server"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={n8nInstallDialog.open}
+        onClose={() => setN8nInstallDialog(EMPTY_N8N_INSTALL_DIALOG)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Install n8n MCP</DialogTitle>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            Connect to a running n8n instance. Local Docker:
+            {" "}
+            <Typography component="span" variant="body2" sx={{ fontFamily: "monospace", fontSize: "0.8rem" }}>
+              docker run -d --name n8n -p 5678:5678 -v n8n_data:/home/node/.n8n docker.n8n.io/n8nio/n8n
+            </Typography>
+          </Typography>
+          {(n8nCatalogEntry?.required_env ?? []).map((spec) => (
+            <Box key={spec.name}>
+              <TextField
+                label={`${spec.prompt}${spec.required ? " *" : ""}`}
+                type={spec.name.includes("KEY") || spec.name.includes("TOKEN") ? "password" : "text"}
+                fullWidth
+                value={n8nInstallDialog.env[spec.name] ?? ""}
+                onChange={(e) =>
+                  setN8nInstallDialog((prev) => ({
+                    ...prev,
+                    env: { ...prev.env, [spec.name]: e.target.value },
+                  }))
+                }
+              />
+              {CREDENTIAL_HINTS[spec.name] ? (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
+                  {CREDENTIAL_HINTS[spec.name]}
+                </Typography>
+              ) : null}
+            </Box>
+          ))}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setN8nInstallDialog(EMPTY_N8N_INSTALL_DIALOG)}>Cancel</Button>
+          <Button variant="contained" disabled={n8nInstalling} onClick={() => void handleN8nInstallSave()}>
+            {n8nInstalling ? "Installing..." : "Install"}
           </Button>
         </DialogActions>
       </Dialog>

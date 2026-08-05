@@ -60,3 +60,21 @@ def build_security_parser(subparsers, *, cmd_security: Callable) -> None:
     )
     audit_parser.set_defaults(func=cmd_security)
     security_parser.set_defaults(func=cmd_security)
+
+    pentest = security_subparsers.add_parser(
+        "pentest",
+        help="Run baseline security pentest checks",
+    )
+    pentest.add_argument("--quick", action="store_true")
+    pentest.add_argument("--full", action="store_true")
+    pentest.add_argument("--json", action="store_true")
+    pentest.set_defaults(func=cmd_security)
+
+    vault_audit = security_subparsers.add_parser(
+        "vault-audit",
+        help="Audit credential vault expiry and rotation schedule",
+    )
+    vault_audit.add_argument("--expiring", dest="expiring_days", type=int)
+    vault_audit.add_argument("--rotation-due", action="store_true")
+    vault_audit.add_argument("--json", action="store_true")
+    vault_audit.set_defaults(func=cmd_security)

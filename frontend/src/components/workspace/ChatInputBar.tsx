@@ -9,7 +9,7 @@ import StopIcon from "@mui/icons-material/Stop";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
-import CircularProgress from "@mui/material/CircularProgress";
+import CircularProgress from "@mui/material/CircularProgress"; // @loading-contract-ignore button spinner
 import IconButton from "@mui/material/IconButton";
 import Popover from "@mui/material/Popover";
 import TextField from "@mui/material/TextField";

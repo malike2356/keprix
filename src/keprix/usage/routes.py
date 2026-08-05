@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import io
+import json
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any, AsyncIterator, Literal
@@ -112,7 +113,18 @@ async def usage_timeseries(
 
 @router.get("/breakdown/{dimension}")
 async def usage_breakdown(
-    dimension: Literal["models", "providers", "channels", "users", "model", "provider", "channel", "user"],
+    dimension: Literal[
+        "models",
+        "providers",
+        "channels",
+        "users",
+        "agents",
+        "model",
+        "provider",
+        "channel",
+        "user",
+        "agent",
+    ],
     user: dict = Depends(get_current_user),
     workspace_id: str = Query(default="default"),
     user_id: str | None = Query(default=None),
@@ -147,6 +159,8 @@ async def usage_events(
     model: str | None = Query(default=None),
     provider: str | None = Query(default=None),
     days: int = Query(default=30, ge=1, le=365),
+    from_ts: datetime | None = Query(default=None),
+    to_ts: datetime | None = Query(default=None),
     limit: int = Query(default=50, ge=1, le=500),
     offset: int = Query(default=0, ge=0),
 ) -> dict[str, Any]:
@@ -160,18 +174,75 @@ async def usage_events(
         model=model,
         provider=provider,
         days=days,
+        from_ts=from_ts,
+        to_ts=to_ts,
     )
     return await get_llm_usage_analytics().list_events(filters, limit=limit, offset=offset)
 
 
+@router.get("/status")
+async def usage_status(user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    """Workspace metering status (enabled flag + role hints)."""
+    from keprix.usage.config import get_llm_usage_config
+
+    config = get_llm_usage_config()
+    return {
+        "enabled": config.enabled,
+        "retention_days": config.retention_days,
+        "is_admin": _usage_admin(user),
+        "enable_hint": "Set KEPRIX_LLM_USAGE_ENABLED=true and restart the API.",
+    }
+
+
 @router.get("/export")
 async def usage_export(
-    _admin: dict = Depends(require_admin),
+    user: dict = Depends(get_current_user),
     workspace_id: str = Query(default="default"),
     user_id: str | None = Query(default=None),
+    channel: str | None = Query(default=None),
+    model: str | None = Query(default=None),
+    provider: str | None = Query(default=None),
     days: int = Query(default=90, ge=1, le=365),
+    export_format: Literal["csv", "json"] = Query(default="csv", alias="format"),
 ) -> StreamingResponse:
-    filters = UsageQueryFilters.from_params(workspace_id=workspace_id, user_id=user_id, days=days)
+    filters = _resolve_filters(
+        user,
+        workspace_id=workspace_id,
+        user_id=user_id,
+        channel=channel,
+        model=model,
+        provider=provider,
+        days=days,
+    )
+    from keprix.usage.store import get_llm_usage_store
+
+    if export_format == "json":
+
+        async def stream_json() -> AsyncIterator[bytes]:
+            yield b'{"items":['
+            first = True
+            for row in get_llm_usage_store().iter_export_rows_sync(filters):
+                item = {
+                    "recorded_at": row[0],
+                    "user_id": row[1],
+                    "channel": row[2],
+                    "provider": row[3],
+                    "model": row[4],
+                    "input_tokens": row[5],
+                    "output_tokens": row[6],
+                    "total_tokens": row[7],
+                    "cost_usd": row[8],
+                    "cost_status": row[9],
+                    "session_id": row[10],
+                    "run_id": row[11],
+                }
+                chunk = (("" if first else ",") + json.dumps(item)).encode("utf-8")
+                first = False
+                yield chunk
+            yield b"]}"
+
+        headers = {"Content-Disposition": 'attachment; filename="llm-usage-export.json"'}
+        return StreamingResponse(stream_json(), media_type="application/json", headers=headers)
 
     async def stream_rows() -> AsyncIterator[bytes]:
         buffer = io.StringIO()
@@ -195,7 +266,6 @@ async def usage_export(
         yield buffer.getvalue().encode("utf-8")
         buffer.seek(0)
         buffer.truncate(0)
-        from keprix.usage.store import get_llm_usage_store
 
         for row in get_llm_usage_store().iter_export_rows_sync(filters):
             writer.writerow(row)

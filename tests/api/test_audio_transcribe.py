@@ -17,9 +17,16 @@ from keprix.security.rate_limiter import reset_rate_limits
 def api_client(tmp_path, monkeypatch):
     monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
     monkeypatch.setenv("KEPRIX_ADMIN_PASSWORD", "admin-pass")
+    monkeypatch.setenv("KEPRIX_ADMIN_EMAIL", "")
+    monkeypatch.setenv("ADMIN_EMAIL", "")
+    monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
     monkeypatch.setenv("AUTH_ENABLED", "true")
-    monkeypatch.delenv("KEPRIX_ADMIN_EMAIL", raising=False)
+    # Force in-memory rate limiting so Redis leftovers cannot flaky-fail tests.
+    monkeypatch.setenv("KEPRIX_REDIS_URL", "")
     monkeypatch.delenv("REDIS_URL", raising=False)
+    from keprix.config.settings import get_settings
+
+    get_settings.cache_clear()
     reset_rate_limits()
     reset_rate_limiter()
 
@@ -62,7 +69,7 @@ def test_transcribe_when_stt_disabled(audio_client, monkeypatch):
         json={"data_url": "data:audio/webm;base64,aGVsbG8=", "mime_type": "audio/webm"},
     )
     assert response.status_code == 403
-    assert response.json()["detail"] == "Speech-to-text is disabled"
+    assert response.json()["error"] == "Speech-to-text is disabled"
 
 
 def test_transcribe_success(audio_client, monkeypatch):

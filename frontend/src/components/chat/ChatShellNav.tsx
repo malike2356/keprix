@@ -1,7 +1,8 @@
 "use client";
 
-import AppsOutlinedIcon from "@mui/icons-material/AppsOutlined";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
+import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import NextLink from "next/link";
@@ -18,12 +19,21 @@ export default function ChatShellNav({ variant = "inline" }: ChatShellNavProps) 
   if (variant === "footer") {
     return (
       <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap" }}>
-        <Button component={NextLink} href="/launcher" size="small" variant="text">
-          Home
+        <Button component={NextLink} href="/home" size="small" variant="text">
+          Workspace
+        </Button>
+        <Button
+          component={NextLink}
+          href="/files"
+          size="small"
+          variant="text"
+          startIcon={<FolderOutlinedIcon fontSize="small" />}
+        >
+          Files
         </Button>
         {isOwner ? (
           <Button component={NextLink} href="/dashboard" size="small" variant="text">
-            Dashboard
+            Admin console
           </Button>
         ) : null}
       </Stack>
@@ -34,13 +44,23 @@ export default function ChatShellNav({ variant = "inline" }: ChatShellNavProps) 
     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
       <Button
         component={NextLink}
-        href="/launcher"
+        href="/home"
         size="small"
         color="inherit"
-        startIcon={<AppsOutlinedIcon fontSize="small" />}
+        startIcon={<HomeOutlinedIcon fontSize="small" />}
         sx={{ textTransform: "none", fontWeight: 600, minWidth: 0, px: 1 }}
       >
-        Home
+        Workspace
+      </Button>
+      <Button
+        component={NextLink}
+        href="/files"
+        size="small"
+        color="inherit"
+        startIcon={<FolderOutlinedIcon fontSize="small" />}
+        sx={{ textTransform: "none", fontWeight: 600, minWidth: 0, px: 1 }}
+      >
+        Files
       </Button>
       {isOwner ? (
         <Button
@@ -51,7 +71,7 @@ export default function ChatShellNav({ variant = "inline" }: ChatShellNavProps) 
           startIcon={<DashboardOutlinedIcon fontSize="small" />}
           sx={{ textTransform: "none", fontWeight: 600, minWidth: 0, px: 1 }}
         >
-          Dashboard
+          Admin console
         </Button>
       ) : null}
     </Stack>

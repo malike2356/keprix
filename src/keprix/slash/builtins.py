@@ -440,6 +440,30 @@ async def _crew(ctx: SlashContext) -> SlashResult:
     return await handle_crew_slash(ctx)
 
 
+
+async def _vical_slots(ctx: SlashContext) -> SlashResult:
+    from keprix.tools.mesh_workspace_tools import _handle_vical_slots
+
+    count = 5
+    if ctx.args:
+        try:
+            count = int(str(ctx.args[0]))
+        except ValueError:
+            count = 5
+    raw = _handle_vical_slots({"user_id": ctx.user_id, "count": count})
+    return SlashResult(ok=True, message=raw)
+
+
+async def _vical_bookings(ctx: SlashContext) -> SlashResult:
+    from keprix.tools.mesh_workspace_tools import _handle_vical_cancel, _handle_vical_list
+
+    if ctx.args and str(ctx.args[0]).lower() == "cancel" and len(ctx.args) >= 2:
+        raw = _handle_vical_cancel({"user_id": ctx.user_id, "booking_id": str(ctx.args[1])})
+        return SlashResult(ok=True, message=raw)
+    raw = _handle_vical_list({"user_id": ctx.user_id, "limit": 10})
+    return SlashResult(ok=True, message=raw)
+
+
 def register_builtin_commands(registry: SlashRegistry) -> None:
     entries = [
         SlashCommand("help", description="Show available commands", usage="/help", category="general", min_role="viewer", handler=_help),
@@ -469,6 +493,8 @@ def register_builtin_commands(registry: SlashRegistry) -> None:
         SlashCommand("ml.experiment", description="Start an ML experiment", usage="/ml experiment <dataset>", category="ml", min_role="operator", handler=_ml_experiment),
         SlashCommand("ml.runs", description="Show ML experiment runs", usage="/ml runs", category="ml", min_role="viewer", handler=_ml_runs),
         SlashCommand("opportunity", description="Run Opportunity Engine playbooks", usage='/opportunity find demand for "niche"', category="playbook", min_role="operator", handler=_opportunity),
+        SlashCommand("slots", description="Show viCal available slots", usage="/slots [count]", category="vical", min_role="viewer", handler=_vical_slots),
+        SlashCommand("bookings", description="List or cancel viCal bookings", usage="/bookings [cancel <id>]", category="vical", min_role="operator", handler=_vical_bookings),
         SlashCommand("crew", description="Run a registered agent team", usage='/crew <team_id> "objective"', category="playbook", min_role="operator", handler=_crew),
         SlashCommand("language", description="Show or set language preferences", usage="/language set tw-GH", category="settings", min_role="viewer", handler=_language),
         SlashCommand("safety", description="Show safety rules", usage="/safety", category="safety", min_role="viewer", handler=_safety),

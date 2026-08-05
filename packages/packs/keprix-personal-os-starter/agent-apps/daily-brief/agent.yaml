@@ -1,0 +1,17 @@
+name: daily-brief
+version: 1.0.0
+display_name: Daily Brief
+description: Skill-backed daily personal OS brief.
+category: productivity
+runtime: agent
+entrypoint: ""
+required_env: []
+required_permissions: []
+inputs:
+  - id: focus
+    label: Focus
+    type: text
+    required: false
+outputs:
+  - id: brief
+    type: markdown

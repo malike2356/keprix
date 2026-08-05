@@ -4,7 +4,7 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import { IconPlus } from "@tabler/icons-react";
+import { IconLayoutDashboard, IconPlus } from "@tabler/icons-react";
 import NextLink from "next/link";
 import { useCESession } from "@/lib/ce-auth";
 
@@ -53,16 +53,26 @@ export default function GreetingBar() {
           Your agent is ready.
         </Typography>
       </Box>
-      <Button
-        component={NextLink}
-        href="/chat"
-        variant="contained"
-        size="medium"
-        startIcon={<IconPlus size={16} stroke={2} />}
-        sx={{ flexShrink: 0 }}
-      >
-        New session
-      </Button>
+      <Box sx={{ display: "flex", flexShrink: 0, gap: 1, alignItems: "center" }}>
+        <Button
+          component={NextLink}
+          href="/dashboard"
+          variant="outlined"
+          size="medium"
+          startIcon={<IconLayoutDashboard size={16} stroke={2} />}
+        >
+          Dashboard
+        </Button>
+        <Button
+          component={NextLink}
+          href="/chat"
+          variant="contained"
+          size="medium"
+          startIcon={<IconPlus size={16} stroke={2} />}
+        >
+          Start chat
+        </Button>
+      </Box>
     </Box>
   );
 }

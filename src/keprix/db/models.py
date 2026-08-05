@@ -81,9 +81,12 @@ class EmailDraftRow(Base):
 
 class ContactRow(Base):
     __tablename__ = "contacts"
-    __table_args__ = (UniqueConstraint("source", "source_id", name="uq_contacts_source_source_id"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "source", "source_id", name="uq_contacts_user_source_source_id"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(Text, nullable=False, index=True)
     display_name: Mapped[str] = mapped_column(Text, nullable=False)
     given_name: Mapped[str | None] = mapped_column(Text, nullable=True)
     family_name: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -106,6 +109,7 @@ class ContactSyncSourceRow(Base):
     __tablename__ = "contact_sync_sources"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(Text, nullable=False, index=True)
     provider: Mapped[str] = mapped_column(Text, nullable=False)
     display_name: Mapped[str] = mapped_column(Text, nullable=False)
     vault_token_id: Mapped[str | None] = mapped_column(String(36), nullable=True)

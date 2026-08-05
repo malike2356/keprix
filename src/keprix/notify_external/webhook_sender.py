@@ -67,6 +67,7 @@ async def send_webhook(
     triggered_by: str = "api",
     triggered_by_id: str | None = None,
     timeout_seconds: int = 30,
+    existing_notification_id: str | None = None,
 ) -> str:
     store = get_notify_external_store()
     if not store.check_rate_limit(workspace_id):
@@ -75,23 +76,40 @@ async def send_webhook(
         raise RateLimitExceeded("External notification rate limit exceeded")
 
     validate_webhook_url(webhook_url)
-    row = store.create_notification(
-        workspace_id,
-        {
-            "channel": "webhook",
-            "recipient_address": webhook_url,
-            "subject": None,
-            "body_text": json.dumps(payload, separators=(",", ":"), sort_keys=True),
-            "template_name": None,
-            "template_vars": payload,
-            "triggered_by": triggered_by,
-            "triggered_by_id": triggered_by_id,
-        },
-    )
-    notification_id = str(row["id"])
+    prior_attempts = 0
+    body_text = json.dumps(payload, separators=(",", ":"), sort_keys=True)
+    if existing_notification_id:
+        existing = store.get_notification(existing_notification_id)
+        if existing is None:
+            raise ValueError("Notification not found")
+        notification_id = existing_notification_id
+        prior_attempts = int(existing.get("attempts") or 0)
+        store.update_notification(
+            notification_id,
+            {
+                "status": "pending",
+                "body_text": body_text,
+                "template_vars": payload,
+            },
+        )
+    else:
+        row = store.create_notification(
+            workspace_id,
+            {
+                "channel": "webhook",
+                "recipient_address": webhook_url,
+                "subject": None,
+                "body_text": body_text,
+                "template_name": None,
+                "template_vars": payload,
+                "triggered_by": triggered_by,
+                "triggered_by_id": triggered_by_id,
+            },
+        )
+        notification_id = str(row["id"])
     config = store.get_config(workspace_id)
     secret = await _webhook_secret(workspace_id, config)
-    body = json.dumps(payload, separators=(",", ":"), sort_keys=True).encode("utf-8")
+    body = body_text.encode("utf-8")
     signature = hmac.new(secret, body, hashlib.sha256).hexdigest()
     headers = {
         "Content-Type": "application/json",
@@ -109,9 +127,10 @@ async def send_webhook(
             notification_id,
             {
                 "status": "sent",
-                "attempts": 1,
+                "attempts": prior_attempts + 1,
                 "last_attempted_at": datetime.now(timezone.utc).isoformat(),
                 "delivered_at": datetime.now(timezone.utc).isoformat(),
+                "failure_reason": None,
             },
         )
         await audit_log(
@@ -128,7 +147,7 @@ async def send_webhook(
             notification_id,
             {
                 "status": "failed",
-                "attempts": 1,
+                "attempts": prior_attempts + 1,
                 "last_attempted_at": datetime.now(timezone.utc).isoformat(),
                 "failure_reason": str(exc)[:500],
             },

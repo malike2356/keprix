@@ -1,0 +1,204 @@
+# keprix - Prompt 18: API Surface, Observability, and Self-Host Tooling
+
+## Context
+
+Sources:
+- `hermes-agent/agent/insights.py` - usage insights
+- `hermes-agent/plugins/observability/` - observability plugin
+- `core.carinaai.uk/src/observability/` - Aiva (commercial) observability
+- `core.carinaai.uk/src/analytics/` - analytics
+- `odysseus/routes/diagnostics_routes.py` - diagnostics
+- `hermes-agent/hermes_cli/subcommands/` - CLI subcommands
+Output: `keprix/backend/api/`, `keprix/backend/observability/`
+
+## Main Backend API Server
+
+`backend/api/server.py` - FastAPI application:
+- Mounts all route groups from previous prompts
+- CORS: allow configured frontend origin
+- Auth middleware: validate bearer token on all `/api/` routes except `/api/auth/login`
+- Security headers middleware (Prompt 02)
+- Rate limiting middleware (Prompt 02)
+- Request logging middleware: log method, path, status, duration_ms to `request_log` table
+- Error handler: return `{ error: str, code: str }` JSON for all 4xx/5xx
+
+Start command: `python -m keprix start --port 3333`
+
+## Health and Status Endpoints
+
+```
+GET    /api/health                    - basic health check (no auth)
+       Returns: { "status": "ok", "version": "1.0.0", "edition": "community" }
+
+GET    /api/health/detailed           - full status (requires admin auth)
+       Returns:
+         database: { connected: bool, version: str, pgvector: bool }
+         redis: { connected: bool }
+         searxng: { available: bool, url: str }
+         providers: [ { name, configured: bool, model_count: int } ]
+         gateway: { running: bool, channels: [ {name, connected: bool} ] }
+         cron: { active_jobs: int, next_run_at: str }
+         version: str
+         uptime_seconds: int
+```
+
+## Observability
+
+### Port from Hermes
+
+```
+plugins/observability/             -> backend/observability/
+agent/insights.py                  -> backend/observability/insights.py
+```
+
+### Port from Aiva (commercial)
+
+Read `core.carinaai.uk/src/observability/` (TypeScript) and implement Python
+equivalents for any observability features not present in Hermes.
+
+### Metrics
+
+`backend/observability/metrics.py`:
+- Track per-user: messages sent, tokens used (input/output), tools called, provider breakdown
+- Track per-provider: request count, token count, error rate, avg latency
+- Track per-skill: invocation count, success rate
+- Track per-cron-job: run count, success rate, avg duration
+- All metrics stored in PostgreSQL `metrics` table with 90-day retention
+
+```sql
+CREATE TABLE metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id TEXT,
+    metric_type TEXT NOT NULL,     -- 'message', 'tool_call', 'provider_request', 'skill_run'
+    metric_name TEXT NOT NULL,
+    metric_value NUMERIC NOT NULL,
+    tags JSONB DEFAULT '{}',
+    recorded_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX ON metrics (metric_type, recorded_at DESC);
+CREATE INDEX ON metrics (user_id, metric_type, recorded_at DESC);
+```
+
+### Analytics API
+
+```
+GET    /api/analytics/usage          - per-user usage summary (last 30 days)
+GET    /api/analytics/providers      - provider usage breakdown
+GET    /api/analytics/costs          - estimated cost by provider (using published token prices)
+GET    /api/analytics/tools          - most-used tools
+GET    /api/analytics/skills         - most-used skills
+GET    /api/analytics/timeline?days=30 - daily message/token counts
+```
+
+### Diagnostics (from Odysseus)
+
+Port `odysseus/routes/diagnostics_routes.py`:
+```
+routes/diagnostics_routes.py -> backend/api/diagnostics_routes.py
+```
+
+```
+GET    /api/diagnostics              - system diagnostics (admin only)
+POST   /api/diagnostics/run          - run diagnostic checks
+       Checks: DB connection, Redis ping, SearXNG reachability,
+               provider API key validity, IMAP connection (if configured),
+               disk space, memory usage
+```
+
+## Public API
+
+From `core.carinaai.uk/src/public-api/`:
+keprix exposes a public REST API for external integrations. This is the same
+API used by the mobile apps and webhook consumers.
+
+```
+POST   /v1/chat                       - send message to agent (returns response)
+       Auth: Bearer token (API token from Prompt 08)
+       Body: { "message": str, "session_id": str?, "model": str?, "skills": [str] }
+       Returns: { "response": str, "session_id": str, "tokens_used": int }
+
+POST   /v1/chat/stream                - streaming version (SSE)
+
+POST   /v1/tools/{tool_name}          - call a specific tool directly
+       Auth: Bearer token with tools:execute scope
+
+GET    /v1/memory/search?q=           - search memories
+
+POST   /v1/tasks                      - create a task
+GET    /v1/tasks                      - list tasks
+```
+
+`frontend/src/app/api/docs/page.tsx` - API documentation page:
+- Interactive API explorer (Swagger UI or Redoc)
+- Point at `/openapi.json` generated by FastAPI
+
+## CLI Interface (Full Suite)
+
+`backend/cli/` - keprix CLI (ported from `hermes_cli/`).
+
+Port all subcommands from `hermes-agent/hermes_cli/subcommands/`:
+
+```
+hermes_cli/subcommands/ -> backend/cli/subcommands/
+```
+
+After porting, rename `hermes` -> `keprix` in all command names.
+The CLI entry point is: `python -m keprix`
+
+Full command set (from Hermes, adapted):
+```
+keprix start              - start backend + gateway
+keprix stop               - graceful stop
+keprix status             - show running services
+keprix chat               - interactive CLI chat
+keprix model              - configure LLM provider/model
+keprix setup              - first-run setup wizard
+keprix gateway start/stop/status
+keprix cron list/add/run/disable/delete
+keprix skills list/install/search
+keprix mcp serve
+keprix memory list/search/clear
+keprix backup create/restore/list
+keprix health
+keprix update             - self-update from GitHub releases
+keprix logs               - show recent logs
+keprix config get/set     - read/write config values
+keprix doctor             - check system for problems and print fixes
+```
+
+`keprix doctor` (from Hermes `hermes doctor`) must check:
+- Python version >= 3.11
+- PostgreSQL reachable with pgvector
+- Redis reachable
+- At least one LLM provider configured
+- Docker available (if using Docker terminal backend)
+- Print each check as PASS/FAIL with fix instructions for FAIL cases
+
+## Session Logging / Trajectory
+
+Port `hermes-agent/agent/trajectory.py` (already in Prompt 03) and
+`hermes-agent/trajectory_compressor.py` (already in Prompt 03).
+
+Trajectories are saved to `~/.keprix/logs/session_{date}_{uuid}.json`.
+`backend/observability/trajectory_exporter.py`:
+- `GET /api/admin/sessions/{id}/trajectory` - download raw trajectory JSON
+- `GET /api/admin/sessions/{id}/trajectory/summary` - compressed summary
+
+## Rate Limit Tracking
+
+Port `hermes-agent/agent/rate_limit_tracker.py` (already in Prompt 03) and
+connect to the metrics system:
+- When a provider rate limit is hit, record to metrics as `provider_request` with tag `rate_limited: true`
+- Surface in analytics as "Rate limit events" per provider
+
+## Acceptance Criteria
+
+- `GET /api/health` returns 200 with `{status: "ok"}` in under 100ms
+- `GET /api/health/detailed` returns all service statuses correctly
+- `GET /api/analytics/usage` returns token counts per day for last 30 days
+- `GET /api/diagnostics` returns all check results with pass/fail
+- `POST /v1/chat` with a valid API token returns an agent response
+- `GET /openapi.json` returns valid OpenAPI 3.x schema with all routes documented
+- `python -m keprix doctor` prints PASS for all checks on a healthy installation
+- `python -m keprix status` shows backend, gateway, and cron status
+- Trajectory file is written to `~/.keprix/logs/` after each chat session

@@ -55,6 +55,13 @@ def clear_kill_state() -> None:
     _stop_event = asyncio.Event()
 
 
+def resume_agent() -> None:
+    """Clear a suspend/stop directive without wiping other kill state."""
+    _state.stop_agent = False
+    _stop_event.clear()
+    _state.updated_at = datetime.now(timezone.utc).isoformat()
+
+
 def agent_stop_requested() -> bool:
     return _state.stop_agent
 

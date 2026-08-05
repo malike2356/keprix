@@ -23,6 +23,7 @@ const BLEND_MODES = [
 type BlendMode = (typeof BLEND_MODES)[number]
 const assetPath = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
 
+/** Subtle Keprix crest watermark behind the chat canvas. */
 export function Backdrop() {
   const [controlsOpen, setControlsOpen] = useState(false)
 
@@ -64,21 +65,15 @@ export function Backdrop() {
     document.documentElement.style.setProperty('--radius-scalar', String(shape.radiusScalar))
   }, [shape.radiusScalar])
 
-  const statue = useControls(
-    'Backdrop / Statue',
+  const mark = useControls(
+    'Backdrop / Crest',
     {
       enabled: { value: true, label: 'on' },
-      opacity: { value: 0.025, min: 0, max: 1, step: 0.005 },
-      blendMode: { value: 'difference' as BlendMode, options: BLEND_MODES, label: 'blend' },
-      invert: { value: true, label: 'invert color' },
-      saturate: { value: 1, min: 0, max: 3, step: 0.05, label: 'saturate' },
-      brightness: { value: 1, min: 0, max: 2, step: 0.05, label: 'brightness' },
-      objectPosition: {
-        value: 'top left',
-        options: ['top left', 'top right', 'bottom left', 'bottom right', 'center', 'top', 'bottom', 'left', 'right'],
-        label: 'position'
-      },
-      scale: { value: 160, min: 100, max: 300, step: 5, label: 'height (dvh)' }
+      opacity: { value: 0.06, min: 0, max: 0.35, step: 0.005 },
+      blendMode: { value: 'soft-light' as BlendMode, options: BLEND_MODES, label: 'blend' },
+      scale: { value: 72, min: 30, max: 140, step: 1, label: 'size (vmin)' },
+      offsetX: { value: 8, min: -40, max: 40, step: 1, label: 'offset x %' },
+      offsetY: { value: 4, min: -40, max: 40, step: 1, label: 'offset y %' }
     },
     { collapsed: true }
   )
@@ -87,28 +82,28 @@ export function Backdrop() {
     <>
       <Leva collapsed hidden={!import.meta.env.DEV || !controlsOpen} titleBar={{ title: 'backdrop', drag: true }} />
 
-      {statue.enabled && (
+      {mark.enabled ? (
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-2"
+          className="pointer-events-none absolute inset-0 z-2 overflow-hidden"
           style={{
-            mixBlendMode: statue.blendMode as CSSProperties['mixBlendMode'],
-            opacity: statue.opacity
+            mixBlendMode: mark.blendMode as CSSProperties['mixBlendMode'],
+            opacity: mark.opacity
           }}
         >
           <img
             alt=""
-            className="w-auto min-w-dvw object-cover"
+            className="absolute left-1/2 top-1/2 max-w-none select-none object-contain"
             fetchPriority="low"
-            src={assetPath('ds-assets/filler-bg0.jpg')}
+            src={assetPath('logo-trans.png')}
             style={{
-              height: `${statue.scale}dvh`,
-              objectPosition: statue.objectPosition,
-              filter: `invert(calc(${statue.invert ? 1 : 0} * var(--backdrop-invert-mul, 1))) saturate(${statue.saturate}) brightness(${statue.brightness})`
+              width: `${mark.scale}vmin`,
+              height: `${mark.scale}vmin`,
+              transform: `translate(calc(-50% + ${mark.offsetX}%), calc(-50% + ${mark.offsetY}%))`
             }}
           />
         </div>
-      )}
+      ) : null}
     </>
   )
 }

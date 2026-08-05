@@ -1,6 +1,6 @@
 # Calendar
 
-The workspace calendar stores events per user and supports month, week, day, and schedule views.
+The workspace calendar stores events per user and supports month, week, day, and schedule views. It syncs with external calendars over CalDAV (bidirectional) or ICS feeds (pull only), with optional automatic resync on a configurable interval.
 
 ## Web UI (`/calendar`)
 
@@ -11,50 +11,79 @@ The workspace calendar stores events per user and supports month, week, day, and
 | Day | Single-day timeline with all-day banner |
 | Schedule | Agenda list grouped by date (next 30 days) |
 
-Toolbar: **Today**, previous/next navigation, **New event** dialog.
+Toolbar: **Today**, previous/next navigation, **New event**, **Sync calendars**, **Sync now**.
 
-Click an event to view title, time range, location, and description.
+## Automated 2-way sync
 
-## Create events
+Open **Sync calendars** → **Connect calendar**.
 
-In the UI: **New event** with title, start, and end datetime.
+| Setting | Default | Notes |
+| --- | --- | --- |
+| Sync direction | `bidirectional` (CalDAV) | ICS is always `pull` |
+| Push local events | On for CalDAV | New/edited Keprix events push to the connected calendar |
+| Auto-sync | On | Background worker resyncs when due |
+| Resync interval | 15 minutes | Configurable per source: 5m to 24h |
 
-API:
+The API process runs a calendar auto-sync scheduler (same lifespan pattern as email/contact sync). It ticks every ~30s and syncs each source whose `last_sync_at` is older than its interval.
+
+Kill switch: `KEPRIX_CALENDAR_AUTO_SYNC=0`. Tick override: `KEPRIX_CALENDAR_SYNC_TICK_SEC=30`.
+
+### Provider guidance for automation
+
+| Provider | Mode | Continual automation |
+| --- | --- | --- |
+| Google CalDAV | 2-way | Preferred Google path for auto sync |
+| Google ICS | Pull | OK for read-only refresh; not 2-way |
+| iCloud / Nextcloud / Fastmail / CalDAV | 2-way | Preferred for write-back |
+| ICS feed | Pull | Interval refresh only |
+
+## Sync API
 
 ```bash
-curl -X POST http://localhost:3333/api/workspace/calendar/events \
+# Scheduler status
+curl http://localhost:3334/api/workspace/calendar/auto-sync
+
+# Connect CalDAV with auto 2-way every 15 minutes
+curl -X POST http://localhost:3334/api/workspace/calendar/sources \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Work",
+    "provider": "nextcloud",
+    "url": "https://cloud.example/remote.php/dav/",
+    "username": "alice",
+    "password": "...",
+    "sync_direction": "bidirectional",
+    "push_local_events": true,
+    "auto_sync": true,
+    "sync_interval_minutes": 15
+  }'
+
+# Change interval / pause auto-sync
+curl -X PATCH http://localhost:3334/api/workspace/calendar/sources/{id} \
+  -H "Content-Type: application/json" \
+  -d '{"sync_interval_minutes": 60, "auto_sync": true}'
+
+# Manual sync
+curl -X POST http://localhost:3334/api/workspace/calendar/sync
+```
+
+## Create / list events
+
+```bash
+curl -X POST http://localhost:3334/api/workspace/calendar/events \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Standup",
     "start_at": "2026-07-06T09:00:00Z",
-    "end_at": "2026-07-06T09:30:00Z",
-    "all_day": false
+    "end_at": "2026-07-06T09:30:00Z"
   }'
+
+curl "http://localhost:3334/api/workspace/calendar/events?start=2026-07-01T00:00:00Z&end=2026-07-31T23:59:59Z"
 ```
-
-## List events
-
-```bash
-curl "http://localhost:3333/api/workspace/calendar/events?start=2026-07-01T00:00:00Z&end=2026-07-31T23:59:59Z"
-```
-
-## CalDAV sync
-
-Optional CalDAV sources sync external calendars:
-
-- `GET /api/workspace/calendar/sources`
-- `POST /api/workspace/calendar/sources`
-- `POST /api/workspace/calendar/sync`
-
-Configure sources when integrating Google Calendar, Nextcloud, or similar CalDAV servers.
-
-## Agent use
-
-ECHO persona and scheduling tools read workspace calendar availability for booking flows.
 
 ## Storage
 
-Events live in the workspace repository (PostgreSQL in production). Back up before major upgrades.
+Events and sources persist under the Keprix data directory (`workspace/calendar_store.json` for the in-memory repository path). Passwords/tokens are encrypted at rest.
 
 ## Related
 

@@ -7,8 +7,13 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import { alpha } from "@mui/material/styles";
 import Link from "next/link";
-import { useMarketingColors } from "@/components/marketing/MarketingSection";
+import {
+  MARKETING_EYEBROW_SX,
+  MARKETING_HEADING_SX,
+  useMarketingColors,
+} from "@/components/marketing/MarketingSection";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
+import { useThemeMode } from "@/components/providers/ThemeRegistry";
 
 const DottedSurfaceBackground = dynamic(
   () => import("@/components/ui/dotted-surface-background").then((mod) => mod.DottedSurfaceBackground),
@@ -17,6 +22,8 @@ const DottedSurfaceBackground = dynamic(
 
 export function CTABand() {
   const c = useMarketingColors();
+  const { mode } = useThemeMode();
+  const isDark = mode === "dark";
 
   return (
     <Box
@@ -28,7 +35,7 @@ export function CTABand() {
         bgcolor: c.bgDefault,
       }}
     >
-      <DottedSurfaceBackground />
+      <DottedSurfaceBackground mode={isDark ? "dark" : "light"} />
 
       {/* Vignette */}
       <Box
@@ -38,9 +45,14 @@ export function CTABand() {
           inset: 0,
           zIndex: 0,
           pointerEvents: "none",
-          background: `
+          background: isDark
+            ? `
             radial-gradient(ellipse at 50% 35%, ${alpha(c.primary, 0.08)} 0%, transparent 45%),
             radial-gradient(ellipse at 50% 100%, ${alpha(c.bgDefault, 0.35)} 0%, transparent 65%)
+          `
+            : `
+            radial-gradient(ellipse at 50% 40%, ${alpha(c.primary, 0.1)} 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 100%, ${alpha(c.secondary, 0.07)} 0%, transparent 55%)
           `,
         }}
       />
@@ -95,10 +107,7 @@ export function CTABand() {
           <Typography
             component="p"
             sx={{
-              fontSize: "0.78rem",
-              fontWeight: 700,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
+              ...MARKETING_EYEBROW_SX,
               color: c.primary,
               mb: 2,
             }}
@@ -108,18 +117,15 @@ export function CTABand() {
           <Typography
             component="h2"
             sx={{
-              fontSize: { xs: "2.25rem", md: "3rem" },
-              fontWeight: 800,
-              letterSpacing: "-0.035em",
-              lineHeight: 1.1,
+              ...MARKETING_HEADING_SX,
+              fontSize: { xs: "2.4rem", md: "3.25rem" },
               mb: 2.5,
-              background: `linear-gradient(140deg, ${c.textPrimary} 30%, ${alpha(c.primary, 0.85)} 100%)`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
+              color: c.textPrimary,
+              maxWidth: 720,
+              mx: "auto",
             }}
           >
-            Self-host your AI agent OS in under 3 minutes.
+            Self-host your AI agent OS and Command Center.
           </Typography>
           <Typography
             sx={{
@@ -131,7 +137,7 @@ export function CTABand() {
               mx: "auto",
             }}
           >
-            Self-hosted. MIT licensed. No cloud accounts required.
+            Run agents, memory, playbooks, Channel Shield, and approvals from your own infrastructure.
           </Typography>
           <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap" }}>
             <Button

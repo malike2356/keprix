@@ -13,7 +13,7 @@ Push-to-talk speech input for the workspace web chat. Users record in the browse
 
 While the agent is streaming a reply, the mic is disabled. Press **Escape** while recording to cancel without transcribing.
 
-Settings status (read-only): `/settings/voice`.
+Configure in the GUI: Settings -> Voice (`/settings/voice`). Enable/disable STT, choose provider, set max recording, and paste API keys there.
 
 ## Scope (v1)
 
@@ -34,6 +34,8 @@ Shared transcription handler: `src/keprix/api/audio_transcribe.py`.
 | --- | --- | --- |
 | `POST /api/audio/transcribe` | Main API :3333 + Hermes desktop | Required on :3333; desktop Hermes unchanged |
 | `GET /api/audio/status` | Main API :3333 | Public |
+| `GET /api/audio/settings` | Main API :3333 | Authenticated |
+| `PUT /api/audio/settings` | Main API :3333 | Authenticated (writes config.yaml + optional env keys) |
 
 The workspace web UI includes a mic control in `ChatInputBar.tsx`. Users can dictate into the composer, edit the transcript, then Send.
 

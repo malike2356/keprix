@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
-from enum import StrEnum
+from datetime import datetime
+from keprix.compat import UTC, StrEnum
 from typing import Any
 from uuid import uuid4
 

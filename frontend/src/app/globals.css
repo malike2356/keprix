@@ -1,6 +1,13 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
 
+/*
+  MUI AppRouterCacheProvider uses enableCssLayer, so component styles land in
+  @layer mui. Unlayered resets (especially box-sizing) beat that layer and crush
+  OutlinedInput / Select height. Keep the cascade order aligned with Tailwind v4.
+*/
+@layer theme, base, mui, components, utilities;
+
 :root {
   --kp-primary: var(--primary, #7c3aed);
   --kp-primary-light: var(--ring, #a78bfa);
@@ -18,10 +25,22 @@ html.dark {
   color-scheme: dark;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+}
+
+/*
+  MUI InputBase assumes content-box on the inner input (height: 1.4375em + padding).
+  With enableCssLayer, a global border-box reset can still win depending on stylesheet
+  order, which crushes TextField / Select to a ~33px strip and breaks menus.
+  Keep this rule unlayered so it reliably restores MUI's sizing model.
+*/
+.MuiInputBase-input {
+  box-sizing: content-box;
 }
 
 html {
@@ -56,6 +75,25 @@ a {
 :focus-visible {
   outline: 2px solid var(--kp-primary);
   outline-offset: 2px;
+}
+
+/*
+  MUI already draws focus chrome (outlined borders, button ripples, etc.).
+  A second global outline on the inner input/button makes fields feel like
+  "layers on layers" (outer field border + inner sharp rectangle).
+*/
+.MuiButtonBase-root:focus-visible,
+.MuiInputBase-root:focus-visible,
+.MuiInputBase-input:focus-visible,
+.MuiOutlinedInput-root:focus-visible,
+.MuiOutlinedInput-input:focus-visible,
+.MuiFilledInput-input:focus-visible,
+.MuiSelect-select:focus-visible,
+.MuiIconButton-root:focus-visible,
+.MuiChip-root:focus-visible,
+.MuiFab-root:focus-visible,
+.MuiLink-root:focus-visible {
+  outline: none;
 }
 
 ::-webkit-scrollbar {

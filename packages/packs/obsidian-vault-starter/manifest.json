@@ -1,0 +1,19 @@
+{
+  "name": "obsidian-vault-starter",
+  "version": "1.0.0",
+  "type": "automation_pack",
+  "author": "Keprix",
+  "license": "MIT",
+  "description": "Obsidian-compatible vault conventions, templates, and KEPRIX.md bootstrap.",
+  "permissions": ["filesystem:read"],
+  "files": ["README.md"],
+  "dependencies": [],
+  "setup_requirements": ["Local filesystem access"],
+  "data_touched": ["/path/to/operator/vault"],
+  "network_hosts": [],
+  "risk_level": "low",
+  "uninstall_plan": ["remove initialized vault files manually if no longer wanted"],
+  "tests": ["tests/vault/test_vault_init_service.py", "tests/vault/test_vault_validator.py"],
+  "trust_label": "official",
+  "review_score": 4.7
+}

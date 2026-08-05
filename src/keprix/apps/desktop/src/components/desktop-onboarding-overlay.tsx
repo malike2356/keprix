@@ -93,7 +93,7 @@ const API_KEY_OPTIONS: ApiKeyOption[] = [
     id: 'local',
     name: 'Local / custom endpoint',
     envKey: 'OPENAI_BASE_URL',
-    docsUrl: 'https://github.com/NousResearch/hermes-agent#bring-your-own-endpoint',
+    docsUrl: 'https://github.com/NousResearch/keprix#bring-your-own-endpoint',
     placeholder: 'http://127.0.0.1:8000/v1'
   }
 ]
@@ -167,7 +167,7 @@ function useApiKeyCatalog(): ApiKeyOption[] {
 }
 
 const PROVIDER_DISPLAY: Record<string, { order: number; title: string }> = {
-  nous: { order: 0, title: 'Nous Portal' },
+  nous: { order: 0, title: 'Keprix Portal' },
   'openai-codex': { order: 1, title: 'OpenAI OAuth (ChatGPT)' },
   'minimax-oauth': { order: 2, title: 'MiniMax' },
   'qwen-oauth': { order: 3, title: 'Qwen Code' },
@@ -179,6 +179,7 @@ const PROVIDER_DISPLAY: Record<string, { order: number; title: string }> = {
 }
 
 const assetPath = (path: string) => `${import.meta.env.BASE_URL}${path.replace(/^\/+/, '')}`
+const DISPLAY_CLASS = 'font-display tracking-tight'
 
 export const providerTitle = (p: OAuthProvider) => PROVIDER_DISPLAY[p.id]?.title ?? p.name
 const orderOf = (p: OAuthProvider) => PROVIDER_DISPLAY[p.id]?.order ?? 99
@@ -401,7 +402,7 @@ function Header() {
 
   return (
     <div className="bg-(--ui-chat-bubble-background) px-5 pt-5 pb-1">
-      <h2 className="text-[0.9375rem] font-semibold tracking-tight">{t.onboarding.headerTitle}</h2>
+      <h2 className={`text-[0.9375rem] font-semibold ${DISPLAY_CLASS}`}>{t.onboarding.headerTitle}</h2>
       <p className="mt-1 max-w-xl text-[0.8125rem] leading-5 text-(--ui-text-tertiary)">{t.onboarding.headerDesc}</p>
     </div>
   )
@@ -553,7 +554,7 @@ export function FeaturedProviderRow({
       <span aria-hidden className="arc-border arc-reverse arc-nous" />
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <img alt="" className="size-5 shrink-0 rounded" src={assetPath('apple-touch-icon.png')} />
+          <img alt="" className="size-5 shrink-0" src={assetPath('logo-mono-clear.png')} />
           <span className="text-[length:var(--conversation-text-font-size)] font-semibold">
             {providerTitle(provider)}
           </span>
@@ -943,7 +944,7 @@ function FlowPanel({
 function Step({ children, title }: { children: React.ReactNode; title: string }) {
   return (
     <div className="grid gap-4">
-      <h3 className="text-sm font-semibold">{title}</h3>
+      <h3 className={`text-sm font-semibold ${DISPLAY_CLASS}`}>{title}</h3>
       {children}
     </div>
   )

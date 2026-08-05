@@ -1045,7 +1045,8 @@ class TestHydrateTodoStore:
 class TestBuildSystemPrompt:
     def test_always_has_identity(self, agent):
         prompt = agent._build_system_prompt()
-        assert DEFAULT_AGENT_IDENTITY in prompt
+        assert "<identity>" in prompt
+        assert "You are keprix, an AI agent OS built by VERLOX Ltd" in prompt
 
     def test_can_use_soul_identity_even_when_context_files_are_skipped(self):
         with (
@@ -1065,6 +1066,7 @@ class TestBuildSystemPrompt:
             prompt = agent._build_system_prompt()
 
         assert "SOUL IDENTITY" in prompt
+        assert "<persona>" in prompt
         assert DEFAULT_AGENT_IDENTITY not in prompt
 
     def test_includes_system_message(self, agent):

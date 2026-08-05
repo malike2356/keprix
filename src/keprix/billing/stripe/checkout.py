@@ -36,6 +36,7 @@ async def create_checkout_session(
     interval: str | None = "month",
     success_url: str | None = None,
     cancel_url: str | None = None,
+    promo_code: str | None = None,
 ) -> dict[str, Any]:
     cfg = load_billing_config()
     if cfg is None:
@@ -48,6 +49,23 @@ async def create_checkout_session(
     price_id = await resolve_price_id(plan, interval=interval)
     if price_id is None:
         raise ValueError(f"No Stripe price mapped for plan {plan_id}")
+
+    trial_days = int(cfg.product.trial_days or 0)
+    applied_promo: dict[str, Any] | None = None
+    if promo_code:
+        from keprix.billing.promo import get_promo_store
+
+        redeemed = get_promo_store().redeem(promo_code, catalog_price_id=price_id)
+        if not redeemed.get("ok"):
+            raise ValueError(str(redeemed.get("error") or "invalid_promo"))
+        applied_promo = redeemed.get("promo")
+        promo_trial = int(redeemed.get("trial_days") or 0)
+        if promo_trial > trial_days:
+            trial_days = promo_trial
+        # Never invent Stripe Prices; optional promo may pin an existing catalog id.
+        pinned = redeemed.get("applied_price_id")
+        if pinned:
+            price_id = str(pinned)
 
     store = get_billing_store()
     customer = await store.get_customer(user_id)
@@ -64,16 +82,25 @@ async def create_checkout_session(
         )
 
     base_url = os.environ.get("KEPRIX_INSTANCE_URL", "http://localhost:3000").rstrip("/")
+    metadata = {"user_id": user_id, "plan_id": plan_id, "product_id": cfg.product.id}
+    if applied_promo:
+        metadata["promo_code"] = str(applied_promo.get("code") or promo_code)
     session = await get_stripe_client().create_checkout_session(
         customer_id=stripe_customer_id,
         price_id=price_id,
         success_url=success_url or f"{base_url}/settings/billing?checkout=success",
         cancel_url=cancel_url or f"{base_url}/settings/billing?checkout=cancel",
-        trial_days=cfg.product.trial_days,
-        metadata={"user_id": user_id, "plan_id": plan_id, "product_id": cfg.product.id},
+        trial_days=trial_days,
+        metadata=metadata,
         mode="subscription",
     )
-    return {"checkout_url": session.get("url"), "session_id": session.get("id")}
+    return {
+        "checkout_url": session.get("url"),
+        "session_id": session.get("id"),
+        "trial_days": trial_days,
+        "price_id": price_id,
+        "promo": applied_promo,
+    }
 
 
 async def create_donation_checkout(

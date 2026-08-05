@@ -1,11 +1,13 @@
-"""Working memory manager (ported from Hermes, adapted for keprix)."""
+"""Working memory manager."""
 
 from __future__ import annotations
 
 import inspect
 import logging
+import os
 import re
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
@@ -102,8 +104,31 @@ class MemoryManager:
                 logger.warning("Memory provider '%s' system_prompt_block failed: %s", provider.name, exc)
         return "\n\n".join(blocks)
 
-    def prefetch_all(self, query: str, *, session_id: str = "") -> str:
-        parts = []
+    def prefetch_all(self, query: str, *, session_id: str = "", user_id: str = "default") -> str:
+        parts: list[str] = []
+        # Native unified recall first.
+        try:
+            import asyncio
+
+            from keprix.memory.orchestrator import MemoryOrchestrator
+
+            orchestrator = MemoryOrchestrator()
+            payload = asyncio.run(
+                orchestrator.recall(
+                    user_id or os.getenv("KEPRIX_DEFAULT_USER_ID") or "default",
+                    query,
+                    limit=10,
+                    token_budget=int(os.getenv("KEPRIX_MEMORY_TOKEN_BUDGET", "900")),
+                    reinforce=True,
+                )
+            )
+            context = str(payload.get("context") or "").strip()
+            if context:
+                parts.append(context)
+                self._last_recall = payload
+        except Exception as exc:
+            logger.debug("Native memory orchestrator prefetch failed: %s", exc)
+
         for provider in self._providers:
             try:
                 result = provider.prefetch(query, session_id=session_id)
@@ -112,6 +137,9 @@ class MemoryManager:
             except Exception as exc:
                 logger.debug("Memory provider '%s' prefetch failed: %s", provider.name, exc)
         return "\n\n".join(parts)
+
+    def last_recall(self) -> dict[str, Any] | None:
+        return getattr(self, "_last_recall", None)
 
     def queue_prefetch_all(self, query: str, *, session_id: str = "") -> None:
         providers = list(self._providers)
@@ -174,12 +202,43 @@ class MemoryManager:
             return f'{{"error": "No memory provider handles tool {tool_name!r}"}}'
         return provider.handle_tool_call(tool_name, args, **kwargs)
 
-    def on_session_end(self, messages: list[dict[str, Any]]) -> None:
+    def on_session_end(self, messages: list[dict[str, Any]], **kwargs: Any) -> None:
         for provider in self._providers:
             try:
                 provider.on_session_end(messages)
             except Exception as exc:
                 logger.debug("Memory provider '%s' on_session_end failed: %s", provider.name, exc)
+
+        # Native REM distillation into episodic store (best-effort).
+        if os.getenv("KEPRIX_REM_ENABLED", "true").lower() in {"1", "true", "yes", "on"}:
+            user_id = str(
+                kwargs.get("user_id")
+                or os.getenv("KEPRIX_DEFAULT_USER_ID")
+                or "default"
+            )
+            session_id = str(
+                kwargs.get("session_id")
+                or os.getenv("KEPRIX_ACTIVE_SESSION_ID")
+                or f"session-{int(time.time())}"
+            )
+
+            def _run_rem() -> None:
+                try:
+                    import asyncio
+
+                    from keprix.memory.rem_consolidation import run_session_consolidation
+
+                    asyncio.run(
+                        run_session_consolidation(
+                            user_id=user_id,
+                            session_id=session_id,
+                            messages=messages,
+                        )
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    logger.debug("Native REM consolidation failed: %s", exc)
+
+            self._submit_background(_run_rem)
 
     def shutdown_all(self) -> None:
         if self._sync_executor is not None:

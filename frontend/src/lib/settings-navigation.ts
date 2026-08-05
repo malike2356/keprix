@@ -16,6 +16,8 @@ export const settingsNavigation: SettingsNavItem[] = [
   { label: "Browser", href: "/settings/browser", icon: "extension" },
   { label: "Governance", href: "/settings/governance", icon: "shield" },
   { label: "Web search", href: "/settings/web-search", icon: "science", adminOnly: true },
+  { label: "Agent sync", href: "/settings/integrations/agent-sync", icon: "backup" },
+  { label: "Syncthing", href: "/settings/integrations/syncthing", icon: "backup" },
   { label: "Users", href: "/settings/users", icon: "users", adminOnly: true },
   { label: "Upgrades", href: "/settings/upgrade", icon: "backup", adminOnly: true },
 ];

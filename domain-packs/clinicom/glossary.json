@@ -1,0 +1,9 @@
+{
+  "terms": [
+    {
+      "term": "sidecar",
+      "definition": "HTTP service exposing Clinicom AI tool routes outside the main Clinicom app.",
+      "locale": "en"
+    }
+  ]
+}

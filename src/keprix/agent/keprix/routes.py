@@ -92,12 +92,14 @@ async def reject_generated(
 
 
 @router.delete("/{record_id}")
-async def delete_generated_files(record_id: str, _admin: str = Depends(_require_admin)) -> dict[str, Any]:
-    record = get_generated_tool_store().get(record_id)
+async def delete_generated(record_id: str, _admin: str = Depends(_require_admin)) -> dict[str, Any]:
+    store = get_generated_tool_store()
+    record = store.get(record_id)
     if record is None:
         raise HTTPException(status_code=404, detail="Generated tool not found")
     removed = LiveInstaller().remove_from_filesystem(record)
-    return {"removed": removed, "record_id": record_id}
+    deleted = store.delete(record_id)
+    return {"ok": deleted, "removed": removed, "record_id": record_id}
 
 
 @router.post("/cycle")

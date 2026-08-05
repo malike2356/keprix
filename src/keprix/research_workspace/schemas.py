@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from enum import StrEnum
+from keprix.compat import StrEnum
 from typing import Any
 from uuid import uuid4
 

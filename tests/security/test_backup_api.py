@@ -15,6 +15,8 @@ from keprix.workspace.backup_service import BackupService
 def backup_client(tmp_path, monkeypatch):
     monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
     monkeypatch.setenv("KEPRIX_ADMIN_PASSWORD", "admin-pass")
+    monkeypatch.setenv("KEPRIX_ADMIN_EMAIL", "")
+    monkeypatch.setenv("ADMIN_EMAIL", "")
     monkeypatch.setenv("AUTH_ENABLED", "true")
     reset_rate_limits()
     auth = AuthManager(str(tmp_path / "auth.json"))
@@ -65,4 +67,3 @@ def test_restore_requires_confirm(backup_client):
             files={"file": ("backup.tar.gz", handle.read(), "application/gzip")},
         )
     assert denied.status_code == 422
-

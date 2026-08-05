@@ -67,6 +67,10 @@ export type WorkspaceDocument = {
   tags: string[];
   word_count?: number;
   updated_at?: string;
+  is_shared?: boolean;
+  share_token?: string | null;
+  is_favorite?: boolean;
+  folder?: string;
 };
 
 export type WorkspaceNote = {
@@ -98,11 +102,75 @@ export type CalendarEvent = {
   start_at: string;
   end_at: string;
   all_day: boolean;
+  caldav_source_id?: string | null;
+  external_readonly?: boolean;
 };
 
-export async function fetchDocuments(): Promise<WorkspaceDocument[]> {
+export type CalendarProviderPreset = {
+  id: string;
+  label: string;
+  provider: string;
+  sync_modes: string[];
+  url_hint: string;
+  help: string;
+};
+
+export type CalendarSource = {
+  id: string;
+  name: string;
+  provider: string;
+  url: string;
+  username: string;
+  has_password: boolean;
+  sync_direction: string;
+  calendar_href?: string | null;
+  calendar_name?: string | null;
+  push_local_events: boolean;
+  enabled: boolean;
+  auto_sync: boolean;
+  sync_interval_minutes: number;
+  pull_past_days: number;
+  pull_future_days: number;
+  last_sync_at?: string | null;
+  last_sync_ok?: boolean | null;
+  last_sync_message?: string | null;
+  next_sync_at?: string | null;
+  created_at?: string;
+};
+
+export type CalendarAutoSyncStatus = {
+  enabled: boolean;
+  running: boolean;
+  tick_seconds: number;
+  default_interval_minutes: number;
+  min_interval_minutes: number;
+  max_interval_minutes: number;
+};
+
+export type CalendarSyncResult = {
+  ok: boolean;
+  synced?: number;
+  pulled?: number;
+  pushed?: number;
+  errors?: number;
+  message?: string;
+  results?: Array<Record<string, unknown>>;
+};
+
+export async function fetchDocuments(opts?: {
+  q?: string;
+  tag?: string;
+  folder?: string;
+  favorites?: boolean;
+}): Promise<WorkspaceDocument[]> {
+  const params = new URLSearchParams();
+  if (opts?.q) params.set("q", opts.q);
+  if (opts?.tag) params.set("tag", opts.tag);
+  if (opts?.folder !== undefined) params.set("folder", opts.folder);
+  if (opts?.favorites) params.set("favorites", "true");
+  const suffix = params.toString() ? `?${params}` : "";
   const data = await parseJson<{ items: WorkspaceDocument[] }>(
-    await ceApi("/api/workspace/documents"),
+    await ceApi(`/api/workspace/documents${suffix}`),
     "Failed to load documents",
   );
   return data.items;
@@ -113,6 +181,7 @@ export async function createDocument(body: {
   content: string;
   format?: string;
   tags?: string[];
+  folder?: string;
 }): Promise<WorkspaceDocument> {
   return parseJson(
     await ceApi("/api/workspace/documents", {
@@ -136,11 +205,102 @@ export async function updateDocument(
   );
 }
 
+export async function patchDocumentMeta(
+  id: string,
+  body: { is_favorite?: boolean; folder?: string },
+): Promise<WorkspaceDocument> {
+  return parseJson(
+    await ceApi(`/api/workspace/documents/${id}/meta`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+    "Failed to update document meta",
+  );
+}
+
 export async function deleteDocument(id: string): Promise<void> {
   const response = await ceApi(`/api/workspace/documents/${id}`, { method: "DELETE" });
   if (!response.ok) {
     throw new Error("Failed to delete document");
   }
+}
+
+export async function exportDocument(id: string, format: "md" | "html" | "txt" | "pdf"): Promise<Blob> {
+  const response = await ceApi(`/api/workspace/documents/${id}/export?format=${format}`);
+  if (!response.ok) {
+    throw new Error("Export failed");
+  }
+  return response.blob();
+}
+
+export async function shareDocument(id: string): Promise<{ share_token: string; path: string }> {
+  return parseJson(
+    await ceApi(`/api/workspace/documents/${id}/share`, { method: "POST" }),
+    "Share failed",
+  );
+}
+
+export async function aiEditDocument(id: string, instruction: string): Promise<{ content: string }> {
+  return parseJson(
+    await ceApi(`/api/workspace/documents/${id}/ai-edit`, {
+      method: "POST",
+      body: JSON.stringify({ instruction }),
+    }),
+    "AI edit failed",
+  );
+}
+
+export async function aiSuggestDocument(id: string): Promise<{ suggestions: string[] }> {
+  return parseJson(
+    await ceApi(`/api/workspace/documents/${id}/ai-suggest`, { method: "POST" }),
+    "AI suggest failed",
+  );
+}
+
+export async function fetchDocumentVersions(
+  id: string,
+): Promise<Array<{ id: string; title: string; content: string; created_at: string }>> {
+  const data = await parseJson<{
+    items: Array<{ id: string; title: string; content: string; created_at: string }>;
+  }>(await ceApi(`/api/workspace/documents/${id}/versions`), "Failed to load versions");
+  return data.items;
+}
+
+export async function restoreDocumentVersion(docId: string, versionId: string): Promise<WorkspaceDocument> {
+  return parseJson(
+    await ceApi(`/api/workspace/documents/${docId}/versions/${versionId}/restore`, { method: "POST" }),
+    "Restore failed",
+  );
+}
+
+export async function importDocumentFile(file: File): Promise<WorkspaceDocument> {
+  const form = new FormData();
+  form.append("file", file);
+  return parseJson(
+    await ceApi("/api/workspace/documents/import", {
+      method: "POST",
+      body: form,
+      headers: {},
+    }),
+    "Import failed",
+  );
+}
+
+export async function importDocumentFromPath(path: string, folder = "disk"): Promise<WorkspaceDocument> {
+  return parseJson(
+    await ceApi("/api/workspace/documents/import-path", {
+      method: "POST",
+      body: JSON.stringify({ path, folder, tags: ["disk", "imported"] }),
+    }),
+    "Import from path failed",
+  );
+}
+
+export async function fetchSharedDocument(token: string): Promise<WorkspaceDocument> {
+  return parseJson(
+    await ceApi(`/api/workspace/documents/shared/${encodeURIComponent(token)}`),
+    "Shared document not found",
+  );
 }
 
 export async function fetchNotes(search?: string): Promise<WorkspaceNote[]> {
@@ -199,6 +359,8 @@ export async function createTask(body: {
   description?: string;
   status?: string;
   priority?: string;
+  due_at?: string | null;
+  tags?: string[];
 }): Promise<WorkspaceTask> {
   return parseJson(
     await ceApi("/api/workspace/tasks", {
@@ -211,7 +373,7 @@ export async function createTask(body: {
 
 export async function updateTask(
   id: string,
-  body: Partial<Pick<WorkspaceTask, "title" | "description" | "status" | "priority">>,
+  body: Partial<Pick<WorkspaceTask, "title" | "description" | "status" | "priority" | "due_at" | "tags">>,
 ): Promise<WorkspaceTask> {
   return parseJson(
     await ceApi(`/api/workspace/tasks/${id}`, {
@@ -227,6 +389,24 @@ export async function completeTask(id: string): Promise<WorkspaceTask> {
     await ceApi(`/api/workspace/tasks/${id}/complete`, { method: "POST" }),
     "Failed to complete task",
   );
+}
+
+export async function deleteTask(id: string): Promise<void> {
+  const response = await ceApi(`/api/workspace/tasks/${id}`, { method: "DELETE" });
+  if (!response.ok) {
+    throw new Error("Failed to delete task");
+  }
+}
+
+export async function reorderTasks(order: string[]): Promise<WorkspaceTask[]> {
+  const data = await parseJson<{ items: WorkspaceTask[] }>(
+    await ceApi("/api/workspace/tasks/reorder", {
+      method: "POST",
+      body: JSON.stringify({ order }),
+    }),
+    "Failed to reorder tasks",
+  );
+  return data.items;
 }
 
 export async function fetchCalendarEvents(start: string, end: string): Promise<CalendarEvent[]> {
@@ -251,6 +431,89 @@ export async function createCalendarEvent(body: {
       body: JSON.stringify(body),
     }),
     "Failed to create event",
+  );
+}
+
+export async function fetchCalendarProviders(): Promise<CalendarProviderPreset[]> {
+  const data = await parseJson<{ items: CalendarProviderPreset[] }>(
+    await ceApi("/api/workspace/calendar/providers"),
+    "Failed to load calendar providers",
+  );
+  return data.items;
+}
+
+export async function fetchCalendarSources(): Promise<CalendarSource[]> {
+  const data = await parseJson<{ items: CalendarSource[] }>(
+    await ceApi("/api/workspace/calendar/sources"),
+    "Failed to load calendar sources",
+  );
+  return data.items;
+}
+
+export async function createCalendarSource(body: {
+  name: string;
+  provider: string;
+  url?: string;
+  username?: string;
+  password?: string;
+  sync_direction?: string;
+  calendar_name?: string;
+  push_local_events?: boolean;
+  auto_sync?: boolean;
+  sync_interval_minutes?: number;
+  pull_past_days?: number;
+  pull_future_days?: number;
+}): Promise<CalendarSource> {
+  return parseJson(
+    await ceApi("/api/workspace/calendar/sources", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+    "Failed to connect calendar",
+  );
+}
+
+export async function updateCalendarSource(
+  sourceId: string,
+  body: {
+    auto_sync?: boolean;
+    sync_interval_minutes?: number;
+    sync_direction?: string;
+    push_local_events?: boolean;
+    enabled?: boolean;
+  },
+): Promise<CalendarSource> {
+  return parseJson(
+    await ceApi(`/api/workspace/calendar/sources/${sourceId}`, {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+    "Failed to update calendar source",
+  );
+}
+
+export async function fetchCalendarAutoSyncStatus(): Promise<CalendarAutoSyncStatus> {
+  return parseJson(await ceApi("/api/workspace/calendar/auto-sync"), "Failed to load auto-sync status");
+}
+
+export async function deleteCalendarSource(sourceId: string, removeEvents = false): Promise<void> {
+  const params = new URLSearchParams();
+  if (removeEvents) params.set("remove_events", "true");
+  const suffix = params.toString() ? `?${params}` : "";
+  const response = await ceApi(`/api/workspace/calendar/sources/${sourceId}${suffix}`, { method: "DELETE" });
+  if (!response.ok) {
+    throw new Error("Failed to remove calendar source");
+  }
+}
+
+export async function syncCalendarSources(): Promise<CalendarSyncResult> {
+  return parseJson(await ceApi("/api/workspace/calendar/sync", { method: "POST" }), "Failed to sync calendars");
+}
+
+export async function syncCalendarSource(sourceId: string): Promise<CalendarSyncResult> {
+  return parseJson(
+    await ceApi(`/api/workspace/calendar/sources/${sourceId}/sync`, { method: "POST" }),
+    "Failed to sync calendar source",
   );
 }
 
@@ -298,11 +561,14 @@ export async function deleteConversation(sessionId: string): Promise<void> {
 }
 
 export async function fetchAvailableModels(): Promise<AvailableModel[]> {
-  const data = await parseJson<{ models: AvailableModel[] }>(
+  const data = await parseJson<{ models?: AvailableModel[] } | AvailableModel[]>(
     await ceApi("/api/models/available"),
     "models",
   );
-  return data.models;
+  if (Array.isArray(data)) {
+    return data;
+  }
+  return Array.isArray(data.models) ? data.models : [];
 }
 
 export async function uploadChatFile(file: File): Promise<{ id: string; filename: string }> {

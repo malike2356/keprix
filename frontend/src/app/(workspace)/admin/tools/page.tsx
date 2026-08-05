@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid2";
+import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -12,7 +13,7 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import { IconCheck, IconTools, IconX } from "@tabler/icons-react";
+import { IconCheck, IconTrash, IconTools, IconX } from "@tabler/icons-react";
 import NextLink from "next/link";
 import { useCallback, useState } from "react";
 import useSWR from "swr";
@@ -55,7 +56,7 @@ async function fetchAllGeneratedTools(): Promise<GeneratedTool[]> {
 
 function statusColor(status: string): "default" | "success" | "warning" | "error" {
   const normalized = status.toLowerCase();
-  if (normalized.includes("approve") || normalized === "active") return "success";
+  if (normalized.includes("approve") || normalized === "active" || normalized === "installed") return "success";
   if (normalized.includes("pending")) return "warning";
   if (normalized.includes("reject") || normalized.includes("fail")) return "error";
   return "default";
@@ -124,7 +125,31 @@ export default function AdminToolsPage() {
     }
   };
 
-  const approvedCount = all.filter((tool) => tool.status.toLowerCase().includes("approve")).length;
+  const removeTool = async (tool: GeneratedTool) => {
+    const confirmed = window.confirm(
+      `Delete generated tool "${tool.tool_name}"?\n\nThis removes the proposal from history and any installed files for that tool.`,
+    );
+    if (!confirmed) return;
+    setActingId(tool.id);
+    setActionError(null);
+    try {
+      const response = await ceApi(`/api/agent/tools/generated/${tool.id}`, { method: "DELETE" });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(typeof payload.detail === "string" ? payload.detail : "Delete failed");
+      }
+      await refresh();
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Delete failed");
+    } finally {
+      setActingId(null);
+    }
+  };
+
+  const approvedCount = all.filter((tool) => {
+    const status = tool.status.toLowerCase();
+    return status.includes("approve") || status === "installed" || status === "active";
+  }).length;
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
@@ -135,7 +160,7 @@ export default function AdminToolsPage() {
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, maxWidth: 640 }}>
             Review tools created by the mutation engine. Built-in tools stay read-only; generated tools must pass
-            sandbox checks before you approve them for use.
+            sandbox checks before you approve them for use. Delete removes the proposal and any installed files.
           </Typography>
         </Box>
         <Button component={NextLink} href="/dashboard/tools" variant="outlined" size="small">
@@ -266,6 +291,16 @@ export default function AdminToolsPage() {
                     >
                       Reject
                     </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      startIcon={<IconTrash size={16} stroke={1.75} />}
+                      disabled={actingId === tool.id}
+                      onClick={() => void removeTool(tool)}
+                    >
+                      Delete
+                    </Button>
                   </Stack>
                 </Stack>
               </Box>
@@ -276,7 +311,7 @@ export default function AdminToolsPage() {
 
       <DashboardCard title="All generated tools" subtitle="History of mutation-engine tool proposals">
         {allLoading ? (
-          <SkeletonTable rows={6} columns={5} />
+          <SkeletonTable rows={6} columns={6} />
         ) : all.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
             No generated tools yet. Run the mutation engine or coding workspace to create one.
@@ -290,6 +325,7 @@ export default function AdminToolsPage() {
                 <TableCell>Task</TableCell>
                 <TableCell>Sandbox</TableCell>
                 <TableCell>ID</TableCell>
+                <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -318,6 +354,17 @@ export default function AdminToolsPage() {
                     <Typography variant="caption" sx={{ fontFamily: "monospace" }}>
                       {tool.id}
                     </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <IconButton
+                      size="small"
+                      color="error"
+                      aria-label={`Delete ${tool.tool_name}`}
+                      disabled={actingId === tool.id}
+                      onClick={() => void removeTool(tool)}
+                    >
+                      <IconTrash size={16} stroke={1.75} />
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))}

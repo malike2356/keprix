@@ -1,4 +1,4 @@
-"""Memory provider ABC (ported from Hermes)."""
+"""Memory provider ABC."""
 
 from __future__ import annotations
 

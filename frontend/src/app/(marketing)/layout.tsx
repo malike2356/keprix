@@ -7,10 +7,10 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://keprixai.uk"),
   title: {
     template: "%s | Keprix",
-    default: "Keprix - The Mutant AI OS",
+    default: "Keprix - The self-mutating agent OS",
   },
   description:
-    "Keprix is a self-hosted, MIT-licensed AI agent OS. Memory, tools, channels, playbooks, and a Mutation engine that builds new capabilities after your approval.",
+    "Keprix is a self-hosted, self-mutating agent OS for people who need more than another AI chat box.",
   openGraph: {
     type: "website",
     siteName: "Keprix",

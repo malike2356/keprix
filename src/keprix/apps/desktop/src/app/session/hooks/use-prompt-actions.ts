@@ -136,7 +136,7 @@ const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, m
 async function withSessionBusyRetry<T>(call: () => Promise<T>): Promise<T> {
   const deadline = Date.now() + SESSION_BUSY_RETRY_TIMEOUT_MS
 
-  for (;) {
+  while (true) {
     try {
       return await call()
     } catch (err) {

@@ -64,6 +64,14 @@ function ProjectCard({
           <Button size="small" component={Link} href={`/builder?project=${project.id}`} variant="outlined">
             Details
           </Button>
+          <Button
+            size="small"
+            component={Link}
+            href={`/design/preview?path=${encodeURIComponent(project.path)}`}
+            variant="outlined"
+          >
+            Preview
+          </Button>
         </Box>
       </CardContent>
     </Card>
@@ -143,6 +151,9 @@ export default function BuilderPage() {
         </Button>
         <Button variant="outlined" onClick={() => setScaffoldOpen(true)}>
           New project
+        </Button>
+        <Button variant="outlined" component={Link} href="/design/preview">
+          Design preview
         </Button>
       </Box>
       <Typography variant="h6" sx={{ mb: 1 }}>

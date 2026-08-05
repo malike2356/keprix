@@ -13,6 +13,8 @@ class DocumentCreate(BaseModel):
     content: str = ""
     format: str = "markdown"
     tags: list[str] = Field(default_factory=list)
+    folder: str = ""
+    is_favorite: bool = False
 
 
 class DocumentUpdate(BaseModel):
@@ -20,6 +22,8 @@ class DocumentUpdate(BaseModel):
     content: str | None = None
     format: str | None = None
     tags: list[str] | None = None
+    folder: str | None = None
+    is_favorite: bool | None = None
 
 
 class DocumentAIEdit(BaseModel):
@@ -92,9 +96,38 @@ class CalendarEventUpdate(BaseModel):
 
 class CaldavSourceCreate(BaseModel):
     name: str
-    url: str
-    username: str
+    provider: str = "caldav"
+    url: str = ""
+    username: str = ""
+    password: str | None = None
     vault_item_id: str | None = None
+    sync_direction: str = "bidirectional"
+    calendar_href: str | None = None
+    calendar_name: str | None = None
+    push_local_events: bool = True
+    enabled: bool = True
+    pull_past_days: int = 90
+    pull_future_days: int = 365
+    auto_sync: bool = True
+    sync_interval_minutes: int = 15
+
+
+class CaldavSourceUpdate(BaseModel):
+    name: str | None = None
+    provider: str | None = None
+    url: str | None = None
+    username: str | None = None
+    password: str | None = None
+    vault_item_id: str | None = None
+    sync_direction: str | None = None
+    calendar_href: str | None = None
+    calendar_name: str | None = None
+    push_local_events: bool | None = None
+    enabled: bool | None = None
+    pull_past_days: int | None = None
+    pull_future_days: int | None = None
+    auto_sync: bool | None = None
+    sync_interval_minutes: int | None = None
 
 
 class SessionRename(BaseModel):

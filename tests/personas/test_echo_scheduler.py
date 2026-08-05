@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
 from keprix.personas.echo.scheduler import EchoScheduler
 from keprix.workspace.repository import workspace_repo
+
+UTC = timezone.utc
 
 
 @pytest.fixture
@@ -18,8 +20,20 @@ def scheduler() -> EchoScheduler:
 @pytest.fixture(autouse=True)
 def clear_calendar() -> None:
     workspace_repo.calendar_events.clear()
+    try:
+        from keprix.vical.store import vical_store
+
+        vical_store.clear()
+    except Exception:
+        pass
     yield
     workspace_repo.calendar_events.clear()
+    try:
+        from keprix.vical.store import vical_store
+
+        vical_store.clear()
+    except Exception:
+        pass
 
 
 def test_find_available_slots_skips_busy_events(scheduler: EchoScheduler) -> None:

@@ -1,0 +1,42 @@
+{
+  "domain_name": "clinicom",
+  "version": "0.1.0",
+  "jurisdictions": ["GB"],
+  "common_tasks": [
+    "Transcribe interpreter audio",
+    "Translate clinical dialogue",
+    "Simplify patient-facing text",
+    "Synthesize spoken output"
+  ],
+  "playbooks": [
+    {
+      "title": "Clinicom sidecar contract",
+      "href": "/playbooks/clinicom-sidecar"
+    }
+  ],
+  "disclaimers": [
+    "Clinicom tools support communication workflows only. They do not diagnose, prescribe, or replace licensed clinical judgement."
+  ],
+  "limitations": [
+    "Stub handlers may run when ML providers are unavailable.",
+    "Production deployments should wire Whisper, translation, and TTS provider pools."
+  ],
+  "can_do": [
+    "Expose /clinicom/tools/* HTTP contract for Clinicom",
+    "Register clinicom_* agent tools via registry.dispatch",
+    "Run as a standalone uvicorn sidecar"
+  ],
+  "cannot_do": [
+    "Make regulated clinical decisions",
+    "Store PHI outside configured retention policies"
+  ],
+  "tool_permissions": ["network:read"],
+  "localization_coverage": {
+    "locales": ["en"],
+    "fallback": "en",
+    "low_resource_fallback": "en",
+    "voice_friendly": true
+  },
+  "data_schemas": [],
+  "tests": ["domain-packs/clinicom/tests/test_clinicom_sidecar.py"]
+}

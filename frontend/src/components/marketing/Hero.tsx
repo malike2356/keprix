@@ -5,12 +5,29 @@ import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
-import { alpha } from "@mui/material/styles";
+import { alpha, keyframes } from "@mui/material/styles";
 import Link from "next/link";
+import * as React from "react";
+import { KeprixLogo } from "@/components/shared/KeprixLogo";
 import { getMarketingColors } from "@/components/marketing/marketing-section";
 import { useThemeMode } from "@/components/providers/ThemeRegistry";
 
-const TERMINAL_LINES = [
+const blink = keyframes`
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+`;
+
+const marqueeScroll = keyframes`
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+`;
+
+type TerminalLine = {
+  prefix: "$" | ">" | "[User]" | "[Keprix]";
+  text: string;
+};
+
+const TERMINAL_LINES: TerminalLine[] = [
   { prefix: "$", text: "keprix tui" },
   { prefix: ">", text: "Runtime ready. Memory, tools, and policies loaded." },
   { prefix: "[User]", text: "Build a workflow to protect inbound client emails" },
@@ -19,27 +36,149 @@ const TERMINAL_LINES = [
   { prefix: "[Keprix]", text: "Tests passed. Review risk report?" },
   { prefix: "[User]", text: "yes" },
   { prefix: "[Keprix]", text: "Waiting for approval before deployment." },
-] as const;
+];
 
-const STACK_ITEMS = [
-  { name: "Anthropic", color: "#cc785c" },
-  { name: "OpenAI", color: "#10a37f" },
-  { name: "Gemini", color: "#4285f4" },
-  { name: "Ollama", color: "#9b9b9b" },
-  { name: "Groq", color: "#f55036" },
-  { name: "Telegram", color: "#2aabee" },
-  { name: "Discord", color: "#5865f2" },
-  { name: "Docker", color: "#2496ed" },
-] as const;
+const USER_COLOR = "#58a6ff";
+const KEPRIX_COLOR = "#bb9af7";
+
+function typingDelay(line: TerminalLine, charIndex: number): number {
+  if (line.prefix === "$") return 42;
+  if (line.prefix === ">") return 22;
+  if (line.prefix === "[User]") return line.text.length <= 4 ? 120 : 26;
+  const ch = line.text[charIndex] ?? "";
+  if (ch === "." || ch === "?") return 280;
+  if (ch === " ") return 18;
+  return 24;
+}
+
+function pauseAfterLine(line: TerminalLine): number {
+  if (line.prefix === "$") return 520;
+  if (line.prefix === ">") return 680;
+  if (line.prefix === "[User]") return 420;
+  return 520;
+}
+
+function TerminalCursor({ color }: { color: string }) {
+  return (
+    <Box
+      component="span"
+      aria-hidden
+      sx={{
+        display: "inline-block",
+        width: "0.55em",
+        height: "1.05em",
+        ml: 0.25,
+        bgcolor: color,
+        verticalAlign: "text-bottom",
+        animation: `${blink} 1s step-end infinite`,
+      }}
+    />
+  );
+}
 
 function TerminalWindow() {
   const { mode } = useThemeMode();
   const colors = getMarketingColors(mode);
+  const [lineIndex, setLineIndex] = React.useState(0);
+  const [charIndex, setCharIndex] = React.useState(0);
+  const [started, setStarted] = React.useState(false);
+  const [reduceMotion, setReduceMotion] = React.useState(false);
+
+  React.useEffect(() => {
+    setReduceMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+
+  React.useEffect(() => {
+    const timer = window.setTimeout(() => setStarted(true), 500);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  React.useEffect(() => {
+    if (!started || reduceMotion) return;
+
+    if (lineIndex >= TERMINAL_LINES.length) {
+      const reset = window.setTimeout(() => {
+        setLineIndex(0);
+        setCharIndex(0);
+      }, 4500);
+      return () => window.clearTimeout(reset);
+    }
+
+    const line = TERMINAL_LINES[lineIndex];
+    if (charIndex < line.text.length) {
+      const tick = window.setTimeout(() => setCharIndex((value) => value + 1), typingDelay(line, charIndex));
+      return () => window.clearTimeout(tick);
+    }
+
+    const next = window.setTimeout(() => {
+      setLineIndex((value) => value + 1);
+      setCharIndex(0);
+    }, pauseAfterLine(line));
+    return () => window.clearTimeout(next);
+  }, [started, lineIndex, charIndex, reduceMotion]);
+
+  const prefixColor = (prefix: TerminalLine["prefix"]) => {
+    if (prefix === "[User]") return USER_COLOR;
+    if (prefix === "[Keprix]") return KEPRIX_COLOR;
+    return colors.textSecondary;
+  };
+
+  const renderLine = (line: TerminalLine, visibleText: string, showCursor: boolean) => {
+    const isChat = line.prefix === "[User]" || line.prefix === "[Keprix]";
+    const color = prefixColor(line.prefix);
+
+    if (isChat) {
+      return (
+        <Box key={`${line.prefix}-${line.text}`} sx={{ mb: 0.75 }}>
+          <Typography
+            component="div"
+            sx={{ color, fontFamily: "monospace", fontSize: "inherit", lineHeight: 1.6 }}
+          >
+            {line.prefix}
+          </Typography>
+          <Typography
+            component="div"
+            sx={{
+              color: colors.textPrimary,
+              fontFamily: "monospace",
+              fontSize: "inherit",
+              lineHeight: 1.6,
+              pl: 0.5,
+            }}
+          >
+            {visibleText}
+            {showCursor ? <TerminalCursor color={color} /> : null}
+          </Typography>
+        </Box>
+      );
+    }
+
+    return (
+      <Box key={`${line.prefix}-${line.text}`} sx={{ display: "flex", gap: 1, mb: 0.5, alignItems: "baseline" }}>
+        <Typography
+          component="span"
+          sx={{ color, fontFamily: "monospace", whiteSpace: "nowrap", fontSize: "inherit" }}
+        >
+          {line.prefix}
+        </Typography>
+        <Typography component="span" sx={{ color: colors.textPrimary, fontFamily: "monospace", fontSize: "inherit" }}>
+          {visibleText}
+          {showCursor ? <TerminalCursor color={colors.textPrimary} /> : null}
+        </Typography>
+      </Box>
+    );
+  };
+
+  const completedCount = reduceMotion ? TERMINAL_LINES.length : lineIndex;
+  const activeLine = reduceMotion ? null : TERMINAL_LINES[lineIndex];
+  const activeText = activeLine ? activeLine.text.slice(0, charIndex) : "";
+  const showActiveCursor = Boolean(activeLine) && (charIndex < (activeLine?.text.length ?? 0) || lineIndex < TERMINAL_LINES.length);
+  const finished = lineIndex >= TERMINAL_LINES.length;
 
   return (
     <Box
       role="img"
-      aria-label="Keprix terminal demo"
+      aria-label="Keprix terminal demo showing Channel Shield workflow"
       sx={{
         bgcolor: mode === "dark" ? "rgba(10,12,20,0.85)" : alpha(colors.bgCard, 0.95),
         border: `1px solid ${alpha(colors.primary, 0.3)}`,
@@ -73,33 +212,127 @@ function TerminalWindow() {
         </Typography>
       </Box>
 
-      <Box sx={{ p: { xs: 2, sm: 3 }, minHeight: { xs: 220, sm: 260 } }}>
-        {TERMINAL_LINES.map((line) => {
-          const isUser = line.prefix === "[User]";
-          const isKeprix = line.prefix === "[Keprix]";
-          const prefixColor = isUser
-            ? "#58a6ff"
-            : isKeprix
-            ? colors.primary
-            : colors.textSecondary;
+      <Box sx={{ p: { xs: 2, sm: 3 }, minHeight: { xs: 260, sm: 300 } }}>
+        {TERMINAL_LINES.slice(0, completedCount).map((line) => renderLine(line, line.text, false))}
+        {activeLine ? renderLine(activeLine, activeText, showActiveCursor && !finished) : null}
+        {finished && !reduceMotion ? (
+          <Box sx={{ mt: 0.5 }}>
+            <TerminalCursor color={colors.textPrimary} />
+          </Box>
+        ) : null}
+      </Box>
+    </Box>
+  );
+}
 
-          return (
-            <Box key={`${line.prefix}-${line.text}`} sx={{ display: "flex", gap: 1, mb: 0.5 }}>
-              <Typography
-                component="span"
-                sx={{ color: prefixColor, fontFamily: "monospace", whiteSpace: "nowrap", fontSize: "inherit" }}
-              >
-                {line.prefix}
-              </Typography>
-              <Typography
-                component="span"
-                sx={{ color: colors.textPrimary, fontFamily: "monospace", fontSize: "inherit" }}
-              >
-                {line.text}
-              </Typography>
-            </Box>
-          );
-        })}
+const STACK_ITEMS = [
+  { name: "Anthropic", color: "#cc785c" },
+  { name: "OpenAI", color: "#10a37f" },
+  { name: "Gemini", color: "#4285f4" },
+  { name: "Ollama", color: "#9b9b9b" },
+  { name: "Groq", color: "#f55036" },
+  { name: "Telegram", color: "#2aabee" },
+  { name: "Discord", color: "#5865f2" },
+  { name: "Docker", color: "#2496ed" },
+] as const;
+
+type StackItem = (typeof STACK_ITEMS)[number];
+
+function StackPill({
+  item,
+  colors,
+  isDark,
+}: {
+  item: StackItem;
+  colors: ReturnType<typeof getMarketingColors>;
+  isDark: boolean;
+}) {
+  return (
+    <Box
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 1,
+        px: 2,
+        py: 0.75,
+        borderRadius: 999,
+        flexShrink: 0,
+        fontSize: "0.8rem",
+        fontWeight: 600,
+        letterSpacing: "0.02em",
+        color: colors.textPrimary,
+        bgcolor: isDark ? alpha("#fff", 0.06) : colors.bgCard,
+        border: `1px solid ${isDark ? alpha("#fff", 0.14) : colors.divider}`,
+        whiteSpace: "nowrap",
+      }}
+    >
+      <Box
+        aria-hidden
+        sx={{
+          width: 8,
+          height: 8,
+          borderRadius: "50%",
+          bgcolor: item.color,
+          flexShrink: 0,
+          boxShadow: `0 0 8px ${alpha(item.color, isDark ? 0.8 : 0.45)}`,
+        }}
+      />
+      {item.name}
+    </Box>
+  );
+}
+
+function StackCarousel({
+  colors,
+  isDark,
+}: {
+  colors: ReturnType<typeof getMarketingColors>;
+  isDark: boolean;
+}) {
+  const [reduceMotion, setReduceMotion] = React.useState(false);
+  const loopItems = React.useMemo(() => [...STACK_ITEMS, ...STACK_ITEMS], []);
+
+  React.useEffect(() => {
+    setReduceMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
+
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        flex: 1,
+        minWidth: 0,
+        py: 1,
+        overflow: "hidden",
+        maskImage: isDark
+          ? "linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%)"
+          : "linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%)",
+        WebkitMaskImage: isDark
+          ? "linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%)"
+          : "linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%)",
+      }}
+    >
+      <Box
+        aria-label="Supported integrations"
+        sx={{
+          display: "flex",
+          width: "max-content",
+          gap: 1.25,
+          animation: reduceMotion ? "none" : `${marqueeScroll} 32s linear infinite`,
+          "@media (prefers-reduced-motion: reduce)": {
+            animation: "none",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            width: "100%",
+          },
+          "&:hover": {
+            animationPlayState: "paused",
+          },
+        }}
+      >
+        {(reduceMotion ? STACK_ITEMS : loopItems).map((item, index) => (
+          <StackPill key={`${item.name}-${index}`} item={item} colors={colors} isDark={isDark} />
+        ))}
       </Box>
     </Box>
   );
@@ -205,6 +438,9 @@ export function Hero() {
                     }),
               }}
             >
+              <Box sx={{ mb: 3 }}>
+                <KeprixLogo variant="full" size="lg" onDark={isDark} />
+              </Box>
               <Chip
                 label="Open source - MIT license"
                 size="small"
@@ -220,28 +456,29 @@ export function Hero() {
               <Typography
                 component="p"
                 sx={{
-                  fontSize: { xs: "0.95rem", md: "1.05rem" },
+                  fontSize: { xs: "0.9rem", md: "0.98rem" },
                   fontWeight: 700,
-                  letterSpacing: "0.04em",
+                  letterSpacing: "0.1em",
                   textTransform: "uppercase",
-                  color: colors.secondary,
+                  color: alpha(colors.primary, 0.95),
                   mb: 1.5,
                 }}
               >
-                Self-hosted. Mutation Engine. User Approve.
+                Self-hosted. Mutation engine. User approve.
               </Typography>
               <Typography
                 component="h1"
                 sx={{
-                  fontSize: { xs: "2.75rem", sm: "3.5rem", md: "4rem", lg: "4.25rem" },
-                  fontWeight: 800,
-                  lineHeight: 1.08,
-                  letterSpacing: "-0.035em",
+                  fontFamily: '"Cormorant Garamond", Georgia, serif',
+                  fontSize: { xs: "3rem", sm: "3.85rem", md: "4.4rem", lg: "4.9rem" },
+                  fontWeight: 700,
+                  lineHeight: 0.98,
+                  letterSpacing: "-0.03em",
                   color: colors.textPrimary,
                   mb: 2,
                 }}
               >
-                The ai agent
+                The AI agent
                 <Box
                   component="span"
                   sx={{ display: "block", color: colors.primary }}
@@ -252,15 +489,15 @@ export function Hero() {
               <Typography
                 sx={{
                   fontSize: { xs: "1rem", md: "1.0625rem" },
-                  color: alpha(colors.textPrimary, 0.86),
-                  lineHeight: 1.75,
+                  color: alpha(colors.textPrimary, 0.9),
+                  lineHeight: 1.8,
                   mb: 4,
-                  maxWidth: 520,
+                  maxWidth: 560,
                 }}
               >
                 Keprix evolves by creating new tools, workflows, and code changes, then
-                test them, and wait for your approval before upgrading
-                itself. Built for people who need more than another AI chat box.
+                testing them and waiting for your approval before upgrading itself.
+                Built for people who need more than another AI chat box.
               </Typography>
               <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                 <Button
@@ -383,51 +620,7 @@ export function Hero() {
               </Typography>
             </Box>
 
-            <Box sx={{ position: "relative", flex: 1, minWidth: 0, py: 1, overflow: "hidden" }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: 1.25,
-                  justifyContent: { xs: "center", md: "flex-start" },
-                }}
-              >
-                {STACK_ITEMS.map((item) => (
-                  <Box
-                    key={item.name}
-                    sx={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 1,
-                      px: 2,
-                      py: 0.75,
-                      borderRadius: 999,
-                      flexShrink: 0,
-                      fontSize: "0.8rem",
-                      fontWeight: 600,
-                      letterSpacing: "0.02em",
-                      color: colors.textPrimary,
-                      bgcolor: isDark ? alpha("#fff", 0.06) : colors.bgCard,
-                      border: `1px solid ${isDark ? alpha("#fff", 0.14) : colors.divider}`,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    <Box
-                      aria-hidden
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: "50%",
-                        bgcolor: item.color,
-                        flexShrink: 0,
-                        boxShadow: `0 0 8px ${alpha(item.color, isDark ? 0.8 : 0.45)}`,
-                      }}
-                    />
-                    {item.name}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
+            <StackCarousel colors={colors} isDark={isDark} />
           </Box>
         </Container>
       </Box>

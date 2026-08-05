@@ -14,11 +14,17 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import CodeBlock from "@/components/workspace/blocks/CodeBlock";
+import { draftPlaybookFromPrompt } from "@/lib/playbook-draft-api";
 import {
   fetchPlaybookGraphs,
   startPlaybookRun,
   type PlaybookGraphTemplate,
 } from "@/lib/playbook-api";
+import {
+  decompileStudioYaml,
+  saveStudioCanvas,
+} from "@/lib/playbook-studio/playbook-studio-api";
 
 type StartPlaybookDialogProps = {
   open: boolean;
@@ -38,19 +44,70 @@ export default function StartPlaybookDialog({
   const [graphId, setGraphId] = React.useState(defaultGraphId || "sdk-workflow");
   const [initialStateText, setInitialStateText] = React.useState("{}");
   const [advancedSpec, setAdvancedSpec] = React.useState("");
+  const [describePrompt, setDescribePrompt] = React.useState("");
+  const [generatedYaml, setGeneratedYaml] = React.useState("");
+  const [draftWarnings, setDraftWarnings] = React.useState<string[]>([]);
+  const [draftRunSpec, setDraftRunSpec] = React.useState<Record<string, unknown> | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
+  const [generating, setGenerating] = React.useState(false);
 
   React.useEffect(() => {
     if (!open) return;
     setGraphId(defaultGraphId || templates[0]?.graph_id || "sdk-workflow");
     setInitialStateText("{}");
     setAdvancedSpec("");
+    setDescribePrompt("");
+    setGeneratedYaml("");
+    setDraftWarnings([]);
+    setDraftRunSpec(null);
     setError(null);
     setTab(0);
   }, [open, defaultGraphId, templates]);
 
   const selected = templates.find((item) => item.graph_id === graphId) || null;
+
+  const handleGenerateYaml = async () => {
+    setError(null);
+    setGenerating(true);
+    try {
+      const draft = await draftPlaybookFromPrompt({
+        prompt: describePrompt.trim(),
+        template_hint: graphId,
+      });
+      setGeneratedYaml(draft.yaml_text);
+      setDraftWarnings(draft.warnings || []);
+      setDraftRunSpec(draft.run_spec as Record<string, unknown>);
+      setGraphId(draft.playbook_id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to generate playbook YAML");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleEditInAdvanced = () => {
+    if (!draftRunSpec) return;
+    setAdvancedSpec(JSON.stringify(draftRunSpec, null, 2));
+    setTab(2);
+  };
+
+  const handleOpenInStudio = async () => {
+    if (!generatedYaml) return;
+    setError(null);
+    setSubmitting(true);
+    try {
+      const { canvas } = await decompileStudioYaml(generatedYaml);
+      const studioId = String(draftRunSpec?.graph_id || canvas.id || graphId || "draft_playbook");
+      await saveStudioCanvas(studioId, { ...canvas, id: studioId });
+      onClose();
+      router.push(`/playbooks/studio/${encodeURIComponent(studioId)}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to open playbook in Studio");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleSubmit = async () => {
     setError(null);
@@ -68,7 +125,7 @@ export default function StartPlaybookDialog({
         initial_state,
       };
 
-      if (tab === 1 && advancedSpec.trim()) {
+      if (tab === 2 && advancedSpec.trim()) {
         const parsed = JSON.parse(advancedSpec) as {
           graph_id?: string;
           steps?: Array<Record<string, unknown>>;
@@ -82,6 +139,17 @@ export default function StartPlaybookDialog({
           steps: parsed.steps,
           edges: parsed.edges,
           entry: parsed.entry,
+        };
+      } else if (tab === 1) {
+        if (!draftRunSpec) {
+          throw new Error("Generate playbook YAML before starting a run");
+        }
+        body = {
+          graph_id: String(draftRunSpec.graph_id || graphId),
+          initial_state,
+          steps: draftRunSpec.steps as Array<Record<string, unknown>>,
+          edges: draftRunSpec.edges as Array<Record<string, unknown>>,
+          entry: typeof draftRunSpec.entry === "string" ? draftRunSpec.entry : undefined,
         };
       } else if (selected) {
         body = {
@@ -110,6 +178,7 @@ export default function StartPlaybookDialog({
         {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
         <Tabs value={tab} onChange={(_, value) => setTab(value)} sx={{ mb: 2 }}>
           <Tab label="Template" />
+          <Tab label="Describe" />
           <Tab label="Advanced JSON" />
         </Tabs>
         {tab === 0 ? (
@@ -141,22 +210,79 @@ export default function StartPlaybookDialog({
               minRows={4}
             />
           </Box>
-        ) : (
+        ) : null}
+        {tab === 1 ? (
           <Box sx={{ display: "grid", gap: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              Paste a full workflow spec JSON with graph_id, steps, edges, and optional entry.
+              Describe the playbook you want in plain language. Keprix generates editable YAML
+              using Keprix step references such as {"{{ steps.step_id.output }}"}.
             </Typography>
             <TextField
-              label="Workflow spec JSON"
+              label="Playbook description"
+              value={describePrompt}
+              onChange={(event) => setDescribePrompt(event.target.value)}
+              fullWidth
+              multiline
+              minRows={4}
+              placeholder="Every morning, fetch unread email and post a digest note"
+            />
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+              <Button
+                variant="outlined"
+                disabled={generating || !describePrompt.trim()}
+                onClick={() => void handleGenerateYaml()}
+              >
+                {generating ? "Generating..." : "Generate YAML"}
+              </Button>
+              <Button variant="text" disabled={!draftRunSpec} onClick={handleEditInAdvanced}>
+                Edit in Advanced
+              </Button>
+              <Button
+                variant="text"
+                disabled={!generatedYaml || submitting}
+                onClick={() => void handleOpenInStudio()}
+              >
+                Open in Studio
+              </Button>
+            </Box>
+            {draftWarnings.length ? (
+              <Alert severity="warning">
+                {draftWarnings.map((warning) => (
+                  <Typography key={warning} variant="body2">
+                    {warning}
+                  </Typography>
+                ))}
+              </Alert>
+            ) : null}
+            {generatedYaml ? (
+              <CodeBlock language="yaml" content={generatedYaml} />
+            ) : null}
+            <TextField
+              label="Initial state (JSON)"
+              value={initialStateText}
+              onChange={(event) => setInitialStateText(event.target.value)}
+              fullWidth
+              multiline
+              minRows={3}
+            />
+          </Box>
+        ) : null}
+        {tab === 2 ? (
+          <Box sx={{ display: "grid", gap: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              Paste a full playbook run spec JSON with graph_id, steps, edges, and optional entry.
+            </Typography>
+            <TextField
+              label="Playbook run spec JSON"
               value={advancedSpec}
               onChange={(event) => setAdvancedSpec(event.target.value)}
               fullWidth
               multiline
               minRows={10}
-              placeholder='{"graph_id":"sdk-workflow","steps":[...],"edges":[...]}'
+              placeholder='{"graph_id":"daily-digest","steps":[...],"edges":[...]}'
             />
           </Box>
-        )}
+        ) : null}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>

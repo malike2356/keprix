@@ -23,7 +23,7 @@ export default function AdminUsersPage() {
 
   const columns = [
     { id: "username", label: "Username" },
-    { id: "email", label: "Email", render: (row: AdminUser) => row.email || "—" },
+    { id: "email", label: "Email", render: (row: AdminUser) => row.email || ";" },
     {
       id: "role",
       label: "Role",
@@ -40,7 +40,7 @@ export default function AdminUsersPage() {
       id: "created_at",
       label: "Created",
       render: (row: AdminUser) =>
-        row.created_at ? new Date(row.created_at).toLocaleDateString() : "—",
+        row.created_at ? new Date(row.created_at).toLocaleDateString() : ";",
     },
     {
       id: "actions",

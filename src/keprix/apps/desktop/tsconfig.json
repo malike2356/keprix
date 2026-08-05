@@ -17,6 +17,7 @@
     "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
+      "@hermes/shared": ["../shared/src/index.ts"],
       "@keprix/shared": ["../shared/src/index.ts"]
     }
   },

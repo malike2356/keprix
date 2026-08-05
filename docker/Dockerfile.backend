@@ -5,23 +5,35 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     libpq-dev \
+    gosu \
     curl \
+    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml ./
+COPY README.md LICENSE ./
+COPY src/ src/
 
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -e .
 
-COPY src/ src/
 COPY migrations/ migrations/
 
-RUN addgroup --system keprix && adduser --system --ingroup keprix keprix
-USER keprix
+RUN groupadd --system keprix && useradd --system --create-home --home-dir /home/keprix --gid keprix --shell /usr/sbin/nologin keprix
+RUN chown -R keprix:keprix /app
+RUN chmod -R a+rX /app
+RUN chown -R keprix:keprix /home/keprix
+ENV HOME=/home/keprix
+
+COPY docker/keprix-backend-entrypoint.sh /usr/local/bin/keprix-backend-entrypoint.sh
+RUN chmod +x /usr/local/bin/keprix-backend-entrypoint.sh
+
+USER root
 
 EXPOSE 3333
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:3333/api/v1/health || exit 1
 
+ENTRYPOINT ["/usr/local/bin/keprix-backend-entrypoint.sh"]
 CMD ["uvicorn", "keprix.api.main:app", "--host", "0.0.0.0", "--port", "3333"]

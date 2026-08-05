@@ -66,8 +66,17 @@ class VersionBody(BaseModel):
 
 @router.get("")
 async def list_domain_packs() -> dict[str, Any]:
+    from keprix.backend.domain_packs.filesystem import list_filesystem_packs
+
     packs = get_domain_pack_store().list_packs()
-    return {"packs": [pack.to_dict() for pack in packs], "count": len(packs)}
+    payload = [pack.to_dict() for pack in packs]
+    known = {str(p.get("domain_name") or "").lower() for p in payload}
+    for fs_pack in list_filesystem_packs():
+        name = str(fs_pack.get("domain_name") or "").lower()
+        if name and name not in known:
+            payload.append(fs_pack)
+            known.add(name)
+    return {"packs": payload, "count": len(payload)}
 
 
 @router.post("")

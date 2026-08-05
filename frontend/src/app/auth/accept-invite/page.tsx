@@ -61,7 +61,7 @@ function AcceptInviteContent() {
         role: result.user.role,
         email: result.user.email || null,
       });
-      router.replace("/launcher");
+      router.replace("/home");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to accept invite");
     } finally {

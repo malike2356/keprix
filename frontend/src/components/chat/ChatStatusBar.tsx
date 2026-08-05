@@ -8,7 +8,11 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import Typography from "@mui/material/Typography";
 import { alpha, keyframes } from "@mui/material/styles";
+import useSWR from "swr";
 import type { AvailableModel } from "@/lib/workspace-api";
+import { fetchHealth } from "@/lib/ce-api";
+
+import SuggestConnectorChip, { type SuggestedConnector } from "@/components/chat/SuggestConnectorChip";
 
 const pulse = keyframes`
   0%, 100% { opacity: 1; transform: scale(1); }
@@ -25,6 +29,7 @@ type ChatStatusBarProps = {
   sessionCount?: number;
   connected?: boolean;
   version?: string;
+  suggestedConnectors?: SuggestedConnector[];
 };
 
 export default function ChatStatusBar({
@@ -36,8 +41,14 @@ export default function ChatStatusBar({
   onStop,
   sessionCount = 0,
   connected = true,
-  version = "0.1.0",
+  version,
+  suggestedConnectors = [],
 }: ChatStatusBarProps) {
+  const { data: health } = useSWR(version ? null : "keprix-health-version", fetchHealth, {
+    revalidateOnFocus: false,
+    shouldRetryOnError: false,
+  });
+  const displayVersion = version || health?.version || "0.16.0";
   const activeModel = model || models.find((item) => item.id === modelId) || null;
 
   return (
@@ -86,6 +97,11 @@ export default function ChatStatusBar({
       ) : (
         <Typography variant="caption">{connected ? "Connected" : "Reconnecting"}</Typography>
       )}
+      {suggestedConnectors.length > 0 ? (
+        <Box sx={{ display: "flex", alignItems: "center", minWidth: 0 }}>
+          <SuggestConnectorChip connectors={suggestedConnectors} />
+        </Box>
+      ) : null}
       <Box sx={{ flex: 1 }} />
       {isStreaming ? (
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -101,7 +117,7 @@ export default function ChatStatusBar({
       ) : (
         <>
           <Typography variant="caption">Sessions: {sessionCount}</Typography>
-          <Typography variant="caption">| keprix v{version}</Typography>
+          <Typography variant="caption">| keprix v{displayVersion}</Typography>
         </>
       )}
     </Box>

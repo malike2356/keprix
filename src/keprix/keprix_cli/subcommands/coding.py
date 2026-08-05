@@ -5,7 +5,15 @@ from __future__ import annotations
 from typing import Callable
 
 
-def build_coding_parser(subparsers, *, cmd_profiles: Callable, cmd_run: Callable) -> None:
+def build_coding_parser(
+    subparsers,
+    *,
+    cmd_profiles: Callable,
+    cmd_run: Callable,
+    cmd_preflight_run: Callable,
+    cmd_preflight_show: Callable,
+    cmd_preflight_config: Callable,
+) -> None:
     coding_parser = subparsers.add_parser(
         "coding",
         help="SWE-agent-style issue-to-patch runner",
@@ -24,3 +32,21 @@ def build_coding_parser(subparsers, *, cmd_profiles: Callable, cmd_run: Callable
     run_parser.add_argument("--dry-run", action="store_true", help="Propose patch without applying")
     run_parser.add_argument("--approve", action="store_true", help="Mark human review approved")
     run_parser.set_defaults(func=cmd_run)
+
+    preflight_parser = coding_sub.add_parser("preflight", help="Run coding preflight gates")
+    preflight_sub = preflight_parser.add_subparsers(dest="preflight_command", required=True)
+
+    preflight_run = preflight_sub.add_parser("run", help="Run preflight for a session")
+    preflight_run.add_argument("--session", required=True, dest="session_id")
+    preflight_run.add_argument("--intent", default="")
+    preflight_run.add_argument("--repo", default=None, dest="repo_path")
+    preflight_run.add_argument("--planned-lines", type=int, default=None)
+    preflight_run.add_argument("--provider-budget-pct", type=float, default=None)
+    preflight_run.set_defaults(func=cmd_preflight_run)
+
+    preflight_show = preflight_sub.add_parser("show", help="Show last preflight report")
+    preflight_show.add_argument("--session", required=True, dest="session_id")
+    preflight_show.set_defaults(func=cmd_preflight_show)
+
+    preflight_config = preflight_sub.add_parser("config", help="Show preflight config")
+    preflight_config.set_defaults(func=cmd_preflight_config)

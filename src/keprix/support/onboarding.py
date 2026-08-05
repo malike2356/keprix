@@ -21,8 +21,27 @@ def default_checklist() -> list[dict[str, Any]]:
     store = get_support_store()
     existing = store.get_checklist()
     if existing:
-        return existing
-    return store.save_checklist([dict(item) for item in DEFAULT_CHECKLIST])
+        items = existing
+    else:
+        items = store.save_checklist([dict(item) for item in DEFAULT_CHECKLIST])
+    return sync_llm_provider_checklist(items)
+
+
+def sync_llm_provider_checklist(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    try:
+        from keprix.setup.status import provider_configured
+
+        if provider_configured():
+            changed = False
+            for item in items:
+                if item.get("id") == "llm-provider" and not item.get("completed"):
+                    item["completed"] = True
+                    changed = True
+            if changed:
+                return get_support_store().save_checklist(items)
+    except Exception:
+        pass
+    return items
 
 
 def update_checklist_item(item_id: str, *, completed: bool) -> list[dict[str, Any]]:

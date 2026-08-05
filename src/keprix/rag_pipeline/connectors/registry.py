@@ -31,12 +31,23 @@ def list_connectors() -> List[Dict[str, str]]:
 
 
 def _register_builtin_connectors() -> None:
+    from keprix.rag_pipeline.connectors.files import LocalFileSourceConnector, UrlSourceConnector
     from keprix.rag_pipeline.connectors.notion import NotionSourceConnector
 
     register_connector(
         "notion",
         NotionSourceConnector,
         description="Index Notion pages and databases for RAG search (read-only).",
+    )
+    register_connector(
+        "local_file",
+        LocalFileSourceConnector,
+        description="Ingest a local filesystem path (or vault-relative path).",
+    )
+    register_connector(
+        "url",
+        UrlSourceConnector,
+        description="Ingest an http(s) URL as plaintext or markdown.",
     )
 
 

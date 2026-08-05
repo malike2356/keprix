@@ -8,9 +8,9 @@ import { ScrollReveal } from "@/components/marketing/ScrollReveal";
 
 const METRICS = [
   {
-    value: "< 3 min",
-    label: "to first running agent",
-    detail: "Docker compose up and your first agent is live.",
+    value: "1",
+    label: "runtime, many surfaces",
+    detail: "Web workspace, TUI, CLI, REST API, and mobile client.",
     color: "#6c5ce7",
   },
   {
@@ -26,9 +26,9 @@ const METRICS = [
     color: "#6495ed",
   },
   {
-    value: "0",
-    label: "cloud accounts required",
-    detail: "No vendor lock-in. Swap any model without code changes.",
+    value: "100/100",
+    label: "TUI parity target",
+    detail: "Hermes behavior parity with Keprix look and extensions.",
     color: "#F59E0B",
   },
 ] as const;

@@ -15,10 +15,12 @@ def run_tui(argv: list[str] | None = None) -> int:
         prog="keprix tui",
         description="Launch the Keprix terminal chat UI",
         epilog=(
-            "Mouse is off by default so you can select and copy text in the terminal.\n"
-            "  PYTHONPATH=src python3 -m keprix tui\n"
-            "  PYTHONPATH=src python3 -m keprix tui --mouse   # click sessions in the sidebar\n"
-            "Keyboard: Ctrl+S sessions | Ctrl+Shift+L copy last reply | Ctrl+Shift+C copy all"
+            "Mouse is off by default so you can shift+drag to select text in the terminal.\n"
+            "  keprix tui\n"
+            "  keprix tui --mouse\n"
+            "      Enable mouse capture: click sessions and drag-select transcript text.\n"
+            "Keyboard: Ctrl+Shift+T focus transcript | Ctrl+Shift+C copy selection or all\n"
+            "          Ctrl+Shift+L copy last reply | Ctrl+S sessions"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -29,7 +31,7 @@ def run_tui(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--mouse",
         action="store_true",
-        help="Enable mouse capture for clicking sessions (off by default so terminal copy works)",
+        help="Enable mouse capture for sidebar clicks and in-TUI transcript selection",
     )
     parser.add_argument(
         "--no-mouse",
@@ -43,12 +45,17 @@ def run_tui(argv: list[str] | None = None) -> int:
         from keprix.tui.app import KeprixTuiApp
         from keprix.tui.client import KeprixClient
     except ImportError as exc:
-        print("Textual is required for the TUI. Install with: pip install 'keprix[tui]'")
+        print("Textual is required for the TUI. Install with: pipx install 'keprix[tui]'")
         print(f"Detail: {exc}")
         return 1
 
     client = KeprixClient(base_url=args.url, token=args.token, model=args.model)
-    app = KeprixTuiApp(client=client, session_id=args.session_id, model=args.model)
+    app = KeprixTuiApp(
+        client=client,
+        session_id=args.session_id,
+        model=args.model,
+        mouse_enabled=use_mouse,
+    )
     asyncio.run(app.run_async(mouse=use_mouse))
     return 0
 

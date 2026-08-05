@@ -604,11 +604,13 @@ class CheckpointManager:
         max_snapshots: int = 20,
         max_total_size_mb: int = 500,
         max_file_size_mb: int = 10,
+        workdir: str | None = None,
     ):
         self.enabled = enabled
         self.max_snapshots = max(1, int(max_snapshots))
         self.max_total_size_mb = max(0, int(max_total_size_mb))
         self.max_file_size_mb = max(0, int(max_file_size_mb))
+        self.workdir = str(_normalize_path(workdir or os.getcwd()))
         self._checkpointed_dirs: Set[str] = set()
         self._git_available: Optional[bool] = None  # lazy probe
 
@@ -658,9 +660,9 @@ class CheckpointManager:
             logger.debug("Checkpoint failed (non-fatal): %s", e)
             return False
 
-    def list_checkpoints(self, working_dir: str) -> List[Dict]:
+    def list_checkpoints(self, working_dir: str | None = None) -> List[Dict]:
         """List available checkpoints for a directory (most recent first)."""
-        abs_dir = str(_normalize_path(working_dir))
+        abs_dir = str(_normalize_path(working_dir or self.workdir))
         store = _store_path(CHECKPOINT_BASE)
 
         if not (store / "HEAD").exists():
@@ -817,6 +819,17 @@ class CheckpointManager:
         }
         if file_path:
             result["file"] = file_path
+        try:
+            from keprix.security.hermes_features import emit_checkpoint_rollback
+
+            emit_checkpoint_rollback(
+                working_dir=abs_dir,
+                commit_hash=commit_hash,
+                success=True,
+                triggered_by="manual",
+            )
+        except Exception:
+            pass
         return result
 
     def get_working_dir_for_path(self, file_path: str) -> str:
@@ -966,6 +979,17 @@ class CheckpointManager:
             return False
 
         logger.debug("Checkpoint taken in %s: %s (%s)", working_dir, reason, new_sha[:8])
+
+        try:
+            from keprix.security.hermes_features import emit_checkpoint_created
+
+            emit_checkpoint_created(
+                working_dir=working_dir,
+                reason=reason,
+                commit_hash=new_sha,
+            )
+        except Exception:
+            pass
 
         # Real pruning — drop old commits beyond max_snapshots.
         self._prune(store, working_dir, ref)

@@ -17,6 +17,7 @@ import * as React from "react";
 import CalendarDayView from "@/components/calendar/CalendarDayView";
 import CalendarMonthView from "@/components/calendar/CalendarMonthView";
 import CalendarScheduleView from "@/components/calendar/CalendarScheduleView";
+import CalendarSyncPanel from "@/components/calendar/CalendarSyncPanel";
 import CalendarWeekView from "@/components/calendar/CalendarWeekView";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
@@ -107,7 +108,7 @@ export default function CalendarPage() {
         title="Calendar"
         description="Monthly, weekly, daily, and schedule views for your workspace events."
         breadcrumbs={[
-          { label: "Workspace", href: "/launcher" },
+          { label: "Workspace", href: "/home" },
           { label: "Calendar", href: "/calendar" },
         ]}
         actions={
@@ -116,6 +117,10 @@ export default function CalendarPage() {
           </Button>
         }
       />
+
+      <Box sx={{ mb: 2 }}>
+        <CalendarSyncPanel onSynced={() => void load()} />
+      </Box>
 
       <Box
         sx={{
@@ -158,7 +163,7 @@ export default function CalendarPage() {
       ) : !events.length && view === "schedule" ? (
         <EmptyState
           title="No events"
-          description="Add events manually or connect CalDAV sync from settings."
+          description="Add events manually or connect Google, iCloud, Nextcloud, or any CalDAV/ICS calendar with Sync calendars."
           icon={<CalendarMonthIcon sx={{ fontSize: 48 }} />}
           actionLabel="New event"
           onAction={() => openCreateDialog()}
@@ -230,6 +235,12 @@ export default function CalendarPage() {
               ) : null}
               {selectedEvent.description ? (
                 <Typography variant="body2">{selectedEvent.description}</Typography>
+              ) : null}
+              {selectedEvent.caldav_source_id ? (
+                <Typography variant="caption" color="text.secondary">
+                  Synced from external calendar
+                  {selectedEvent.external_readonly ? " (read-only)" : ""}
+                </Typography>
               ) : null}
             </DialogContent>
             <DialogActions>

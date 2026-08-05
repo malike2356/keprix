@@ -1,0 +1,5 @@
+Stage 1 means registration is approved by an admin. The member receives a Member ID and has read access to the platform.
+
+Stage 2 means annual dues are paid and an ID card is issued. The member has full forum access and a Certificate of Membership is generated.
+
+Stage 3 means a WRC drilling licence is registered through the association. The member is a Certified Driller.

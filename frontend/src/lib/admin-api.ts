@@ -215,12 +215,49 @@ export type McpCatalogEntry = {
   auto_spawnable: boolean;
 };
 
+export type OptionalMcpCatalogEntry = {
+  name: string;
+  description: string;
+  source: string;
+  transport: "stdio" | "http";
+  auth_type: string;
+  required_env: Array<{ name: string; prompt: string; required: boolean }>;
+  needs_install: boolean;
+  installed: boolean;
+  enabled: boolean;
+  docs_url?: string | null;
+  category?: string | null;
+  default_tools?: string[] | null;
+};
+
 export async function fetchMcpCatalog(): Promise<McpCatalogEntry[]> {
   const data = await parseJson<{ catalog: McpCatalogEntry[] }>(
     await mcpApi("/api/mcp/catalog"),
     "Failed to load MCP catalog",
   );
   return data.catalog;
+}
+
+export async function fetchOptionalMcpCatalogEntries(): Promise<OptionalMcpCatalogEntry[]> {
+  const data = await parseJson<{ entries: OptionalMcpCatalogEntry[] }>(
+    await mcpApi("/api/mcp/catalog"),
+    "Failed to load optional MCP catalog",
+  );
+  return data.entries ?? [];
+}
+
+export async function installOptionalMcpEntry(
+  name: string,
+  opts?: { env?: Record<string, string>; enable?: boolean },
+): Promise<{ ok: boolean; name: string; background?: boolean }> {
+  return parseJson(
+    await mcpApi("/api/mcp/catalog/install", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, enable: opts?.enable ?? true, env: opts?.env ?? {} }),
+    }),
+    "Failed to install MCP catalog entry",
+  );
 }
 
 export async function addMcpFromCatalog(

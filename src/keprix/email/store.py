@@ -34,8 +34,18 @@ class EmailAccountRecord:
     is_active: bool
     created_at: datetime
     oauth_provider: str | None = None
+    oauth_vault_item_id: str | None = None
 
     def to_public(self) -> dict[str, Any]:
+        interval = max(30, int(self.poll_interval_seconds or 60))
+        next_sync = None
+        if self.is_active:
+            if self.last_polled_at is None:
+                next_sync = _utcnow()
+            else:
+                from datetime import timedelta
+
+                next_sync = self.last_polled_at + timedelta(seconds=interval)
         return {
             "id": self.id,
             "user_id": self.user_id,
@@ -48,9 +58,11 @@ class EmailAccountRecord:
             "username": self.username,
             "use_tls": self.use_tls,
             "use_starttls": self.use_starttls,
-            "poll_interval_seconds": self.poll_interval_seconds,
+            "poll_interval_seconds": interval,
             "last_polled_at": self.last_polled_at,
+            "next_sync_at": next_sync,
             "is_active": self.is_active,
+            "oauth_provider": self.oauth_provider,
             "created_at": self.created_at,
         }
 
@@ -58,6 +70,7 @@ class EmailAccountRecord:
         return {
             **self.to_public(),
             "password_encrypted": self.password_encrypted,
+            "oauth_vault_item_id": self.oauth_vault_item_id,
         }
 
 
@@ -175,10 +188,12 @@ class EmailStore:
             password_encrypted=encrypt_secret(data["password"]),
             use_tls=bool(data.get("use_tls", True)),
             use_starttls=bool(data.get("use_starttls", False)),
-            poll_interval_seconds=int(data.get("poll_interval_seconds", 60)),
+            poll_interval_seconds=int(data.get("poll_interval_seconds", 300)),
             last_polled_at=None,
             is_active=True,
             created_at=now,
+            oauth_provider=data.get("oauth_provider"),
+            oauth_vault_item_id=data.get("oauth_vault_item_id"),
         )
         async with self._lock:
             self._accounts[account_id] = record
@@ -196,29 +211,52 @@ class EmailStore:
         return [a for a in self._accounts.values() if a.user_id == user_id]
 
     async def get_account(self, account_id: str, user_id: str) -> EmailAccountRecord | None:
+        from keprix.db.email_repo import pg_get_account
+
         record = self._accounts.get(account_id)
-        if record is None or record.user_id != user_id:
-            return None
-        return record
+        if record is not None and record.user_id == user_id:
+            return record
+        pg_record = await pg_get_account(account_id, user_id)
+        if pg_record is not None:
+            async with self._lock:
+                self._accounts[pg_record.id] = pg_record
+            return pg_record
+        return None
 
     async def update_account(
         self, account_id: str, user_id: str, updates: dict[str, Any]
     ) -> EmailAccountRecord | None:
+        from keprix.db.email_repo import pg_update_account
+
+        async with self._lock:
+            record = self._accounts.get(account_id)
+            if record is None or record.user_id != user_id:
+                # Try hydrate from PG first.
+                pass
+            else:
+                for key, value in updates.items():
+                    if value is None:
+                        continue
+                    if key == "password":
+                        record.password_encrypted = encrypt_secret(value)
+                    elif hasattr(record, key):
+                        setattr(record, key, value)
+                self._accounts[account_id] = record
+        pg_record = await pg_update_account(account_id, user_id, updates)
+        if pg_record is not None:
+            async with self._lock:
+                self._accounts[pg_record.id] = pg_record
+            return pg_record
         async with self._lock:
             record = self._accounts.get(account_id)
             if record is None or record.user_id != user_id:
                 return None
-            for key, value in updates.items():
-                if value is None:
-                    continue
-                if key == "password":
-                    record.password_encrypted = encrypt_secret(value)
-                elif hasattr(record, key):
-                    setattr(record, key, value)
-            self._accounts[account_id] = record
             return record
 
     async def delete_account(self, account_id: str, user_id: str) -> bool:
+        from keprix.db.email_repo import pg_delete_account
+
+        await pg_delete_account(account_id, user_id)
         async with self._lock:
             record = self._accounts.get(account_id)
             if record is None or record.user_id != user_id:
@@ -228,6 +266,15 @@ class EmailStore:
                 k: v for k, v in self._emails.items() if v.account_id != account_id
             }
             return True
+
+    async def touch_polled(self, account_id: str) -> None:
+        from keprix.db.email_repo import pg_touch_polled
+
+        async with self._lock:
+            record = self._accounts.get(account_id)
+            if record:
+                record.last_polled_at = _utcnow()
+        await pg_touch_polled(account_id)
 
     async def list_active_accounts(self) -> list[EmailAccountRecord]:
         from keprix.db.email_repo import pg_list_active_accounts
@@ -239,12 +286,6 @@ class EmailStore:
                     self._accounts[row.id] = row
             return pg_rows
         return [a for a in self._accounts.values() if a.is_active]
-
-    async def touch_polled(self, account_id: str) -> None:
-        async with self._lock:
-            record = self._accounts.get(account_id)
-            if record:
-                record.last_polled_at = _utcnow()
 
     async def upsert_email(self, account: EmailAccountRecord, parsed: dict[str, Any]) -> EmailRecord | None:
         key = (account.id, parsed.get("uid"), parsed.get("folder", "INBOX"))

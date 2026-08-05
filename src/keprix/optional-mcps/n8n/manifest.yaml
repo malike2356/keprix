@@ -7,6 +7,8 @@ manifest_version: 1
 name: n8n
 description: Manage and inspect n8n workflows from Keprix (stdio bridge, no public port).
 source: https://github.com/CyberSamuraiX/keprix-n8n-mcp
+docs_url: /docs/integrations/n8n-sidecar
+category: workflow-bridge
 
 # How to launch the server once installed. The keys here map 1:1 to the
 # `mcp_servers.<name>` block written into ~/.keprix/config.yaml by the
@@ -68,10 +70,20 @@ tools:
     - export_workflow
 
 post_install: |
-  The n8n bridge expects to talk to a running n8n instance over the URL you
-  provided. Generate an API key in n8n under Settings → API.
+  Start a local n8n instance (optional; skip if you already have one):
+
+    docker run -d --name n8n -p 5678:5678 -v n8n_data:/home/node/.n8n docker.n8n.io/n8nio/n8n
+
+  The n8n bridge expects a running n8n instance at the URL you provided.
+  Generate an API key in n8n under Settings → API.
+
+  Default tools are read-mostly (list/export workflows, executions, health).
+  Activate/deactivate and container log tools are opt-in at install time.
 
   Workflow activate/deactivate calls are real mutations against your live n8n.
   Treat them carefully.
+
+  Operator guide: /docs/integrations/n8n-sidecar
+  One-time YAML import (not live control): docs/features/migration.md#from-n8n
 
   Start a new Keprix session to load the n8n tools.

@@ -1,94 +1,114 @@
-# VPS deploy (hardened)
+# VPS deploy (Compose + Caddy)
 
-**Canonical production path:** Docker Compose + Caddy via `scripts/deploy-keprix-production.sh`.
+Canonical production path for a single VPS: Docker Compose for the app stack, Caddy for TLS, orchestrated by `scripts/deploy-keprix-production.sh`.
 
-Optional helpers (use only when needed):
+For a shorter overview and cloud helpers (DigitalOcean, Fly), see [Cloud deploy](../getting-started/cloud-deploy.md).
 
-| Helper | Role |
-| --- | --- |
-| `scripts/deploy-server.sh` | Low-level fail-closed steps called by production |
-| `scripts/deploy-canary.sh` | Canary → health → flip Caddy → promote |
-| `scripts/bootstrap-do-droplet.sh` | DigitalOcean provision (SSH key, UFW, Caddy) |
-| `scripts/deploy-managed.sh` | Thin wrapper (Fly fullstack / DO bootstrap) |
-| `fly.fullstack.toml` | Optional Fly recipe (Postgres/Redis/volume required) |
+## Prerequisites
 
-## One runtime story
+- Ubuntu-class Linux host with Docker and Docker Compose
+- DNS A/AAAA for your public hostname pointing at the host
+- Ports 80/443 reachable for Caddy ACME
+- Repo checkout (or a pinned ref from bootstrap)
 
-| Profile | When to use | Process |
-| --- | --- | --- |
-| **compose** (recommended) | Full stack on a VPS | Docker: `uvicorn keprix.api.main:app` + Next + Postgres + Redis |
-| **systemd** (bare-metal API) | API only | `deploy/keprix.service` on `127.0.0.1:3333` |
+Keep `BACKEND_BIND=127.0.0.1` and `FRONTEND_BIND=127.0.0.1` so only Caddy (or another local reverse proxy) terminates TLS.
 
-Do not expose `0.0.0.0:3333` publicly. Terminate TLS at Caddy; keep binds on `127.0.0.1`.
+## 1. Generate production `.env`
 
-## First-time bootstrap
+Never leave `GENERATE_RANDOM_*`, `REPLACE_ME*`, or `changeme` values on a public host.
 
 ```bash
 bash scripts/generate-production-env.sh --domain https://app.example.com
-bash scripts/deploy-keprix-production.sh --bootstrap --domain app.example.com --skip-scout
-# later deploys
-bash scripts/deploy-keprix-production.sh --ref v0.16.0 --skip-scout
-# canary
-bash scripts/deploy-keprix-production.sh --domain app.example.com --canary --tag v0.16.1 --skip-scout
 ```
 
-DigitalOcean (SSH key required; no curl|bash install):
+This copies `.env.example` when needed, writes strong secrets (values are not printed), sets DB/Redis URLs, and pins `KEPRIX_INSTANCE_URL` / `KEPRIX_ALLOWED_ORIGINS` / `KEPRIX_FRONTEND_URL` from `--domain`.
+
+Review `.env` before deploy. Rotate `KEPRIX_ADMIN_PASSWORD` via your secret store if you need a known value after generation.
+
+## 2. Bootstrap (first host)
+
+Install Caddy, firewall/timers as implemented by `deploy-server.sh`, then deploy:
+
+```bash
+bash scripts/deploy-keprix-production.sh \
+  --bootstrap \
+  --domain app.example.com \
+  --skip-scout
+```
+
+`--bootstrap` requires `--domain`. Omit `--skip-scout` when Scout is configured and you want the post-deploy security audit, Scout tests, and `keprix scout ping`.
+
+## 3. Rolling deploy (existing host)
+
+After `.env` exists and secrets are real:
+
+```bash
+bash scripts/deploy-keprix-production.sh --domain app.example.com --skip-scout
+```
+
+Optional flags (passed through to the server deploy path where applicable):
+
+| Flag | Purpose |
+| --- | --- |
+| `--tag TAG` | Image / release tag (non-canary skips pull when tag set) |
+| `--ref REF` | Git ref for `deploy-server` pull |
+| `--skip-scout` | Skip Scout audit/tests/ping |
+| `--skip-tests`, `--skip-pull`, `--skip-migrate`, `--skip-backup` | Server-path shortcuts |
+
+The script refuses to start if `.env` is missing or still contains placeholder secrets.
+
+## 4. Canary
+
+Requires both `--domain` and `--tag`. Runs `scripts/deploy-canary.sh` instead of a rolling server deploy:
+
+```bash
+bash scripts/deploy-keprix-production.sh \
+  --domain app.example.com \
+  --canary \
+  --tag v0.16.1 \
+  --skip-scout
+```
+
+## 5. Health gate
+
+On success the script curls local health:
+
+```bash
+curl -fsS "http://127.0.0.1:${BACKEND_PORT:-3333}/api/health"
+```
+
+## TLS / Caddy
+
+TLS is terminated at Caddy (`deploy/Caddyfile` or its template). Compose services stay on loopback; do not expose Postgres or Redis on the public interface.
+
+## Optional helpers (not the primary path)
+
+| Script | Role |
+| --- | --- |
+| `scripts/deploy-server.sh` | Low-level fail-closed Compose steps |
+| `scripts/deploy-managed.sh` | Fly / droplet wrappers |
+| `scripts/bootstrap-do-droplet.sh` | DigitalOcean provisioning + pinned ref |
+
+DigitalOcean example (does not pipe `install.sh` from the network):
 
 ```bash
 bash scripts/bootstrap-do-droplet.sh \
   --domain app.example.com \
   --email you@example.com \
-  --ssh-key "my-laptop" \
+  --ssh-key "your-do-ssh-key-name" \
   --ref v0.16.0
 ```
 
-## Verified install (no raw pipe)
+## Post-deploy
 
-```bash
-bash scripts/install-verified.sh --version v0.16.0
-# or
-bash scripts/install-verified.sh --from-git --ref v0.16.0
-```
-
-`scripts/install-curl.sh` refuses unsafe curl|bash unless `KEPRIX_ALLOW_UNSAFE_CURL_BASH=1`.
-
-## Canary
-
-1. Start canary on `127.0.0.1:3001` / `:3334`
-2. Health-check canary
-3. Point Caddy at canary
-4. Promote images to live ports `3000` / `3333`
-5. Flip Caddy back to live; stop canary
-
-## Fail-closed steps
-
-`deploy-server.sh` (used by production): pull → doctor → smoke → backup → migrate → restart → health.
-
-## Production compose overlay
-
-```bash
-cd docker
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-```
-
-## Fly (optional)
-
-Not one-click. See `fly.fullstack.toml` header: create app, attach Postgres + Redis, create volume, set secrets, then `fly deploy -c fly.fullstack.toml`. Backend-only sketch: `fly.backend-only.toml`.
-
-## Rollback
-
-```bash
-bash scripts/deploy-keprix-production.sh --ref v0.15.2 --skip-scout
-KEPRIX_IMAGE_TAG=v0.15.2 bash scripts/deploy-keprix-production.sh --skip-scout
-```
-
-## Trusted proxies / secrets
-
-See [Hardening](../security/hardening.md). Set `KEPRIX_TRUSTED_PROXIES=127.0.0.1,::1` behind local Caddy.
+1. [First run](../getting-started/first-run.md): admin account, LLM provider, optional channels
+2. [Hardening](../security/hardening.md): secrets, binds, 2FA, backups
+3. [Readiness](readiness.md): `keprix readiness` and Admin > Readiness
+4. [Backup](backup.md): schedule hot backups before upgrades
 
 ## Related
 
 - [Cloud deploy](../getting-started/cloud-deploy.md)
-- [Hardening](../security/hardening.md)
-- [Backup](backup.md)
+- [Docker Compose](../configuration/docker-compose.md)
+- [Environment variables](../configuration/environment-variables.md)
 - [Release signing](../security/release-signing.md)

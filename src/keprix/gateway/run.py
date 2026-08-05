@@ -822,6 +822,7 @@ _AUTO_APPEND_MEDIA_TOOL_NAMES = {
     "text_to_speech",
     "text_to_speech_tool",
     "image_generate",
+    "present_files",
 }
 
 # ---- helpers: detect interrupted tool tails & auto-continue noise ----------
@@ -1006,6 +1007,26 @@ def _collect_auto_append_media_tags(
                             and path not in history_media_paths):
                         media_tags.append(f"MEDIA:{path}")
                         break
+            continue
+        if tool_name == "present_files" and "MEDIA:" not in content:
+            try:
+                payload = json.loads(content)
+            except Exception:
+                payload = None
+            if isinstance(payload, dict) and payload.get("success"):
+                present_paths = payload.get("paths") or []
+                if isinstance(present_paths, str):
+                    present_paths = [present_paths]
+                single = payload.get("path")
+                if single and single not in present_paths:
+                    present_paths = [single, *list(present_paths)]
+                for path in present_paths:
+                    if (
+                        isinstance(path, str)
+                        and path
+                        and path not in history_media_paths
+                    ):
+                        media_tags.append(f"MEDIA:{path}")
             continue
         if "MEDIA:" not in content:
             continue
@@ -7633,6 +7654,9 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         if canonical == "credits":
             return await self._handle_credits_command(event)
 
+        if canonical == "billing":
+            return await self._handle_billing_command(event)
+
         if canonical == "insights":
             return await self._handle_insights_command(event)
 
@@ -7773,6 +7797,33 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
                     return str(result) if result else None
             except Exception as e:
                 logger.warning("Plugin command dispatch failed: %s", e)
+
+        # Keprix product slash surface (playbook, research, crew, ...)
+        # Registered in COMMAND_REGISTRY for /help + Telegram menus; executed
+        # via the shared product slash executor so Telegram keeps one home.
+        if command:
+            try:
+                from gateway.slash.product import dispatch_product_slash
+
+                source = event.source
+                product_reply = await dispatch_product_slash(
+                    text=event.text or f"/{command}",
+                    user_id=str(source.user_id),
+                    chat_id=str(source.chat_id or source.user_id),
+                    channel=(
+                        source.platform.value if source.platform else "telegram"
+                    ),
+                    workspace_id=str(
+                        getattr(source, "workspace_id", None)
+                        or source.chat_id
+                        or source.user_id
+                        or "default"
+                    ),
+                )
+                if product_reply is not None:
+                    return product_reply
+            except Exception as e:
+                logger.warning("Product slash dispatch failed: %s", e)
 
         # Skill slash commands: /skill-name loads the skill and sends to agent.
         # resolve_skill_command_key() handles the Telegram underscore/hyphen

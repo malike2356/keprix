@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import type { CalendarEvent } from "@/lib/workspace-api";
 import { formatEventTime } from "@/lib/calendar-utils";
+import { calendarEventHoverSx } from "@/components/calendar/calendar-motion";
 
 type CalendarEventChipProps = {
   event: CalendarEvent;
@@ -14,7 +15,10 @@ type CalendarEventChipProps = {
 export default function CalendarEventChip({ event, compact = false, onClick }: CalendarEventChipProps) {
   return (
     <Box
-      onClick={() => onClick?.(event)}
+      onClick={(mouseEvent) => {
+        mouseEvent.stopPropagation();
+        onClick?.(event);
+      }}
       sx={{
         px: compact ? 0.75 : 1,
         py: compact ? 0.25 : 0.5,
@@ -23,7 +27,7 @@ export default function CalendarEventChip({ event, compact = false, onClick }: C
         color: "primary.contrastText",
         cursor: onClick ? "pointer" : "default",
         overflow: "hidden",
-        "&:hover": onClick ? { filter: "brightness(1.05)" } : undefined,
+        ...(onClick ? calendarEventHoverSx : null),
       }}
     >
       <Typography variant="caption" sx={{ display: "block", fontWeight: 600, lineHeight: 1.2 }} noWrap>

@@ -1,0 +1,59 @@
+- version: "0.4.0"
+  date: "2026-04-01"
+  entries:
+    - type: feature
+      id: compression
+      title: Compression (RTK + Caveman)
+    - type: feature
+      id: guardrails
+      title: Guardrails (PII, injection)
+
+- version: "0.5.0"
+  date: "2026-05-01"
+  entries:
+    - type: feature
+      id: a2a
+      title: A2A Protocol
+    - type: feature
+      id: observability
+      title: Observability (audit, traces)
+    - type: config_migration
+      id: providers-layout
+      title: providers.yaml to providers/providers.yaml
+    - type: config_migration
+      id: audit-relocation
+      title: audit.db to observability/audit.db
+
+- version: "0.6.0"
+  date: "2026-06-01"
+  entries:
+    - type: feature
+      id: semantic-cache
+      title: Semantic Cache
+    - type: feature
+      id: spend-tracking
+      title: Spend Tracking
+    - type: deprecation
+      id: depr-billing-v1
+      title: billing.create_invoice() deprecated
+
+- version: "0.7.0"
+  date: "2026-07-01"
+  entries:
+    - type: feature
+      id: cli-auto-config
+      title: CLI Auto-Config
+    - type: feature
+      id: model-catalog-sync
+      title: Provider Model Catalog Sync
+
+- version: "0.16.0"
+  date: "2026-07-10"
+  entries:
+    - type: feature
+      id: gtm-surface
+      title: GTM surfaces for billing, modules, and local governance
+    - type: fix
+      id: upgrade-installability
+      title: Upgrade alerts only when the target package is installable
+

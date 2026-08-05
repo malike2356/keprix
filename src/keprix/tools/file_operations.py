@@ -586,7 +586,7 @@ def _lint_yaml_inproc(content: str) -> tuple[bool, str]:
 def _lint_toml_inproc(content: str) -> tuple[bool, str]:
     """In-process TOML syntax check (stdlib tomllib, Python 3.11+)."""
     try:
-        import tomllib as _toml
+        from keprix.compat import tomllib as _toml
     except ImportError:
         # Pre-3.11 fallback via tomli, if installed.
         try:

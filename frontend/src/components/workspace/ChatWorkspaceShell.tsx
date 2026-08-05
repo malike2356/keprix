@@ -20,7 +20,7 @@ const SIDEBAR_WIDTH = 280;
 
 export default function ChatWorkspaceShell({ children, sessionId, sessionTitle }: ChatWorkspaceShellProps) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"), { noSsr: true });
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
   const sidebar = (

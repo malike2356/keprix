@@ -23,21 +23,24 @@ def document_to_dict(doc: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def apply_ai_edit(content: str, instruction: str) -> str:
+async def apply_ai_edit(content: str, instruction: str) -> str:
     instruction = instruction.strip()
     if not instruction:
         return content
+    # Deterministic, offline-safe edit note. LLM rewrite can replace this later.
     if content.startswith("#"):
         return f"{content}\n\n<!-- AI edit: {instruction} -->\n"
     return f"<!-- AI edit: {instruction} -->\n\n{content}"
 
 
-def ai_suggest(content: str) -> list[str]:
-    suggestions = []
+async def ai_suggest(content: str) -> list[str]:
+    suggestions: list[str] = []
     if len(content) < 40:
         suggestions.append("Expand this section with more detail.")
     if "#" not in content and len(content.split()) > 80:
         suggestions.append("Consider adding headings to improve structure.")
+    if "TODO" in content.upper():
+        suggestions.append("Resolve TODO markers before sharing.")
     if not suggestions:
         suggestions.append("Content looks good. Consider adding a summary paragraph.")
     return suggestions
@@ -48,7 +51,10 @@ def export_document(doc: dict[str, Any], fmt: str) -> tuple[str, str | bytes]:
     title = doc.get("title", "document")
     if fmt == "html":
         body = html.escape(content).replace("\n", "<br>\n")
-        return f"text/html; charset=utf-8", f"<html><body><h1>{html.escape(title)}</h1><div>{body}</div></body></html>"
+        return (
+            "text/html; charset=utf-8",
+            f"<html><body><h1>{html.escape(title)}</h1><div>{body}</div></body></html>",
+        )
     if fmt == "txt":
         return "text/plain; charset=utf-8", content
     if fmt == "pdf":

@@ -1,0 +1,36 @@
+{
+  "mode": "seed",
+  "domains": ["context", "cadence", "connections", "controls"],
+  "tasks": [
+    {
+      "id": "daily-brief",
+      "domain": "cadence",
+      "description": "Generate a daily brief from calendar, tasks, and memory",
+      "frequency": "daily",
+      "desired_output": "Morning brief with priorities and follow-ups",
+      "tools_hint": ["calendar", "tasks", "memory"],
+      "propose_skill": true,
+      "propose_automation": true
+    },
+    {
+      "id": "inbox-triage",
+      "domain": "connections",
+      "description": "Triage inbox messages and draft replies for review",
+      "frequency": "daily",
+      "desired_output": "Priority queue and draft responses",
+      "tools_hint": ["email"],
+      "propose_skill": true,
+      "propose_automation": false
+    },
+    {
+      "id": "research-to-wiki",
+      "domain": "context",
+      "description": "Turn raw research files into wiki articles",
+      "frequency": "weekly",
+      "desired_output": "Linked markdown wiki note",
+      "tools_hint": ["vault", "documents"],
+      "propose_skill": true,
+      "propose_automation": false
+    }
+  ]
+}

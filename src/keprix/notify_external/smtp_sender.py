@@ -120,6 +120,7 @@ async def send_email(
     template_vars: dict[str, Any] | None = None,
     triggered_by: str = "api",
     triggered_by_id: str | None = None,
+    existing_notification_id: str | None = None,
 ) -> str:
     del to_name
     store = get_notify_external_store()
@@ -135,21 +136,38 @@ async def send_email(
     if not subject or not body_text:
         raise ValueError("subject and body_text are required")
 
-    row = store.create_notification(
-        workspace_id,
-        {
-            "channel": "email",
-            "recipient_address": to_email,
-            "subject": subject,
-            "body_text": body_text,
-            "body_html": body_html,
-            "template_name": template_name,
-            "template_vars": template_vars or {},
-            "triggered_by": triggered_by,
-            "triggered_by_id": triggered_by_id,
-        },
-    )
-    notification_id = str(row["id"])
+    prior_attempts = 0
+    if existing_notification_id:
+        existing = store.get_notification(existing_notification_id)
+        if existing is None:
+            raise ValueError("Notification not found")
+        notification_id = existing_notification_id
+        prior_attempts = int(existing.get("attempts") or 0)
+        store.update_notification(
+            notification_id,
+            {
+                "status": "pending",
+                "subject": subject,
+                "body_text": body_text,
+                "body_html": body_html,
+            },
+        )
+    else:
+        row = store.create_notification(
+            workspace_id,
+            {
+                "channel": "email",
+                "recipient_address": to_email,
+                "subject": subject,
+                "body_text": body_text,
+                "body_html": body_html,
+                "template_name": template_name,
+                "template_vars": template_vars or {},
+                "triggered_by": triggered_by,
+                "triggered_by_id": triggered_by_id,
+            },
+        )
+        notification_id = str(row["id"])
     config = store.get_config(workspace_id)
     smtp_config = dict(config)
     if not config.get("smtp_host"):
@@ -172,9 +190,10 @@ async def send_email(
             notification_id,
             {
                 "status": "sent",
-                "attempts": 1,
+                "attempts": prior_attempts + 1,
                 "last_attempted_at": datetime.now(timezone.utc).isoformat(),
                 "delivered_at": datetime.now(timezone.utc).isoformat(),
+                "failure_reason": None,
             },
         )
         await audit_log(
@@ -192,7 +211,7 @@ async def send_email(
             notification_id,
             {
                 "status": "failed",
-                "attempts": 1,
+                "attempts": prior_attempts + 1,
                 "last_attempted_at": datetime.now(timezone.utc).isoformat(),
                 "failure_reason": str(exc)[:500],
             },

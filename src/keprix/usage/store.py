@@ -481,6 +481,8 @@ class LlmUsageStore:
         *,
         dimension: str,
     ) -> list[dict[str, Any]]:
+        if dimension in {"agent", "agents"}:
+            return await self.aggregate_agent_breakdown(filters)
         if self._use_sqlite():
             return self.aggregate_breakdown_sync(filters, dimension=dimension)
         factory = get_session_factory()
@@ -503,6 +505,64 @@ class LlmUsageStore:
         return self._format_breakdown(
             [(row.dim_key, row.request_count, row.total_tokens, row.total_cost_usd) for row in rows]
         )
+
+    def aggregate_agent_breakdown_sync(self, filters: UsageQueryFilters) -> list[dict[str, Any]]:
+        if not self._use_sqlite():
+            return []
+        where_sql, params = self._sqlite_where(filters)
+        with self._sqlite_conn() as conn:
+            rows = conn.execute(
+                f"""
+                SELECT
+                    COALESCE(
+                        NULLIF(json_extract(metadata, '$.agent_id'), ''),
+                        NULLIF(json_extract(metadata, '$.agent'), ''),
+                        NULLIF(json_extract(metadata, '$.app_name'), ''),
+                        NULLIF(channel, ''),
+                        'unknown'
+                    ) AS dim_key,
+                    COUNT(*) AS request_count,
+                    COALESCE(SUM(total_tokens), 0),
+                    COALESCE(SUM(cost_usd), 0)
+                FROM llm_usage_events
+                WHERE {where_sql}
+                GROUP BY dim_key
+                ORDER BY COALESCE(SUM(cost_usd), 0) DESC
+                """,
+                params,
+            ).fetchall()
+        return self._format_breakdown(rows)
+
+    async def aggregate_agent_breakdown(self, filters: UsageQueryFilters) -> list[dict[str, Any]]:
+        if self._use_sqlite():
+            return self.aggregate_agent_breakdown_sync(filters)
+        factory = get_session_factory()
+        if factory is None:
+            return []
+        query = select(LlmUsageEventRow)
+        query = self._pg_apply_filters(query, filters)
+        buckets: dict[str, dict[str, float]] = {}
+        async with factory() as session:
+            rows = (await session.execute(query.limit(10000))).scalars().all()
+        for row in rows:
+            meta = row.metadata_json if isinstance(row.metadata_json, dict) else {}
+            key = (
+                str(meta.get("agent_id") or "").strip()
+                or str(meta.get("agent") or "").strip()
+                or str(meta.get("app_name") or "").strip()
+                or str(row.channel or "").strip()
+                or "unknown"
+            )
+            bucket = buckets.setdefault(key, {"request_count": 0, "total_tokens": 0, "total_cost_usd": 0.0})
+            bucket["request_count"] += 1
+            bucket["total_tokens"] += float(row.total_tokens or 0)
+            bucket["total_cost_usd"] += float(row.cost_usd or 0)
+        formatted = [
+            (key, data["request_count"], data["total_tokens"], data["total_cost_usd"])
+            for key, data in buckets.items()
+        ]
+        formatted.sort(key=lambda item: float(item[3] or 0), reverse=True)
+        return self._format_breakdown(formatted)
 
     def _dimension_column(self, dimension: str) -> str:
         mapping = {

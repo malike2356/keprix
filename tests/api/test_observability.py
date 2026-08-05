@@ -59,6 +59,8 @@ async def test_openapi_json_available(client):
 @pytest.mark.asyncio
 async def test_detailed_health_requires_admin(client, monkeypatch):
     monkeypatch.delenv("KEPRIX_API_ADMIN_TOKEN", raising=False)
+    # Disable localhost developer bypass so missing admin token is rejected.
+    monkeypatch.setattr("keprix.api.auth.effective_access_level", lambda: "standard")
     response = await client.get("/api/health/detailed")
     assert response.status_code in {401, 403}
 
@@ -66,6 +68,7 @@ async def test_detailed_health_requires_admin(client, monkeypatch):
 @pytest.mark.asyncio
 async def test_detailed_health_with_admin_token(client, monkeypatch):
     monkeypatch.setenv("KEPRIX_API_ADMIN_TOKEN", "test-admin-token")
+    monkeypatch.setattr("keprix.api.auth.effective_access_level", lambda: "standard")
 
     class _FakeMonitor:
         async def _run_all_checks(self) -> None:
@@ -91,7 +94,8 @@ async def test_detailed_health_with_admin_token(client, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_analytics_usage_requires_auth(client):
+async def test_analytics_usage_requires_auth(client, monkeypatch):
+    monkeypatch.setattr("keprix.api.auth.effective_access_level", lambda: "standard")
     response = await client.get("/api/analytics/usage")
     assert response.status_code == 401
 
@@ -99,6 +103,7 @@ async def test_analytics_usage_requires_auth(client):
 @pytest.mark.asyncio
 async def test_analytics_usage_with_token(client, monkeypatch):
     monkeypatch.setenv("KEPRIX_API_TOKEN", "test-api-token")
+    monkeypatch.setattr("keprix.api.auth.effective_access_level", lambda: "standard")
     response = await client.get(
         "/api/analytics/usage",
         headers={"Authorization": "Bearer test-api-token"},
@@ -112,6 +117,7 @@ async def test_analytics_usage_with_token(client, monkeypatch):
 @pytest.mark.asyncio
 async def test_diagnostics_with_admin(client, monkeypatch):
     monkeypatch.setenv("KEPRIX_API_ADMIN_TOKEN", "admin-token")
+    monkeypatch.setattr("keprix.api.auth.effective_access_level", lambda: "standard")
     response = await client.get(
         "/api/diagnostics",
         headers={"Authorization": "Bearer admin-token"},
@@ -138,6 +144,7 @@ async def test_public_chat_with_api_token(client, monkeypatch):
 
     monkeypatch.setattr("keprix.api.public_v1_routes.run_agent_chat_completion", _fake_run)
     monkeypatch.setenv("KEPRIX_API_TOKEN", "chat-token")
+    monkeypatch.setattr("keprix.api.auth.effective_access_level", lambda: "standard")
     response = await client.post(
         "/v1/chat",
         headers={"Authorization": "Bearer chat-token"},
@@ -151,7 +158,8 @@ async def test_public_chat_with_api_token(client, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_error_handler_json_shape(client):
+async def test_error_handler_json_shape(client, monkeypatch):
+    monkeypatch.setattr("keprix.api.auth.effective_access_level", lambda: "standard")
     response = await client.get("/api/analytics/usage")
     assert response.status_code == 401
     payload = response.json()

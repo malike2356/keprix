@@ -49,7 +49,7 @@ export function AdminSidebar({
   const content = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <Box sx={{ flexShrink: 0, px: collapsed ? 1 : 2.5, py: 2, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Box component={NextLink} href="/launcher" sx={{ textDecoration: "none", color: "inherit", minWidth: 0 }}>
+        <Box component={NextLink} href="/home" sx={{ textDecoration: "none", color: "inherit", minWidth: 0 }}>
           <KeprixLogo variant={collapsed ? "icon" : "full"} size="md" />
         </Box>
         <IconButton size="small" onClick={onToggleCollapsed} sx={{ display: { xs: "none", md: "inline-flex" } }}>

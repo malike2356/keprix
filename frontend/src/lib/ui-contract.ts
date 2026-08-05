@@ -11,6 +11,14 @@ export type UiNavItem = {
 export type UiContract = {
   product: string;
   terminology_version: string;
+  installed_apps?: Array<{
+    id: string;
+    label: string;
+    description?: string | null;
+    entry: string;
+    icon?: string | null;
+    version?: string | null;
+  }>;
   navigation: {
     groups: Array<{ id: string; label: string }>;
     items: UiNavItem[];
@@ -42,6 +50,7 @@ export type UiContract = {
 };
 
 let cachedContract: UiContract | null = null;
+const STORAGE_KEY = "keprix_ui_contract_v1";
 
 export async function fetchUiContract(): Promise<UiContract> {
   const response = await ceApi("/api/ui/contract");
@@ -50,9 +59,31 @@ export async function fetchUiContract(): Promise<UiContract> {
   }
   const data = (await response.json()) as UiContract;
   cachedContract = data;
+  if (typeof window !== "undefined") {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      // Ignore quota or private-mode storage errors.
+    }
+  }
   return data;
 }
 
 export function getCachedUiContract(): UiContract | null {
-  return cachedContract;
+  if (cachedContract) {
+    return cachedContract;
+  }
+  if (typeof window === "undefined") {
+    return null;
+  }
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+    cachedContract = JSON.parse(raw) as UiContract;
+    return cachedContract;
+  } catch {
+    return null;
+  }
 }

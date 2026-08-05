@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from enum import StrEnum
+from keprix.compat import StrEnum
 from typing import Any
 
 from keprix.agent.keprix.approval_gate import submit_for_approval

@@ -50,6 +50,37 @@ def _get_platform_default_keprix_home() -> Path:
     return Path.home() / ".keprix"
 
 
+def _get_platform_default_hermes_home() -> Path:
+    """Return the platform-native legacy Hermes home path."""
+    if sys.platform == "win32":
+        local_appdata = os.environ.get("LOCALAPPDATA", "").strip()
+        base = Path(local_appdata) if local_appdata else Path.home() / "AppData" / "Local"
+        return base / "hermes"
+    return Path.home() / ".hermes"
+
+
+def get_legacy_hermes_home() -> Path:
+    """Return the legacy Hermes home path used only for compatibility reads."""
+    val = os.environ.get("HERMES_HOME", "").strip()
+    if val:
+        return Path(val)
+    return _get_platform_default_hermes_home()
+
+
+def get_state_compatibility_report() -> dict[str, str | bool]:
+    """Return legacy state details for doctor and migration checks."""
+    keprix_home = get_keprix_home()
+    hermes_home = get_legacy_hermes_home()
+    hermes_env = os.environ.get("HERMES_HOME", "").strip()
+    return {
+        "keprix_home": str(keprix_home),
+        "legacy_home": str(hermes_home),
+        "legacy_home_env": hermes_env,
+        "legacy_home_exists": hermes_home.exists(),
+        "using_legacy_home_env": bool(hermes_env and not os.environ.get("KEPRIX_HOME", "").strip()),
+    }
+
+
 def get_keprix_home() -> Path:
     """Return the Keprix home directory (default: platform-native path).
 

@@ -1,8 +1,10 @@
 import type { TablerIcon } from "@tabler/icons-react";
 import {
+  IconActivity,
   IconApi,
   IconApps,
   IconArchive,
+  IconBuildingCommunity,
   IconBrain,
   IconCalendar,
   IconChartBar,
@@ -27,6 +29,7 @@ import {
   IconSparkles,
   IconTool,
   IconUsers,
+  IconVideo,
 } from "@tabler/icons-react";
 
 const NAV_ICON_MAP: Record<string, TablerIcon> = {
@@ -42,10 +45,13 @@ const NAV_ICON_MAP: Record<string, TablerIcon> = {
   contacts: IconUsers,
   users: IconUsers,
   image: IconPhoto,
+  video: IconVideo,
   memory: IconBrain,
   science: IconSparkles,
+  business: IconBuildingCommunity,
   compare: IconChartLine,
   monitoring: IconChartBar,
+  activity: IconActivity,
   playbook: IconDatabase,
   lock: IconLock,
   schedule: IconClock,

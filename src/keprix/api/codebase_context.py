@@ -53,8 +53,10 @@ _CAPABILITIES_BRIEF = """## Keprix in this workspace
 
 **This web chat path**
 - Code-aware Q&A with repository context plus the product brief above
+- Retrieved self-knowledge RAG chunks (docs, capabilities inventory, codebase excerpts) when indexed
 - Messages starting with `/` run slash commands (for example `/status`, `/help`)
-- For full tool execution (terminal, file edits, mutations in the live loop), use the agent CLI, embedded TUI, or gateway; point users there when they need hands-on execution"""
+- For full tool execution (terminal, file edits, mutations in the live loop), use the agent CLI, embedded TUI, or gateway; point users there when they need hands-on execution
+- Rebuild self-knowledge with `keprix memory index-self` or POST `/api/rag/self-knowledge/index`"""
 
 _CONTEXT_FILES: tuple[tuple[str, int], ...] = (
     ("README.md", 3_500),

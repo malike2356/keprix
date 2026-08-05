@@ -15,7 +15,10 @@ from keprix.security.rate_limiter import reset_rate_limits
 def admin_client(tmp_path, monkeypatch):
     monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
     monkeypatch.setenv("KEPRIX_ADMIN_PASSWORD", "admin-pass")
+    monkeypatch.setenv("KEPRIX_ADMIN_EMAIL", "")
+    monkeypatch.setenv("ADMIN_EMAIL", "")
     monkeypatch.setenv("AUTH_ENABLED", "true")
+    monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
     reset_rate_limits()
 
     auth = AuthManager(str(tmp_path / "auth.json"))
@@ -86,7 +89,7 @@ def test_memory_url_index_fetches_content(admin_client, monkeypatch):
     assert "Indexed URL placeholder" not in body["preview"]
 
 
-def test_channels_overview_and_telegram_config(admin_client):
+def test_channels_overview_and_telegram_config(admin_client, monkeypatch):
     overview = admin_client.get("/api/channels/overview")
     assert overview.status_code == 200
     channels = {item["id"]: item for item in overview.json()["channels"]}
@@ -95,6 +98,24 @@ def test_channels_overview_and_telegram_config(admin_client):
     config = admin_client.get("/api/channels/telegram")
     assert config.status_code == 200
     assert "webhook_url" in config.json()
+
+    async def fake_configure_and_test(channel_id: str, credentials: dict):
+        assert channel_id == "telegram"
+        assert credentials.get("bot_token") == "test-token"
+        return {"ok": True, "id": "telegram", "name": "Telegram", "restart_hint": ""}
+
+    async def fake_test_channel_payload(channel_id: str):
+        assert channel_id == "telegram"
+        return {"success": True, "message": "Telegram bot authenticated"}
+
+    monkeypatch.setattr(
+        "keprix.channels.channel_config_service.configure_and_test",
+        fake_configure_and_test,
+    )
+    monkeypatch.setattr(
+        "keprix.channels.channel_config_service.test_channel_payload",
+        fake_test_channel_payload,
+    )
 
     saved = admin_client.post("/api/channels/telegram", json={"bot_token": "test-token"})
     assert saved.status_code == 200

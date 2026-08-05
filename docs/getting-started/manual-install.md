@@ -2,6 +2,8 @@
 
 Use this path when Docker is not available or you need systemd-managed services.
 
+For a normal single-user workstation install, use [Install Keprix](install.md) instead. That path installs the packaged `keprix` command with `pipx` and does not require an activated development environment.
+
 ## Requirements
 
 - Python 3.11 or 3.12

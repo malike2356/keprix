@@ -835,6 +835,22 @@ class TestShippedProductivityManifests:
         env_names = {e.name for e in entry.auth.env}
         assert env_names == {"TRELLO_API_KEY", "TRELLO_TOKEN"}
 
+    def test_n8n_manifest_in_catalog(self, monkeypatch):
+        monkeypatch.delenv("KEPRIX_OPTIONAL_MCPS", raising=False)
+        from keprix_cli.mcp_catalog import get_entry
+
+        entry = get_entry("n8n")
+        assert entry is not None
+        assert entry.transport.type == "stdio"
+        assert entry.docs_url == "/docs/integrations/n8n-sidecar"
+        assert entry.category == "workflow-bridge"
+        assert entry.install is not None
+        default_tools = entry.tools.default_enabled or []
+        assert "list_workflows" in default_tools
+        assert "export_workflow" in default_tools
+        env_names = {e.name for e in entry.auth.env}
+        assert env_names == {"N8N_BASE_URL", "N8N_API_KEY"}
+
     def test_install_notion_writes_oauth_config(self, monkeypatch):
         import keprix_cli.mcp_catalog as mc
 

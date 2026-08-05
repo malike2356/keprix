@@ -122,9 +122,15 @@ class RemConsolidator:
                 fact["content"],
                 metadata={
                     "session_id": session_id,
-                    "tags": fact["tags"],
+                    "tags": list({*(fact["tags"] or []), "rem"}),
                     "rem_score": fact["score"],
                     "source_role": fact["role"],
+                    "source": "rem",
+                    "memory_type": "preference" if "prefer" in fact["content"].lower() else "semantic",
+                    "belief_state": "active",
+                    "confidence": fact["score"],
+                    "modality": "text",
+                    "model_side": "user",
                 },
             )
             saved_ids.append(memory_id)

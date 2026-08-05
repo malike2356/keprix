@@ -19,7 +19,18 @@ class MediaAdapter(ToolAdapter):
 
     async def execute(self, action: str, params: dict[str, Any]) -> AdapterResult:
         if self.name == "ocr":
-            return AdapterResult(ok=True, data={"text": "", "source": params.get("path")})
+            from pathlib import Path
+
+            from keprix.workspace.gallery_store import run_image_ocr
+
+            raw = str(params.get("path") or params.get("image_path") or "").strip()
+            if not raw:
+                return AdapterResult(ok=False, error="path is required for OCR")
+            try:
+                text, engine = run_image_ocr(Path(raw))
+            except RuntimeError as exc:
+                return AdapterResult(ok=False, error=str(exc))
+            return AdapterResult(ok=True, data={"text": text, "source": raw, "engine": engine})
         if self.name == "vision":
             return AdapterResult(ok=True, data={"caption": "", "source": params.get("path")})
         if self.name.startswith("youtube"):

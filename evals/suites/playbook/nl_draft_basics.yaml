@@ -1,0 +1,13 @@
+suite: playbook_nl_draft
+cases:
+  - id: daily_digest
+    prompt: "Read email and write a daily digest note"
+    must_include_steps: [agent_task]
+    must_include_keys: [fetch, digest]
+    must_use_steps_template: false
+    forbid_terms: [workflow, recipe]
+  - id: http_poll
+    prompt: "GET status API every run and branch on 500 errors"
+    must_include_steps: [http, condition]
+    must_include_keys: [status]
+    forbid_terms: [workflow, recipe]

@@ -2,7 +2,6 @@
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { KEPRIX_COLORS } from "@/theme/keprix-theme";
 
 type KeprixLogoProps = {
   variant?: "full" | "icon";
@@ -12,37 +11,38 @@ type KeprixLogoProps = {
 };
 
 const sizes = { sm: 24, md: 32, lg: 48 } as const;
+const logoSrc = (onDark: boolean) =>
+  onDark ? "/logo-mono-inv-trans.png" : "/logo-trans.png";
 
+/** Brand mark + wordmark. Transparent crest assets (claws visible, no front disc). */
 export function KeprixLogo({ variant = "full", size = "md", onDark = false }: KeprixLogoProps) {
   const px = sizes[size];
+  const src = logoSrc(onDark);
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
       <Box
         aria-hidden
+        component="img"
+        src={src}
+        alt=""
         sx={{
           width: px,
           height: px,
-          borderRadius: "50%",
-          bgcolor: KEPRIX_COLORS.primary,
-          border: `1px solid ${KEPRIX_COLORS.divider}`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: px * 0.45,
-          color: "#fff",
-          fontWeight: 700,
+          objectFit: "contain",
+          display: "block",
+          flexShrink: 0,
+          backgroundColor: "transparent",
         }}
-      >
-        K
-      </Box>
+      />
       {variant === "full" ? (
         <Typography
           variant={size === "lg" ? "h4" : size === "md" ? "h6" : "body1"}
           sx={{
-            fontWeight: 800,
-            letterSpacing: "-0.02em",
-            color: onDark ? KEPRIX_COLORS.textPrimary : "text.primary",
+            fontWeight: 700,
+            letterSpacing: "-0.03em",
+            fontFamily: '"Cormorant Garamond", Georgia, serif',
+            color: onDark ? "#f5f7ff" : "text.primary",
           }}
         >
           Keprix

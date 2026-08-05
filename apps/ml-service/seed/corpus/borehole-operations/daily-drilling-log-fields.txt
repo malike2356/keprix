@@ -1,0 +1,5 @@
+Daily drilling logs record operating timestamps for borehole work. Core timestamps include Start Moving from, Reach Site, Start Drill 10.5 inch, Temporary Casing Install, Start Drill 6.5 inch, Reach Final Depth, PVC Installation, Gravel Packing, Development, Pump-Test Start, Pump-Test Finish, Leaving Site, and interruption description rows.
+
+Summary fields include Movement in kilometres, Site Clearance, Final Depth in metres, Screen Casing in metres, Plain Casing in metres, Temporary Casing depth, Bail Plug, Centralizer pieces, Top Cap units, Gravel volume, Development hours, Water level, Water yield in litres per minute, First water strike depth, and Cement bags.
+
+Hole results should be marked as Successful Hole, Marginal Hole, or Dry Hole. Geological Formation rows record From metres, To metres, and Comments.

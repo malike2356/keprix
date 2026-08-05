@@ -1,0 +1,10 @@
+{
+  "playbooks": [
+    {
+      "id": "clinicom-sidecar",
+      "title": "Clinicom sidecar rollout",
+      "summary": "Deploy Keprix Clinicom sidecar and point Clinicom profiles at CLINICOM_KEPRIX_SIDECAR_URL.",
+      "href": "/playbooks/clinicom-sidecar"
+    }
+  ]
+}

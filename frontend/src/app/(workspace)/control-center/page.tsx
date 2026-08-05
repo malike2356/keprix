@@ -11,6 +11,7 @@ import ActivityFeed from "@/components/control-center/ActivityFeed";
 import AgentServerList from "@/components/control-center/AgentServerList";
 import AutomationRules from "@/components/control-center/AutomationRules";
 import RunQueue from "@/components/control-center/RunQueue";
+import { OperatorCopilotPanel } from "@/components/operator/OperatorCopilotDrawer";
 import PageHeader from "@/components/ui/PageHeader";
 import {
   createScheduledAutomation,
@@ -92,6 +93,9 @@ export default function ControlCenterPage() {
         title="Control Center"
         description="Self-hosted control plane for agent servers, long-running sessions, automations, and team-visible activity."
       />
+      <Box sx={{ mb: 2, border: 1, borderColor: "divider", borderRadius: 1, p: 2 }}>
+        <OperatorCopilotPanel embedded />
+      </Box>
       <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" }, mb: 2 }}>
         <AgentServerList servers={data?.servers ?? []} />
         <AutomationRules automations={data?.automations ?? []} onTrigger={handleTrigger} />

@@ -9,6 +9,7 @@ from keprix.agent.keprix.approval import ApprovalWorkflow
 from keprix.agent.keprix.auditor import MutationAuditor
 from keprix.agent.keprix.config import get_mutation_config
 from keprix.agent.keprix.gap_detector import GapDetector
+from keprix.agent.keprix.ladder_gate import LadderGate
 from keprix.agent.keprix.sandbox import SandboxRunner
 from keprix.agent.keprix.schemas import ApprovalResult, GeneratedToolRecord, GapReport
 from keprix.agent.keprix.static_analyser import static_analyser
@@ -23,6 +24,7 @@ class MutationEngine:
         self._sandbox = SandboxRunner()
         self._auditor = MutationAuditor()
         self._approval = ApprovalWorkflow()
+        self._ladder = LadderGate()
 
     def detect_gap(self, task: str, available_tools: list[str]) -> GapReport:
         return self._gap.classify(task, available_tools)
@@ -52,6 +54,10 @@ class MutationEngine:
         analysis = None
         for attempt in range(config.max_retries + 1):
             synthesis = await self._synthesiser.synthesise(gap, rewrite_hint=rewrite_hint)
+            ladder = self._ladder.validate(synthesis)
+            if not ladder.passed_gate:
+                rewrite_hint = "; ".join(ladder.reasons)
+                continue
             analysis = static_analyser.scan(synthesis.tool_code)
             if analysis.safe:
                 break

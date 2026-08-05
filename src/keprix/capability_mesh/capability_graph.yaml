@@ -1,0 +1,219 @@
+version: 1
+updated: '2026-08-04'
+description: 'Seed capability graph for Keprix workspace mesh. Status values: wired
+  (tools in core + channel-usable), partial (some tools or UI+API only), ui_only (nav
+  exists, little/no agent tool), exception (admin/ops OK without channel).
+
+  '
+nodes:
+- id: home
+  label: Home
+  nav_id: home
+  tools: []
+  channel_surfaces:
+  - web_ui
+  object_types: []
+  status: ui_only
+- id: chat
+  label: Chat
+  nav_id: chat
+  tools: []
+  channel_surfaces:
+  - web_ui
+  - telegram
+  - cli
+  object_types:
+  - session
+  status: partial
+  notes: Agent loop is the surface; tools come from platform toolsets.
+- id: calendar
+  label: Calendar
+  nav_id: calendar
+  tools:
+  - calendar_list_events
+  channel_surfaces:
+  - web_ui
+  - telegram
+  - cli
+  object_types:
+  - calendar_event
+  status: wired
+  notes: List tool in core; write stays via UI/viCal bridge.
+- id: vical
+  label: viCal
+  nav_id: vical
+  tools:
+  - vical_offer_slots
+  - vical_create_booking
+  - vical_list_bookings
+  - vical_cancel_booking
+  channel_surfaces:
+  - web_ui
+  - telegram
+  - cli
+  object_types:
+  - vical_booking
+  status: wired
+  notes: Domain+UI+agent tools; Telegram pilot mesh.
+- id: contacts
+  label: Contacts
+  nav_id: contacts
+  tools:
+  - contacts_search
+  - contacts_get
+  channel_surfaces:
+  - web_ui
+  - telegram
+  - cli
+  object_types:
+  - contact
+  status: wired
+  notes: Search/get in core; create remains API/UI.
+- id: companies-house
+  label: Companies House
+  nav_id: companies-house
+  tools:
+  - search:companies_house
+  - get:company_profile
+  channel_surfaces:
+  - web_ui
+  - telegram
+  - cli
+  object_types:
+  - company_number
+  status: wired
+  notes: Reference Companies House path for tool exposure.
+- id: memory
+  label: Memory
+  nav_id: memory
+  tools:
+  - memory
+  channel_surfaces:
+  - web_ui
+  - telegram
+  - cli
+  object_types:
+  - memory_item
+  status: wired
+  notes: Core memory tool; galaxy UI remains partial surface.
+- id: playbooks
+  label: Playbooks
+  nav_id: playbooks
+  tools: []
+  channel_surfaces:
+  - web_ui
+  - telegram
+  - cli
+  object_types:
+  - playbook
+  status: partial
+  notes: Compose mesh tools via skills/cron; designer UI partial.
+- id: cron
+  label: Cron Jobs
+  nav_id: cron
+  tools:
+  - cronjob
+  channel_surfaces:
+  - web_ui
+  - telegram
+  - cli
+  object_types:
+  - cron_job
+  status: wired
+- id: vault
+  label: Vault
+  nav_id: vault
+  tools: []
+  channel_surfaces:
+  - web_ui
+  object_types:
+  - vault_secret
+  status: exception
+  notes: Sensitive; keep opt-in / gated, not auto channel-default.
+- id: leads
+  label: Leads
+  nav_id: leads
+  tools:
+  - create_lead
+  - list_leads
+  - link_booking_to_lead
+  channel_surfaces:
+  - web_ui
+  - telegram
+  - cli
+  object_types:
+  - lead
+  status: wired
+  notes: Thin product layer; not a CRM.
+- id: domain-pack-research-intel
+  label: Research Intel Pack
+  nav_id: domain-packs
+  tools:
+  - create_lead
+  - list_leads
+  channel_surfaces:
+  - web_ui
+  object_types: []
+  status: wired
+- id: domain-pack-scheduling-ops
+  label: Scheduling Ops Pack
+  nav_id: domain-packs
+  tools:
+  - vical_offer_slots
+  - vical_create_booking
+  - link_booking_to_lead
+  channel_surfaces:
+  - web_ui
+  object_types: []
+  status: wired
+edges:
+- from: vical
+  to: calendar
+  relation: creates
+  via_id_field: workspace_event_id
+- from: vical
+  to: contacts
+  relation: references
+  via_id_field: contact_id
+- from: vical
+  to: leads
+  relation: links
+  via_id_field: vical_booking_id
+- from: leads
+  to: contacts
+  relation: references
+  via_id_field: contact_id
+- from: calendar
+  to: vical
+  relation: references
+  via_id_field: vical_booking_id
+- from: companies-house
+  to: contacts
+  relation: enriches
+  via_id_field: company_number
+- from: domain-pack-research-intel
+  to: leads
+  relation: uses
+- from: domain-pack-scheduling-ops
+  to: vical
+  relation: uses
+- from: companies-house
+  to: memory
+  relation: enriches
+  via_id_field: company_number
+- from: contacts
+  to: memory
+  relation: enriches
+  via_id_field: contact_id
+- from: playbooks
+  to: cron
+  relation: schedules
+  via_id_field: cron_job_id
+- from: cron
+  to: chat
+  relation: notifies
+  via_id_field: channel_target
+- from: vical
+  to: chat
+  relation: notifies
+  via_id_field: guest_email

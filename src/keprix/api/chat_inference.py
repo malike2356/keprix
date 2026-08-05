@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Any, AsyncIterator
 
 from keprix.api.codebase_context import build_codebase_system_prompt, redact_assistant_text
+from keprix.memory.rag.self_knowledge import format_self_knowledge_context, retrieve_self_knowledge
 
 PROVIDER_DEFAULT_MODELS: dict[str, str] = {
     "deepseek": "deepseek-chat",
@@ -56,11 +57,15 @@ def _custom_provider_configured(provider_id: str) -> bool:
 def _list_custom_models() -> list[dict[str, str]]:
     try:
         from keprix.api.custom_provider_settings import list_custom_providers
+
+        providers = list_custom_providers()
     except Exception:
+        # Config home may be unreadable in Docker (host uid mount vs container user).
+        # Never fail the models list endpoint for custom-provider discovery.
         return []
 
     models: list[dict[str, str]] = []
-    for provider in list_custom_providers():
+    for provider in providers:
         if not provider.get("connected"):
             continue
         provider_id = str(provider["id"])
@@ -249,6 +254,11 @@ def _normalize_history(messages: list[dict[str, Any]]) -> list[dict[str, str]]:
     return normalized
 
 
+def _estimate_message_tokens(messages: list[dict[str, str]]) -> int:
+    chars = sum(len(str(message.get("content") or "")) for message in messages)
+    return max(1, chars // 4)
+
+
 def _registry_provider_id(provider: str) -> str:
     if provider == "google":
         return "gemini"
@@ -418,16 +428,97 @@ async def stream_chat_completion(
         )
 
     messages = _normalize_history(history or [])
+    onboarding_suffix = ""
+    try:
+        from keprix.agent.onboarding_hooks import first_message_system_suffix
+
+        onboarding_suffix = first_message_system_suffix(history=history)
+    except Exception:
+        onboarding_suffix = ""
     if include_codebase_context:
         system_prompt = build_codebase_system_prompt()
+        try:
+            rag_hits = await retrieve_self_knowledge(user_text, limit=6, hybrid=True)
+            rag_block = format_self_knowledge_context(rag_hits, max_chars=5_500)
+            if rag_block:
+                system_prompt = f"{system_prompt}\n\n{rag_block}" if system_prompt else rag_block
+        except Exception:
+            pass
+        if onboarding_suffix:
+            system_prompt = f"{system_prompt}{onboarding_suffix}" if system_prompt else onboarding_suffix.lstrip()
         if system_prompt:
             messages.insert(0, {"role": "system", "content": system_prompt})
+    elif onboarding_suffix:
+        messages.insert(0, {"role": "system", "content": onboarding_suffix.lstrip()})
     messages.append({"role": "user", "content": user_text})
 
     usage_holder: dict[str, int] = {}
     resolved_model = model
+    output_chars = 0
+    quota_product_id = "keprix"
+    scheduler_token = None
+    estimated_input_tokens = _estimate_message_tokens(messages)
+    quota_recordable = False
 
     try:
+        try:
+            from keprix.security.product_context import get_product_context_or_none
+
+            ctx = get_product_context_or_none()
+            if ctx is not None:
+                quota_product_id = ctx.product_id
+        except Exception:
+            quota_product_id = "keprix"
+
+        try:
+            from keprix.quotas.runtime import get_fairness_scheduler, get_quota_enforcer
+
+            quota_result = await get_quota_enforcer().check_before_llm_call(quota_product_id, estimated_input_tokens)
+            if quota_result.warning_message:
+                messages.insert(0, {"role": "system", "content": quota_result.warning_message})
+            if quota_result.is_hard_blocked:
+                raise RuntimeError(f"Quota blocked LLM call for product '{quota_product_id}': {quota_result.reason}")
+            scheduler_token = await get_fairness_scheduler().acquire_slot(quota_product_id)
+            quota_recordable = True
+        except RuntimeError:
+            raise
+        except Exception:
+            scheduler_token = None
+
+        # Actor-scoped day/month quotas (workspace/user/agent/token). Separate from billing credits.
+        try:
+            from keprix.quotas.actor_enforcer import ActorQuotaExceeded, assert_actor_quota
+
+            await assert_actor_quota(
+                service="llm",
+                workspace_id=None,
+                user_id=user_id,
+                product_id=quota_product_id,
+                tokens=estimated_input_tokens,
+                calls=1,
+                run_id=session_id,
+            )
+        except ActorQuotaExceeded:
+            raise
+        except Exception:
+            pass
+
+        # Managed AI wallet gate (hosted only). BYOK and self-hosted skip debit.
+        user_supplied_key = provider.startswith(CUSTOM_PREFIX)
+        try:
+            from keprix.billing.wallet.enforcer import ManagedAiExhausted, assert_managed_call_allowed
+
+            await assert_managed_call_allowed(
+                user_id=user_id,
+                model=model,
+                estimated_tokens=estimated_input_tokens,
+                user_supplied_api_key=user_supplied_key,
+            )
+        except ManagedAiExhausted:
+            raise
+        except Exception:
+            pass
+
         if provider.startswith(CUSTOM_PREFIX):
             custom_id = provider.removeprefix(CUSTOM_PREFIX)
             entry = _load_custom_provider_entry(custom_id)
@@ -460,6 +551,7 @@ async def stream_chat_completion(
                             usage_holder.update(parsed)
                         text = _extract_delta_text(chunk)
                         if text:
+                            output_chars += len(text)
                             yield redact_assistant_text(text)
             except ImportError as exc:
                 raise RuntimeError("OpenAI client is required for custom providers") from exc
@@ -495,15 +587,46 @@ async def stream_chat_completion(
                                 usage_holder.update(parsed)
                             text = _extract_delta_text(chunk)
                             if text:
+                                output_chars += len(text)
                                 yield redact_assistant_text(text)
                 else:
                     async for token in _stream_via_thread(client, resolved_model, messages, usage_holder):
+                        output_chars += len(token)
                         yield token
             except ImportError:
                 async for token in _stream_via_thread(client, resolved_model, messages, usage_holder):
+                    output_chars += len(token)
                     yield token
     finally:
         duration_ms = int((time.perf_counter() - started) * 1000)
+        try:
+            from keprix.quotas.runtime import get_fairness_scheduler, get_quota_enforcer
+
+            if scheduler_token is not None:
+                await get_fairness_scheduler().release_slot(scheduler_token)
+            if quota_recordable:
+                tokens_in = int(usage_holder.get("input_tokens") or estimated_input_tokens)
+                tokens_out = int(usage_holder.get("output_tokens") or max(1, output_chars // 4))
+                await get_quota_enforcer().record_llm_usage(
+                    quota_product_id,
+                    tokens_in=tokens_in,
+                    tokens_out=tokens_out,
+                    session_id=session_id,
+                )
+                try:
+                    from keprix.quotas.actor_enforcer import record_scopes
+
+                    record_scopes(
+                        service="llm",
+                        user_id=user_id,
+                        product_id=quota_product_id,
+                        tokens=tokens_in + tokens_out,
+                        calls=1,
+                    )
+                except Exception:
+                    pass
+        except Exception:
+            pass
         try:
             await _record_web_chat_usage(
                 provider=provider,
@@ -514,6 +637,22 @@ async def stream_chat_completion(
                 duration_ms=duration_ms,
                 note="stream completed without usage chunk",
                 channel=channel,
+            )
+        except Exception:
+            pass
+        try:
+            from keprix.billing.wallet.enforcer import debit_managed_call
+
+            tokens_in = int(usage_holder.get("input_tokens") or estimated_input_tokens)
+            tokens_out = int(usage_holder.get("output_tokens") or max(1, output_chars // 4))
+            await debit_managed_call(
+                user_id=user_id,
+                model=resolved_model or model or "",
+                input_tokens=tokens_in,
+                output_tokens=tokens_out,
+                channel=channel,
+                run_id=session_id,
+                user_supplied_api_key=provider.startswith(CUSTOM_PREFIX),
             )
         except Exception:
             pass

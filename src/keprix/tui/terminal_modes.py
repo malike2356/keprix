@@ -1,4 +1,4 @@
-"""Terminal mode cleanup on TUI exit (Hermes resetTerminalModes port)."""
+"""Terminal mode cleanup on TUI exit (ported from upstream)."""
 
 from __future__ import annotations
 

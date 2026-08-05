@@ -1,0 +1,16 @@
+# Optional Graphiti MCP bridge. Keprix connects to a user-managed Graphiti server.
+manifest_version: 1
+
+name: graphiti
+description: Graphiti knowledge graph MCP server for episodic facts, entities, and relationship search.
+source: https://github.com/getzep/graphiti
+
+transport:
+  type: http
+  url_env: GRAPHITI_MCP_URL
+
+auth:
+  type: env
+
+post_install: |
+  Run a Graphiti MCP-compatible server, set GRAPHITI_MCP_URL, then open /brain/graphiti.

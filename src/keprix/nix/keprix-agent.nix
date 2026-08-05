@@ -1,9 +1,9 @@
-# nix/hermes-agent.nix — Overridable Hermes Agent package
+# nix/keprix-agent.nix — Overridable Keprix Agent package
 #
 # callPackage auto-wires nixpkgs args; flake inputs are passed explicitly.
 # Users override via:
-#   pkgs.hermes-agent.override { extraPythonPackages = [...]; }
-#   pkgs.hermes-agent.override { extraDependencyGroups = [ "hindsight" ]; }
+#   pkgs.keprix-agent.override { extraPythonPackages = [...]; }
+#   pkgs.keprix-agent.override { extraDependencyGroups = [ "hindsight" ]; }
 {
   lib,
   stdenv,
@@ -37,21 +37,21 @@
 }:
 let
   nodejs = nodejs_22;
-  hermesVenv = callPackage ./python.nix {
+  keprixVenv = callPackage ./python.nix {
     inherit uv2nix pyproject-nix pyproject-build-systems;
     dependency-groups = [ "all" ] ++ extraDependencyGroups;
   };
 
-  hermesNpmLib = callPackage ./lib.nix {
+  keprixNpmLib = callPackage ./lib.nix {
     inherit npm-lockfile-fix nodejs;
   };
 
-  hermesTui = callPackage ./tui.nix {
-    inherit hermesNpmLib;
+  keprixTui = callPackage ./tui.nix {
+    inherit keprixNpmLib;
   };
 
-  hermesWeb = callPackage ./web.nix {
-    inherit hermesNpmLib;
+  keprixWeb = callPackage ./web.nix {
+    inherit keprixNpmLib;
   };
 
   bundledSkills = lib.cleanSourceWith {
@@ -61,15 +61,17 @@ let
 
   # Import bundled plugins (memory, context_engine, platforms/*).  Keeping
   # them out of the Python site-packages keeps import semantics identical
-  # to a dev checkout — the loader reads them from HERMES_BUNDLED_PLUGINS.
+  # to a dev checkout — the loader reads them from KEPRIX_BUNDLED_PLUGINS
+  # (with HERMES_BUNDLED_PLUGINS as fallback).
   bundledPlugins = lib.cleanSourceWith {
     src = ../plugins;
     filter = path: _type: !(lib.hasInfix "/__pycache__/" path);
   };
 
   # i18n locale catalogs (locales/*.yaml). Shipped into the store and pointed
-  # at by HERMES_BUNDLED_LOCALES so the wrapped binary always resolves human
-  # strings instead of raw i18n keys (#23943 / #27632 / #35374).
+  # at by KEPRIX_BUNDLED_LOCALES (HERMES_BUNDLED_LOCALES as fallback) so the
+  # wrapped binary always resolves human strings instead of raw i18n keys
+  # (#23943 / #27632 / #35374).
   #
   # Defense-in-depth, not load-bearing: the wheel already declares locales/ as
   # setuptools data-files, so uv2nix materializes them into the venv's data
@@ -120,7 +122,7 @@ let
 
     # Collect core venv package names
     core = set()
-    venv_sp = pathlib.Path('${hermesVenv}/${sitePackagesPath}')
+    venv_sp = pathlib.Path('${keprixVenv}/${sitePackagesPath}')
     for di in venv_sp.glob('*.dist-info'):
         meta = di / 'METADATA'
         if meta.exists():
@@ -143,7 +145,7 @@ let
                 if line.startswith('Name:'):
                     pkg = canonical(line.split(':', 1)[1].strip())
                     if pkg in core:
-                        print(f'ERROR: plugin package \"{pkg}\" collides with a package in hermes sealed venv', file=sys.stderr)
+                        print(f'ERROR: plugin package \"{pkg}\" collides with a package in keprix sealed venv', file=sys.stderr)
                         print(f'  from: {di}', file=sys.stderr)
                         print(f'  Remove this dependency from extraPythonPackages.', file=sys.stderr)
                         sys.exit(1)
@@ -153,7 +155,7 @@ let
   '';
 in
 stdenv.mkDerivation (finalAttrs: {
-  pname = "hermes-agent";
+  pname = "keprix-agent";
   version = (fromTOML (builtins.readFile ../pyproject.toml)).project.version;
 
   dontUnpack = true;
@@ -163,39 +165,35 @@ stdenv.mkDerivation (finalAttrs: {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/share/hermes-agent $out/bin
-    cp -r ${bundledSkills} $out/share/hermes-agent/skills
-    cp -r ${bundledPlugins} $out/share/hermes-agent/plugins
-    cp -r ${bundledLocales} $out/share/hermes-agent/locales
-    cp -r ${hermesWeb} $out/share/hermes-agent/web_dist
+    mkdir -p $out/share/keprix-agent $out/bin
+    cp -r ${bundledSkills} $out/share/keprix-agent/skills
+    cp -r ${bundledPlugins} $out/share/keprix-agent/plugins
+    cp -r ${bundledLocales} $out/share/keprix-agent/locales
+    cp -r ${keprixWeb} $out/share/keprix-agent/web_dist
 
     mkdir -p $out/ui-tui
-    cp -r ${hermesTui}/lib/hermes-tui/* $out/ui-tui/
+    cp -r ${keprixTui}/lib/keprix-tui/* $out/ui-tui/
 
     ${lib.concatMapStringsSep "\n"
       (name: ''
-        makeWrapper ${hermesVenv}/bin/${name} $out/bin/${name} \
+        makeWrapper ${keprixVenv}/bin/${name} $out/bin/${name} \
           --suffix PATH : "${runtimePath}" \
-          --set HERMES_BUNDLED_SKILLS $out/share/hermes-agent/skills \
-          --set HERMES_BUNDLED_PLUGINS $out/share/hermes-agent/plugins \
-          --set HERMES_BUNDLED_LOCALES $out/share/hermes-agent/locales \
-          --set HERMES_WEB_DIST $out/share/hermes-agent/web_dist \
-          --set HERMES_TUI_DIR $out/ui-tui \
-          --set HERMES_PYTHON ${hermesVenv}/bin/python3 \
-          --set HERMES_NODE ${lib.getExe nodejs} \
-          ${lib.optionalString (rev != null) ''--set HERMES_REVISION ${rev} \''}
+          --set KEPRIX_BUNDLED_SKILLS $out/share/keprix-agent/skills \
+          --set KEPRIX_BUNDLED_PLUGINS $out/share/keprix-agent/plugins \
+          --set KEPRIX_BUNDLED_LOCALES $out/share/keprix-agent/locales \
+          --set KEPRIX_WEB_DIST $out/share/keprix-agent/web_dist \
+          --set KEPRIX_TUI_DIR $out/ui-tui \
+          --set KEPRIX_PYTHON ${keprixVenv}/bin/python3 \
+          --set KEPRIX_NODE ${lib.getExe nodejs} \
+          ${lib.optionalString (rev != null) ''--set KEPRIX_REVISION ${rev} \\''}
           ${lib.optionalString (extraPythonPackages != [ ]) ''--suffix PYTHONPATH : "${pythonPath}"''}
       '')
-      [
-        "hermes"
-        "hermes-agent"
-        "hermes-acp"
-      ]
+      [ "keprix" ]
     }
 
     ${lib.optionalString (extraPythonPackages != [ ]) ''
       echo "=== Checking for plugin/core package collisions ==="
-      ${hermesVenv}/bin/python3 -c "${checkPackageCollisions}"
+      ${keprixVenv}/bin/python3 -c "${checkPackageCollisions}"
       echo "=== No collisions ==="
     ''}
 
@@ -204,29 +202,29 @@ stdenv.mkDerivation (finalAttrs: {
 
   passthru = {
     inherit
-      hermesTui
-      hermesWeb
-      hermesNpmLib
-      hermesVenv
+      keprixTui
+      keprixWeb
+      keprixNpmLib
+      keprixVenv
       ;
 
-    # `hermesDesktop` references `finalAttrs.finalPackage` (this whole
+    # `keprixDesktop` references `finalAttrs.finalPackage` (this whole
     # derivation, after all overrides are applied) so the desktop wrapper
     # can prepend its `/bin` to PATH.  The desktop's resolver step 4
-    # ("existing hermes on PATH") then picks up the fully wrapped
-    # `hermes` binary — venv with all deps, bundled skills/plugins,
+    # ("existing keprix on PATH") then picks up the fully wrapped
+    # `keprix` binary — venv with all deps, bundled skills/plugins,
     # runtime PATH (ripgrep/git/ffmpeg/etc).  No re-implementation
     # of the agent resolution in the desktop wrapper.
-    hermesDesktop = callPackage ./desktop.nix {
-      inherit hermesNpmLib electron;
-      hermesAgent = finalAttrs.finalPackage;
+    keprixDesktop = callPackage ./desktop.nix {
+      inherit keprixNpmLib electron;
+      keprixAgent = finalAttrs.finalPackage;
     };
 
     devShellHook = ''
-      STAMP=".nix-stamps/hermes-agent"
+      STAMP=".nix-stamps/keprix-agent"
       STAMP_VALUE="${pyprojectHash}:${uvLockHash}"
       if [ ! -f "$STAMP" ] || [ "$(cat "$STAMP")" != "$STAMP_VALUE" ]; then
-        echo "hermes-agent: installing Python dependencies..."
+        echo "keprix-agent: installing Python dependencies..."
         uv venv .venv --python ${python312}/bin/python3 2>/dev/null || true
         source .venv/bin/activate
         uv pip install -e ".[all]"
@@ -235,7 +233,7 @@ stdenv.mkDerivation (finalAttrs: {
         echo "$STAMP_VALUE" > "$STAMP"
       else
         source .venv/bin/activate
-        export HERMES_PYTHON=${hermesVenv}/bin/python3
+        export KEPRIX_PYTHON=${keprixVenv}/bin/python3
       fi
     '';
   };
@@ -243,7 +241,7 @@ stdenv.mkDerivation (finalAttrs: {
   meta = with lib; {
     description = "AI agent with advanced tool-calling capabilities";
     homepage = "https://github.com/NousResearch/hermes-agent";
-    mainProgram = "hermes";
+    mainProgram = "keprix";
     license = licenses.mit;
     platforms = platforms.unix;
   };

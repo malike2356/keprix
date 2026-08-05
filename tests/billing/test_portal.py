@@ -48,6 +48,13 @@ def test_billing_status_enabled(client):
 
 def test_billing_status_disabled(monkeypatch):
     monkeypatch.setenv("KEPRIX_BILLING_ENABLED", "false")
+    monkeypatch.delenv("KEPRIX_BILLING_PROVIDER", raising=False)
+    for key in (
+        "STRIPE_SECRET_KEY",
+        "STRIPE_BILLING_SECRET_KEY",
+        "STRIPE_SECRET",
+    ):
+        monkeypatch.delenv(key, raising=False)
     from keprix.billing import config_loader
 
     config_loader._CONFIG = None

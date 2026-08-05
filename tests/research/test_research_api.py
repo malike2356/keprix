@@ -122,3 +122,22 @@ async def test_research_fails_clearly_without_llm_provider(monkeypatch):
         md = report.json()["report_markdown"]
         assert "not configured" in md.lower()
         assert "example.com/research/" not in md
+
+
+@pytest.mark.asyncio
+async def test_research_delete_job_removes_from_list():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        start = await client.post(
+            "/api/research/start",
+            json={"query": "delete me research run", "depth": "quick"},
+        )
+        job_id = start.json()["job_id"]
+        deleted = await client.delete(f"/api/research/jobs/{job_id}")
+        assert deleted.status_code == 200
+        assert deleted.json()["deleted"] is True
+        listing = await client.get("/api/research/jobs")
+        assert listing.status_code == 200
+        job_ids = [row["job_id"] for row in listing.json().get("jobs", [])]
+        assert job_id not in job_ids
+        missing = await client.get(f"/api/research/jobs/{job_id}")
+        assert missing.status_code == 404

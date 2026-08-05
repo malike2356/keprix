@@ -298,7 +298,22 @@ async def mixture_of_agents_tool(
     try:
         logger.info("Starting Mixture-of-Agents processing...")
         logger.info("Query: %s", user_prompt[:100])
-        
+
+        from keprix.security.hermes_features import (
+            check_moa_rate_limit,
+            emit_moa_complete,
+            emit_moa_output_sanitized,
+            guard_prompt_text,
+            scan_output_for_injection,
+        )
+
+        if not check_moa_rate_limit():
+            raise ValueError("MoA rate limit exceeded (max 5 calls per 10 minutes)")
+
+        allowed, guard_error = guard_prompt_text(user_prompt, source="moa_input")
+        if not allowed:
+            raise ValueError(guard_error or "MoA input blocked by prompt guard")
+
         # Validate API key availability
         if not os.getenv("OPENROUTER_API_KEY"):
             raise ValueError("OPENROUTER_API_KEY environment variable not set")
@@ -354,6 +369,9 @@ async def mixture_of_agents_tool(
             user_prompt,
             AGGREGATOR_TEMPERATURE
         )
+
+        cleaned_response, output_alerts = scan_output_for_injection(final_response)
+        emit_moa_output_sanitized(output_alerts)
         
         # Calculate processing time
         end_time = datetime.datetime.now()
@@ -364,7 +382,7 @@ async def mixture_of_agents_tool(
         # Prepare successful response (only final aggregated result, minimal fields)
         result = {
             "success": True,
-            "response": final_response,
+            "response": cleaned_response,
             "models_used": {
                 "reference_models": ref_models,
                 "aggregator_model": agg_model
@@ -372,9 +390,17 @@ async def mixture_of_agents_tool(
         }
         
         debug_call_data["success"] = True
-        debug_call_data["final_response_length"] = len(final_response)
+        debug_call_data["final_response_length"] = len(cleaned_response)
         debug_call_data["processing_time_seconds"] = processing_time
         debug_call_data["models_used"] = result["models_used"]
+
+        emit_moa_complete(
+            reference_models=ref_models,
+            aggregator_model=agg_model,
+            total_tokens=0,
+            duration_seconds=processing_time,
+            failed_models=failed_models,
+        )
         
         # Log debug information
         _debug.log_call("mixture_of_agents_tool", debug_call_data)

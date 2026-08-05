@@ -15,7 +15,10 @@ from keprix.security.rate_limiter import reset_rate_limits
 def admin_client(tmp_path, monkeypatch):
     monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
     monkeypatch.setenv("KEPRIX_ADMIN_PASSWORD", "admin-pass")
+    monkeypatch.setenv("KEPRIX_ADMIN_EMAIL", "")
+    monkeypatch.setenv("ADMIN_EMAIL", "")
     monkeypatch.setenv("AUTH_ENABLED", "true")
+    monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
     reset_rate_limits()
 
     auth = AuthManager(str(tmp_path / "auth.json"))

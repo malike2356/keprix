@@ -68,6 +68,7 @@ class ToolSearchConfig:
     threshold_pct: float  # 0..100 — only used when enabled == "auto"
     search_default_limit: int
     max_search_limit: int
+    count_threshold: int  # auto-activate when deferrable tool count >= this
 
     @classmethod
     def from_raw(cls, raw: Any) -> "ToolSearchConfig":
@@ -80,14 +81,29 @@ class ToolSearchConfig:
         break the agent.
         """
         if raw is True:
-            return cls(enabled="auto", threshold_pct=10.0,
-                       search_default_limit=5, max_search_limit=20)
+            return cls(
+                enabled="auto",
+                threshold_pct=10.0,
+                search_default_limit=5,
+                max_search_limit=20,
+                count_threshold=40,
+            )
         if raw is False:
-            return cls(enabled="off", threshold_pct=10.0,
-                       search_default_limit=5, max_search_limit=20)
+            return cls(
+                enabled="off",
+                threshold_pct=10.0,
+                search_default_limit=5,
+                max_search_limit=20,
+                count_threshold=40,
+            )
         if not isinstance(raw, dict):
-            return cls(enabled="auto", threshold_pct=10.0,
-                       search_default_limit=5, max_search_limit=20)
+            return cls(
+                enabled="auto",
+                threshold_pct=10.0,
+                search_default_limit=5,
+                max_search_limit=20,
+                count_threshold=40,
+            )
 
         enabled_raw = str(raw.get("enabled", "auto")).strip().lower()
         if enabled_raw in ("true", "1", "yes"):
@@ -105,12 +121,14 @@ class ToolSearchConfig:
         max_search_limit = max(1, min(50, _safe_int(raw.get("max_search_limit"), 20)))
         search_default_limit = max(1, min(max_search_limit,
                                           _safe_int(raw.get("search_default_limit"), 5)))
+        count_threshold = max(1, min(500, _safe_int(raw.get("count_threshold"), 40)))
 
         return cls(
             enabled=enabled,
             threshold_pct=threshold_pct,
             search_default_limit=search_default_limit,
             max_search_limit=max_search_limit,
+            count_threshold=count_threshold,
         )
 
 
@@ -235,27 +253,208 @@ def should_activate(
     config: ToolSearchConfig,
     deferrable_tokens: int,
     context_length: Optional[int],
+    *,
+    deferrable_count: int = 0,
 ) -> bool:
     """Decide whether tool search should activate for the current assembly.
 
     ``"off"`` skips unconditionally. ``"on"`` activates unconditionally
-    (as long as there is at least one deferrable tool — there's no point
-    swapping a no-op). ``"auto"`` activates when the deferrable schemas
-    would consume ``threshold_pct`` of context or more.
+    (as long as there is at least one deferrable tool). ``"auto"`` activates
+    when deferrable schemas hit the token threshold *or* the count threshold.
     """
     if config.enabled == "off":
         return False
-    if deferrable_tokens <= 0:
+    if deferrable_tokens <= 0 and deferrable_count <= 0:
         return False
     if config.enabled == "on":
+        return deferrable_count > 0 or deferrable_tokens > 0
+    # auto: count gate (Prompt 294)
+    if deferrable_count >= config.count_threshold:
         return True
-    # auto
+    if deferrable_tokens <= 0:
+        return False
     if not context_length or context_length <= 0:
         # Without a known context size, fall back to a fixed 20K-token cutoff
-        # — the cliff above which Anthropic and OpenAI both saw quality drops.
+        # (the cliff above which Anthropic and OpenAI both saw quality drops).
         return deferrable_tokens >= 20_000
     threshold_tokens = int(context_length * (config.threshold_pct / 100.0))
     return deferrable_tokens >= threshold_tokens
+
+
+# ---------------------------------------------------------------------------
+# Session schema cache + deferred metrics (Prompt 294)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class DeferredToolStats:
+    """Observability snapshot for deferred tool search."""
+
+    core_visible: int = 0
+    deferred_count: int = 0
+    deferred_tokens_saved: int = 0
+    searches: int = 0
+    describes: int = 0
+    invokes: int = 0
+    schema_misses: int = 0
+    activated: bool = False
+    system_note: str = ""
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "core_visible": self.core_visible,
+            "deferred_count": self.deferred_count,
+            "deferred_tokens_saved": self.deferred_tokens_saved,
+            "searches": self.searches,
+            "describes": self.describes,
+            "invokes": self.invokes,
+            "schema_misses": self.schema_misses,
+            "activated": self.activated,
+            "system_note": self.system_note,
+        }
+
+
+_PROCESS_STATS = DeferredToolStats()
+_SESSION_SCHEMA_CACHES: Dict[str, "SessionSchemaCache"] = {}
+
+
+@dataclass
+class SessionSchemaCache:
+    """Exact parameter schemas granted by tool_search / tool_describe."""
+
+    session_id: str
+    schemas: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+
+    def remember_tool(self, name: str, parameters: Dict[str, Any] | None) -> None:
+        key = (name or "").strip()
+        if not key:
+            return
+        self.schemas[key] = parameters if isinstance(parameters, dict) else {}
+
+    def has(self, name: str) -> bool:
+        return (name or "").strip() in self.schemas
+
+    def allowed_param_names(self, name: str) -> Optional[set[str]]:
+        params = self.schemas.get((name or "").strip())
+        if params is None:
+            return None
+        props = params.get("properties") if isinstance(params, dict) else None
+        if not isinstance(props, dict):
+            return set()
+        return set(props.keys())
+
+
+def get_session_schema_cache(session_id: str | None = None) -> SessionSchemaCache:
+    import os
+
+    key = (session_id or os.getenv("KEPRIX_SESSION_ID") or "default").strip() or "default"
+    cache = _SESSION_SCHEMA_CACHES.get(key)
+    if cache is None:
+        cache = SessionSchemaCache(session_id=key)
+        _SESSION_SCHEMA_CACHES[key] = cache
+    return cache
+
+
+def clear_session_schema_cache(session_id: str | None = None) -> None:
+    import os
+
+    if session_id is None:
+        _SESSION_SCHEMA_CACHES.clear()
+        return
+    key = (session_id or os.getenv("KEPRIX_SESSION_ID") or "default").strip() or "default"
+    _SESSION_SCHEMA_CACHES.pop(key, None)
+
+
+def get_deferred_tool_stats() -> DeferredToolStats:
+    """Return a copy of process-level deferred tool stats."""
+    return DeferredToolStats(
+        core_visible=_PROCESS_STATS.core_visible,
+        deferred_count=_PROCESS_STATS.deferred_count,
+        deferred_tokens_saved=_PROCESS_STATS.deferred_tokens_saved,
+        searches=_PROCESS_STATS.searches,
+        describes=_PROCESS_STATS.describes,
+        invokes=_PROCESS_STATS.invokes,
+        schema_misses=_PROCESS_STATS.schema_misses,
+        activated=_PROCESS_STATS.activated,
+        system_note=_PROCESS_STATS.system_note,
+    )
+
+
+def reset_deferred_tool_stats() -> None:
+    global _PROCESS_STATS
+    _PROCESS_STATS = DeferredToolStats()
+
+
+def record_assembly_stats(result: "AssemblyResult", *, core_visible: int) -> str:
+    """Update process stats after assembly; return the one-line system note."""
+    note = ""
+    if result.activated and result.deferred_count > 0:
+        note = f"{result.deferred_count} tools available via tool_search"
+    _PROCESS_STATS.core_visible = core_visible
+    _PROCESS_STATS.deferred_count = result.deferred_count
+    _PROCESS_STATS.deferred_tokens_saved = result.deferred_tokens if result.activated else 0
+    _PROCESS_STATS.activated = result.activated
+    _PROCESS_STATS.system_note = note
+    if result.activated:
+        try:
+            from keprix.security.scout_integration import emit_scout_signal
+            from keprix.security.scout_types import SignalCategory, SignalSeverity
+
+            emit_scout_signal(
+                SignalCategory.GOVERNANCE,
+                SignalSeverity.INFO,
+                "tools.deferred_stats",
+                f"deferred:{result.deferred_count}",
+                get_deferred_tool_stats().to_dict(),
+            )
+        except Exception:
+            pass
+    return note
+
+
+def validate_deferred_invoke(
+    name: str,
+    arguments: Dict[str, Any],
+    *,
+    session_id: str | None = None,
+    cache: SessionSchemaCache | None = None,
+) -> Optional[str]:
+    """Fail closed when tool_call skips search/describe or invents params.
+
+    Returns an error message, or None when the call is allowed.
+    """
+    cache = cache or get_session_schema_cache(session_id)
+    tool_name = (name or "").strip()
+    if not cache.has(tool_name):
+        _PROCESS_STATS.schema_misses += 1
+        return (
+            f"'{tool_call_name_safe(tool_name)}' was not loaded via tool_search/"
+            "tool_describe in this session. Call tool_search again, then "
+            "tool_describe, then tool_call. Do not invent parameter names."
+        )
+    allowed = cache.allowed_param_names(tool_name)
+    if allowed is None:
+        _PROCESS_STATS.schema_misses += 1
+        return (
+            f"No cached schema for '{tool_name}'. Call tool_search again "
+            "before retrying."
+        )
+    # Empty properties: allow any args (some MCP tools are arg-free / free-form).
+    if not allowed:
+        return None
+    unknown = sorted(k for k in arguments.keys() if k not in allowed)
+    if unknown:
+        _PROCESS_STATS.schema_misses += 1
+        return (
+            f"Unknown parameter(s) for '{tool_name}': {', '.join(unknown)}. "
+            "Use exact names from tool_search / tool_describe. "
+            "Call tool_search again before retrying."
+        )
+    return None
+
+
+def tool_call_name_safe(name: str) -> str:
+    return (name or "").strip() or "<missing>"
 
 
 # ---------------------------------------------------------------------------
@@ -524,6 +723,8 @@ class AssemblyResult:
     deferred_count: int = 0
     deferred_tokens: int = 0
     threshold_tokens: int = 0
+    core_visible: int = 0
+    system_note: str = ""
 
 
 def assemble_tool_defs(
@@ -553,34 +754,53 @@ def assemble_tool_defs(
 
     visible, deferrable = classify_tools(incoming)
     if not deferrable:
-        return AssemblyResult(tool_defs=incoming, activated=False)
+        result = AssemblyResult(
+            tool_defs=incoming,
+            activated=False,
+            core_visible=len(visible),
+        )
+        record_assembly_stats(result, core_visible=len(visible))
+        return result
 
     deferrable_tokens = estimate_tokens_from_schemas(deferrable)
-    if not should_activate(config, deferrable_tokens, context_length):
-        return AssemblyResult(
+    if not should_activate(
+        config,
+        deferrable_tokens,
+        context_length,
+        deferrable_count=len(deferrable),
+    ):
+        result = AssemblyResult(
             tool_defs=incoming,
             activated=False,
             deferred_count=len(deferrable),
             deferred_tokens=deferrable_tokens,
             threshold_tokens=int((context_length or 0) * (config.threshold_pct / 100.0)),
+            core_visible=len(visible),
         )
+        record_assembly_stats(result, core_visible=len(visible))
+        return result
 
     bridge = bridge_tool_schemas(len(deferrable))
-    result = visible + bridge
+    assembled = visible + bridge
     threshold_tokens = int((context_length or 0) * (config.threshold_pct / 100.0))
+    system_note = f"{len(deferrable)} tools available via tool_search"
 
     logger.info(
         "tool_search activated: %d core/visible tools kept, %d deferred (~%d tokens, threshold ~%d)",
         len(visible), len(deferrable), deferrable_tokens, threshold_tokens,
     )
 
-    return AssemblyResult(
-        tool_defs=result,
+    result = AssemblyResult(
+        tool_defs=assembled,
         activated=True,
         deferred_count=len(deferrable),
         deferred_tokens=deferrable_tokens,
         threshold_tokens=threshold_tokens,
+        core_visible=len(visible),
+        system_note=system_note,
     )
+    record_assembly_stats(result, core_visible=len(visible))
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -605,7 +825,8 @@ def _format_search_hit(entry: CatalogEntry) -> Dict[str, Any]:
 def dispatch_tool_search(args: Dict[str, Any],
                          *,
                          current_tool_defs: List[Dict[str, Any]],
-                         config: Optional[ToolSearchConfig] = None) -> str:
+                         config: Optional[ToolSearchConfig] = None,
+                         session_id: str | None = None) -> str:
     """Execute the ``tool_search`` bridge tool. Returns a JSON string."""
     if config is None:
         config = load_config()
@@ -619,23 +840,62 @@ def dispatch_tool_search(args: Dict[str, Any],
     else:
         limit = max(1, min(config.max_search_limit, _safe_int(raw_limit, config.search_default_limit)))
 
+    def _blocked(name: str) -> bool:
+        try:
+            from keprix.security.hermes_features import is_tool_governance_blocked
+            return bool(is_tool_governance_blocked(name))
+        except Exception:
+            return False
+
     _, deferrable = classify_tools(current_tool_defs)
     catalog = build_catalog(deferrable)
     hits = search_catalog(catalog, query, limit=limit)
-    return json.dumps({
+    filtered_hits = [hit for hit in hits if not _blocked(hit.name)]
+    _PROCESS_STATS.searches += 1
+
+    cache = get_session_schema_cache(session_id)
+    for hit in filtered_hits:
+        fn = (hit.schema.get("function") or {}) if isinstance(hit.schema, dict) else {}
+        cache.remember_tool(hit.name, fn.get("parameters") or {})
+
+    try:
+        from keprix.security.hermes_features import emit_bridge_tool_usage
+
+        emit_bridge_tool_usage(
+            "tool_search",
+            target=f"query:{query[:80]}",
+            details={"matches": len(filtered_hits), "total_available": len(catalog)},
+        )
+    except Exception:
+        pass
+
+    payload: Dict[str, Any] = {
         "query": query,
         "total_available": len(catalog),
-        "matches": [_format_search_hit(h) for h in hits],
-    }, ensure_ascii=False)
+        "matches": [_format_search_hit(h) for h in filtered_hits],
+    }
+    if not filtered_hits:
+        payload["hint"] = (
+            "No matches. Re-run tool_search with a different query before "
+            "calling tool_call. Do not invent tool or parameter names."
+        )
+    return json.dumps(payload, ensure_ascii=False)
 
 
 def dispatch_tool_describe(args: Dict[str, Any],
                            *,
-                           current_tool_defs: List[Dict[str, Any]]) -> str:
+                           current_tool_defs: List[Dict[str, Any]],
+                           session_id: str | None = None) -> str:
     """Execute the ``tool_describe`` bridge tool. Returns a JSON string."""
     name = str(args.get("name") or "").strip()
     if not name:
         return json.dumps({"error": "name is required"}, ensure_ascii=False)
+    try:
+        from keprix.security.hermes_features import is_tool_governance_blocked
+        if is_tool_governance_blocked(name):
+            return json.dumps({"error": "Tool is blocked by governance policy"}, ensure_ascii=False)
+    except Exception:
+        pass
     if not is_deferrable_tool_name(name):
         return json.dumps({
             "error": (
@@ -647,13 +907,23 @@ def dispatch_tool_describe(args: Dict[str, Any],
     for td in deferrable:
         fn = td.get("function") or {}
         if fn.get("name") == name:
+            params = fn.get("parameters", {}) or {}
+            get_session_schema_cache(session_id).remember_tool(name, params)
+            _PROCESS_STATS.describes += 1
+            try:
+                from keprix.security.hermes_features import emit_bridge_tool_usage
+                emit_bridge_tool_usage("tool_describe", target=f"tool:{name}")
+            except Exception:
+                pass
             return json.dumps({
                 "name": name,
                 "description": fn.get("description", ""),
-                "parameters": fn.get("parameters", {}),
+                "parameters": params,
             }, ensure_ascii=False)
+    _PROCESS_STATS.schema_misses += 1
     return json.dumps({
         "error": f"'{name}' is not currently available. Re-run tool_search to refresh.",
+        "hint": "Call tool_search again before retrying tool_describe or tool_call.",
     }, ensure_ascii=False)
 
 
@@ -677,7 +947,13 @@ def scoped_deferrable_names(tool_defs: List[Dict[str, Any]]) -> frozenset[str]:
     return frozenset(names)
 
 
-def resolve_underlying_call(args: Dict[str, Any]) -> Tuple[Optional[str], Dict[str, Any], Optional[str]]:
+def resolve_underlying_call(
+    args: Dict[str, Any],
+    *,
+    session_id: str | None = None,
+    cache: SessionSchemaCache | None = None,
+    enforce_schema: bool = True,
+) -> Tuple[Optional[str], Dict[str, Any], Optional[str]]:
     """Parse a ``tool_call`` invocation into (underlying_name, args, error_msg).
 
     Used by:
@@ -686,6 +962,9 @@ def resolve_underlying_call(args: Dict[str, Any]) -> Tuple[Optional[str], Dict[s
     * the trajectory recorder.
 
     On parse error, returns ``(None, {}, error_message)``.
+    When ``enforce_schema`` is True (default), the tool must have been
+    granted via tool_search/tool_describe in this session, and argument
+    keys must match the cached schema (Prompt 294).
     """
     name = str(args.get("name") or "").strip()
     if not name:
@@ -707,6 +986,21 @@ def resolve_underlying_call(args: Dict[str, Any]) -> Tuple[Optional[str], Dict[s
             f"'{name}' is not a deferrable tool. If it appears in the model-facing tools "
             "list already, call it directly instead of via tool_call."
         )
+    if enforce_schema:
+        schema_err = validate_deferred_invoke(
+            name, raw_args, session_id=session_id, cache=cache
+        )
+        if schema_err:
+            return None, {}, schema_err
+    try:
+        from keprix.security.hermes_features import emit_bridge_tool_usage, is_tool_governance_blocked
+
+        if is_tool_governance_blocked(name):
+            return None, {}, f"Tool '{name}' is blocked by governance policy"
+        emit_bridge_tool_usage("tool_call", target=f"tool:{name}", details={"arguments_keys": sorted(raw_args.keys())})
+    except Exception:
+        pass
+    _PROCESS_STATS.invokes += 1
     return name, raw_args, None
 
 
@@ -718,6 +1012,8 @@ __all__ = [
     "ToolSearchConfig",
     "CatalogEntry",
     "AssemblyResult",
+    "DeferredToolStats",
+    "SessionSchemaCache",
     "load_config",
     "is_deferrable_tool_name",
     "classify_tools",
@@ -732,4 +1028,10 @@ __all__ = [
     "dispatch_tool_describe",
     "resolve_underlying_call",
     "scoped_deferrable_names",
+    "get_session_schema_cache",
+    "clear_session_schema_cache",
+    "get_deferred_tool_stats",
+    "reset_deferred_tool_stats",
+    "validate_deferred_invoke",
+    "record_assembly_stats",
 ]

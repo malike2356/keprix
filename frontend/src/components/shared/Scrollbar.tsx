@@ -20,7 +20,7 @@ type ScrollbarProps = {
 
 export default function Scrollbar({ children, sx }: ScrollbarProps) {
   const theme = useTheme();
-  const compact = useMediaQuery(theme.breakpoints.down("lg"));
+  const compact = useMediaQuery(theme.breakpoints.down("lg"), { noSsr: true });
 
   if (compact) {
     return <Box sx={{ overflowX: "auto", ...sx }}>{children}</Box>;

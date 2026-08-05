@@ -16,10 +16,12 @@ const SYSTEM_SANS =
   '"Segoe WPC", "Segoe UI", -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif, ' +
   EMOJI_FALLBACK
 
+const MARKETING_SANS = '"DM Sans", "Segoe WPC", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, sans-serif, ' + EMOJI_FALLBACK
+
 const SYSTEM_MONO =
   '"Cascadia Code", "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Monaco, Consolas, monospace, ' + EMOJI_FALLBACK
 
-export const DEFAULT_TYPOGRAPHY: DesktopThemeTypography = { fontSans: SYSTEM_SANS, fontMono: SYSTEM_MONO }
+export const DEFAULT_TYPOGRAPHY: DesktopThemeTypography = { fontSans: MARKETING_SANS, fontMono: SYSTEM_MONO }
 
 const NOUS_BLUE = '#0053FD'
 const PSYCHE_BLUE = '#1540B1'
@@ -92,7 +94,7 @@ export const nousTheme: DesktopTheme = {
     userBubbleBorder: '#3A63BD'
   },
   typography: {
-    fontSans: SYSTEM_SANS,
+    fontSans: MARKETING_SANS,
     fontMono: `"Courier Prime", ${SYSTEM_MONO}`,
     fontUrl: 'https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap'
   }

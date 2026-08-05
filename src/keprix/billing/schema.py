@@ -23,8 +23,7 @@ class PlanPriceConfig(BaseModel):
     currency: str = "gbp"
     interval: Literal["month", "year"] | None = None
     discount_text: str | None = None
-    # Existing Stripe Price ID from verlox/.stripe-credentials-and-price-id.md.
-    # Required for live Stripe; agents must never create new Stripe prices.
+    # Existing Stripe Price ID. Required for live Stripe; agents must never create new Stripe prices.
     stripe_price_id: str | None = None
 
 
@@ -83,7 +82,8 @@ class DonationConfig(BaseModel):
     description: str = "Optional open-amount donation from £1. Not required."
     amount: int = 100
     currency: str = "gbp"
-    stripe_price_id: str
+    # Optional legacy catalog pin only. Live open-amount coffee checkout uses Stripe price_data.
+    stripe_price_id: str | None = None
 
 
 class TaxRegionConfig(BaseModel):
@@ -123,14 +123,8 @@ class AiWalletConfig(BaseModel):
     markup: float = 2.0
     trial_credits: int = 500
     trial_daily_cap_credits: int = 100
-    # Existing Verlox top-up price IDs only (from .stripe-credentials-and-price-id.md).
-    topup_price_ids: list[str] = Field(
-        default_factory=lambda: [
-            "price_1TrhlN2WMXleLh8enqPqXHs5",  # Pay £5 to Verlox
-            "price_1Trhnl2WMXleLh8e2zddW2ET",  # Pay £10 to Verlox
-            "price_1Trho42WMXleLh8ekL7R7Vq7",  # Pay £20 to Verlox
-        ]
-    )
+    # Operator-supplied top-up Stripe price IDs (pin in billing.yaml). Empty by default for OSS.
+    topup_price_ids: list[str] = Field(default_factory=list)
 
 
 class BillingConfig(BaseModel):

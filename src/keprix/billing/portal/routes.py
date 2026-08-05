@@ -28,6 +28,7 @@ router = APIRouter(prefix="/api/billing", tags=["billing"])
 class CheckoutBody(BaseModel):
     plan_id: str
     interval: str | None = "month"
+    promo_code: str | None = None
 
 
 class UpgradeBody(BaseModel):
@@ -175,6 +176,7 @@ async def portal_checkout(body: CheckoutBody, user: dict = Depends(get_current_u
             email=email,
             plan_id=body.plan_id,
             interval=body.interval,
+            promo_code=body.promo_code,
         )
     except (ValueError, RuntimeError) as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

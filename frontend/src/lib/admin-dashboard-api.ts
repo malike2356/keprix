@@ -148,25 +148,26 @@ function mapAdminChannel(row: {
 
 export async function fetchDashboardStats(): Promise<DashboardStats> {
   const admin = await tryAdminJson<AdminStatsPayload>("/api/admin/stats");
-  const compounding = await parseJson<{ divergence_score: number }>(
-    await ceApi("/api/stats/mutations/compounding"),
-    "mutation compounding",
-  ).catch(() => ({ divergence_score: 0 }));
 
   if (admin) {
-    const llm = await parseJson<{
-      llmSpend30d: number;
-      llmTokens30d: number;
-      llmRequestCount30d: number;
-    }>(await ceApi("/api/stats/llm/summary?days=30"), "llm stats").catch(() => ({
-      llmSpend30d: admin.llm_cost_usd_mtd,
-      llmTokens30d: 0,
-      llmRequestCount30d: 0,
-    }));
-    const memory = await parseJson<{ count: number }>(
-      await ceApi("/api/stats/memory/count"),
-      "memory stats",
-    ).catch(() => ({ count: admin.memory_documents ?? 0 }));
+    const [llm, memory, compounding] = await Promise.all([
+      parseJson<{
+        llmSpend30d: number;
+        llmTokens30d: number;
+        llmRequestCount30d: number;
+      }>(await ceApi("/api/stats/llm/summary?days=30"), "llm stats").catch(() => ({
+        llmSpend30d: admin.llm_cost_usd_mtd,
+        llmTokens30d: 0,
+        llmRequestCount30d: 0,
+      })),
+      parseJson<{ count: number }>(await ceApi("/api/stats/memory/count"), "memory stats").catch(
+        () => ({ count: admin.memory_documents ?? 0 }),
+      ),
+      parseJson<{ divergence_score: number }>(
+        await ceApi("/api/stats/mutations/compounding"),
+        "mutation compounding",
+      ).catch(() => ({ divergence_score: 0 })),
+    ]);
 
     return {
       conversations: admin.total_conversations,

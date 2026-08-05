@@ -506,6 +506,33 @@ def show_status(args):
             print("  Manager:      (not supported on this platform)")
 
     # =========================================================================
+    # Credential Proxy
+    # =========================================================================
+    print()
+    print(color("◆ Credential Proxy", Colors.CYAN, Colors.BOLD))
+    try:
+        import asyncio
+        from keprix.proxy.cordon_bridge import CordonHealthCheck
+        from keprix.proxy.fallback import fallback_status
+        from keprix.proxy.migrate import migration_health
+
+        health = asyncio.run(CordonHealthCheck().check())
+        ok = health.status == "healthy"
+        print(f"  Status:       {check_mark(ok)} {health.status}")
+        if health.error:
+            print(f"  Detail:       {health.error}")
+        vault = migration_health()
+        print(f"  Vault (old):  {vault['total']} stored, {vault['migrated']} migrated, {vault['pending']} pending")
+        fallback = fallback_status()
+        if fallback.get("enabled"):
+            print(f"  Fallback:     {check_mark(False)} enabled until {fallback.get('expires_at')}")
+        elif vault["pending"]:
+            print("  Warning:      legacy vault credentials still need migration")
+    except Exception as exc:
+        print(f"  Status:       {check_mark(False)} error")
+        print(f"  Detail:       {str(exc)[:160]}")
+
+    # =========================================================================
     # Cron Jobs
     # =========================================================================
     print()

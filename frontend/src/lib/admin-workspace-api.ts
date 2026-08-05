@@ -58,6 +58,7 @@ export type WorkspaceUser = {
   source?: "account" | "invite";
   invite_id?: string;
   expires_at?: string | null;
+  totp_enabled?: boolean;
 };
 
 export type WorkspaceInviteResult = {
@@ -79,6 +80,12 @@ export type AdminSettings = {
   language: string;
   max_tool_iterations: number;
   context_compression_threshold: number;
+  rtk_compression_enabled?: boolean;
+  caveman_compression_enabled?: boolean;
+  guardrails_pii_enabled?: boolean;
+  guardrails_injection_enabled?: boolean;
+  semantic_cache_enabled?: boolean;
+  combo_routing_enabled?: boolean;
   mutation_engine_enabled: boolean;
   mutation_sandbox_timeout: number;
   auto_approve_owner_mutations: boolean;
@@ -280,6 +287,13 @@ export async function deleteWorkspaceUser(userId: string) {
   return parseJson<{ ok: boolean }>(
     await ceApi(`/api/users/${encodeURIComponent(userId)}`, { method: "DELETE" }),
     "delete user",
+  );
+}
+
+export async function resetWorkspaceUserTotp(userId: string) {
+  return parseJson<{ ok: boolean }>(
+    await ceApi(`/api/users/${encodeURIComponent(userId)}/totp-reset`, { method: "POST" }),
+    "reset user 2FA",
   );
 }
 

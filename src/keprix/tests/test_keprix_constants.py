@@ -93,6 +93,17 @@ class TestGetDefaultKeprixRoot:
 class TestGetKeprixHome:
     """Tests for get_keprix_home() platform-aware fallback."""
 
+    def test_hermes_home_does_not_override_keprix_write_home(self, tmp_path, monkeypatch):
+        """HERMES_HOME is legacy read state, not the Keprix write home."""
+        legacy = tmp_path / ".hermes"
+        monkeypatch.setattr(Path, "home", lambda: tmp_path)
+        monkeypatch.delenv("KEPRIX_HOME", raising=False)
+        monkeypatch.setenv("HERMES_HOME", str(legacy))
+        monkeypatch.setattr(keprix_constants, "_profile_fallback_warned", False)
+
+        assert get_keprix_home() == tmp_path / ".keprix"
+        assert keprix_constants.get_legacy_hermes_home() == legacy
+
     def test_windows_fallback_uses_localappdata(self, tmp_path, monkeypatch):
         """When KEPRIX_HOME is unset on Windows, use %LOCALAPPDATA%\\keprix."""
         local_appdata = tmp_path / "LocalAppData"
@@ -297,4 +308,3 @@ class TestSecureParentDir:
         secure_parent_dir(link_target)
         assert len(called_with) == 1
         assert called_with[0] == (str(real_dir), 0o700)
-

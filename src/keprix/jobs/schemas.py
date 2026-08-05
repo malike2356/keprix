@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from enum import StrEnum
-
-
+from keprix.compat import StrEnum
 class JobStatus(StrEnum):
     PENDING = "pending"
     CLAIMED = "claimed"

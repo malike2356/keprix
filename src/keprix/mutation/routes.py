@@ -149,8 +149,30 @@ async def synthesize_tool_endpoint(
     if not settings.enabled or not settings.tool_synthesis:
         raise HTTPException(status_code=503, detail="mutation tool synthesis is disabled")
 
-    store = get_mutation_store()
     workspace_id = _workspace_id()
+    try:
+        from keprix.quotas.actor_enforcer import ActorQuotaExceeded, assert_actor_quota, record_scopes
+        from keprix.quotas.runtime import get_quota_enforcer
+
+        product_check = await get_quota_enforcer().check_before_mutation("keprix")
+        if product_check.is_hard_blocked:
+            raise HTTPException(status_code=429, detail={"error": "quota_exceeded", "reason": product_check.reason})
+        await assert_actor_quota(
+            service="mutation",
+            workspace_id=workspace_id,
+            product_id="keprix",
+            mutation_runs=1,
+            calls=1,
+            tokens=2_000,
+        )
+    except ActorQuotaExceeded as exc:
+        raise HTTPException(status_code=429, detail=exc.to_http_detail()) from exc
+    except HTTPException:
+        raise
+    except Exception:
+        pass
+
+    store = get_mutation_store()
     proposal = ToolGapProposal(
         proposal_id="manual",
         tool_name=body.tool_name,
@@ -174,6 +196,21 @@ async def synthesize_tool_endpoint(
         generated_dir = store.generated_tools_dir()
         store.write_tool_to_disk(record, generated_dir)
         store.reload_registry(generated_dir)
+    try:
+        from keprix.quotas.actor_enforcer import record_scopes
+        from keprix.quotas.runtime import get_quota_enforcer
+
+        await get_quota_enforcer().record_mutation_run("keprix", tokens=2_000)
+        record_scopes(
+            service="mutation",
+            workspace_id=workspace_id,
+            product_id="keprix",
+            mutation_runs=1,
+            calls=1,
+            tokens=2_000,
+        )
+    except Exception:
+        pass
     return {"id": record.id, "status": record.status, "name": record.name}
 
 
@@ -397,6 +434,7 @@ class CodeMutationRequestBody(BaseModel):
     task: str
     target_dir: str = "src/keprix/tools/"
     run_tests: bool = True
+    preflight: dict[str, Any] | None = None
 
 
 @router.post("/code/request", status_code=202)
@@ -407,10 +445,40 @@ async def request_code_mutation(
     settings = get_mutation_settings()
     if not settings.enabled or not settings.self_coding:
         raise HTTPException(status_code=403, detail="self-coding mutation is disabled")
+    if body.preflight is not None:
+        from keprix.coding.preflight_service import PreflightService
+
+        session_id = str(body.preflight.get("session_id") or "mutation-code")
+        payload = {**body.preflight, "intent": body.task, "repo_path": settings.repo_root}
+        report = PreflightService().run(session_id=session_id, payload=payload)
+        if report.overall == "block":
+            raise HTTPException(status_code=409, detail={"preflight": report.to_dict()})
 
     from pathlib import Path
 
     from keprix.mutation.self_coding_harness import SelfCodingRequest, run_scoped_mutation
+
+    try:
+        from keprix.quotas.actor_enforcer import ActorQuotaExceeded, assert_actor_quota, record_scopes
+        from keprix.quotas.runtime import get_quota_enforcer
+
+        product_check = await get_quota_enforcer().check_before_mutation("keprix")
+        if product_check.is_hard_blocked:
+            raise HTTPException(status_code=429, detail={"error": "quota_exceeded", "reason": product_check.reason})
+        await assert_actor_quota(
+            service="mutation",
+            workspace_id=_workspace_id(),
+            product_id="keprix",
+            mutation_runs=1,
+            calls=1,
+            tokens=5_000,
+        )
+    except ActorQuotaExceeded as exc:
+        raise HTTPException(status_code=429, detail=exc.to_http_detail()) from exc
+    except HTTPException:
+        raise
+    except Exception:
+        pass
 
     request = SelfCodingRequest(
         task=body.task,
@@ -426,6 +494,21 @@ async def request_code_mutation(
     )
     if result.mutation_id is None:
         raise HTTPException(status_code=422, detail=result.error or "scoped mutation failed")
+    try:
+        from keprix.quotas.actor_enforcer import record_scopes
+        from keprix.quotas.runtime import get_quota_enforcer
+
+        await get_quota_enforcer().record_mutation_run("keprix", tokens=5_000)
+        record_scopes(
+            service="mutation",
+            workspace_id=_workspace_id(),
+            product_id="keprix",
+            mutation_runs=1,
+            calls=1,
+            tokens=5_000,
+        )
+    except Exception:
+        pass
     return {
         "mutation_id": result.mutation_id,
         "branch_name": result.branch_name,
@@ -600,4 +683,3 @@ async def prune_mutations_dry_run(
         "space_reclaimed_bytes": report.space_reclaimed_bytes,
         "dry_run": True,
     }
-

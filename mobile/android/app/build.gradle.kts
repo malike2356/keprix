@@ -62,7 +62,7 @@ android {
   }
 
   defaultConfig {
-    applicationId = "com.verlox.carinakeprix"
+    applicationId = "com.verlox.carinakeprix.app"
     minSdk = 31
     targetSdk = 36
     versionCode = 2026060201

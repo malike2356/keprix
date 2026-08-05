@@ -6,6 +6,16 @@ export type UsageQueryParams = {
   channel?: string;
   model?: string;
   provider?: string;
+  user_id?: string;
+  from_ts?: string;
+  to_ts?: string;
+};
+
+export type UsageMeteringStatus = {
+  enabled: boolean;
+  retention_days: number;
+  is_admin: boolean;
+  enable_hint: string;
 };
 
 export type UsageSummary = {
@@ -78,6 +88,15 @@ function buildQuery(params?: UsageQueryParams): string {
   if (params?.provider) {
     search.set("provider", params.provider);
   }
+  if (params?.user_id) {
+    search.set("user_id", params.user_id);
+  }
+  if (params?.from_ts) {
+    search.set("from_ts", params.from_ts);
+  }
+  if (params?.to_ts) {
+    search.set("to_ts", params.to_ts);
+  }
   const query = search.toString();
   return query ? `?${query}` : "";
 }
@@ -109,7 +128,7 @@ export async function fetchUsageTimeseries(
 }
 
 export async function fetchUsageBreakdown(
-  dimension: "model" | "provider" | "channel" | "user",
+  dimension: "model" | "provider" | "channel" | "user" | "agent",
   params?: UsageQueryParams,
 ): Promise<UsageBreakdownRow[]> {
   const response = await ceApi(`/api/usage/breakdown/${dimension}${buildQuery(params)}`);
@@ -135,6 +154,11 @@ export async function fetchUsageEvents(
   return parseJson(response, "Failed to load usage events");
 }
 
+export async function fetchUsageStatus(): Promise<UsageMeteringStatus> {
+  const response = await ceApi("/api/usage/status");
+  return parseJson(response, "Failed to load usage metering status");
+}
+
 export async function fetchUsageBudget(workspaceId = "default"): Promise<UsageBudgetStatus> {
   const response = await ceApi(`/api/usage/budget?workspace_id=${encodeURIComponent(workspaceId)}`);
   return parseJson(response, "Failed to load usage budget");
@@ -151,17 +175,22 @@ export async function updateUsageBudget(body: {
   return parseJson(response, "Failed to update usage budget");
 }
 
-export async function downloadUsageExport(days = 90): Promise<void> {
-  const response = await ceApi(`/api/usage/export?days=${days}`);
+export async function downloadUsageExport(
+  days = 90,
+  options?: UsageQueryParams & { format?: "csv" | "json" },
+): Promise<void> {
+  const search = new URLSearchParams(buildQuery({ ...options, days }).replace(/^\?/, ""));
+  search.set("format", options?.format || "csv");
+  const response = await ceApi(`/api/usage/export?${search.toString()}`);
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
-    throw new Error(parseApiErrorMessage(payload, "Failed to export usage CSV"));
+    throw new Error(parseApiErrorMessage(payload, "Failed to export usage"));
   }
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = "llm-usage-export.csv";
+  anchor.download = options?.format === "json" ? "llm-usage-export.json" : "llm-usage-export.csv";
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();

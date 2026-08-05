@@ -92,11 +92,34 @@ class ResponseObject(BaseModel):
 class CreateApiKeyRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=128)
     workspace_id: str = "default"
-    role: str = "developer"
-    allowed_models: list[str] = Field(default_factory=list)
-    allowed_endpoints: list[str] = Field(default_factory=list)
+    role: str = "api"
+    allowed_models: list[str] | None = None
+    allowed_endpoints: list[str] | None = None
     monthly_limit: int | None = None
     scopes: dict[str, bool] = Field(default_factory=dict)
+    permissions: dict[str, str] = Field(default_factory=dict)
+    restrict_key: bool = True
+    expire_after_days: int | None = Field(default=None, ge=1, le=3650)
+    expires_at: str | None = None
+    allowed_ips: list[str] = Field(default_factory=list)
+    auto_disable_if_leaked: bool = True
+    enabled: bool = True
+
+
+class UpdateApiKeyRequest(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=128)
+    allowed_models: list[str] | None = None
+    allowed_endpoints: list[str] | None = None
+    monthly_limit: int | None = None
+    scopes: dict[str, bool] | None = None
+    permissions: dict[str, str] | None = None
+    restrict_key: bool | None = None
+    expire_after_days: int | None = Field(default=None, ge=1, le=3650)
+    expires_at: str | None = None
+    clear_expiry: bool = False
+    allowed_ips: list[str] | None = None
+    auto_disable_if_leaked: bool | None = None
+    enabled: bool | None = None
 
 
 class ApiKeyRecord(BaseModel):
@@ -111,6 +134,14 @@ class ApiKeyRecord(BaseModel):
     usage_this_month: int
     created_at: str
     revoked: bool = False
+    enabled: bool = True
+    restrict_key: bool = True
+    permissions: dict[str, str] = Field(default_factory=dict)
+    scopes: dict[str, bool] = Field(default_factory=dict)
+    expires_at: str | None = None
+    allowed_ips: list[str] = Field(default_factory=list)
+    auto_disable_if_leaked: bool = True
+    masked_key: str | None = None
 
 
 class CreateApiKeyResponse(ApiKeyRecord):

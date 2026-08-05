@@ -8,10 +8,13 @@ const PARTICLE_COUNT_MOBILE = 14000;
 
 type WovenHeroBackgroundProps = {
   className?: string;
+  /** Dark uses additive glow; light uses opaque darker particles for contrast. */
+  mode?: "dark" | "light";
 };
 
-export function WovenHeroBackground({ className }: WovenHeroBackgroundProps) {
+export function WovenHeroBackground({ className, mode = "dark" }: WovenHeroBackgroundProps) {
   const mountRef = React.useRef<HTMLDivElement>(null);
+  const isLight = mode === "light";
 
   React.useEffect(() => {
     const mount = mountRef.current;
@@ -56,8 +59,14 @@ export function WovenHeroBackground({ className }: WovenHeroBackgroundProps) {
       originalPositions[i * 3 + 2] = z;
 
       const color = new THREE.Color();
-      const hue = 0.72 + (Math.random() - 0.5) * 0.12;
-      color.setHSL(hue, 0.78, 0.52 + Math.random() * 0.12);
+      if (isLight) {
+        // Visible violet on white; left-side scrim in Hero protects copy
+        const hue = 0.7 + (Math.random() - 0.5) * 0.1;
+        color.setHSL(hue, 0.62 + Math.random() * 0.2, 0.48 + Math.random() * 0.14);
+      } else {
+        const hue = 0.72 + (Math.random() - 0.5) * 0.12;
+        color.setHSL(hue, 0.78, 0.52 + Math.random() * 0.12);
+      }
       colors[i * 3] = color.r;
       colors[i * 3 + 1] = color.g;
       colors[i * 3 + 2] = color.b;
@@ -67,15 +76,21 @@ export function WovenHeroBackground({ className }: WovenHeroBackgroundProps) {
     geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
     const material = new THREE.PointsMaterial({
-      size: 0.02,
+      size: isLight ? 0.024 : 0.02,
       vertexColors: true,
-      blending: THREE.AdditiveBlending,
+      blending: isLight ? THREE.NormalBlending : THREE.AdditiveBlending,
       transparent: true,
-      opacity: 0.75,
+      opacity: isLight ? 0.62 : 0.75,
       depthWrite: false,
     });
 
     const points = new THREE.Points(geometry, material);
+    // Bias the knot toward the visual right so copy stays quieter
+    if (isLight) {
+      points.position.x = 1.35;
+      points.position.y = -0.1;
+      points.scale.setScalar(1.12);
+    }
     scene.add(points);
 
     const resize = () => {
@@ -160,7 +175,7 @@ export function WovenHeroBackground({ className }: WovenHeroBackgroundProps) {
         mount.removeChild(renderer.domElement);
       }
     };
-  }, []);
+  }, [isLight]);
 
   return (
     <div

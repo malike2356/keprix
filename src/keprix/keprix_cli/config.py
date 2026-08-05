@@ -322,8 +322,12 @@ def get_managed_system() -> Optional[str]:
         return _MANAGED_SYSTEM_NAMES.get(normalized, raw)
 
     managed_marker = get_keprix_home() / ".managed"
-    if managed_marker.exists():
-        return "NixOS"
+    try:
+        if managed_marker.exists():
+            return "NixOS"
+    except OSError:
+        # Bind-mounted KEPRIX_HOME can be mode 0700 under another uid; treat as unmanaged.
+        return None
     return None
 
 
@@ -593,17 +597,45 @@ def get_container_exec_info() -> Optional[dict]:
 # Config paths
 # =============================================================================
 
-# Re-export from keprix_constants — canonical definition lives there.
-from keprix_constants import get_keprix_home  # noqa: F811,E402
+# Re-export from keprix_constants: canonical definitions live there.
+from keprix_constants import get_keprix_home, get_legacy_hermes_home  # noqa: F811,E402
 from utils import atomic_replace
 
 def get_config_path() -> Path:
     """Get the main config file path."""
     return get_keprix_home() / "config.yaml"
 
+def get_legacy_config_path() -> Path:
+    """Get the legacy Hermes config path for compatibility reads."""
+    return get_legacy_hermes_home() / "config.yaml"
+
+def get_config_read_path() -> Path:
+    """Get the config path to read, preferring Keprix and falling back to Hermes."""
+    config_path = get_config_path()
+    if config_path.exists():
+        return config_path
+    legacy_path = get_legacy_config_path()
+    if legacy_path.exists():
+        return legacy_path
+    return config_path
+
 def get_env_path() -> Path:
     """Get the .env file path (for API keys)."""
     return get_keprix_home() / ".env"
+
+def get_legacy_env_path() -> Path:
+    """Get the legacy Hermes .env path for compatibility reads."""
+    return get_legacy_hermes_home() / ".env"
+
+def get_env_read_path() -> Path:
+    """Get the .env path to read, preferring Keprix and falling back to Hermes."""
+    env_path = get_env_path()
+    if env_path.exists():
+        return env_path
+    legacy_path = get_legacy_env_path()
+    if legacy_path.exists():
+        return legacy_path
+    return env_path
 
 def get_project_root() -> Path:
     """Get the project installation directory."""
@@ -1688,10 +1720,14 @@ DEFAULT_CONFIG = {
     
     "stt": {
         "enabled": True,
-        "provider": "local",  # "local" (free, faster-whisper) | "groq" | "openai" (Whisper API) | "mistral" (Voxtral Transcribe) | "elevenlabs" (Scribe)
+        "provider": "local",  # "local" | "gemini" | "groq" | "openai" | "mistral" | "xai" | "elevenlabs"
         "local": {
             "model": "base",  # tiny, base, small, medium, large-v3
             "language": "",  # auto-detect by default; set to "en", "es", "fr", etc. to force
+        },
+        "gemini": {
+            "model": "gemini-2.5-flash",  # gemini-2.5-flash, gemini-2.5-pro, gemini-2.0-flash
+            "language": "",
         },
         "openai": {
             "model": "whisper-1",  # whisper-1, gpt-4o-mini-transcribe, gpt-4o-transcribe
@@ -5252,7 +5288,7 @@ def read_raw_config() -> Dict[str, Any]:
     """
     with _CONFIG_LOCK:
         try:
-            config_path = get_config_path()
+            config_path = get_config_read_path()
             st = config_path.stat()
             cache_key = (st.st_mtime_ns, st.st_size)
         except (FileNotFoundError, OSError):
@@ -5407,7 +5443,7 @@ def apply_terminal_config_to_env(
 def _load_config_impl(*, want_deepcopy: bool) -> Dict[str, Any]:
     with _CONFIG_LOCK:
         ensure_keprix_home()
-        config_path = get_config_path()
+        config_path = get_config_read_path()
         path_key = str(config_path)
 
         try:
@@ -5599,7 +5635,7 @@ def load_env() -> Dict[str, str]:
     invalidates the cache when the user edits .env mid-process.
     """
     global _env_cache
-    env_path = get_env_path()
+    env_path = get_env_read_path()
 
     try:
         mtime = env_path.stat().st_mtime
@@ -5998,10 +6034,19 @@ def get_env_value(key: str) -> Optional[str]:
     # Check environment first
     if key in os.environ:
         return os.environ[key]
+    legacy_key = ""
+    if key.startswith("KEPRIX_"):
+        legacy_key = "HERMES_" + key[len("KEPRIX_"):]
+        if legacy_key in os.environ:
+            return os.environ[legacy_key]
     
     # Then check .env file
     env_vars = load_env()
-    return env_vars.get(key)
+    if key in env_vars:
+        return env_vars[key]
+    if legacy_key:
+        return env_vars.get(legacy_key)
+    return None
 
 
 # =============================================================================

@@ -63,6 +63,14 @@ def install_pack(
             shutil.copy2(src, dest)
 
     record = registry.record_install(manifest, target, enabled=enabled)
+    if manifest.name == "keprix-personal-os-starter":
+        try:
+            from keprix.agent_os.personal_os_pack import apply_personal_os_pack
+
+            result = apply_personal_os_pack(target)
+            return {"status": "installed", "pack": record.to_dict(), "post_install": result}
+        except Exception as exc:
+            return {"status": "error", "message": f"post-install failed: {exc}"}
     return {"status": "installed", "pack": record.to_dict()}
 
 

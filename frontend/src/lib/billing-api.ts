@@ -155,10 +155,15 @@ export async function fetchBillingInvoice(id: string): Promise<BillingInvoice> {
 export async function startCheckout(
   planId: string,
   interval: "month" | "year" = "month",
+  promoCode?: string | null,
 ): Promise<{ checkout_url: string }> {
   const response = await ceApi("/api/billing/portal/checkout", {
     method: "POST",
-    body: JSON.stringify({ plan_id: planId, interval }),
+    body: JSON.stringify({
+      plan_id: planId,
+      interval,
+      ...(promoCode ? { promo_code: promoCode } : {}),
+    }),
   });
   return handleResponse<{ checkout_url: string }>(response, "Failed to start checkout");
 }
@@ -225,8 +230,12 @@ export async function removeSeat(seatId: string): Promise<void> {
   await handleResponse(response, "Failed to remove seat");
 }
 
-export async function redirectToCheckout(planId: string, interval: "month" | "year" = "month"): Promise<void> {
-  const { checkout_url } = await startCheckout(planId, interval);
+export async function redirectToCheckout(
+  planId: string,
+  interval: "month" | "year" = "month",
+  promoCode?: string | null,
+): Promise<void> {
+  const { checkout_url } = await startCheckout(planId, interval, promoCode);
   window.location.href = checkout_url;
 }
 

@@ -13,6 +13,7 @@ import * as React from "react";
 import NextLink from "next/link";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
+import PersonalOsStarterCard from "@/components/hub/PersonalOsStarterCard";
 import { fetchHubCatalog, installHubPack, type HubPack } from "@/lib/hub-api";
 
 function PackGrid({
@@ -84,6 +85,11 @@ export default function HubPage() {
       <PageHeader
         title="Hub"
         description="Install skill packs, app templates, and connectors with manifest checks and rollback."
+        actions={
+          <Button component={NextLink} href="/integrations" variant="outlined">
+            Browse all integrations
+          </Button>
+        }
       />
       {message ? <Alert severity="success" sx={{ mb: 2 }}>{message}</Alert> : null}
       {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
@@ -100,6 +106,13 @@ export default function HubPage() {
           </Button>
         </CardContent>
       </Card>
+      <PersonalOsStarterCard
+        pack={packs.find((pack) => pack.name === "keprix-personal-os-starter")}
+        onInstall={(packName) => {
+          const pack = packs.find((item) => item.name === packName);
+          if (pack) void handleInstall(pack);
+        }}
+      />
       <Tabs value={tab} onChange={(_, value) => setTab(value)} sx={{ mb: 2 }}>
         <Tab label={`Packs (${packs.length})`} />
         <Tab label={`Templates (${templates.length})`} />

@@ -1318,6 +1318,19 @@ def _managed_file_entry(policy: ManagedFilesPolicy, target: Path) -> Dict[str, A
     }
 
 
+def _safe_managed_file_entry(policy: ManagedFilesPolicy, target: Path) -> Dict[str, Any] | None:
+    try:
+        return _managed_file_entry(policy, target)
+    except HTTPException as exc:
+        if exc.status_code in {400, 403, 404, 500}:
+            _log.warning("Skipping unmanaged file entry %s: %s", target, exc.detail)
+            return None
+        raise
+    except OSError as exc:
+        _log.warning("Skipping unmanaged file entry %s: %s", target, exc)
+        return None
+
+
 def _decode_data_url(data_url: str) -> tuple[bytes, str]:
     text = (data_url or "").strip()
     if not text.startswith("data:") or "," not in text:
@@ -1344,7 +1357,11 @@ async def list_managed_files(request: Request, path: Optional[str] = None):
         raise HTTPException(status_code=400, detail="Path is not a directory")
 
     try:
-        entries = [_managed_file_entry(policy, child) for child in target.iterdir()]
+        entries = []
+        for child in target.iterdir():
+            entry = _safe_managed_file_entry(policy, child)
+            if entry is not None:
+                entries.append(entry)
     except PermissionError:
         raise HTTPException(status_code=403, detail="Directory is not readable")
     except OSError as exc:

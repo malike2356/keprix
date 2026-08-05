@@ -26,6 +26,7 @@ from __future__ import annotations
 import json
 from typing import Any, Dict, List, Optional
 
+from agent.layered_assembly import LayeredStableInput, assemble_layered_stable, layered_prompt_enabled
 from agent.prompt_builder import (
     DEFAULT_AGENT_IDENTITY,
     GOOGLE_MODEL_OPERATIONAL_GUIDANCE,
@@ -83,33 +84,34 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     _r = _ra()
 
     # ── Stable tier ────────────────────────────────────────────────
-    stable_parts: List[str] = []
+    identity_parts: List[str] = []
+    tool_parts: List[str] = []
+    execution_parts: List[str] = []
+    evolved_prompt = ""
+    skills_prompt = ""
 
-    # Try SOUL.md as primary identity unless the caller explicitly skipped it.
-    # Some execution modes (cron) still want KEPRIX_HOME persona while keeping
-    # cwd project instructions disabled.
+    # Try SOUL.md as persona override unless the caller explicitly skipped it.
     _soul_loaded = False
+    _soul_content = ""
     if agent.load_soul_identity or not agent.skip_context_files:
-        _soul_content = _r.load_soul_md()
+        _soul_content = _r.load_soul_md() or ""
         if _soul_content:
-            stable_parts.append(_soul_content)
             _soul_loaded = True
 
-    if not _soul_loaded:
-        # Fallback to hardcoded identity
-        stable_parts.append(DEFAULT_AGENT_IDENTITY)
+    identity_parts.append(KEPRIX_AGENT_HELP_GUIDANCE)
 
     try:
         from keprix.mutation.prompt_resolver import resolve_active_prompt
 
-        evolved_prompt = resolve_active_prompt(agent)
-        if evolved_prompt:
-            stable_parts.append(evolved_prompt)
+        evolved_prompt = resolve_active_prompt(agent) or ""
     except Exception as exc:
         _ra().logger.debug("evolved prompt injection skipped: %s", exc)
 
-    # Pointer to the keprix skill + docs for user questions about Keprix itself.
-    stable_parts.append(KEPRIX_AGENT_HELP_GUIDANCE)
+    persona_parts: List[str] = []
+    if _soul_content.strip():
+        persona_parts.append(_soul_content.strip())
+    if evolved_prompt.strip():
+        persona_parts.append(evolved_prompt.strip())
 
     # Universal task-completion / no-fabrication guidance.  Applied to ALL
     # models regardless of tool_use_enforcement gating — the failure modes
@@ -118,7 +120,7 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     # config.yaml ``agent.task_completion_guidance`` (default True) so
     # users who want a leaner prompt can turn it off.
     if getattr(agent, "_task_completion_guidance", True) and agent.valid_tool_names:
-        stable_parts.append(TASK_COMPLETION_GUIDANCE)
+        execution_parts.append(TASK_COMPLETION_GUIDANCE)
 
     # Tool-aware behavioral guidance: only inject when the tools are loaded
     tool_guidance = []
@@ -139,22 +141,31 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
         # Fallback for code paths that bypass agent_init (rare).
         tool_guidance.append(KANBAN_GUIDANCE)
     if tool_guidance:
-        stable_parts.append(" ".join(tool_guidance))
+        tool_parts.append(" ".join(tool_guidance))
 
     # Steering only lands inside tool results, so it's only reachable when the
     # agent has tools. Static text → byte-stable prompt (no cache hit).
     if agent.valid_tool_names:
-        stable_parts.append(STEER_CHANNEL_NOTE)
+        tool_parts.append(STEER_CHANNEL_NOTE)
 
     # Computer-use (macOS) — goes in as its own block rather than being
     # merged into tool_guidance because the content is multi-paragraph.
     if "computer_use" in agent.valid_tool_names:
         from agent.prompt_builder import COMPUTER_USE_GUIDANCE
-        stable_parts.append(COMPUTER_USE_GUIDANCE)
+        tool_parts.append(COMPUTER_USE_GUIDANCE)
+
+    try:
+        from keprix.security.ai_hardening import canary_system_fragment
+
+        canary = canary_system_fragment()
+        if canary:
+            execution_parts.append(canary)
+    except Exception:
+        pass
 
     nous_subscription_prompt = _r.build_nous_subscription_prompt(agent.valid_tool_names)
     if nous_subscription_prompt:
-        stable_parts.append(nous_subscription_prompt)
+        tool_parts.append(nous_subscription_prompt)
     # Tool-use enforcement: tells the model to actually call tools instead
     # of describing intended actions.  Controlled by config.yaml
     # agent.tool_use_enforcement:
@@ -177,19 +188,19 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
             model_lower = (agent.model or "").lower()
             _inject = any(p in model_lower for p in TOOL_USE_ENFORCEMENT_MODELS)
         if _inject:
-            stable_parts.append(TOOL_USE_ENFORCEMENT_GUIDANCE)
+            tool_parts.append(TOOL_USE_ENFORCEMENT_GUIDANCE)
             _model_lower = (agent.model or "").lower()
             # Google model operational guidance (conciseness, absolute
             # paths, parallel tool calls, verify-before-edit, etc.)
             if "gemini" in _model_lower or "gemma" in _model_lower:
-                stable_parts.append(GOOGLE_MODEL_OPERATIONAL_GUIDANCE)
+                execution_parts.append(GOOGLE_MODEL_OPERATIONAL_GUIDANCE)
             # OpenAI GPT/Codex execution discipline (tool persistence,
             # prerequisite checks, verification, anti-hallucination).
             # Also applied to xAI Grok — same failure modes (claims completion
             # without tool calls, suggests workarounds instead of using
             # existing tools, replies with plans instead of executing).
             if "gpt" in _model_lower or "codex" in _model_lower or "grok" in _model_lower:
-                stable_parts.append(OPENAI_MODEL_EXECUTION_GUIDANCE)
+                execution_parts.append(OPENAI_MODEL_EXECUTION_GUIDANCE)
 
     has_skills_tools = any(name in agent.valid_tool_names for name in ['skills_list', 'skill_view', 'skill_manage'])
     if has_skills_tools:
@@ -221,7 +232,7 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     else:
         skills_prompt = ""
     if skills_prompt:
-        stable_parts.append(skills_prompt)
+        tool_parts.append(skills_prompt)
 
     # Alibaba Coding Plan API always returns "glm-4.7" as model name regardless
     # of the requested model. Inject explicit model identity into the system prompt
@@ -230,7 +241,7 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     # at construction time.
     if agent.provider == "alibaba":
         _model_short = agent.model.split("/")[-1] if "/" in agent.model else agent.model
-        stable_parts.append(
+        execution_parts.append(
             f"You are powered by the model named {_model_short}. "
             f"The exact model ID is {agent.model}. "
             f"When asked what model you are, always answer based on this information, "
@@ -242,7 +253,7 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     # Stable for the lifetime of the process.
     _env_hints = _r.build_environment_hints()
     if _env_hints:
-        stable_parts.append(_env_hints)
+        execution_parts.append(_env_hints)
 
     # Coding posture (base Keprix, any interactive coding surface in a code
     # workspace — see agent/coding_context.py). The operating brief + the live
@@ -253,7 +264,7 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
         try:
             from agent.coding_context import coding_system_blocks
 
-            stable_parts.extend(
+            execution_parts.extend(
                 coding_system_blocks(
                     platform=agent.platform,
                     cwd=resolve_context_cwd(),
@@ -276,7 +287,7 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
             from tools.env_probe import get_environment_probe_line
             _probe_line = get_environment_probe_line()
             if _probe_line:
-                stable_parts.append(_probe_line)
+                execution_parts.append(_probe_line)
         except Exception:
             # Probe failure must never block prompt build.
             pass
@@ -294,7 +305,7 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     except Exception:
         active_profile = "default"
     if active_profile == "default":
-        stable_parts.append(
+        execution_parts.append(
             "Active Keprix profile: default. Other profiles (if any) live "
             "under ~/.keprix/profiles/<name>/. Each profile has its own "
             "skills/, plugins/, cron/, and memories/ that affect a different "
@@ -303,7 +314,7 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
             "you to."
         )
     else:
-        stable_parts.append(
+        execution_parts.append(
             f"Active Keprix profile: {active_profile}. This session reads "
             f"and writes ~/.keprix/profiles/{active_profile}/. The default "
             f"profile's data lives at ~/.keprix/skills/, ~/.keprix/plugins/, "
@@ -317,16 +328,45 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
 
     platform_key = (agent.platform or "").lower().strip()
     if platform_key in PLATFORM_HINTS:
-        stable_parts.append(PLATFORM_HINTS[platform_key])
+        execution_parts.append(PLATFORM_HINTS[platform_key])
     elif platform_key:
         # Check plugin registry for platform-specific LLM guidance
         try:
             from gateway.platform_registry import platform_registry
             _entry = platform_registry.get(platform_key)
             if _entry and _entry.platform_hint:
-                stable_parts.append(_entry.platform_hint)
+                execution_parts.append(_entry.platform_hint)
         except Exception:
             pass
+
+    if layered_prompt_enabled(agent):
+        stable = assemble_layered_stable(
+            agent,
+            LayeredStableInput(
+                identity_body="\n\n".join(p.strip() for p in identity_parts if p and p.strip()),
+                tool_guidance_blocks=[p for p in tool_parts if p and p.strip()],
+                skills_prompt="",
+                execution_blocks=[p for p in execution_parts if p and p.strip()],
+                persona_prompt="\n\n".join(persona_parts),
+                domain_context_text=(system_message or ""),
+            ),
+        )
+    else:
+        legacy_identity = list(identity_parts)
+        if not _soul_loaded:
+            legacy_identity.insert(0, DEFAULT_AGENT_IDENTITY)
+        elif _soul_content.strip():
+            legacy_identity.insert(0, _soul_content.strip())
+        stable = "\n\n".join(
+            p.strip()
+            for p in (
+                *legacy_identity,
+                evolved_prompt,
+                *tool_parts,
+                *execution_parts,
+            )
+            if p and p.strip()
+        )
 
     # ── Context tier (cwd-dependent, may change between sessions) ─
     context_parts: List[str] = []
@@ -387,7 +427,7 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
     volatile_parts.append(timestamp_line)
 
     return {
-        "stable":   "\n\n".join(p.strip() for p in stable_parts   if p and p.strip()),
+        "stable":   stable,
         "context":  "\n\n".join(p.strip() for p in context_parts  if p and p.strip()),
         "volatile": "\n\n".join(p.strip() for p in volatile_parts if p and p.strip()),
     }

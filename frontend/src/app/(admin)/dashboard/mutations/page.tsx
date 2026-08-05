@@ -85,7 +85,7 @@ export default function AdminMutationsPage() {
       id: "requested_at",
       label: "Created",
       render: (row: GeneratedToolMutation) =>
-        row.requested_at ? new Date(row.requested_at).toLocaleDateString() : "—",
+        row.requested_at ? new Date(row.requested_at).toLocaleDateString() : ";",
     },
     {
       id: "actions",

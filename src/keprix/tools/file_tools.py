@@ -1223,6 +1223,24 @@ def write_file_tool(path: str, content: str, task_id: str = "default",
         # subagents can't interleave on the same file.  Different paths
         # remain fully parallel.
         with file_state.lock_path(_resolved):
+            try:
+                from agent.deliverable_paths import (
+                    annotate_write_zone,
+                    guard_skill_write,
+                    guard_upload_overwrite,
+                    resolve_deliverable_layout,
+                )
+
+                layout = resolve_deliverable_layout(create=True)
+                upload_err = guard_upload_overwrite(_resolved, layout=layout)
+                if upload_err:
+                    return tool_error(upload_err)
+                skill_err = guard_skill_write(_resolved, layout=layout)
+                if skill_err:
+                    return tool_error(skill_err)
+            except Exception:
+                layout = None
+
             # Cross-agent staleness wins over per-task warning when both
             # fire — its message names the sibling subagent.
             cross_warning = file_state.check_stale(task_id, _resolved)
@@ -1247,6 +1265,11 @@ def write_file_tool(path: str, content: str, task_id: str = "default",
             _update_read_timestamp(path, task_id)
             if not result_dict.get("error"):
                 file_state.note_write(task_id, _resolved)
+                if layout is not None:
+                    try:
+                        result_dict.update(annotate_write_zone(_resolved, layout=layout))
+                    except Exception:
+                        pass
         return json.dumps(result_dict, ensure_ascii=False)
     except Exception as e:
         if _is_expected_write_exception(e):

@@ -27,7 +27,10 @@ def approve_client(tmp_path, monkeypatch):
 
     monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path / "data"))
     monkeypatch.setenv("KEPRIX_ADMIN_PASSWORD", "admin-pass")
+    monkeypatch.setenv("KEPRIX_ADMIN_EMAIL", "")
+    monkeypatch.setenv("ADMIN_EMAIL", "")
     monkeypatch.setenv("AUTH_ENABLED", "true")
+    monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
     monkeypatch.setenv("KEPRIX_MUTATION_ENABLED", "true")
     monkeypatch.setenv("KEPRIX_MUTATION_REQUIRED_CHANNELS", "web_ui")
     monkeypatch.setenv("KEPRIX_GENERATED_TOOLS_DIR", str(tools_dir))

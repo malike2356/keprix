@@ -283,6 +283,19 @@ def x_search_tool(
     if not query or not query.strip():
         return tool_error("query is required for x_search")
 
+    from keprix.security.hermes_features import (
+        check_x_search_rate_limit,
+        emit_x_search_executed,
+        guard_prompt_text,
+    )
+
+    if not check_x_search_rate_limit():
+        return tool_error("x_search rate limit exceeded (10/min, 100/hour)")
+
+    allowed_query, guard_error = guard_prompt_text(query, source="x_search_query")
+    if not allowed_query:
+        return tool_error(guard_error or "x_search query blocked by prompt guard")
+
     try:
         api_key, base_url, source = _resolve_xai_bearer()
     except RuntimeError as exc:
@@ -396,6 +409,12 @@ def x_search_tool(
             f"no citations returned despite filters: {', '.join(active_filters)}"
             if degraded
             else None
+        )
+
+        emit_x_search_executed(
+            query=query.strip(),
+            degraded=degraded,
+            citation_count=len(citations) + len(inline_citations),
         )
 
         return json.dumps(

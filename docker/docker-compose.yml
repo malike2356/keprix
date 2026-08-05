@@ -5,19 +5,28 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.backend
-    image: keprix-backend:latest
+    image: keprix-backend:${KEPRIX_IMAGE_TAG:-latest}
     container_name: keprix-backend
     restart: unless-stopped
     ports:
       - "${BACKEND_BIND:-127.0.0.1}:${BACKEND_PORT:-3333}:3333"
     volumes:
       - keprix_data:/data/keprix
-      - ${HOME}/.keprix:/root/.keprix:z
+      # Match Dockerfile USER keprix home (not /root/.keprix).
+      - ${KEPRIX_HOST_DATA:-${HOME}/.keprix}:/home/keprix/.keprix:z
     environment:
-      - KEPRIX_DATABASE_URL=postgresql+asyncpg://keprix:${POSTGRES_PASSWORD:-changeme}@postgres:5432/keprix
-      - KEPRIX_REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379
+      - KEPRIX_HOME=/home/keprix/.keprix
+      - KEPRIX_LOGS_DIR=/home/keprix/.keprix/logs
+      # Host vault.json may store /home/<user>/.keprix/vault; use the bind mount path.
+      - KEPRIX_VAULT_ROOT=${KEPRIX_VAULT_ROOT:-/home/keprix/.keprix/vault}
+      # Match host owner of the bind-mounted KEPRIX_HOST_DATA (~/.keprix is 0700).
+      - KEPRIX_UID=${KEPRIX_UID:-${PUID:-1000}}
+      - KEPRIX_GID=${KEPRIX_GID:-${PGID:-1000}}
+      - KEPRIX_DATABASE_URL=postgresql+asyncpg://keprix:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/keprix
+      - KEPRIX_REDIS_URL=redis://:${REDIS_PASSWORD:?set REDIS_PASSWORD}@redis:6379
       - KEPRIX_SEARXNG_URL=http://searxng:8080
       - SEARXNG_URL=http://searxng:8080
+      - KEPRIX_TRUSTED_PROXIES=${KEPRIX_TRUSTED_PROXIES:-127.0.0.1,::1}
     env_file:
       - path: ../.env
         required: false
@@ -28,6 +37,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3333/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
     networks:
       - keprix_network
 
@@ -35,18 +50,29 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.frontend
-    image: keprix-frontend:latest
+    image: keprix-frontend:${KEPRIX_IMAGE_TAG:-latest}
     container_name: keprix-frontend
     restart: unless-stopped
     ports:
       - "${FRONTEND_BIND:-127.0.0.1}:${FRONTEND_PORT:-3000}:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://keprix-backend:3333
+      # Browser calls same-origin /api; Next rewrites use BACKEND_REWRITE_URL at build time.
+      - NEXT_PUBLIC_API_URL=
+      - NEXT_PUBLIC_CE_API_URL=
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
     env_file:
       - path: ../.env
         required: false
     depends_on:
-      - keprix-backend
+      keprix-backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
     networks:
       - keprix_network
 
@@ -54,12 +80,13 @@ services:
     image: pgvector/pgvector:pg16
     container_name: keprix-postgres
     restart: unless-stopped
+    # Dev convenience: publish on localhost. Production overlay removes host ports.
     ports:
       - "${POSTGRES_BIND:-127.0.0.1}:${POSTGRES_HOST_PORT:-5432}:5432"
     environment:
       POSTGRES_DB: keprix
       POSTGRES_USER: keprix
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -76,11 +103,11 @@ services:
     restart: unless-stopped
     ports:
       - "${REDIS_BIND:-127.0.0.1}:${REDIS_HOST_PORT:-6379}:6379"
-    command: redis-server --requirepass ${REDIS_PASSWORD:-changeme}
+    command: redis-server --requirepass ${REDIS_PASSWORD:?set REDIS_PASSWORD}
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 10

@@ -5,6 +5,7 @@ import {
   IconCurrencyDollar,
   IconGitBranch,
   IconMessages,
+  IconShieldLock,
   IconTools,
 } from "@tabler/icons-react";
 import Grid from "@mui/material/Grid2";
@@ -72,11 +73,14 @@ export default function AdminDashboardPage() {
       ) : null}
       <Box>
         <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: "-0.02em" }}>
-          Overview
+          Admin overview
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Instance activity, tools, memory, and channel health.
+          Instance operations, usage, tool approvals, memory, and channel health.
         </Typography>
+        <Button component={NextLink} href="/admin/credentials" size="small" startIcon={<IconShieldLock size={16} />} sx={{ mt: 1 }}>
+          Credential audit
+        </Button>
       </Box>
 
       <Box

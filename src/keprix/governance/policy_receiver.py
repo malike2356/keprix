@@ -58,6 +58,9 @@ class PolicyRegistry:
     def rate_limit_per_minute(self) -> int | None:
         return self._rate_limit_per_minute
 
+    def clear_rate_limit(self) -> None:
+        self._rate_limit_per_minute = None
+
     def snapshot(self) -> dict[str, Any]:
         return {
             "rate_limit_per_minute": self._rate_limit_per_minute,

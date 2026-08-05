@@ -57,7 +57,7 @@ def _contact_from_vcard(card: vobject.base.Component) -> dict[str, Any]:
     }
 
 
-async def import_vcf_bytes(content: bytes) -> dict[str, int]:
+async def import_vcf_bytes(content: bytes, *, user_id: str = "local") -> dict[str, int]:
     store = get_contact_store()
     text = content.decode("utf-8", errors="replace")
     added = updated = skipped = 0
@@ -69,7 +69,9 @@ async def import_vcf_bytes(content: bytes) -> dict[str, int]:
         if not primary and not data["display_name"]:
             skipped += 1
             continue
-        _, action = await store.upsert_import(data, source="vcf", match_email=primary)
+        _, action = await store.upsert_import(
+            data, source="vcf", match_email=primary, user_id=user_id
+        )
         if action == "added":
             added += 1
         elif action == "updated":

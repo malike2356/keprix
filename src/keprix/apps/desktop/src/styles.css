@@ -3,6 +3,7 @@
 @import 'tw-shimmer';
 @import 'katex/dist/katex.min.css';
 @import '@vscode/codicons/dist/codicon.css';
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@500;600;700&display=swap');
 @custom-variant dark (&:is(.dark *));
 
 /* Sidebar sections: tall viewports give each its own scroller; compact ones
@@ -15,6 +16,10 @@
   font-weight: 700;
   font-display: swap;
   src: url('../../../node_modules/@nous-research/ui/dist/fonts/Collapse-Bold.woff2') format('woff2');
+}
+
+.font-display {
+  font-family: 'Cormorant Garamond', Georgia, serif;
 }
 
 /* JetBrains Mono; bundled terminal font (Apache-2.0) so bold/italic share the
@@ -960,6 +965,8 @@ canvas {
 
   display: flex;
   container-type: inline-size;
+  background: transparent;
+  isolation: auto;
 }
 
 .fit-text > [aria-hidden] {

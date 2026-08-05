@@ -21,6 +21,8 @@ const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 type UsageModelBreakdownChartProps = {
   data?: UsageBreakdownRow[];
   loading?: boolean;
+  title?: string;
+  onRowClick?: (key: string) => void;
 };
 
 function usePrefersReducedMotion(): boolean {
@@ -35,7 +37,12 @@ function usePrefersReducedMotion(): boolean {
   return reduced;
 }
 
-export default function UsageModelBreakdownChart({ data, loading }: UsageModelBreakdownChartProps) {
+export default function UsageModelBreakdownChart({
+  data,
+  loading,
+  title = "By model",
+  onRowClick,
+}: UsageModelBreakdownChartProps) {
   const theme = useTheme();
   const reducedMotion = usePrefersReducedMotion();
   const [showTable, setShowTable] = React.useState(false);
@@ -44,7 +51,7 @@ export default function UsageModelBreakdownChart({ data, loading }: UsageModelBr
 
   if (loading) {
     return (
-      <DashboardCard title="By model">
+      <DashboardCard title={title}>
         <SkeletonChart height={280} />
       </DashboardCard>
     );
@@ -54,10 +61,10 @@ export default function UsageModelBreakdownChart({ data, loading }: UsageModelBr
   const costs = rows.map((row) => row.total_cost_usd);
 
   return (
-    <DashboardCard title="By model" subtitle="Estimated spend share per model">
+    <DashboardCard title={title} subtitle="Estimated spend share per period">
       {!hasData ? (
         <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
-          No model breakdown for this period.
+          No breakdown for this period.
         </Typography>
       ) : reducedMotion || showTable ? (
         <Box>
@@ -68,7 +75,7 @@ export default function UsageModelBreakdownChart({ data, loading }: UsageModelBr
               </Button>
             </Box>
           ) : null}
-          <Table size="small" aria-label="Model usage breakdown">
+          <Table size="small" aria-label="Usage breakdown">
             <TableHead>
               <TableRow>
                 <TableCell>Model</TableCell>
@@ -79,7 +86,12 @@ export default function UsageModelBreakdownChart({ data, loading }: UsageModelBr
             </TableHead>
             <TableBody>
               {rows.map((row) => (
-                <TableRow key={row.key}>
+                <TableRow
+                  key={row.key}
+                  hover={Boolean(onRowClick)}
+                  sx={onRowClick ? { cursor: "pointer" } : undefined}
+                  onClick={() => onRowClick?.(row.key)}
+                >
                   <TableCell>{row.label}</TableCell>
                   <TableCell align="right">{formatTokenCount(row.total_tokens)}</TableCell>
                   <TableCell align="right">{formatUsdCost(row.total_cost_usd, "estimated")}</TableCell>
@@ -101,7 +113,18 @@ export default function UsageModelBreakdownChart({ data, loading }: UsageModelBr
             height={280}
             series={[{ name: "Cost (USD)", data: costs }]}
             options={{
-              chart: { toolbar: { show: false }, foreColor: theme.palette.text.secondary },
+              chart: {
+                toolbar: { show: false },
+                foreColor: theme.palette.text.secondary,
+                events: {
+                  dataPointSelection: (_event, _chartContext, config) => {
+                    const index = config.dataPointIndex;
+                    if (typeof index === "number" && rows[index] && onRowClick) {
+                      onRowClick(rows[index].key);
+                    }
+                  },
+                },
+              },
               colors: [theme.palette.secondary.main],
               plotOptions: {
                 bar: { horizontal: true, borderRadius: 4, barHeight: "70%" },

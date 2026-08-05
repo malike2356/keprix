@@ -13,13 +13,13 @@ usage: keprix [-h] [--version] [-z PROMPT] [-m MODEL] [--provider PROVIDER]
               [--worktree] [--accept-hooks] [--skills SKILLS] [--yolo]
               [--pass-session-id] [--ignore-user-config] [--ignore-rules]
               [--safe-mode] [--tui] [--cli] [--dev]
-              {chat,model,fallback,secrets,migrate,gateway,proxy,lsp,setup,postinstall,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,cron,webhook,portal,kanban,hooks,doctor,configure,health,proposals,approve,reject,repair,rollback,sdk,slash,coding,opportunity,mutation,research,builder,language,agent-app,security,dump,debug,backup,usage,checkpoints,import,config,pairing,skills,bundles,plugins,curator,memory,tools,computer-use,mcp,sessions,insights,claw,version,update,uninstall,acp,profile,completion,dashboard,desktop,gui,logs,prompt-size}
+              {chat,model,fallback,secrets,migrate,gateway,proxy,lsp,setup,postinstall,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,cron,webhook,portal,kanban,hooks,doctor,readiness,configure,health,proposals,approve,reject,repair,rollback,sdk,slash,coding,opportunity,mutation,research,builder,ingest,agent-os,vault,upgrade,integrations,upstream,scout,channel-shield,email-shield,product,ops,incident,forensics,audit,policy,language,agent-app,security,dump,debug,backup,usage,checkpoints,import,config,pairing,skills,bundles,plugins,curator,memory,tools,computer-use,mcp,sessions,insights,claw,version,update,uninstall,acp,profile,completion,dashboard,desktop,gui,logs,prompt-size}
               ...
 
 Keprix - AI assistant with tool-calling capabilities
 
 positional arguments:
-  {chat,model,fallback,secrets,migrate,gateway,proxy,lsp,setup,postinstall,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,cron,webhook,portal,kanban,hooks,doctor,configure,health,proposals,approve,reject,repair,rollback,sdk,slash,coding,opportunity,mutation,research,builder,language,agent-app,security,dump,debug,backup,usage,checkpoints,import,config,pairing,skills,bundles,plugins,curator,memory,tools,computer-use,mcp,sessions,insights,claw,version,update,uninstall,acp,profile,completion,dashboard,desktop,gui,logs,prompt-size}
+  {chat,model,fallback,secrets,migrate,gateway,proxy,lsp,setup,postinstall,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,cron,webhook,portal,kanban,hooks,doctor,readiness,configure,health,proposals,approve,reject,repair,rollback,sdk,slash,coding,opportunity,mutation,research,builder,ingest,agent-os,vault,upgrade,integrations,upstream,scout,channel-shield,email-shield,product,ops,incident,forensics,audit,policy,language,agent-app,security,dump,debug,backup,usage,checkpoints,import,config,pairing,skills,bundles,plugins,curator,memory,tools,computer-use,mcp,sessions,insights,claw,version,update,uninstall,acp,profile,completion,dashboard,desktop,gui,logs,prompt-size}
                         Command to run
     chat                Interactive chat with the agent
     model               Select default model and provider
@@ -30,7 +30,7 @@ positional arguments:
     migrate             Migrate configuration for retired models or deprecated
                         settings
     gateway             Messaging gateway management
-    proxy               Local OpenAI-compatible proxy to OAuth providers
+    proxy               Credential injection proxy and OAuth upstream proxy
     lsp                 Language Server Protocol management
     setup               Interactive setup wizard
     postinstall         Bootstrap non-Python deps for pip installs (node,
@@ -52,6 +52,7 @@ positional arguments:
                         comments)
     hooks               Inspect and manage shell-script hooks
     doctor              Check configuration and dependencies
+    readiness           Market, upgrade, and recovery readiness report
     configure           Run environment discovery (first-run wizard)
     health              Show current component health status
     proposals           List pending config optimization proposals
@@ -67,12 +68,29 @@ positional arguments:
     mutation            Manage synthesized tools and mutation queue
     research            Research workspace projects and YAML playbooks
     builder             Project builder and monorepo manager
+    ingest              Ingest external media and artifacts
+    agent-os            Agent OS utilities
+    vault               Initialize and validate local markdown vaults
+    upgrade             Safe, guided Keprix upgrades for products (check,
+                        plan, dry-run, execute)
+    integrations        Manage optional integrations
+    upstream            Monitor Hermes upstream releases and manage feature
+                        adoption
+    scout               Scout connectivity and integration tests
+    channel-shield      Channel Shield doctor, adapters, and fixture E2E
+    email-shield        Alias for channel-shield (email-focused)
+    product             Register Keprix-built products for Scout monitoring
+    ops                 Security operations runbook and reports
+    incident            Incident response commands
+    forensics           Forensic snapshot and chain-of-custody tools
+    audit               Audit chain verification
+    policy              Show or set operator-owned policy profiles
     language            Detect, translate, and transcribe text
     agent-app           Portable agent apps: validate, run, eval, and bundle
     security            Supply-chain audit (OSV.dev) for venv, plugins, and
                         MCP servers
     dump                Dump setup summary for support/debugging
-    debug               Debug tools — upload logs and system info for support
+    debug               Debug tools; upload logs and system info for support
     backup              Back up Keprix home directory to a zip file
     usage               LLM token usage and cost analytics
     checkpoints         Inspect / prune / clear ~/.keprix/checkpoints/
@@ -82,8 +100,8 @@ positional arguments:
     skills              Search, install, configure, and manage skills
     bundles             Create, list, and manage skill bundles (aliases for
                         multiple skills)
-    plugins             Manage plugins — install, update, remove, list
-    curator             Background skill maintenance (curator) — status, run,
+    plugins             Manage plugins; install, update, remove, list
+    curator             Background skill maintenance (curator); status, run,
                         pause, pin
     memory              Configure external memory provider
     tools               Configure which tools are enabled per platform
@@ -97,7 +115,7 @@ positional arguments:
     update              Update Keprix to the latest version
     uninstall           Uninstall Keprix
     acp                 Run Keprix as an ACP (Agent Client Protocol) server
-    profile             Manage profiles — multiple isolated Keprix instances
+    profile             Manage profiles; multiple isolated Keprix instances
     completion          Print shell completion script (bash, zsh, or fish)
     dashboard           Start the web UI dashboard
     desktop (gui)       Build and launch the native desktop app
@@ -123,7 +141,7 @@ options:
   --provider PROVIDER   Provider override for this invocation (e.g.
                         openrouter, anthropic). Applies to -z/--oneshot and
                         --tui. The persistent provider lives in config.yaml
-                        under model.provider — use `keprix setup` or edit the
+                        under model.provider; use `keprix setup` or edit the
                         file to change it.
   -t TOOLSETS, --toolsets TOOLSETS
                         Comma-separated toolsets to enable for this
@@ -149,7 +167,7 @@ options:
                         defaults (credentials in .env are still loaded)
   --ignore-rules        Skip auto-injection of AGENTS.md, SOUL.md,
                         .cursorrules, memory, and preloaded skills
-  --safe-mode           Troubleshooting mode: disable ALL customizations —
+  --safe-mode           Troubleshooting mode: disable ALL customizations;
                         user config, AGENTS.md/memory injection, plugins, and
                         MCP servers (implies --ignore-user-config and
                         --ignore-rules)
@@ -211,7 +229,7 @@ For more help on a command:
 | `secrets` | See CLI help |
 | `migrate` | See CLI help |
 | `gateway` | {run,start,stop,restart,status,install,uninstall,list,setup,migrate-legacy} |
-| `proxy` | proxy with any bearer token; the proxy attaches your real credentials. |
+| `proxy` | {setup,start,stop,status,doctor,env,migrate-vault,migrate,verify,vault-purge,fallback,rotate,route,oauth} |
 | `lsp` | See CLI help |
 | `setup` | setup model\|tts\|terminal\|gateway\|tools\|agent |
 | `postinstall` | See CLI help |
@@ -229,6 +247,7 @@ For more help on a command:
 | `kanban` | {init,boards,create,swarm,list,ls,show,assign,reclaim,reassign,diagnostics,diag,link,unlink,claim,comment,complete,edit,block,schedule,unblock,promote,archive,tail,dispatch,daemon,watch,stats,notify-s |
 | `hooks` | See CLI help |
 | `doctor` | See CLI help |
+| `readiness` | [--category {market,upgrade,recovery,all}] |
 | `configure` | See CLI help |
 | `health` | See CLI help |
 | `proposals` | See CLI help |
@@ -243,6 +262,21 @@ For more help on a command:
 | `mutation` | {list,approve,reject,rollback,synthesize,stats,code} |
 | `research` | See CLI help |
 | `builder` | {list,analyse,build,scaffold,status,logs,deploy} ... |
+| `ingest` | See CLI help |
+| `agent-os` | {maturity,connections,hello,workflow,milestones,playbook,guardrails} |
+| `vault` | {list-packs,init,validate,doctor,migrate-workspace,render-template,audit,ensure-default} |
+| `upgrade` | [--skip-tests] [--step] [--to VERSION] [--list-prompts] |
+| `integrations` | See CLI help |
+| `upstream` | See CLI help |
+| `scout` | {ping,test-signal,test-command,status,integration-test,signals,suspend,quarantine,block-egress,set-sandbox} |
+| `channel-shield` | See CLI help |
+| `email-shield` | See CLI help |
+| `product` | See CLI help |
+| `ops` | {daily-check,report,compliance,compliance-sync,policy-review,capacity,drill,cron-install} |
+| `incident` | {declare,snapshot,rotate-creds,seal-vault,lockdown,post-mortem,list} |
+| `forensics` | See CLI help |
+| `audit` | See CLI help |
+| `policy` | See CLI help |
 | `language` | See CLI help |
 | `agent-app` | {list,create,catalog,validate,install,run,eval,bundle} |
 | `security` | See CLI help |

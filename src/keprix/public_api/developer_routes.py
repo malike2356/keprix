@@ -13,7 +13,8 @@ from keprix.public_api.keys import get_api_key_store
 from keprix.public_api.logs import list_logs
 from keprix.public_api.models_catalog import list_public_models
 from keprix.public_api.rate_limits import PUBLIC_API_RULE
-from keprix.public_api.schemas import CreateApiKeyRequest, WebhookCreateRequest
+from keprix.public_api.schemas import CreateApiKeyRequest, UpdateApiKeyRequest, WebhookCreateRequest
+from keprix.public_api.scopes_catalog import catalog_for_api
 from keprix.public_api.tools_catalog import list_public_toolsets
 from keprix.public_api.usage import usage_summary
 from keprix.public_api.webhooks import get_webhook_store, sign_payload
@@ -42,6 +43,11 @@ def _sdk_snippets(base_url: str = "http://localhost:3333") -> dict[str, str]:
     }
 
 
+@router.get("/scopes")
+async def list_scopes(_session: str = Depends(require_developer_session)) -> dict:
+    return catalog_for_api()
+
+
 @router.get("/keys")
 async def list_keys(_session: str = Depends(require_developer_session)) -> dict:
     keys = get_api_key_store().list_keys()
@@ -55,6 +61,45 @@ async def create_key(
 ) -> dict:
     created = get_api_key_store().create(body)
     return created.model_dump()
+
+
+@router.patch("/keys/{key_id}")
+async def update_key(
+    key_id: str,
+    body: UpdateApiKeyRequest,
+    _session: str = Depends(require_developer_session),
+) -> dict:
+    updated = get_api_key_store().update(key_id, body)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Key not found")
+    return updated.model_dump()
+
+
+@router.post("/keys/{key_id}/enabled")
+async def set_key_enabled(
+    key_id: str,
+    body: dict,
+    _session: str = Depends(require_developer_session),
+) -> dict:
+    enabled = bool(body.get("enabled", True))
+    if not get_api_key_store().set_enabled(key_id, enabled):
+        raise HTTPException(status_code=404, detail="Key not found")
+    return {"id": key_id, "enabled": enabled}
+
+
+@router.post("/keys/{key_id}/disable-leaked")
+async def disable_leaked_key(
+    key_id: str,
+    body: dict | None = None,
+    _session: str = Depends(require_developer_session),
+) -> dict:
+    reason = str((body or {}).get("reason") or "leaked")
+    if not get_api_key_store().disable_if_leaked(key_id, reason=reason):
+        raise HTTPException(
+            status_code=400,
+            detail="Key not found or auto-disable-if-leaked is turned off for this key",
+        )
+    return {"id": key_id, "enabled": False, "reason": reason}
 
 
 @router.delete("/keys/{key_id}")
@@ -143,6 +188,7 @@ async def developer_dashboard(_session: str = Depends(require_developer_session)
         },
         "models": [model_id for model_id, _ in list_public_models()],
         "enabled_tools": list_public_toolsets(),
+        "scope_catalog": catalog_for_api(),
         "sdk": {
             "python": "sdk/python/README.md",
             "typescript": "sdk/typescript/README.md",

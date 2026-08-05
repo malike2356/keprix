@@ -1,0 +1,31 @@
+{
+  "name": "Imported support flow",
+  "nodes": [
+    {
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [80, 120],
+      "parameters": {}
+    },
+    {
+      "name": "Fetch Case",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [340, 120],
+      "parameters": {
+        "url": "https://example.com/case",
+        "method": "GET"
+      }
+    },
+    {
+      "name": "Unsupported",
+      "type": "n8n-nodes-base.unknown",
+      "position": [600, 120],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{ "node": "Fetch Case", "type": "main", "index": 0 }]]
+    }
+  }
+}

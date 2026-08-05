@@ -1,120 +1,60 @@
 # Email
 
-Keprix provides an IMAP/SMTP email workspace for inbox triage, AI summaries, and programmatic send. It is separate from **external notification SMTP** used for system alerts.
+Keprix provides an IMAP/SMTP email workspace for inbox triage, AI summaries, compose/send, and interval auto-sync with Gmail and other providers. It is separate from **external notification SMTP** used for system alerts.
 
 ## Web UI (`/email`)
 
-Three-column inbox:
-
-| Column | Purpose |
+| Area | Purpose |
 | --- | --- |
-| Accounts | Connected IMAP/SMTP mailboxes |
+| Connect email | Add Gmail (app password), Outlook, Yahoo, or generic IMAP/SMTP |
+| Interval | Per-account resync interval (1m to 1h; default 5m) |
+| Compose | Send mail from Keprix via the connected SMTP account |
 | Inbox | Synced messages; star, open, priority chips |
-| Detail | Body, **Summarize**, **AI reply draft** |
+| Detail | Body, Summarize, AI reply draft, Reply |
 
-**Sync** pulls new mail via IMAP (`POST /api/email/sync`).
+**Sync now** pulls immediately. The background poller also resyncs each active account when its interval is due (tick ~30s).
 
-### What the UI does today
+## Connect Gmail
 
-- Read and triage synced messages
-- Mark read, toggle star
-- Generate AI summary and priority tags
-- Create AI reply **draft** on the server
+Preferred without OAuth client setup:
 
-### What the UI does not do yet
+1. Google Account → Security → App passwords (2FA required)
+2. `/email` → **Connect email** → **Gmail (app password)**
+3. Paste Gmail address + app password
+4. Set resync interval and Connect
 
-- Compose new mail
-- Edit or send reply drafts from the browser
+Optional OAuth: if `GOOGLE_OAUTH_CLIENT_ID` / secret / redirect are configured, the UI shows **Connect Gmail with Google OAuth** (IMAP/SMTP XOAUTH2).
 
-Sending is available via API and agent tools (see below).
+## Auto-sync intervals
 
-## Connect an account
+Each account stores `poll_interval_seconds` (minimum 30). The poller only fetches when `last_polled_at` is older than that interval.
 
-Accounts use IMAP (inbound) and SMTP (outbound). Add via API:
+## Compose and send
+
+Use **Compose** on `/email`, or:
 
 ```bash
-curl -X POST http://localhost:3333/api/email/accounts \
+curl -X POST http://localhost:3334/api/email/send \
   -H "Content-Type: application/json" \
   -d '{
-    "label": "Work",
-    "email_address": "you@example.com",
-    "imap_host": "imap.example.com",
-    "imap_port": 993,
-    "smtp_host": "smtp.example.com",
-    "smtp_port": 587,
-    "username": "you@example.com",
-    "password": "your-app-password",
-    "use_tls": true
-  }'
-```
-
-### OAuth (Gmail / Outlook)
-
-When OAuth env vars are set:
-
-- `GET /api/email/accounts/gmail/auth` returns Google consent URL
-- `GET /api/email/accounts/microsoft/auth` returns Microsoft consent URL
-
-Callbacks create accounts with tokens stored in the vault.
-
-### Test connection
-
-```bash
-curl -X POST http://localhost:3333/api/email/accounts/{account_id}/test
-```
-
-## Send mail
-
-Direct send (requires a configured account):
-
-```bash
-curl -X POST http://localhost:3333/api/email/send \
-  -H "Content-Type: application/json" \
-  -d '{
-    "to_addresses": ["recipient@example.com"],
+    "to_addresses": ["peer@example.com"],
     "subject": "Hello from Keprix",
-    "body": "Plain text body"
+    "body": "Sent via SMTP"
   }'
 ```
 
-Draft workflow:
+## API highlights
 
-1. `POST /api/email/{email_id}/reply` or `/ai-reply-draft`
-2. Edit via `PUT /api/email/drafts/{draft_id}`
-3. `POST /api/email/drafts/{draft_id}/send`
+- `GET /api/email/providers`
+- `POST/GET/PUT/DELETE /api/email/accounts`
+- `POST /api/email/accounts/{id}/test`
+- `POST /api/email/sync`
+- `GET /api/email/inbox`
+- `POST /api/email/send`
 
-## AI pipeline
-
-| Endpoint | Action |
-| --- | --- |
-| `POST /api/email/{id}/ai-summary` | Summary, tags, priority |
-| `POST /api/email/{id}/ai-reply-draft` | LLM-generated reply body |
-
-Uses the instance default LLM provider.
-
-## Agent and MCP tools
-
-The email MCP server exposes `list_emails`, `send_email`, and related tools for agent automation.
-
-## External notification SMTP (different)
-
-`/settings/notifications/external` configures SMTP for **system** emails (reviewers, compliance). That does not populate the `/email` inbox.
-
-## Environment variables (legacy / fallback)
-
-```bash
-KEPRIX_SMTP_HOST=
-KEPRIX_SMTP_PORT=587
-KEPRIX_SMTP_USER=
-KEPRIX_SMTP_PASS=
-KEPRIX_EMAIL_FROM=
-KEPRIX_RESEND_API_KEY=
-```
-
-Prefer per-account IMAP/SMTP configuration for the workspace inbox.
+On startup, Keprix ensures `email_accounts`, `emails`, `email_drafts`, and `vault_items` exist (`checkfirst` create).
 
 ## Related
 
-- [Contacts](contacts.md)
-- [Notifications](notifications.md)
-- [API reference](../reference/api.md)
+- [Calendar](calendar.md) (similar interval sync pattern)
+- [Workspace overview](workspace.md)

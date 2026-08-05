@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import secrets
 import threading
 import time
@@ -27,7 +28,21 @@ from keprix.security.crypto import hash_token
 logger = logging.getLogger(__name__)
 
 TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7
+SESSION_TOUCH_INTERVAL_SECONDS = 60
 RESERVED_USERNAMES = frozenset({"admin", "api", "system", "internal-tool"})
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+_RECOVERY_CODE_RE = re.compile(r"[^a-f0-9]")
+
+
+def _normalize_recovery_code(code: str) -> str:
+    return _RECOVERY_CODE_RE.sub("", code.lower())[:8]
+
+
+def _format_recovery_code(raw: str) -> str:
+    cleaned = _normalize_recovery_code(raw)
+    if len(cleaned) < 8:
+        cleaned = cleaned.ljust(8, "0")
+    return f"{cleaned[:4]}-{cleaned[4:8]}".upper()
 
 
 def _hash_password(password: str) -> str:
@@ -39,6 +54,21 @@ def _verify_password(password: str, hashed: str) -> bool:
         return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
     except ValueError:
         return False
+
+
+def _mask_ip(ip: str) -> str | None:
+    cleaned = ip.strip()
+    if not cleaned:
+        return None
+    if ":" in cleaned:
+        parts = cleaned.split(":")
+        if len(parts) >= 2:
+            return f"{parts[0]}:{parts[1]}:*"
+        return cleaned
+    octets = cleaned.split(".")
+    if len(octets) == 4:
+        return f"{octets[0]}.{octets[1]}.*.*"
+    return cleaned
 
 
 class AuthManager:
@@ -111,6 +141,7 @@ class AuthManager:
                 "totp_secret": None,
                 "is_approved": True,
                 "is_active": True,
+                "created_at": time.time(),
             }
             self._save()
             return
@@ -163,17 +194,121 @@ class AuthManager:
                 return candidate
         return None
 
-    def create_session(self, username: str, *, device_label: str | None = None) -> str:
+    def create_session(
+        self,
+        username: str,
+        *,
+        device_label: str | None = None,
+        ip_address: str | None = None,
+    ) -> str:
         token = secrets.token_urlsafe(32)
+        now = time.time()
+        session_id = str(uuid4())
         with self._sessions_lock:
             self._sessions[token] = {
                 "username": username,
                 "token_hash": hash_token(token),
-                "expiry": time.time() + TOKEN_TTL_SECONDS,
+                "session_id": session_id,
+                "expiry": now + TOKEN_TTL_SECONDS,
                 "device_label": device_label,
+                "ip_address": ip_address,
+                "created_at": now,
+                "last_seen_at": now,
             }
             self._save_sessions()
         return token
+
+    def touch_session(self, token: str) -> None:
+        now = time.time()
+        with self._sessions_lock:
+            meta = self._sessions.get(token)
+            if not meta:
+                return
+            last_seen = float(meta.get("last_seen_at") or 0)
+            if now - last_seen < SESSION_TOUCH_INTERVAL_SECONDS:
+                return
+            meta["last_seen_at"] = now
+            self._save_sessions()
+
+    def list_sessions(self, user_id: str, *, current_token: str | None = None) -> list[dict[str, Any]]:
+        user = self.get_user_by_id(user_id)
+        if not user:
+            return []
+        username = str(user["username"]).strip().lower()
+        current_session_id: str | None = None
+        if current_token:
+            current_meta = self._sessions.get(current_token)
+            if current_meta:
+                current_session_id = str(current_meta.get("session_id") or "") or None
+
+        rows: list[dict[str, Any]] = []
+        migrated = False
+        now = time.time()
+        with self._sessions_lock:
+            for token, meta in list(self._sessions.items()):
+                if str(meta.get("username") or "").strip().lower() != username:
+                    continue
+                if float(meta.get("expiry") or 0) <= now:
+                    continue
+                session_id = str(meta.get("session_id") or "")
+                if not session_id:
+                    session_id = str(uuid4())
+                    meta["session_id"] = session_id
+                    migrated = True
+                created_at = float(meta.get("created_at") or meta.get("expiry", now) - TOKEN_TTL_SECONDS)
+                last_seen_at = float(meta.get("last_seen_at") or created_at)
+                if "created_at" not in meta:
+                    meta["created_at"] = created_at
+                    migrated = True
+                if "last_seen_at" not in meta:
+                    meta["last_seen_at"] = last_seen_at
+                    migrated = True
+                is_current = False
+                if current_session_id:
+                    is_current = session_id == current_session_id
+                elif current_token:
+                    is_current = token == current_token
+                rows.append(
+                    {
+                        "session_id": session_id,
+                        "device_label": str(meta.get("device_label") or "Unknown device"),
+                        "ip_address_masked": _mask_ip(str(meta.get("ip_address") or "")),
+                        "created_at": created_at,
+                        "last_seen_at": last_seen_at,
+                        "is_current": is_current,
+                    }
+                )
+            if migrated:
+                self._save_sessions()
+        rows.sort(key=lambda row: float(row.get("last_seen_at") or 0), reverse=True)
+        return rows
+
+    def revoke_session(self, user_id: str, session_id: str, *, current_token: str | None = None) -> bool:
+        user = self.get_user_by_id(user_id)
+        if not user:
+            return False
+        username = str(user["username"]).strip().lower()
+        target = session_id.strip()
+        if not target:
+            return False
+        with self._sessions_lock:
+            for token, meta in list(self._sessions.items()):
+                if str(meta.get("username") or "").strip().lower() != username:
+                    continue
+                if str(meta.get("session_id") or "") != target:
+                    continue
+                if current_token and token == current_token:
+                    return False
+                self._sessions.pop(token, None)
+                self._save_sessions()
+                return True
+        return False
+
+    def revoke_all_sessions(self, user_id: str, *, except_token: str | None = None) -> int:
+        user = self.get_user_by_id(user_id)
+        if not user:
+            return 0
+        return self.revoke_other_sessions(str(user["username"]), keep_token=except_token)
 
     def validate_token(self, token: str) -> dict[str, Any] | None:
         with self._sessions_lock:
@@ -196,12 +331,69 @@ class AuthManager:
             self._sessions.pop(token, None)
             self._save_sessions()
 
+    def revoke_other_sessions(self, username: str, *, keep_token: str | None = None) -> int:
+        user_key = username.strip().lower()
+        removed = 0
+        with self._sessions_lock:
+            for session_token, meta in list(self._sessions.items()):
+                if str(meta.get("username") or "").strip().lower() != user_key:
+                    continue
+                if keep_token and session_token == keep_token:
+                    continue
+                self._sessions.pop(session_token, None)
+                removed += 1
+            if removed:
+                self._save_sessions()
+        return removed
+
+    def _set_password_hash(self, user: dict[str, Any], new_password: str) -> None:
+        old_hash = str(user.get("password_hash") or "")
+        new_hash = _hash_password(new_password)
+        if user.get("totp_enabled") and user.get("totp_secret") and old_hash:
+            old_key = totp_encryption_key(old_hash.encode("utf-8"))
+            secret = decrypt_totp_secret(user["totp_secret"], encryption_key=old_key)
+            new_key = totp_encryption_key(new_hash.encode("utf-8"))
+            user["totp_secret"] = encrypt_totp_secret(secret, encryption_key=new_key)
+        user["password_hash"] = new_hash
+        user.pop("totp_secret_pending", None)
+
+    def change_password(self, user_id: str, current: str, new: str) -> tuple[bool, str]:
+        if len(new) < 8:
+            return False, "Password too short"
+        user = self.get_user_by_id(user_id)
+        if not user:
+            return False, "User not found"
+        if not _verify_password(current, user["password_hash"]):
+            return False, "Invalid current password"
+        with self._config_lock:
+            locked_user = self.get_user_by_id(user_id)
+            if locked_user is None:
+                return False, "User not found"
+            if not _verify_password(current, locked_user["password_hash"]):
+                return False, "Invalid current password"
+            self._set_password_hash(locked_user, new)
+            self._save()
+        return True, "Password changed"
+
+    def reset_password(self, user_id: str, new: str) -> None:
+        if len(new) < 8:
+            raise ValueError("Password too short")
+        with self._config_lock:
+            user = self.get_user_by_id(user_id)
+            if user is None:
+                raise ValueError("User not found")
+            self._set_password_hash(user, new)
+            self._save()
+
     def login(
         self,
         username: str,
         password: str,
         *,
         totp_code: str | None = None,
+        recovery_code: str | None = None,
+        device_label: str | None = None,
+        ip_address: str | None = None,
     ) -> tuple[str | None, dict[str, Any] | None, str | None]:
         user_key = username.strip().lower()
         user = self._find_user_by_login(username)
@@ -217,6 +409,13 @@ class AuthManager:
             user = self.get_user(admin_key)
             if user is None:
                 return None, None, "Invalid credentials"
+            if password == expected and not _verify_password(password, user["password_hash"]):
+                with self._config_lock:
+                    locked_user = self.get_user(admin_key)
+                    if locked_user is not None:
+                        self._set_password_hash(locked_user, expected)
+                        self._save()
+                        user = locked_user
             if not (_verify_password(password, user["password_hash"]) or password == expected):
                 return None, None, "Invalid credentials"
         else:
@@ -229,13 +428,101 @@ class AuthManager:
             if not user.get("is_active", True):
                 return None, None, "Account deactivated"
 
-        if not self.totp_verify(user_key, totp_code or ""):
-            return None, None, "Invalid two-factor code"
+        ok, totp_error = self._verify_login_second_factor(
+            user_key,
+            totp_code=totp_code,
+            recovery_code=recovery_code,
+        )
+        if not ok:
+            return None, None, totp_error
 
-        token = self.create_session(user_key)
+        token = self.create_session(user_key, device_label=device_label, ip_address=ip_address)
         user["last_login_at"] = time.time()
         self._save()
         return token, dict(user), None
+
+    def _verify_login_second_factor(
+        self,
+        username: str,
+        *,
+        totp_code: str | None = None,
+        recovery_code: str | None = None,
+    ) -> tuple[bool, str | None]:
+        user = self.get_user(username)
+        if not user or not user.get("totp_enabled"):
+            return True, None
+
+        if recovery_code:
+            if self.consume_recovery_code(username, recovery_code):
+                return True, None
+            return False, "Invalid recovery code"
+
+        code = (totp_code or "").strip()
+        if not code:
+            return False, "totp_required"
+
+        if self.totp_verify(username, code):
+            return True, None
+        return False, "Invalid two-factor code"
+
+    def verify_user_password(self, user_id: str, password: str) -> bool:
+        user = self.get_user_by_id(user_id)
+        if not user:
+            return False
+        return _verify_password(password, user["password_hash"])
+
+    def generate_recovery_codes(self, username: str, *, count: int = 10) -> list[str]:
+        user = self.get_user(username)
+        if not user or not user.get("totp_enabled"):
+            raise ValueError("Two-factor is not enabled")
+
+        from keprix.security.sessions import BackupCodeManager
+
+        raw_codes = BackupCodeManager.generate_codes(count)
+        display_codes = [_format_recovery_code(code) for code in raw_codes]
+        normalized_codes = [_normalize_recovery_code(code) for code in display_codes]
+        hashes = BackupCodeManager.hash_codes(normalized_codes)
+
+        with self._config_lock:
+            locked = self.get_user(username)
+            if locked is None or not locked.get("totp_enabled"):
+                raise ValueError("Two-factor is not enabled")
+            locked["recovery_code_hashes"] = hashes
+            self._save()
+        return display_codes
+
+    def consume_recovery_code(self, username: str, code: str) -> bool:
+        normalized = _normalize_recovery_code(code)
+        if len(normalized) != 8:
+            return False
+        with self._config_lock:
+            user = self.get_user(username)
+            if not user:
+                return False
+            hashes = list(user.get("recovery_code_hashes") or [])
+            for idx, stored in enumerate(hashes):
+                try:
+                    matched = bcrypt.checkpw(normalized.encode("utf-8"), stored.encode("utf-8"))
+                except ValueError:
+                    matched = False
+                if matched:
+                    hashes.pop(idx)
+                    user["recovery_code_hashes"] = hashes
+                    self._save()
+                    return True
+            return False
+
+    def admin_reset_totp(self, user_id: str) -> bool:
+        with self._config_lock:
+            user = self.get_user_by_id(user_id)
+            if user is None:
+                return False
+            user["totp_enabled"] = False
+            user["totp_secret"] = None
+            user.pop("totp_secret_pending", None)
+            user.pop("recovery_code_hashes", None)
+            self._save()
+            return True
 
     def register(self, username: str, password: str, *, email: str | None = None) -> tuple[bool, str]:
         if not multi_user_enabled():
@@ -259,6 +546,7 @@ class AuthManager:
                 "totp_secret": None,
                 "is_approved": not require_approval(),
                 "is_active": True,
+                "created_at": time.time(),
             }
             self._save()
         return True, "Registered"
@@ -301,15 +589,37 @@ class AuthManager:
         self._save()
         return True
 
-    def totp_disable(self, username: str, code: str) -> bool:
+    def totp_disable(
+        self,
+        username: str,
+        *,
+        password: str,
+        code: str | None = None,
+        recovery_code: str | None = None,
+        step_up_token: str | None = None,
+    ) -> bool:
         user = self.get_user(username)
         if not user or not user.get("totp_enabled"):
             return False
-        if not self.totp_verify(username, code):
+        if not _verify_password(password, user["password_hash"]):
+            return False
+        if step_up_token:
+            from keprix.auth.step_up_store import step_up_store
+
+            if not step_up_store.consume(str(user["id"]), step_up_token):
+                return False
+        elif recovery_code:
+            if not self.consume_recovery_code(username, recovery_code):
+                return False
+        elif code:
+            if not self.totp_verify(username, code):
+                return False
+        else:
             return False
         user["totp_enabled"] = False
         user["totp_secret"] = None
         user.pop("totp_secret_pending", None)
+        user.pop("recovery_code_hashes", None)
         self._save()
         return True
 
@@ -318,6 +628,59 @@ class AuthManager:
             if user.get("id") == user_id:
                 return user
         return None
+
+    def _email_taken(self, email: str, *, exclude_user_id: str | None = None) -> bool:
+        target = email.strip().lower()
+        if not target:
+            return False
+        for user in self.users.values():
+            if exclude_user_id and user.get("id") == exclude_user_id:
+                continue
+            if str(user.get("email") or "").strip().lower() == target:
+                return True
+        return False
+
+    def update_profile(
+        self,
+        user_id: str,
+        *,
+        display_name: str | None = None,
+        email: str | None = None,
+        avatar_url: str | None = None,
+        locale: str | None = None,
+        timezone: str | None = None,
+    ) -> dict[str, Any] | None:
+        with self._config_lock:
+            user = self.get_user_by_id(user_id)
+            if user is None:
+                return None
+
+            if email is not None:
+                normalized = email.strip().lower()
+                if normalized and not _EMAIL_RE.match(normalized):
+                    raise ValueError("Invalid email address")
+                if normalized and self._email_taken(normalized, exclude_user_id=user_id):
+                    raise ValueError("Email already in use")
+                user["email"] = normalized or None
+
+            if display_name is not None:
+                cleaned = display_name.strip()
+                user["display_name"] = cleaned or None
+
+            if avatar_url is not None:
+                cleaned = avatar_url.strip()
+                user["avatar_url"] = cleaned or None
+
+            if locale is not None:
+                cleaned = locale.strip()
+                user["locale"] = cleaned or None
+
+            if timezone is not None:
+                cleaned = timezone.strip()
+                user["timezone"] = cleaned or None
+
+            self._save()
+            return dict(user)
 
     def set_password_and_approve(
         self,
@@ -367,6 +730,28 @@ class AuthManager:
                         user[key] = fields[key]
                 self._save()
                 return user
+        return None
+
+    def attach_handoff_metadata(
+        self,
+        user_id: str,
+        *,
+        workspace_id: str,
+        carina_user_id: str,
+        display_name: str | None = None,
+    ) -> dict[str, Any] | None:
+        with self._config_lock:
+            for user in self._config.get("users", {}).values():
+                if user.get("id") != user_id:
+                    continue
+                user["workspace_id"] = workspace_id
+                user["carina_user_id"] = carina_user_id
+                user["carina_tenant_id"] = workspace_id
+                user["auth_source"] = "carina_handoff"
+                if display_name and not user.get("display_name"):
+                    user["display_name"] = display_name
+                self._save()
+                return dict(user)
         return None
 
     def delete_user(self, user_id: str) -> bool:

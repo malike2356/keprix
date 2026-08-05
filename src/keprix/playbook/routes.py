@@ -18,7 +18,15 @@ router = APIRouter(prefix="/api/playbook", tags=["playbook"])
 
 
 def _user_id(request: Request) -> str:
-    return request.headers.get("x-user-id", "").strip() or "local"
+    user = getattr(request.state, "user", None)
+    if isinstance(user, dict):
+        uid = str(user.get("id") or user.get("username") or "").strip()
+        if uid:
+            return uid
+    header = request.headers.get("x-user-id", "").strip()
+    if header:
+        return header
+    return "local"
 
 
 class BenchmarkBody(BaseModel):
@@ -124,6 +132,38 @@ async def stop_serve(model_id: str) -> dict[str, bool]:
 async def list_serving() -> dict[str, Any]:
     store = get_playbook_job_store()
     return {"serving": store.list_serving()}
+
+
+@router.get("/serving/health")
+async def serving_health(port: int = 11434) -> dict[str, Any]:
+    """Ping a local Ollama (or OpenAI-compatible) base from the API host."""
+    import httpx
+
+    base = f"http://127.0.0.1:{port}"
+    candidates = [f"{base}/api/tags", f"{base}/v1/models"]
+    last_error = "unreachable"
+    async with httpx.AsyncClient(timeout=2.0) as client:
+        for url in candidates:
+            try:
+                response = await client.get(url)
+                if response.status_code < 500:
+                    return {
+                        "ok": True,
+                        "port": port,
+                        "base_url": f"{base}/v1",
+                        "probe_url": url,
+                        "status_code": response.status_code,
+                    }
+                last_error = f"HTTP {response.status_code}"
+            except Exception as exc:  # noqa: BLE001
+                last_error = str(exc)
+    return {
+        "ok": False,
+        "port": port,
+        "base_url": f"{base}/v1",
+        "error": last_error,
+        "fix": "Start the Ollama daemon (`ollama serve`) or fix the serve port.",
+    }
 
 
 @router.post("/benchmark")

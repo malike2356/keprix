@@ -8,7 +8,7 @@ import json
 import logging
 import os
 import threading
-import tomllib
+from keprix.compat import tomllib
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path

@@ -38,6 +38,7 @@ def _account_from_row(row: EmailAccountRow) -> EmailAccountRecord:
         is_active=row.is_active,
         created_at=row.created_at,
         oauth_provider=getattr(row, "oauth_provider", None),
+        oauth_vault_item_id=getattr(row, "oauth_vault_item_id", None),
     )
 
 
@@ -92,13 +93,65 @@ async def pg_create_account(user_id: str, data: dict) -> EmailAccountRecord | No
             password_encrypted=encrypt_secret(data.get("password", "")),
             use_tls=bool(data.get("use_tls", True)),
             use_starttls=bool(data.get("use_starttls", False)),
-            poll_interval_seconds=int(data.get("poll_interval_seconds", 60)),
+            poll_interval_seconds=int(data.get("poll_interval_seconds", 300)),
             is_active=True,
+            oauth_provider=data.get("oauth_provider"),
+            oauth_vault_item_id=data.get("oauth_vault_item_id"),
             created_at=now,
         )
         session.add(row)
         await session.commit()
         return _account_from_row(row)
+
+
+async def pg_update_account(account_id: str, user_id: str, updates: dict) -> EmailAccountRecord | None:
+    if not _use_db():
+        return None
+    from keprix.email.crypto import encrypt_secret
+
+    factory = get_session_factory()
+    assert factory is not None
+    async with factory() as session:
+        row = await session.get(EmailAccountRow, account_id)
+        if row is None or row.user_id != user_id:
+            return None
+        for key, value in updates.items():
+            if value is None:
+                continue
+            if key == "password":
+                row.password_encrypted = encrypt_secret(value)
+            elif hasattr(row, key):
+                setattr(row, key, value)
+        await session.commit()
+        await session.refresh(row)
+        return _account_from_row(row)
+
+
+async def pg_delete_account(account_id: str, user_id: str) -> bool:
+    if not _use_db():
+        return False
+    factory = get_session_factory()
+    assert factory is not None
+    async with factory() as session:
+        row = await session.get(EmailAccountRow, account_id)
+        if row is None or row.user_id != user_id:
+            return False
+        await session.delete(row)
+        await session.commit()
+        return True
+
+
+async def pg_touch_polled(account_id: str) -> None:
+    if not _use_db():
+        return
+    factory = get_session_factory()
+    assert factory is not None
+    async with factory() as session:
+        row = await session.get(EmailAccountRow, account_id)
+        if row is None:
+            return
+        row.last_polled_at = datetime.now(timezone.utc)
+        await session.commit()
 
 
 async def pg_list_accounts(user_id: str) -> list[EmailAccountRecord] | None:

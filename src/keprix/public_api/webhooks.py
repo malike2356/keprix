@@ -76,6 +76,15 @@ class WebhookStore:
             result.append(self._to_record(row))
         return result
 
+    def delete(self, webhook_id: str) -> bool:
+        rows = self._load()
+        next_rows = [row for row in rows if row.get("id") != webhook_id]
+        if len(next_rows) == len(rows):
+            return False
+        self._save(next_rows)
+        self._secrets.pop(webhook_id, None)
+        return True
+
     def get_signing_secret(self, webhook_id: str) -> str | None:
         cached = self._secrets.get(webhook_id)
         if cached:

@@ -20,7 +20,8 @@ def test_registry_lists_all_categories():
     assert len(ALL_ADAPTERS) == sum(categories.values())
 
 
-def test_missing_dependency_returns_setup_guidance():
+def test_missing_dependency_returns_setup_guidance(monkeypatch):
+    monkeypatch.delenv("TAVILY_API_KEY", raising=False)
     adapter = get_adapter("tavily")
     assert adapter is not None
     guidance = adapter.setup_guidance()

@@ -28,6 +28,7 @@ import PageHeader from "@/components/ui/PageHeader";
 import { SkeletonDetailPanel } from "@/components/ui/loading";
 import { connectGovernance, disconnectGovernance, fetchGovernanceStatus } from "@/lib/governance-api";
 import { formatTimeAgo } from "@/lib/time-ago";
+import OperatorPolicyPanel from "@/components/governance/OperatorPolicyPanel";
 
 const SCOUT_HOME = "https://labyrinthscout.com";
 const SCOUT_PRICING = "https://labyrinthscout.com/pricing";
@@ -240,6 +241,8 @@ export default function GovernancePage() {
         </Box>
       ) : null}
 
+      <OperatorPolicyPanel />
+
       <Dialog open={connectOpen} onClose={() => setConnectOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Connect Scout</DialogTitle>
         <DialogContent sx={{ display: "grid", gap: 2, pt: 1 }}>
@@ -284,7 +287,7 @@ export default function GovernancePage() {
                 onChange={(event) => setAcceptResponsibility(event.target.checked)}
               />
             }
-            label="I accept responsibility for ungoverned operation"
+            label="I accept responsibility for local-only operation (no Scout oversight)"
           />
         </DialogContent>
         <DialogActions>

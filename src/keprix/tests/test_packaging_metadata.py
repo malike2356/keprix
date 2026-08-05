@@ -1,7 +1,6 @@
 from pathlib import Path
 import re
-import tomllib
-
+from keprix.compat import tomllib
 import pytest
 
 # setuptools is declared in the [dev] extra and is the build backend, but

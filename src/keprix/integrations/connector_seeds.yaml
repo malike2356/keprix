@@ -1,0 +1,373 @@
+- id: notion
+  label: Notion
+  category: productivity
+  description: Search pages and create workspace notes through the Notion MCP connector.
+  icon: FileText
+  auth_pattern: mcp
+  mcp_server_id: notion
+  scout_audit_class: external_write
+  docs_url: /admin/mcp
+  featured: true
+  tags: [docs, wiki, notes]
+  install_hint: Install the Notion MCP server, then select its tools in Playbook Studio.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Notion: search pages"
+      prompt: "Search Notion for {{ state.query }}"
+      tools: [mcp_notion_search]
+      connector_id: notion
+- id: trello
+  label: Trello
+  category: productivity
+  description: Read boards and create cards through the Trello MCP connector.
+  icon: Kanban
+  auth_pattern: mcp
+  mcp_server_id: trello
+  scout_audit_class: external_write
+  docs_url: /admin/mcp
+  featured: true
+  tags: [tasks, kanban]
+  install_hint: Install the Trello MCP server and provide Trello API credentials.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Trello: create card"
+      prompt: "Create a Trello card for {{ state.task }}"
+      tools: [mcp_trello_create_card]
+      connector_id: trello
+- id: slack
+  label: Slack
+  category: messaging
+  description: Send channel updates and search workspace conversations.
+  icon: MessageSquare
+  auth_pattern: oauth
+  scout_audit_class: messaging_send
+  docs_url: /docs/integrations/connector-catalog
+  featured: true
+  install_hint: Coming soon; use HTTP node with API key.
+  sample_playbook_node:
+    type: http
+    data:
+      label: "Slack: post message"
+      url: "https://slack.com/api/chat.postMessage"
+      method: POST
+      connector_id: slack
+- id: github
+  label: GitHub
+  category: devtools
+  description: Create issues, inspect pull requests, and read repository metadata.
+  icon: GitBranch
+  auth_pattern: mcp
+  scout_audit_class: external_write
+  featured: true
+  install_hint: Coming soon; use HTTP node with API key.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "GitHub: open issue"
+      prompt: "Open a GitHub issue for {{ state.bug }}"
+      tools: []
+      connector_id: github
+- id: google_drive
+  label: Google Drive
+  category: productivity
+  description: Search files and attach Drive documents to playbook context.
+  icon: FolderOpen
+  auth_pattern: oauth
+  scout_audit_class: external_read
+  featured: true
+  install_hint: Coming soon; use HTTP node with OAuth token.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Drive: search files"
+      prompt: "Find Drive files matching {{ state.query }}"
+      tools: []
+      connector_id: google_drive
+- id: google-workspace
+  label: Google Workspace
+  category: productivity
+  description: Curated Gmail, Calendar, Drive, Docs, and Sheets connector for tier-1 Agent OS domains.
+  icon: Blocks
+  auth_pattern: oauth
+  scout_audit_class: external_write
+  featured: true
+  docs_url: /docs/integrations/google-workspace
+  tags: [calendar, comms, knowledge, gmail, drive, sheets]
+  install_hint: Configure GOOGLE_WORKSPACE_CREDENTIALS_PATH, then connect from Settings.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Workspace: daily brief"
+      prompt: "Summarize today's calendar, unread Gmail, and relevant Drive files."
+      tools: [gws_gmail_list, gws_calendar_list, gws_drive_search]
+      connector_id: google-workspace
+- id: github-agent-sync
+  label: GitHub agent-sync
+  category: knowledge
+  description: Durable shared memory bridge over malike2356/agent-sync (Hermes/Fowler, Carina, Aiva, Keprix).
+  icon: GitBranch
+  auth_pattern: api_key
+  scout_audit_class: external_write
+  featured: true
+  docs_url: /docs/features/agent-sync.md
+  tags: [memory, github, hermes, sync]
+  install_hint: Open Settings -> Agent sync, paste a GitHub PAT, enable, Save, then Pull. No .env required. Vault sync is Syncthing, not this connector.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Agent sync: search shared memory"
+      prompt: "Search github-agent-sync for recent durable notes and summarize."
+      tools: [github_agent_sync]
+      connector_id: github-agent-sync
+- id: syncthing-obsidian
+  label: Syncthing (Obsidian vault)
+  category: knowledge
+  description: Obsidian vault folder sync via Syncthing with a one-writer rule. Not for agent-sync memory/skills.
+  icon: FolderSync
+  auth_pattern: api_key
+  scout_audit_class: external_write
+  featured: true
+  docs_url: /docs/features/syncthing.md
+  tags: [obsidian, syncthing, vault, sync]
+  install_hint: Open Settings -> Syncthing, paste Syncthing API key, set one writer (home or keprix), Save. Keep agent-sync on a separate path.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Syncthing: vault status"
+      prompt: "Check Syncthing vault bridge status and summarize one-writer role."
+      tools: [syncthing_vault]
+      connector_id: syncthing-obsidian
+- id: gmail
+  label: Gmail
+  category: messaging
+  description: Search inbox threads and draft outbound messages.
+  icon: Mail
+  auth_pattern: oauth
+  scout_audit_class: messaging_send
+  featured: true
+  install_hint: Coming soon; use email tools or HTTP API with OAuth.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Gmail: summarize inbox"
+      prompt: "Summarize unread Gmail threads"
+      tools: []
+      connector_id: gmail
+- id: telegram
+  label: Telegram
+  category: messaging
+  description: Send operator notifications through Telegram bot credentials.
+  icon: Send
+  auth_pattern: env
+  scout_audit_class: messaging_send
+  install_hint: Set Telegram bot environment variables in Keprix.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Telegram: notify"
+      prompt: "Send Telegram update: {{ state.message }}"
+      tools: [send_telegram_message]
+      connector_id: telegram
+- id: discord
+  label: Discord
+  category: messaging
+  description: Send messages to Discord channels through configured gateway credentials.
+  icon: MessagesSquare
+  auth_pattern: env
+  scout_audit_class: messaging_send
+  install_hint: Set Discord bot environment variables in Keprix.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Discord: notify"
+      prompt: "Send Discord update: {{ state.message }}"
+      tools: [send_discord_message]
+      connector_id: discord
+- id: web_search
+  label: Web Search
+  category: ai
+  description: Search the web with the configured Keprix search provider.
+  icon: Search
+  auth_pattern: api_key
+  scout_audit_class: external_read
+  featured: true
+  install_hint: Configure a web search provider API key.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Web: search"
+      prompt: "Search the web for {{ state.query }}"
+      tools: [web_search]
+      connector_id: web_search
+- id: n8n_sidecar
+  label: n8n Sidecar
+  category: automation
+  description: Bridge existing n8n workflows while migrating to native playbooks.
+  icon: Workflow
+  auth_pattern: sidecar
+  mcp_server_id: n8n
+  sidecar_id: n8n
+  scout_audit_class: network_egress
+  docs_url: /docs/integrations/n8n-sidecar
+  featured: true
+  tags: [bridge, migration]
+  install_hint: Install the optional n8n MCP sidecar, then migrate workflows with keprix migrate from-n8n.
+  sample_playbook_node:
+    type: http
+    data:
+      label: "n8n: trigger workflow"
+      url: "http://localhost:5678/webhook/{{ state.workflow_id }}"
+      method: POST
+      connector_id: n8n_sidecar
+- id: postgres
+  label: PostgreSQL
+  category: data
+  description: Query PostgreSQL databases through a configured MCP or HTTP proxy.
+  icon: Database
+  auth_pattern: api_key
+  scout_audit_class: external_read
+  install_hint: Coming soon; use HTTP node with API key.
+  sample_playbook_node:
+    type: http
+    data:
+      label: "Postgres: query proxy"
+      url: "https://example.com/query"
+      method: POST
+      connector_id: postgres
+- id: sqlite
+  label: SQLite
+  category: data
+  description: Read local SQLite data through Keprix local tools.
+  icon: Database
+  auth_pattern: none
+  scout_audit_class: filesystem
+  install_hint: Local connector; no install required.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "SQLite: inspect"
+      prompt: "Inspect the local SQLite database at {{ state.db_path }}"
+      tools: [read_file]
+      connector_id: sqlite
+- id: http_generic
+  label: HTTP
+  category: devtools
+  description: Call any HTTP API using the built-in Studio HTTP node.
+  icon: Globe
+  auth_pattern: none
+  scout_audit_class: network_egress
+  install_hint: Built in; drag an HTTP node onto the canvas.
+  sample_playbook_node:
+    type: http
+    data:
+      label: "HTTP request"
+      url: "https://api.example.com"
+      method: GET
+      connector_id: http_generic
+- id: openai
+  label: OpenAI
+  category: ai
+  description: Use OpenAI provider keys in agent tasks and model calls.
+  icon: Sparkles
+  auth_pattern: api_key
+  scout_audit_class: external_read
+  install_hint: Set OPENAI_API_KEY in the Keprix environment.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "OpenAI: agent task"
+      prompt: "Use the configured OpenAI model to analyze {{ state.input }}"
+      tools: []
+      connector_id: openai
+- id: anthropic
+  label: Anthropic
+  category: ai
+  description: Use Anthropic provider keys in agent tasks and model calls.
+  icon: Brain
+  auth_pattern: api_key
+  scout_audit_class: external_read
+  install_hint: Set ANTHROPIC_API_KEY in the Keprix environment.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Anthropic: agent task"
+      prompt: "Use Claude to analyze {{ state.input }}"
+      tools: []
+      connector_id: anthropic
+- id: filesystem
+  label: Filesystem
+  category: devtools
+  description: Read and write local workspace files through Keprix local tools.
+  icon: Files
+  auth_pattern: none
+  scout_audit_class: filesystem
+  install_hint: Built in; scope access through workspace policy.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Filesystem: read"
+      prompt: "Read {{ state.path }} and summarize it"
+      tools: [read_file]
+      connector_id: filesystem
+- id: email_smtp
+  label: SMTP Email
+  category: messaging
+  description: Send email through configured SMTP environment variables.
+  icon: MailPlus
+  auth_pattern: env
+  scout_audit_class: messaging_send
+  install_hint: Configure SMTP environment variables.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Email: send"
+      prompt: "Send email to {{ state.recipient }} with {{ state.message }}"
+      tools: [send_email]
+      connector_id: email_smtp
+- id: calendar
+  label: Calendar
+  category: productivity
+  description: Read calendar events and create follow-up tasks.
+  icon: Calendar
+  auth_pattern: oauth
+  scout_audit_class: external_write
+  install_hint: Coming soon; use HTTP node with OAuth token.
+  sample_playbook_node:
+    type: agent_task
+    data:
+      label: "Calendar: list events"
+      prompt: "List today's calendar events"
+      tools: []
+      connector_id: calendar
+- id: jira
+  label: Jira
+  category: devtools
+  description: Create issues and inspect project status.
+  icon: ClipboardList
+  auth_pattern: api_key
+  scout_audit_class: external_write
+  install_hint: Coming soon; use HTTP node with API key.
+  sample_playbook_node:
+    type: http
+    data:
+      label: "Jira: create issue"
+      url: "https://your-domain.atlassian.net/rest/api/3/issue"
+      method: POST
+      connector_id: jira
+- id: stripe
+  label: Stripe
+  category: data
+  description: Read customer and billing events from Stripe.
+  icon: CreditCard
+  auth_pattern: api_key
+  scout_audit_class: external_read
+  install_hint: Coming soon; use HTTP node with API key.
+  sample_playbook_node:
+    type: http
+    data:
+      label: "Stripe: list customers"
+      url: "https://api.stripe.com/v1/customers"
+      method: GET
+      connector_id: stripe

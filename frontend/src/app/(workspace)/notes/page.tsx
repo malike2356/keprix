@@ -82,7 +82,7 @@ export default function NotesPage() {
         title="Notes"
         description="Capture linked notes and references."
         breadcrumbs={[
-          { label: "Workspace", href: "/launcher" },
+          { label: "Workspace", href: "/home" },
           { label: "Notes", href: "/notes" },
         ]}
         actions={

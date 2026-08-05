@@ -67,9 +67,11 @@ def _score_contact(contact: ContactRecord, query: str) -> float:
     return score
 
 
-async def contact_search(query: str, limit: int = 5) -> list[dict[str, Any]]:
+async def contact_search(
+    query: str, limit: int = 5, *, user_id: str | None = None
+) -> list[dict[str, Any]]:
     store = get_contact_store()
-    contacts = await store.all_contacts()
+    contacts = await store.all_contacts(user_id=user_id)
     ranked = [(c, _score_contact(c, query)) for c in contacts]
     ranked = [(c, s) for c, s in ranked if s > 0]
     ranked.sort(key=lambda item: (-item[1], item[0].display_name))

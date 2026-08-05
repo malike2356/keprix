@@ -16,6 +16,9 @@ PUBLIC_PATHS = frozenset(
     {
         "/api/health",
         "/api/v1/health",
+        "/api/health/scout",
+        "/api/health/security",
+        "/api/health/products",
         "/api/auth/login",
         "/api/auth/config",
         "/api/v1/auth/login",

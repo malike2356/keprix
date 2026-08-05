@@ -11,7 +11,7 @@ import { useCESession } from "@/lib/ce-auth";
 
 function safeReturnPath(value: string | null): string {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
-    return "/launcher";
+    return "/home";
   }
   return value;
 }
@@ -34,7 +34,7 @@ function AuthLoginContent() {
         Sign in
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Access your Keprix admin dashboard.
+        Access your Keprix workspace.
       </Typography>
       <LoginForm returnTo={returnTo} />
     </AuthLayout>

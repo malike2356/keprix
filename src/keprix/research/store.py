@@ -156,12 +156,12 @@ class ResearchStore:
         job = await self.get(job_id, user_id)
         if job is None:
             return False
-        job._cancelled = True
-        job.status = "cancelled"
-        self._registry.cancel(job_id, user_id)
+        if job.status == "running":
+            self._registry.cancel(job_id, user_id)
+            job._cancelled = True
         async with self._lock:
             self._live.pop(job_id, None)
-        return True
+        return self._registry.delete(job_id, user_id)
 
     async def persist(self, job: ResearchJob) -> None:
         self._registry.update(job.sync_to_record())

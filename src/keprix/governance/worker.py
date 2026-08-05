@@ -9,6 +9,7 @@ from keprix.governance.client import get_governance_client
 from keprix.governance.event_reporter import flush_events
 from keprix.governance.heartbeat import run_heartbeat_if_enabled
 from keprix.governance.policy_receiver import reload_policies
+from keprix.security.scout_worker import start_scout_worker, stop_scout_worker
 
 logger = logging.getLogger(__name__)
 
@@ -55,12 +56,14 @@ def start_governance_worker() -> None:
     _heartbeat_task = asyncio.create_task(_heartbeat_loop())
     _flush_task = asyncio.create_task(_flush_loop())
     asyncio.create_task(reload_policies())
+    asyncio.create_task(start_scout_worker())
 
 
 async def stop_governance_worker() -> None:
     global _heartbeat_task, _flush_task, _stop_event
     if _stop_event is not None:
         _stop_event.set()
+    await stop_scout_worker()
     tasks = [task for task in (_heartbeat_task, _flush_task) if task is not None]
     for task in tasks:
         task.cancel()

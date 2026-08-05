@@ -1,5 +1,11 @@
 import type { KeprixPalette } from "./tokens/colors";
 import { getKeprixColors, type ThemeMode } from "./tokens/colors";
+import {
+  ensureInteractiveAccent,
+  ensureMutedText,
+  parseHex,
+  relativeLuminance,
+} from "./contrast";
 
 function readVar(name: string, fallback: string): string {
   if (typeof window === "undefined") {
@@ -9,25 +15,12 @@ function readVar(name: string, fallback: string): string {
   return value || fallback;
 }
 
-function perceivedLuminance(hex: string): number {
-  const clean = hex.replace("#", "");
-  if (clean.length !== 6) return 0;
-  const r = parseInt(clean.slice(0, 2), 16);
-  const g = parseInt(clean.slice(2, 4), 16);
-  const b = parseInt(clean.slice(4, 6), 16);
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-}
-
 function shiftColor(hex: string, amount: number): string {
-  const normalized = hex.replace("#", "");
-  if (normalized.length !== 6) {
-    return hex;
-  }
-  const num = parseInt(normalized, 16);
-  const r = Math.min(255, Math.max(0, ((num >> 16) & 255) + amount));
-  const g = Math.min(255, Math.max(0, ((num >> 8) & 255) + amount));
-  const b = Math.min(255, Math.max(0, (num & 255) + amount));
-  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
+  const rgb = parseHex(hex);
+  if (!rgb) return hex;
+  const [r, g, b] = rgb;
+  const clamp = (value: number) => Math.min(255, Math.max(0, value + amount));
+  return `#${[clamp(r), clamp(g), clamp(b)].map((value) => value.toString(16).padStart(2, "0")).join("")}`;
 }
 
 export function paletteFromCssVars(mode: ThemeMode): KeprixPalette {
@@ -36,22 +29,37 @@ export function paletteFromCssVars(mode: ThemeMode): KeprixPalette {
   // Neutral/monochrome skins (e.g. the default dark skin) set --primary to near-white
   // (#fafafa). In dark mode that clashes with the Keprix brand color, so fall back
   // to the brand primary while keeping every other CSS-var override intact.
-  const primary =
-    mode === "dark" && perceivedLuminance(rawPrimary) > 0.7
+  const resolvedPrimary =
+    mode === "dark" && relativeLuminance(rawPrimary) > 0.7
       ? fallback.primary
       : rawPrimary;
-  const secondary = readVar("--secondary", fallback.secondary);
+
   const background = readVar("--background", fallback.bgDefault);
-  const foreground = readVar("--foreground", fallback.textPrimary);
   const card = readVar("--card", fallback.bgCard);
+  const paper = card || background;
+  const primary = ensureInteractiveAccent(resolvedPrimary, paper, mode);
+  const secondaryRaw = readVar("--secondary", fallback.secondary);
+  const secondary = ensureInteractiveAccent(
+    // Some skins set secondary to a near-paper gray; fall back to brand secondary.
+    relativeLuminance(secondaryRaw) > 0.85 || relativeLuminance(secondaryRaw) < 0.08
+      ? fallback.secondary
+      : secondaryRaw,
+    paper,
+    mode,
+  );
+  const foreground = readVar("--foreground", fallback.textPrimary);
   const border = readVar("--border", fallback.border);
-  const muted = readVar("--muted-foreground", fallback.textSecondary);
+  const muted = ensureMutedText(
+    readVar("--muted-foreground", fallback.textSecondary),
+    paper,
+    mode,
+  );
   const destructive = readVar("--destructive", fallback.error);
 
   return {
     primary,
-    primaryDark: shiftColor(primary, mode === "dark" ? -24 : -20),
-    primaryLight: shiftColor(primary, mode === "dark" ? 24 : 20),
+    primaryDark: shiftColor(primary, mode === "dark" ? -24 : -28),
+    primaryLight: shiftColor(primary, mode === "dark" ? 24 : 28),
     secondary,
     secondaryDark: shiftColor(secondary, -16),
     secondaryLight: shiftColor(secondary, 16),

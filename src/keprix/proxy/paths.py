@@ -31,3 +31,19 @@ def proxy_env_marker_path() -> Path:
 
 def local_vault_path() -> Path:
     return keprix_home() / "proxy-local-vault.json"
+
+
+def rotation_state_path() -> Path:
+    return keprix_home() / "credential-rotation.json"
+
+
+def rotation_signal_path() -> Path:
+    return keprix_home() / "credential-rotation-signal.json"
+
+
+def migration_state_path() -> Path:
+    return keprix_home() / "credential-migration.json"
+
+
+def fallback_state_path() -> Path:
+    return keprix_home() / "credential-fallback.json"

@@ -1,31 +1,23 @@
-"use client";
+import { redirect } from "next/navigation";
 
-import * as React from "react";
-import { useSearchParams } from "next/navigation";
-import PipelineBuilder from "@/components/rag/PipelineBuilder";
-import PipelineRunViewer from "@/components/rag/PipelineRunViewer";
+type SearchParams = Record<string, string | string[] | undefined>;
 
-export default function RagPipelinePage() {
-  const searchParams = useSearchParams();
-  const initialSourceType = searchParams.get("source") === "notion" ? "notion" : "manual";
-  const [pipelineId, setPipelineId] = React.useState("production-default");
-  const [refreshKey, setRefreshKey] = React.useState(0);
+function first(value: string | string[] | undefined): string | undefined {
+  if (Array.isArray(value)) return value[0];
+  return value;
+}
 
-  return (
-    <div className="flex flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-2xl font-semibold">RAG Pipelines</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Haystack-style modular pipelines with routing, citations, evaluation, and playbook tracing.
-        </p>
-      </div>
-      <PipelineBuilder
-        pipelineId={pipelineId}
-        onPipelineIdChange={setPipelineId}
-        onIngested={() => setRefreshKey((value) => value + 1)}
-        initialSourceType={initialSourceType}
-      />
-      <PipelineRunViewer key={refreshKey} pipelineId={pipelineId} />
-    </div>
-  );
+export default async function LegacyDataRedirect({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams> | SearchParams;
+}) {
+  const params = await Promise.resolve(searchParams);
+  const next = new URLSearchParams();
+  for (const [key, value] of Object.entries(params || {})) {
+    const item = first(value);
+    if (item) next.set(key, item);
+  }
+  next.set("tab", "rag");
+  redirect(`/data?${next.toString()}`);
 }

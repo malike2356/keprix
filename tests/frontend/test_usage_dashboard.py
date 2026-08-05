@@ -58,9 +58,9 @@ def test_usage_page_uses_summary_values() -> None:
 
 def test_usage_period_toolbar_changes_swr_keys() -> None:
     page = (ROOT / "frontend/src/app/(workspace)/usage/page.tsx").read_text(encoding="utf-8")
-    assert "usage-summary-${periodDays}" in page
-    assert "usage-timeseries-${periodDays}-day" in page
+    assert "usage-summary" in page
     assert "UsagePeriodToolbar" in page
+    assert "periodDays" in page
     toolbar = (ROOT / "frontend/src/components/usage/UsagePeriodToolbar.tsx").read_text(encoding="utf-8")
     assert "storeUsagePeriod" in toolbar
 

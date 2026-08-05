@@ -566,7 +566,14 @@ def _resolve_active_context_length() -> int:
 # because they need agent-level state (TodoStore, MemoryStore, etc.).
 # The registry still holds their schemas; dispatch just returns a stub error
 # so if something slips through, the LLM sees a sensible message.
-_AGENT_LOOP_TOOLS = {"todo", "memory", "session_search", "delegate_task"}
+_AGENT_LOOP_TOOLS = {
+    "todo",
+    "memory",
+    "session_search",
+    "conversation_search",
+    "recent_chats",
+    "delegate_task",
+}
 _READ_SEARCH_TOOLS = {"read_file", "search_files"}
 
 
@@ -822,6 +829,48 @@ def _tool_result_observer_fields(result: Any) -> tuple[str, Optional[str], Optio
     return "ok", None, None
 
 
+def _emit_pre_tool_product_hook(
+    *,
+    function_name: str,
+    function_args: Dict[str, Any],
+    task_id: Optional[str] = None,
+    session_id: Optional[str] = None,
+    tool_call_id: Optional[str] = None,
+    turn_id: Optional[str] = None,
+    api_request_id: Optional[str] = None,
+) -> None:
+    """Fire registered product before-tool hooks.
+
+    Calls ``iter_before_tool_hooks()`` from ``registries.product_hooks``.
+    Errors in individual hooks are logged and swallowed so a misbehaving
+    product module cannot break the agent loop.
+    """
+    try:
+        from registries.product_hooks import iter_before_tool_hooks
+        hooks = iter_before_tool_hooks()
+        if not hooks:
+            return
+        ctx = {
+            "function_name": function_name,
+            "function_args": function_args,
+            "task_id": task_id or "",
+            "session_id": session_id or "",
+            "tool_call_id": tool_call_id or "",
+            "turn_id": turn_id or "",
+            "api_request_id": api_request_id or "",
+        }
+        for hook in hooks:
+            try:
+                hook.hook(ctx)
+            except Exception:
+                logger.exception(
+                    "Before-tool product hook '%s' (product=%s) raised",
+                    hook.name, hook.product,
+                )
+    except Exception:
+        pass  # No-op if product_hooks module is not available.
+
+
 def _emit_post_tool_call_hook(
     *,
     function_name: str,
@@ -953,13 +1002,22 @@ def handle_function_call(
         except Exception:
             current_defs = []
         if function_name == _ts_mod.TOOL_SEARCH_NAME:
-            return _ts_mod.dispatch_tool_search(function_args or {},
-                                                current_tool_defs=current_defs)
+            return _ts_mod.dispatch_tool_search(
+                function_args or {},
+                current_tool_defs=current_defs,
+                session_id=session_id,
+            )
         if function_name == _ts_mod.TOOL_DESCRIBE_NAME:
-            return _ts_mod.dispatch_tool_describe(function_args or {},
-                                                  current_tool_defs=current_defs)
+            return _ts_mod.dispatch_tool_describe(
+                function_args or {},
+                current_tool_defs=current_defs,
+                session_id=session_id,
+            )
         if function_name == _ts_mod.TOOL_CALL_NAME:
-            underlying_name, underlying_args, err = _ts_mod.resolve_underlying_call(function_args or {})
+            underlying_name, underlying_args, err = _ts_mod.resolve_underlying_call(
+                function_args or {},
+                session_id=session_id,
+            )
             if err or not underlying_name:
                 return json.dumps({"error": err or "tool_call could not be resolved"},
                                   ensure_ascii=False)
@@ -1127,6 +1185,16 @@ def handle_function_call(
                         user_task=user_task,
                     )
             from keprix_cli.middleware import run_tool_execution_middleware
+
+            _emit_pre_tool_product_hook(
+                function_name=function_name,
+                function_args=function_args,
+                task_id=task_id,
+                session_id=session_id,
+                tool_call_id=tool_call_id,
+                turn_id=turn_id,
+                api_request_id=api_request_id,
+            )
 
             result = run_tool_execution_middleware(
                 function_name,

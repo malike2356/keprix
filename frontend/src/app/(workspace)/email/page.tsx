@@ -4,18 +4,25 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import CreateIcon from "@mui/icons-material/Create";
 import EmailIcon from "@mui/icons-material/Email";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import * as React from "react";
+import EmailAccountsPanel from "@/components/email/EmailAccountsPanel";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import { SkeletonDetailPanel, SkeletonList } from "@/components/ui/loading";
@@ -26,6 +33,7 @@ import {
   fetchEmailAccounts,
   fetchInbox,
   markEmailRead,
+  sendEmail,
   toggleEmailStar,
   triggerEmailSync,
   type EmailAccount,
@@ -51,6 +59,11 @@ export default function EmailPage() {
   const [detailLoading, setDetailLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [aiLoading, setAiLoading] = React.useState(false);
+  const [composeOpen, setComposeOpen] = React.useState(false);
+  const [toAddr, setToAddr] = React.useState("");
+  const [subject, setSubject] = React.useState("");
+  const [body, setBody] = React.useState("");
+  const [sending, setSending] = React.useState(false);
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -67,7 +80,7 @@ export default function EmailPage() {
   }, []);
 
   React.useEffect(() => {
-    load();
+    void load();
   }, [load]);
 
   const openMessage = async (message: EmailMessage) => {
@@ -101,9 +114,7 @@ export default function EmailPage() {
   };
 
   const handleAiSummary = async () => {
-    if (!selected) {
-      return;
-    }
+    if (!selected) return;
     setAiLoading(true);
     setError(null);
     try {
@@ -117,13 +128,15 @@ export default function EmailPage() {
   };
 
   const handleAiDraft = async () => {
-    if (!selected) {
-      return;
-    }
+    if (!selected) return;
     setAiLoading(true);
     setError(null);
     try {
-      await createAiReplyDraft(selected.id);
+      const draft = await createAiReplyDraft(selected.id);
+      setToAddr(selected.from_address);
+      setSubject(draft.subject || `Re: ${selected.subject}`);
+      setBody(draft.body || "");
+      setComposeOpen(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "AI draft failed");
     } finally {
@@ -145,21 +158,59 @@ export default function EmailPage() {
     }
   };
 
+  const handleSend = async () => {
+    const recipients = toAddr
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    if (!recipients.length || !subject.trim()) return;
+    setSending(true);
+    setError(null);
+    try {
+      await sendEmail({
+        to_addresses: recipients,
+        subject: subject.trim(),
+        body,
+        account_id: accounts[0]?.id,
+      });
+      setComposeOpen(false);
+      setToAddr("");
+      setSubject("");
+      setBody("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Send failed");
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
     <Box>
       <PageHeader
         title="Email"
-        description="Triage inbox threads with AI summaries."
+        description="Sync third-party inboxes on an interval, triage with AI, and compose from Keprix."
         breadcrumbs={[
-          { label: "Workspace", href: "/launcher" },
+          { label: "Workspace", href: "/home" },
           { label: "Email", href: "/email" },
         ]}
         actions={
-          <Button startIcon={<RefreshIcon />} onClick={handleSync} disabled={loading}>
-            Sync
-          </Button>
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <Button
+              variant="contained"
+              startIcon={<CreateIcon />}
+              onClick={() => setComposeOpen(true)}
+              disabled={!accounts.length}
+            >
+              Compose
+            </Button>
+            <Button startIcon={<RefreshIcon />} onClick={() => void handleSync()} disabled={loading}>
+              Sync now
+            </Button>
+          </Box>
         }
       />
+
+      <EmailAccountsPanel accounts={accounts} onChanged={() => void load()} />
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -181,7 +232,7 @@ export default function EmailPage() {
           </Typography>
           {accounts.length === 0 ? (
             <Typography variant="caption" color="text.secondary">
-              No accounts configured. Add one in Settings.
+              No accounts yet. Use Connect email above.
             </Typography>
           ) : (
             <List dense disablePadding>
@@ -203,7 +254,7 @@ export default function EmailPage() {
           ) : messages.length === 0 ? (
             <EmptyState
               title="Inbox is empty"
-              description="Connect an email account or sync to load messages."
+              description="Connect Gmail or another IMAP account, then Sync now."
               icon={<EmailIcon sx={{ fontSize: 40 }} />}
             />
           ) : (
@@ -212,7 +263,7 @@ export default function EmailPage() {
                 <ListItemButton
                   key={message.id}
                   selected={selectedId === message.id}
-                  onClick={() => openMessage(message)}
+                  onClick={() => void openMessage(message)}
                   sx={{ alignItems: "flex-start" }}
                 >
                   <ListItemText
@@ -230,7 +281,7 @@ export default function EmailPage() {
                           size="small"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleStar(message.id);
+                            void handleStar(message.id);
                           }}
                         >
                           {message.is_starred ? (
@@ -248,7 +299,11 @@ export default function EmailPage() {
                         </Typography>
                         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.5 }}>
                           {message.ai_priority && message.ai_priority !== "normal" && (
-                            <Chip size="small" label={message.ai_priority} color={priorityColor(message.ai_priority)} />
+                            <Chip
+                              size="small"
+                              label={message.ai_priority}
+                              color={priorityColor(message.ai_priority)}
+                            />
                           )}
                           {message.ai_tags?.slice(0, 2).map((tag) => (
                             <Chip key={tag} size="small" label={tag} variant="outlined" />
@@ -291,12 +346,23 @@ export default function EmailPage() {
                     variant="outlined"
                     startIcon={<AutoAwesomeIcon />}
                     disabled={aiLoading}
-                    onClick={handleAiSummary}
+                    onClick={() => void handleAiSummary()}
                   >
                     Summarize
                   </Button>
-                  <Button size="small" variant="contained" disabled={aiLoading} onClick={handleAiDraft}>
+                  <Button size="small" variant="contained" disabled={aiLoading} onClick={() => void handleAiDraft()}>
                     AI reply draft
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      setToAddr(selected.from_address);
+                      setSubject(selected.subject.toLowerCase().startsWith("re:") ? selected.subject : `Re: ${selected.subject}`);
+                      setBody("");
+                      setComposeOpen(true);
+                    }}
+                  >
+                    Reply
                   </Button>
                 </Box>
               </Box>
@@ -308,6 +374,40 @@ export default function EmailPage() {
           )}
         </Box>
       </Box>
+
+      <Dialog open={composeOpen} onClose={() => setComposeOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Compose email</DialogTitle>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 1 }}>
+          <Typography variant="caption" color="text.secondary">
+            Sending as {accounts[0]?.email_address || "(no account)"}
+          </Typography>
+          <TextField
+            label="To"
+            value={toAddr}
+            onChange={(e) => setToAddr(e.target.value)}
+            helperText="Comma-separated addresses"
+            autoFocus
+          />
+          <TextField label="Subject" value={subject} onChange={(e) => setSubject(e.target.value)} />
+          <TextField
+            label="Message"
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            multiline
+            minRows={8}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setComposeOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={() => void handleSend()}
+            disabled={sending || !toAddr.trim() || !subject.trim() || !accounts.length}
+          >
+            Send
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

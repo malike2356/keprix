@@ -36,7 +36,7 @@ const CTABand = dynamic(() => import("@/components/marketing/CTABand").then((mod
 
 function scheduleAfterIdle(callback: () => void): () => void {
   if (typeof window === "undefined") return () => undefined;
-  if ("requestIdleCallback" in window) {
+  if (typeof window.requestIdleCallback === "function") {
     const id = window.requestIdleCallback(callback, { timeout: 1200 });
     return () => window.cancelIdleCallback(id);
   }

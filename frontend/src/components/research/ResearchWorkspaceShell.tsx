@@ -120,7 +120,7 @@ export default function ResearchWorkspaceShell({ tab, deepResearchPanel }: Props
               ) : (
                 <Box sx={{ display: "grid", gap: 1.5 }}>
                   <ResearchGettingStarted
-                    projectId={selectedId}
+                    projectId={selectedId || project.project_id}
                     hasDataset={Boolean(datasetId)}
                     hasVault={Boolean(vaultId)}
                     onExportObsidian={exportObsidian}
@@ -144,7 +144,7 @@ export default function ResearchWorkspaceShell({ tab, deepResearchPanel }: Props
                     projectId={selectedId}
                     onVaultSelected={setVaultId}
                     onExported={() => {
-                      void fetchResearchProject(selectedId).then((payload) => {
+                      void fetchResearchProject(selectedId || project.project_id).then((payload) => {
                         setProject(payload.project);
                         setObjects(payload.objects || []);
                       });
@@ -156,7 +156,7 @@ export default function ResearchWorkspaceShell({ tab, deepResearchPanel }: Props
                   <ResearchStatsPanel
                     datasetId={datasetId}
                     onComplete={() => {
-                      void fetchResearchProject(selectedId).then((payload) => {
+                      void fetchResearchProject(selectedId || project.project_id).then((payload) => {
                         setObjects(payload.objects || []);
                       });
                     }}

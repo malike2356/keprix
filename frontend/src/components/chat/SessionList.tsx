@@ -1,6 +1,7 @@
 "use client";
 
 import AddIcon from "@mui/icons-material/Add";
+import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import SearchIcon from "@mui/icons-material/Search";
 import Box from "@mui/material/Box";
@@ -44,8 +45,23 @@ export default function SessionList({ onNavigate }: SessionListProps) {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
       <Box sx={{ p: 2, flexShrink: 0, borderBottom: 1, borderColor: "divider" }}>
-        <Box component={NextLink} href="/launcher" sx={{ display: "inline-flex", textDecoration: "none", mb: 1.5 }}>
+        <Box component={NextLink} href="/home" sx={{ display: "inline-flex", textDecoration: "none", mb: 1.5 }}>
           <KeprixLogo size="sm" />
+        </Box>
+        <Box sx={{ display: "grid", gap: 0.75, mb: 1.5 }}>
+          <Button component={NextLink} href="/home" size="small" variant="text" sx={{ justifyContent: "flex-start" }}>
+            Workspace
+          </Button>
+          <Button
+            component={NextLink}
+            href="/files"
+            size="small"
+            variant="text"
+            startIcon={<FolderOutlinedIcon fontSize="small" />}
+            sx={{ justifyContent: "flex-start" }}
+          >
+            Files
+          </Button>
         </Box>
         <Button
           fullWidth

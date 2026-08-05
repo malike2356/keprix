@@ -342,6 +342,13 @@ def build_turn_context(
 
     # Per-turn file-mutation verifier state.
     agent._turn_failed_file_mutations = {}
+    try:
+        from agent.memory_edit_gate import reset_continuity_turn_flags
+
+        reset_continuity_turn_flags(agent)
+    except Exception:
+        agent._memory_edited_this_turn = False
+        agent._past_chat_search_this_turn = False
 
     # Record the execution thread so interrupt()/clear_interrupt() can scope
     # the tool-level interrupt signal to THIS agent's thread only.

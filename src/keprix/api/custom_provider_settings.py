@@ -27,10 +27,13 @@ def _entry_id(entry: dict[str, Any]) -> str:
 def _load_raw_list() -> list[dict[str, Any]]:
     try:
         from keprix_cli.config import load_config
+
+        cfg = load_config()
     except Exception:
+        # Missing/unreadable KEPRIX_HOME (common when a host bind-mount is
+        # mode 0700 and the container user cannot traverse it).
         return []
 
-    cfg = load_config()
     providers = cfg.get("custom_providers") or []
     if not isinstance(providers, list):
         return []

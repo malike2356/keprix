@@ -34,7 +34,7 @@ export default function LegalAcceptPage() {
     setError(null);
     try {
       await acceptPolicies(policies.map((policy) => policy.policy_type));
-      window.location.href = "/launcher";
+      window.location.href = "/home";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Acceptance failed");
     } finally {

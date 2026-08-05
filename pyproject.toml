@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "keprix"
-version = "0.1.0"
+version = "0.16.0"
 description = "Keprix - self-hosted AI agent OS, Community Edition"
 readme = "README.md"
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.11,<3.13"
 authors = [{ name = "Verlox Ltd" }]
 license = "MIT"
 license-files = ["LICENSE"]
@@ -58,7 +58,7 @@ dependencies = [
   # Memory and RAG
   "chromadb-client==0.6.3",
   "fastembed==0.5.1",
-  "numpy==2.2.6",
+  "numpy==1.26.4",
 
   # Workspace
   "pypdf==5.5.0",
@@ -103,11 +103,20 @@ dev = [
 tui = [
   "textual>=1.0.0",
 ]
+tui-voice = [
+  "keprix[tui]",
+  "sounddevice>=0.5.0",
+  "numpy>=1.26.0",
+]
 analytics = [
   "duckdb>=1.0.0",
   "openpyxl>=3.1.0",
   "pyreadstat>=1.2.0",
   "pandas>=2.2.0",
+]
+ocr = [
+  "pytesseract>=0.3.10",
+  "Pillow>=10.0.0",
 ]
 
 [project.scripts]
@@ -115,6 +124,10 @@ keprix = "keprix.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"keprix.upgrade" = ["CHANGELOG.yaml"]
+"keprix.upstream" = ["hermes_inventory.yaml", "templates/adoption_prompt.md"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

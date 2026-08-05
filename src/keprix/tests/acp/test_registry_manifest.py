@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import re
-import tomllib
+from keprix.compat import tomllib
 from pathlib import Path
 import xml.etree.ElementTree as ET
 

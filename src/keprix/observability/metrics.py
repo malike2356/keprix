@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
@@ -13,6 +14,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from keprix.database import Base, get_session_factory
 
 RETENTION_DAYS = 90
+logger = logging.getLogger(__name__)
 
 
 class MetricEntry(Base):
@@ -28,6 +30,11 @@ class MetricEntry(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
     )
+
+
+def _is_missing_relation(exc: BaseException) -> bool:
+    text = str(exc).lower()
+    return "undefinedtable" in text or ("does not exist" in text and "metrics" in text)
 
 
 class MetricsStore:
@@ -50,21 +57,33 @@ class MetricsStore:
             metric_value=Decimal(str(metric_value)),
             tags=tags or {},
         )
-        async with factory() as session:
-            session.add(entry)
-            await session.commit()
+        try:
+            async with factory() as session:
+                session.add(entry)
+                await session.commit()
+        except Exception as exc:
+            if _is_missing_relation(exc):
+                logger.warning("metrics table missing; skipped record (%s)", exc)
+                return
+            raise
 
     async def prune_old(self) -> int:
         factory = get_session_factory()
         if factory is None:
             return 0
         cutoff = datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)
-        async with factory() as session:
-            result = await session.execute(
-                delete(MetricEntry).where(MetricEntry.recorded_at < cutoff)
-            )
-            await session.commit()
-            return int(result.rowcount or 0)
+        try:
+            async with factory() as session:
+                result = await session.execute(
+                    delete(MetricEntry).where(MetricEntry.recorded_at < cutoff)
+                )
+                await session.commit()
+                return int(result.rowcount or 0)
+        except Exception as exc:
+            if _is_missing_relation(exc):
+                logger.warning("metrics table missing; skipped prune (%s)", exc)
+                return 0
+            raise
 
     async def sum_by_day(
         self,
@@ -77,25 +96,31 @@ class MetricsStore:
         if factory is None:
             return []
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
-        async with factory() as session:
-            day_expr = func.date_trunc("day", MetricEntry.recorded_at).label("day")
-            query = (
-                select(
-                    day_expr,
-                    func.sum(MetricEntry.metric_value).label("total"),
+        try:
+            async with factory() as session:
+                day_expr = func.date_trunc("day", MetricEntry.recorded_at).label("day")
+                query = (
+                    select(
+                        day_expr,
+                        func.sum(MetricEntry.metric_value).label("total"),
+                    )
+                    .where(MetricEntry.metric_type == metric_type)
+                    .where(MetricEntry.recorded_at >= cutoff)
+                    .group_by(day_expr)
+                    .order_by(day_expr)
                 )
-                .where(MetricEntry.metric_type == metric_type)
-                .where(MetricEntry.recorded_at >= cutoff)
-                .group_by(day_expr)
-                .order_by(day_expr)
-            )
-            if user_id:
-                query = query.where(MetricEntry.user_id == user_id)
-            rows = (await session.execute(query)).all()
-            return [
-                {"date": row.day.date().isoformat(), "total": float(row.total or 0)}
-                for row in rows
-            ]
+                if user_id:
+                    query = query.where(MetricEntry.user_id == user_id)
+                rows = (await session.execute(query)).all()
+                return [
+                    {"date": row.day.date().isoformat(), "total": float(row.total or 0)}
+                    for row in rows
+                ]
+        except Exception as exc:
+            if _is_missing_relation(exc):
+                logger.warning("metrics table missing; sum_by_day empty (%s)", exc)
+                return []
+            raise
 
     async def breakdown(
         self,
@@ -108,39 +133,51 @@ class MetricsStore:
         if factory is None:
             return []
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
-        async with factory() as session:
-            query = (
-                select(
-                    MetricEntry.metric_name.label("name"),
-                    func.count().label("count"),
-                    func.sum(MetricEntry.metric_value).label("total"),
+        try:
+            async with factory() as session:
+                query = (
+                    select(
+                        MetricEntry.metric_name.label("name"),
+                        func.count().label("count"),
+                        func.sum(MetricEntry.metric_value).label("total"),
+                    )
+                    .where(MetricEntry.metric_type == metric_type)
+                    .where(MetricEntry.recorded_at >= cutoff)
+                    .group_by(MetricEntry.metric_name)
+                    .order_by(func.sum(MetricEntry.metric_value).desc())
                 )
-                .where(MetricEntry.metric_type == metric_type)
-                .where(MetricEntry.recorded_at >= cutoff)
-                .group_by(MetricEntry.metric_name)
-                .order_by(func.sum(MetricEntry.metric_value).desc())
-            )
-            if user_id:
-                query = query.where(MetricEntry.user_id == user_id)
-            rows = (await session.execute(query)).all()
-            return [
-                {"name": row.name, "count": int(row.count), "total": float(row.total or 0)}
-                for row in rows
-            ]
+                if user_id:
+                    query = query.where(MetricEntry.user_id == user_id)
+                rows = (await session.execute(query)).all()
+                return [
+                    {"name": row.name, "count": int(row.count), "total": float(row.total or 0)}
+                    for row in rows
+                ]
+        except Exception as exc:
+            if _is_missing_relation(exc):
+                logger.warning("metrics table missing; breakdown empty (%s)", exc)
+                return []
+            raise
 
     async def rate_limit_events(self, days: int = 30) -> list[dict[str, Any]]:
         factory = get_session_factory()
         if factory is None:
             return []
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
-        async with factory() as session:
-            rows = (
-                await session.execute(
-                    select(MetricEntry)
-                    .where(MetricEntry.metric_type == "provider_request")
-                    .where(MetricEntry.recorded_at >= cutoff)
-                )
-            ).scalars().all()
+        try:
+            async with factory() as session:
+                rows = (
+                    await session.execute(
+                        select(MetricEntry)
+                        .where(MetricEntry.metric_type == "provider_request")
+                        .where(MetricEntry.recorded_at >= cutoff)
+                    )
+                ).scalars().all()
+        except Exception as exc:
+            if _is_missing_relation(exc):
+                logger.warning("metrics table missing; rate_limit_events empty (%s)", exc)
+                return []
+            raise
         counts: dict[str, int] = {}
         for row in rows:
             if row.tags.get("rate_limited"):

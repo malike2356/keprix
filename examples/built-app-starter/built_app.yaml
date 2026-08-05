@@ -1,0 +1,18 @@
+id: starter
+label: Starter app
+description: Starter built app running inside the Keprix workspace shell.
+entry: /apps/starter
+icon: apps
+version: 0.1.0
+navigation:
+  style: sections
+  items:
+    - id: dashboard
+      label: Dashboard
+      href: /apps/starter
+    - id: reports
+      label: Reports
+      href: /apps/starter/reports
+    - id: settings
+      label: Settings
+      href: /apps/starter/settings

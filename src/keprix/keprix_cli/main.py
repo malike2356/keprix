@@ -316,6 +316,10 @@ from keprix_cli.subcommands.vault import build_vault_parser
 from keprix_cli.subcommands.integrations import build_integrations_parser
 from keprix_cli.subcommands.upstream import build_upstream_parser
 from keprix_cli.subcommands.scout import build_scout_parser
+from keprix_cli.subcommands.channel_shield import (
+    build_channel_shield_parser,
+    build_email_shield_parser,
+)
 from keprix_cli.subcommands.product import build_product_parser
 from keprix_cli.subcommands.ops import build_ops_parser
 from keprix_cli.subcommands.incident import build_incident_parser
@@ -339,6 +343,7 @@ from keprix_cli import vault_commands
 from keprix_cli import integrations_commands
 from keprix_cli import upstream_commands
 from keprix_cli import scout_commands
+from keprix_cli import channel_shield_commands
 from keprix_cli import product_commands
 from keprix_cli import ops_commands
 from keprix_cli import incident_commands
@@ -6580,7 +6585,7 @@ def _load_installable_optional_extras(group: str = "all") -> list[str]:
     ``termux-all`` (Termux-compatible broad install).
     """
     try:
-        import tomllib
+        from keprix.compat import tomllib
 
         with (PROJECT_ROOT / "pyproject.toml").open("rb") as handle:
             project = tomllib.load(handle).get("project", {})
@@ -7329,7 +7334,7 @@ def _verify_core_dependencies_installed(
     that caused it, instead of hours later in a downstream subprocess.
     """
     try:
-        import tomllib  # Python 3.11+
+        from keprix.compat import tomllib
     except ImportError:  # pragma: no cover — Python < 3.11 unsupported but be safe
         return
 
@@ -11930,6 +11935,15 @@ def main():
     build_scout_parser(
         subparsers,
         cmd_scout=scout_commands.cmd_scout,
+    )
+
+    build_channel_shield_parser(
+        subparsers,
+        cmd_channel_shield=channel_shield_commands.cmd_channel_shield,
+    )
+    build_email_shield_parser(
+        subparsers,
+        cmd_channel_shield=channel_shield_commands.cmd_channel_shield,
     )
 
     build_product_parser(

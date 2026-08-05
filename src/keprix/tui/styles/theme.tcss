@@ -3,6 +3,21 @@ Screen {
     color: #00FF41;
 }
 
+Screen.theme-keprix-matrix {
+    background: #000000;
+    color: #00FF41;
+}
+
+Screen.theme-focus-light {
+    background: #F7F9FB;
+    color: #17202A;
+}
+
+Screen.theme-operator-dark {
+    background: #101418;
+    color: #E7EEF6;
+}
+
 Header {
     background: #050505;
     color: #00FF41;
@@ -25,9 +40,31 @@ Footer {
     text-style: bold;
 }
 
+#sidebar-status {
+    height: auto;
+    padding: 0 1 1 1;
+    color: #00CC33;
+    border-bottom: dashed #003B00;
+}
+
+#sidebar-section {
+    height: 1;
+    padding: 0 1;
+    color: #00FF41;
+    text-style: bold;
+}
+
 #session-list {
     height: 1fr;
     background: #000000;
+}
+
+#sidebar-help {
+    height: auto;
+    max-height: 10;
+    padding: 1 1;
+    color: #008F11;
+    border-top: dashed #003B00;
 }
 
 ListItem {
@@ -57,7 +94,7 @@ ListItem.--highlight {
     color: #00FF41;
 }
 
-#message-log {
+#message-log, VirtualTranscript {
     height: 1fr;
     background: #000000;
     padding: 1 2;
@@ -96,6 +133,20 @@ ListItem.--highlight {
     width: 100%;
 }
 
+#slash-suggestions {
+    height: auto;
+    max-height: 16;
+    background: #000800;
+    border-top: solid #003B00;
+    padding: 0 2;
+    display: none;
+    color: #00CC33;
+}
+
+#slash-suggestions.visible {
+    display: block;
+}
+
 #input-bar {
     height: auto;
     min-height: 3;
@@ -117,6 +168,26 @@ ListItem.--highlight {
     padding: 0 1;
 }
 
+#prompt-command {
+    color: #00FF41;
+    background: #000800;
+    border: solid #003B00;
+    padding: 1 1;
+    margin-bottom: 1;
+}
+
+#prompt-choices {
+    color: #00CC33;
+    margin-bottom: 1;
+}
+
+#prompt-input {
+    background: #000800;
+    border: tall #003B00;
+    color: #00FF41;
+    margin-bottom: 1;
+}
+
 .user-line {
     color: #00FF41;
     text-style: bold;
@@ -132,4 +203,204 @@ ListItem.--highlight {
 
 .error-line {
     color: #FF0000;
+}
+
+.theme-focus-light #sidebar,
+.theme-focus-light Header,
+.theme-focus-light Footer,
+.theme-focus-light #status-bar {
+    background: #FFFFFF;
+    color: #17202A;
+}
+
+.theme-focus-light #sidebar {
+    border-right: solid #A7B4C2;
+}
+
+.theme-focus-light #sidebar-status,
+.theme-focus-light #sidebar-help {
+    color: #415466;
+}
+
+.theme-focus-light #sidebar-status {
+    border-bottom: dashed #A7B4C2;
+}
+
+.theme-focus-light #sidebar-help {
+    border-top: dashed #A7B4C2;
+}
+
+.theme-focus-light #sidebar-title,
+.theme-focus-light #sidebar-section,
+.theme-focus-light .user-line {
+    color: #005FCC;
+}
+
+.theme-focus-light #session-list,
+.theme-focus-light ListItem,
+.theme-focus-light #message-log,
+.theme-focus-light VirtualTranscript {
+    background: #F7F9FB;
+    color: #17202A;
+}
+
+.theme-focus-light ListItem:hover,
+.theme-focus-light ListItem.--highlight {
+    background: #D7E8FF;
+    color: #17202A;
+}
+
+.theme-focus-light #header,
+.theme-focus-light #workspace-cockpit {
+    background: #D7E8FF;
+    color: #17202A;
+    border: solid #A7B4C2;
+}
+
+.theme-focus-light #input-bar {
+    background: #D7E8FF;
+    color: #17202A;
+    border: tall #A7B4C2;
+}
+
+.theme-focus-light #thinking-panel {
+    background: #D7E8FF;
+    color: #17202A;
+    border-top: dashed #A7B4C2;
+}
+
+.theme-focus-light #stream-panel,
+.theme-focus-light #slash-suggestions,
+.theme-focus-light #runtime-timeline,
+.theme-focus-light #prompt-command,
+.theme-focus-light #prompt-input {
+    background: #EEF3F7;
+    color: #17202A;
+}
+
+.theme-focus-light #stream-panel,
+.theme-focus-light #slash-suggestions {
+    border-top: solid #A7B4C2;
+}
+
+.theme-focus-light #runtime-timeline,
+.theme-focus-light #prompt-command {
+    border: solid #A7B4C2;
+}
+
+.theme-focus-light #prompt-input {
+    border: tall #A7B4C2;
+}
+
+.theme-focus-light .agent-line,
+.theme-focus-light #prompt-choices {
+    color: #0B5CAD;
+}
+
+.theme-focus-light .system-line {
+    color: #415466;
+}
+
+.theme-focus-light .error-line {
+    color: #B42318;
+}
+
+.theme-operator-dark #sidebar,
+.theme-operator-dark Header,
+.theme-operator-dark Footer,
+.theme-operator-dark #status-bar {
+    background: #161C22;
+    color: #E7EEF6;
+}
+
+.theme-operator-dark #sidebar {
+    border-right: solid #47515C;
+}
+
+.theme-operator-dark #sidebar-status,
+.theme-operator-dark #sidebar-help {
+    color: #A9B6C3;
+}
+
+.theme-operator-dark #sidebar-status {
+    border-bottom: dashed #47515C;
+}
+
+.theme-operator-dark #sidebar-help {
+    border-top: dashed #47515C;
+}
+
+.theme-operator-dark #sidebar-title,
+.theme-operator-dark #sidebar-section,
+.theme-operator-dark .user-line {
+    color: #62D0FF;
+}
+
+.theme-operator-dark #session-list,
+.theme-operator-dark ListItem,
+.theme-operator-dark #message-log,
+.theme-operator-dark VirtualTranscript {
+    background: #101418;
+    color: #E7EEF6;
+}
+
+.theme-operator-dark ListItem:hover,
+.theme-operator-dark ListItem.--highlight {
+    background: #26384A;
+    color: #E7EEF6;
+}
+
+.theme-operator-dark #header,
+.theme-operator-dark #workspace-cockpit {
+    background: #26384A;
+    color: #E7EEF6;
+    border: solid #47515C;
+}
+
+.theme-operator-dark #input-bar {
+    background: #26384A;
+    color: #E7EEF6;
+    border: tall #47515C;
+}
+
+.theme-operator-dark #thinking-panel {
+    background: #26384A;
+    color: #E7EEF6;
+    border-top: dashed #47515C;
+}
+
+.theme-operator-dark #stream-panel,
+.theme-operator-dark #slash-suggestions,
+.theme-operator-dark #runtime-timeline,
+.theme-operator-dark #prompt-command,
+.theme-operator-dark #prompt-input {
+    background: #1E262E;
+    color: #E7EEF6;
+}
+
+.theme-operator-dark #stream-panel,
+.theme-operator-dark #slash-suggestions {
+    border-top: solid #47515C;
+}
+
+.theme-operator-dark #runtime-timeline,
+.theme-operator-dark #prompt-command {
+    border: solid #47515C;
+}
+
+.theme-operator-dark #prompt-input {
+    border: tall #47515C;
+}
+
+.theme-operator-dark .agent-line,
+.theme-operator-dark #prompt-choices {
+    color: #9CDCFE;
+}
+
+.theme-operator-dark .system-line {
+    color: #A9B6C3;
+}
+
+.theme-operator-dark .error-line {
+    color: #FF6B6B;
 }

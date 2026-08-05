@@ -23,6 +23,10 @@ from keprix.workspace.schemas import SessionRename
 
 from keprix.agent.keprix.chat_mutation_bridge import maybe_run_mutation_for_chat
 from keprix.api.chat_inference import list_available_models, stream_chat_completion
+from keprix.api.turn_registry import turn_registry
+from keprix.brain.activation_emitter import ActivationEventType, activation_emitter
+from keprix.security.rule_of_two import record_leg
+from keprix.security.prompt_guard_policy import analyze_prompt_turn
 
 router = APIRouter(tags=["conversations"])
 logger = logging.getLogger(__name__)
@@ -183,6 +187,18 @@ async def _stream_assistant_reply(
         yield {"event": "text_done"}
         return
     except Exception as exc:
+        from keprix.quotas.actor_enforcer import ActorQuotaExceeded
+
+        if isinstance(exc, ActorQuotaExceeded):
+            detail = exc.to_http_detail()
+            msg = (
+                f"Quota exceeded ({detail.get('reason')}). "
+                f"Remaining resets on the next {detail.get('period', 'period')} window. "
+                "Actor quotas are separate from managed AI billing credits."
+            )
+            yield {"event": "error", "content": msg, "code": 429, "quota": detail}
+            yield {"event": "text_done"}
+            return
         error_text = f"Chat inference failed: {exc}"
         for word in error_text.split(" "):
             yield {"event": "text_delta", "content": f"{word} "}
@@ -274,89 +290,198 @@ async def send_message(
     workspace_repo.append_message(user, session_id, user_message)
 
     async def event_stream() -> AsyncIterator[bytes]:
+        turn = turn_registry.register(session_id)
         blocks: list[dict[str, Any]] = []
         text_buffer = ""
+        prompt_decision = analyze_prompt_turn(body.content)
 
-        async for event in _stream_assistant_reply(
-            user_text=body.content,
-            model=body.model,
-            user_id=str(user.get("id") or user.get("username") or "web"),
-            history=history,
-            session_id=session_id,
-        ):
-            if event.get("event") == "text_delta":
-                text_buffer += str(event.get("content") or "")
-                yield (json.dumps(event) + "\n").encode("utf-8")
-                continue
+        try:
+            if prompt_decision.blocked:
+                yield (
+                    json.dumps(
+                        {
+                            "event": "error",
+                            "code": "prompt_guard_blocked",
+                            "content": "Prompt guard blocked this turn before model execution.",
+                            "patterns": prompt_decision.patterns,
+                            "confidence": prompt_decision.confidence,
+                        }
+                    )
+                    + "\n"
+                ).encode("utf-8")
+                return
 
-            if event.get("event") == "text_done" and text_buffer:
-                blocks.append({"type": "text", "content": text_buffer.strip()})
-                text_buffer = ""
-                yield (json.dumps(event) + "\n").encode("utf-8")
-                continue
-
-            if event.get("event") == "tool_call":
+            if prompt_decision.quarantined and prompt_decision.sanitized_text:
+                record_leg(session_id, untrusted_content=True, last_reason="prompt_guard_quarantine")
                 blocks.append(
                     {
-                        "type": "tool_call",
-                        "name": event["name"],
-                        "input": event.get("input") or {},
-                        "status": event.get("status") or "running",
+                        "type": "system",
+                        "content": (
+                            f"Prompt guard quarantined this turn. Patterns: {', '.join(prompt_decision.patterns) or 'none'}."
+                        ),
                     }
                 )
-                yield (json.dumps(event) + "\n").encode("utf-8")
-                continue
+                yield (
+                    json.dumps(
+                        {
+                            "event": "content_quarantined",
+                            "patterns": prompt_decision.patterns,
+                            "confidence": prompt_decision.confidence,
+                        }
+                    )
+                    + "\n"
+                ).encode("utf-8")
+                user_text = prompt_decision.sanitized_text
+            else:
+                record_leg(session_id, untrusted_content=False, last_reason="prompt_guard_clear")
+                user_text = body.content
 
-            if event.get("event") == "tool_call_update":
-                for block in reversed(blocks):
-                    if block.get("type") == "tool_call" and block.get("name") == event.get("name"):
-                        block["output"] = event.get("output")
-                        block["status"] = event.get("status") or "done"
-                        break
-                yield (json.dumps(event) + "\n").encode("utf-8")
-                continue
-
-            if event.get("event") == "code":
-                blocks.append(
-                    {
-                        "type": "code",
-                        "language": event.get("language") or "text",
-                        "content": event.get("content") or "",
-                    }
+            try:
+                await activation_emitter.emit(
+                    ActivationEventType.SESSION_LINKED,
+                    workspace_id=str(user.get("workspace_id") or "default"),
+                    session_id=session_id,
+                    node_kind="session",
+                    node_id=session_id,
+                    relation="active_session",
                 )
-                yield (json.dumps(event) + "\n").encode("utf-8")
-                continue
+            except Exception:
+                pass
+            async for event in _stream_assistant_reply(
+                user_text=user_text,
+                model=body.model,
+                user_id=str(user.get("id") or user.get("username") or "web"),
+                history=history,
+                session_id=session_id,
+            ):
+                if turn.cancel_event.is_set():
+                    break
+                if event.get("event") == "text_delta":
+                    text_buffer += str(event.get("content") or "")
+                    turn_registry.set_partial_chars(session_id, len(text_buffer))
+                    yield (json.dumps(event) + "\n").encode("utf-8")
+                    continue
 
-            if event.get("event") == "file":
-                blocks.append(
-                    {
-                        "type": "file",
-                        "path": event.get("path") or "",
-                        "action": event.get("action") or "created",
-                    }
-                )
-                yield (json.dumps(event) + "\n").encode("utf-8")
-                continue
+                if event.get("event") == "text_done" and text_buffer:
+                    blocks.append({"type": "text", "content": text_buffer.strip()})
+                    text_buffer = ""
+                    yield (json.dumps(event) + "\n").encode("utf-8")
+                    continue
 
-            if event.get("event") == "mutation":
-                blocks.append(
-                    {
-                        "type": "mutation",
-                        "id": event.get("id"),
-                        "toolName": event.get("toolName"),
-                        "approach": event.get("approach"),
-                        "code": event.get("code"),
-                        "skillYaml": event.get("skillYaml"),
-                        "sandboxResult": event.get("sandboxResult"),
-                        "sandboxExitCode": event.get("sandboxExitCode", 0),
-                        "sandboxStderr": event.get("sandboxStderr", ""),
-                        "status": event.get("status") or "pending",
-                    }
-                )
-                yield (json.dumps(event) + "\n").encode("utf-8")
-                continue
+                if event.get("event") == "tool_call":
+                    try:
+                        await activation_emitter.emit(
+                            ActivationEventType.TOOL_CALLED,
+                            workspace_id=str(user.get("workspace_id") or "default"),
+                            session_id=session_id,
+                            node_kind="tool",
+                            node_id=str(event.get("name") or "tool"),
+                            relation="called_in_session",
+                        )
+                    except Exception:
+                        pass
+                    blocks.append(
+                        {
+                            "type": "tool_call",
+                            "name": event["name"],
+                            "input": event.get("input") or {},
+                            "status": event.get("status") or "running",
+                        }
+                    )
+                    yield (json.dumps(event) + "\n").encode("utf-8")
+                    continue
 
-            yield (json.dumps(event) + "\n").encode("utf-8")
+                if event.get("event") in {"skill_selected", "skill_fired", "skill_action"}:
+                    skill_name = event.get("name") or event.get("skill") or event.get("slug") or event.get("skillName")
+                    try:
+                        await activation_emitter.emit(
+                            ActivationEventType.SKILL_FIRED if event.get("event") != "skill_selected" else ActivationEventType.SKILL_SELECTED,
+                            workspace_id=str(user.get("workspace_id") or "default"),
+                            session_id=session_id,
+                            node_kind="skill",
+                            node_id=str(skill_name or "skill"),
+                            relation=str(event.get("event")),
+                        )
+                    except Exception:
+                        pass
+                    yield (json.dumps(event) + "\n").encode("utf-8")
+                    continue
+
+                if event.get("event") == "tool_call_update":
+                    for block in reversed(blocks):
+                        if block.get("type") == "tool_call" and block.get("name") == event.get("name"):
+                            block["output"] = event.get("output")
+                            block["status"] = event.get("status") or "done"
+                            break
+                    yield (json.dumps(event) + "\n").encode("utf-8")
+                    continue
+
+                if event.get("event") == "code":
+                    blocks.append(
+                        {
+                            "type": "code",
+                            "language": event.get("language") or "text",
+                            "content": event.get("content") or "",
+                        }
+                    )
+                    yield (json.dumps(event) + "\n").encode("utf-8")
+                    continue
+
+                if event.get("event") == "file":
+                    blocks.append(
+                        {
+                            "type": "file",
+                            "path": event.get("path") or "",
+                            "action": event.get("action") or "created",
+                        }
+                    )
+                    yield (json.dumps(event) + "\n").encode("utf-8")
+                    continue
+
+                if event.get("event") == "mutation":
+                    blocks.append(
+                        {
+                            "type": "mutation",
+                            "id": event.get("id"),
+                            "toolName": event.get("toolName"),
+                            "approach": event.get("approach"),
+                            "code": event.get("code"),
+                            "skillYaml": event.get("skillYaml"),
+                            "sandboxResult": event.get("sandboxResult"),
+                            "sandboxExitCode": event.get("sandboxExitCode", 0),
+                            "sandboxStderr": event.get("sandboxStderr", ""),
+                            "status": event.get("status") or "pending",
+                        }
+                    )
+                    yield (json.dumps(event) + "\n").encode("utf-8")
+                    continue
+
+                if event.get("event") in {"clarify", "approval", "approval_resolved"}:
+                    yield (json.dumps(event) + "\n").encode("utf-8")
+                    continue
+
+                yield (json.dumps(event) + "\n").encode("utf-8")
+        finally:
+            turn_registry.unregister(session_id)
+
+        if text_buffer and not any(block.get("type") == "text" for block in blocks):
+            blocks.append({"type": "text", "content": text_buffer.strip()})
+
+        try:
+            from keprix.security.ai_hardening import detect_canary_leak, record_anomaly
+
+            for block in blocks:
+                if block.get("type") != "text":
+                    continue
+                content = str(block.get("content") or "")
+                if detect_canary_leak(content):
+                    record_anomaly("canary_leak_blocked")
+                    block["content"] = (
+                        "[Response withheld: integrity token leak detected. "
+                        "Please retry without requesting hidden system tokens.]"
+                    )
+        except Exception:
+            pass
 
         assistant_message = {
             "id": str(uuid.uuid4()),
@@ -365,6 +490,18 @@ async def send_message(
             "createdAt": _iso_now(),
         }
         workspace_repo.append_message(user, session_id, assistant_message)
+        try:
+            from keprix.vault.capture import capture_conversation
+
+            refreshed = workspace_repo.get_session(user, session_id)
+            await capture_conversation(
+                session_id=session_id,
+                messages=list(refreshed.get("messages") or []),
+                title=str(refreshed.get("title") or "") or None,
+                source="web",
+            )
+        except Exception:
+            logger.debug("vault auto-capture failed for session %s", session_id, exc_info=True)
         yield (json.dumps({"event": "message_done", "message": assistant_message}) + "\n").encode("utf-8")
 
     return StreamingResponse(event_stream(), media_type="application/x-ndjson")
@@ -455,7 +592,41 @@ async def upload_file(
 
 
 @router.post("/api/files/open")
-async def open_file(body: OpenFileBody, user: dict = Depends(get_current_user)) -> dict[str, str]:
+async def open_file(body: OpenFileBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
     if not _is_owner(user):
         raise HTTPException(status_code=403, detail="Owner access required")
-    return {"status": "queued", "path": body.path}
+    from pathlib import Path
+
+    path = Path(body.path).expanduser()
+    if not path.is_absolute():
+        try:
+            from keprix.auth.config import data_dir
+
+            path = Path(data_dir()) / path
+        except Exception:
+            path = Path.home() / ".keprix" / path
+    try:
+        path = path.resolve()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid path: {exc}") from exc
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    if not path.is_file():
+        raise HTTPException(status_code=400, detail="Path is not a file")
+    # Bound read for operator preview (not a full file server).
+    max_bytes = 256_000
+    data = path.read_bytes()[:max_bytes]
+    text: str | None
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError:
+        text = None
+    return {
+        "status": "opened",
+        "path": str(path),
+        "size": path.stat().st_size,
+        "preview_bytes": len(data),
+        "truncated": len(data) < path.stat().st_size,
+        "text": text,
+        "content_base64": None if text is not None else __import__("base64").b64encode(data).decode("ascii"),
+    }

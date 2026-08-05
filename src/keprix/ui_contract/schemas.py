@@ -11,6 +11,7 @@ class UiContractResponse(BaseModel):
     product: str = "Keprix"
     terminology_version: str = "1"
     navigation: dict[str, Any]
+    installed_apps: list[dict[str, Any]] = Field(default_factory=list)
     statuses: dict[str, dict[str, str]]
     actions: list[dict[str, Any]]
     approvals: dict[str, Any]

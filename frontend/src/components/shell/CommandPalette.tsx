@@ -14,6 +14,7 @@ import Fuse from "fuse.js";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import NavIcon from "@/components/ui/NavIcon";
+import { ceApi } from "@/lib/ce-api";
 import { launcherCards, navigationFromContract } from "@/lib/navigation";
 import type { UiContract } from "@/lib/ui-contract";
 
@@ -35,6 +36,26 @@ export default function CommandPalette({ open, onClose, contract }: CommandPalet
   const router = useRouter();
   const [query, setQuery] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const [actionPins, setActionPins] = React.useState<CommandItem[]>([]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    ceApi("/api/agent-os/board")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        const pins = payload?.config?.pins || [];
+        setActionPins(
+          pins.map((pin: { pin_id: string; label: string; id: string; type: string }) => ({
+            id: `run-action-${pin.pin_id}`,
+            label: `Run action: ${pin.label}`,
+            href: `/agent-os?run=${encodeURIComponent(pin.pin_id)}`,
+            description: `${pin.type}: ${pin.id}`,
+            icon: "playbook",
+          })),
+        );
+      })
+      .catch(() => setActionPins([]));
+  }, [open]);
 
   const allItems = React.useMemo(() => {
     const { items } = navigationFromContract(contract ?? null);
@@ -71,8 +92,8 @@ export default function CommandPalette({ open, onClose, contract }: CommandPalet
       });
     }
 
-    return commands;
-  }, [contract]);
+    return [...actionPins, ...commands];
+  }, [actionPins, contract]);
 
   const fuse = React.useMemo(
     () =>

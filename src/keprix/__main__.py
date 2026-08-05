@@ -5,6 +5,13 @@ from __future__ import annotations
 import sys
 
 
+def _print_version() -> int:
+    from keprix_cli import __release_date__, __version__
+
+    print(f"Keprix {__version__} ({__release_date__})")
+    return 0
+
+
 def _run_init(force: bool = False) -> int:
     from keprix.keys.developer_identity import create_developer_identity, get_identity_status
 
@@ -115,11 +122,14 @@ def _run_start(argv: list[str]) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in {"-V", "--version", "version"}:
+        return _print_version()
+
     if not argv:
         import fire
-        from keprix.cli import main as hermes_main
+        from keprix.cli import main as keprix_main
 
-        fire.Fire(hermes_main)
+        fire.Fire(keprix_main)
         return 0
 
     from keprix.installer.cli import INSTALLER_COMMANDS
@@ -153,10 +163,17 @@ def main(argv: list[str] | None = None) -> int:
 
         return run_tui(argv[1:])
 
-    import fire
-    from keprix.cli import main as hermes_main
+    if argv[0] == "upstream":
+        from keprix.keprix_cli.main import main as cli_main
 
-    fire.Fire(hermes_main)
+        sys.argv = [sys.argv[0], *argv]
+        cli_main()
+        return 0
+
+    import fire
+    from keprix.cli import main as keprix_main
+
+    fire.Fire(keprix_main)
     return 0
 
 

@@ -23,6 +23,7 @@ const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 type UsageTimeseriesChartProps = {
   data?: UsageTimeseriesPoint[];
   loading?: boolean;
+  onPointClick?: (date: string) => void;
 };
 
 type MetricMode = "tokens" | "cost";
@@ -39,7 +40,7 @@ function usePrefersReducedMotion(): boolean {
   return reduced;
 }
 
-export default function UsageTimeseriesChart({ data, loading }: UsageTimeseriesChartProps) {
+export default function UsageTimeseriesChart({ data, loading, onPointClick }: UsageTimeseriesChartProps) {
   const theme = useTheme();
   const reducedMotion = usePrefersReducedMotion();
   const [metric, setMetric] = React.useState<MetricMode>("tokens");
@@ -106,8 +107,13 @@ export default function UsageTimeseriesChart({ data, loading }: UsageTimeseriesC
               </TableRow>
             </TableHead>
             <TableBody>
-              {points.map((point) => (
-                <TableRow key={point.date}>
+                  {points.map((point) => (
+                <TableRow
+                  key={point.date}
+                  hover={Boolean(onPointClick)}
+                  sx={onPointClick ? { cursor: "pointer" } : undefined}
+                  onClick={() => onPointClick?.(point.date)}
+                >
                   <TableCell>{point.date}</TableCell>
                   <TableCell align="right">{formatTokenCount(point.total_tokens)}</TableCell>
                   <TableCell align="right">{formatUsdCost(point.total_cost_usd, "estimated")}</TableCell>
@@ -129,7 +135,18 @@ export default function UsageTimeseriesChart({ data, loading }: UsageTimeseriesC
             height={280}
             series={[{ name: seriesName, data: seriesData }]}
             options={{
-              chart: { toolbar: { show: false }, foreColor: theme.palette.text.secondary },
+              chart: {
+                toolbar: { show: false },
+                foreColor: theme.palette.text.secondary,
+                events: {
+                  dataPointSelection: (_event, _chartContext, config) => {
+                    const index = config.dataPointIndex;
+                    if (typeof index === "number" && points[index] && onPointClick) {
+                      onPointClick(points[index].date);
+                    }
+                  },
+                },
+              },
               colors: [theme.palette.primary.main],
               fill: { type: "gradient", gradient: { opacityFrom: 0.35, opacityTo: 0.05 } },
               dataLabels: { enabled: false },

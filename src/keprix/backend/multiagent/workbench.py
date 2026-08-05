@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import StrEnum
 from typing import Any
 
 from keprix.backend.multiagent.message import AgentMessage, MessageType
 from keprix.backend.multiagent.runtime import send_message
+
+from keprix.compat import StrEnum
 
 
 class ToolRisk(StrEnum):

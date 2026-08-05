@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
+from keprix.compat import UTC
 from pathlib import Path
 from typing import Any
 from uuid import uuid4

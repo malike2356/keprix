@@ -21,6 +21,8 @@ class RouteConfig:
     secret_ref: str
     type: str = "header"
     scheme: str | None = None
+    cache: Any = "none"
+    rotation: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -45,6 +47,8 @@ def _parse_route(raw: dict[str, Any]) -> RouteConfig:
         secret_ref=str(raw["secret_ref"]),
         type=str(raw.get("type", "header")),
         scheme=str(raw["scheme"]) if raw.get("scheme") else None,
+        cache=raw.get("cache", "none"),
+        rotation=raw.get("rotation", {}) if isinstance(raw.get("rotation", {}), dict) else {},
     )
 
 
@@ -81,6 +85,23 @@ def dump_proxy_config(config: ProxyConfig, path: Path | None = None) -> Path:
         lines.append(f'secret_ref = "{route.secret_ref}"')
         if route.scheme:
             lines.append(f'scheme = "{route.scheme}"')
+        if route.cache and route.cache != "none":
+            if isinstance(route.cache, dict):
+                ttl = route.cache.get("ttl")
+                if ttl:
+                    lines.append(f'cache = {{ ttl = "{ttl}" }}')
+            else:
+                lines.append(f'cache = "{route.cache}"')
+        if route.rotation:
+            schedule = route.rotation.get("schedule")
+            reminder = route.rotation.get("reminder")
+            parts = []
+            if schedule:
+                parts.append(f'schedule = "{schedule}"')
+            if reminder:
+                parts.append(f'reminder = "{reminder}"')
+            if parts:
+                lines.append(f"rotation = {{ {', '.join(parts)} }}")
         lines.append("")
     cfg_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
     return cfg_path

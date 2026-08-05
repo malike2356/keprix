@@ -2,6 +2,7 @@
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import { calendarEventHoverSx } from "@/components/calendar/calendar-motion";
 import {
   eventPosition,
   eventsForDay,
@@ -98,6 +99,7 @@ export default function CalendarWeekView({ anchor, events, onSelectEvent }: Cale
                         cursor: "pointer",
                         typography: "caption",
                         fontWeight: 600,
+                        ...calendarEventHoverSx,
                       }}
                     >
                       {event.title}
@@ -140,6 +142,7 @@ export default function CalendarWeekView({ anchor, events, onSelectEvent }: Cale
                         overflow: "hidden",
                         cursor: "pointer",
                         zIndex: 1,
+                        ...calendarEventHoverSx,
                       }}
                     >
                       <Typography variant="caption" sx={{ fontWeight: 700, display: "block" }} noWrap>

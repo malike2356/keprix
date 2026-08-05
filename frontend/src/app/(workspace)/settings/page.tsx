@@ -72,6 +72,18 @@ const cards: SettingsCard[] = [
     icon: <ExtensionIcon />,
   },
   {
+    title: "GitHub agent-sync",
+    description: "Shared durable memory with Fowler (Hermes), Carina, and Aiva. Configure token and sync from the GUI.",
+    href: "/settings/integrations/agent-sync",
+    icon: <BackupIcon />,
+  },
+  {
+    title: "Syncthing (Obsidian vault)",
+    description: "Vault-only folder sync with a one-writer rule. Keep memory/skills on agent-sync, not here.",
+    href: "/settings/integrations/syncthing",
+    icon: <BackupIcon />,
+  },
+  {
     title: "Backup",
     description: "Export and restore workspace data and configuration.",
     href: "/admin/backup",
@@ -97,7 +109,7 @@ const cards: SettingsCard[] = [
   },
   {
     title: "Voice input (STT)",
-    description: "Speech-to-text status for chat dictation; configured in config.yaml.",
+    description: "Enable speech-to-text, choose provider, set max recording, and manage API keys from the GUI.",
     href: "/settings/voice",
     icon: <MicIcon />,
   },
@@ -175,16 +187,9 @@ const cards: SettingsCard[] = [
   },
   {
     title: "LLM usage",
-    description: "Token consumption and estimated spend for your account.",
-    href: "/usage",
+    description: "Token consumption, estimated spend, budgets, and CSV/JSON export.",
+    href: "/data?tab=usage",
     icon: <SettingsIcon />,
-  },
-  {
-    title: "LLM usage and budgets",
-    description: "Monitor token spend, set monthly budgets, and export usage CSV.",
-    href: "/dashboard/usage",
-    icon: <SettingsIcon />,
-    adminOnly: true,
   },
   {
     title: "Web search",
@@ -192,6 +197,12 @@ const cards: SettingsCard[] = [
     href: "/settings/web-search",
     icon: <SettingsIcon />,
     adminOnly: true,
+  },
+  {
+    title: "Companies House",
+    description: "UK company search and profiles via the Companies House Public Data API.",
+    href: "/settings/companies-house",
+    icon: <SettingsIcon />,
   },
   {
     title: "Instance settings",

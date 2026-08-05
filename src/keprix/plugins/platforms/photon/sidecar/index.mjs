@@ -198,7 +198,7 @@ function clearConsumer(res) {
 // connected; if the write fails (consumer vanished mid-flight) we wait for a
 // new consumer and retry, so a message is never silently dropped here.
 async function deliver(line) {
-  for (;) {
+  while (true) {
     await waitForConsumer();
     const res = consumerRes;
     if (!res) continue;
@@ -319,7 +319,7 @@ async function normalizeEvent(space, message) {
 // always recovers (the adapter dedupes any catch-up replay).
 (async () => {
   let backoff = 1000;
-  for (;) {
+  while (true) {
     try {
       for await (const [space, message] of app.messages) {
         backoff = 1000; // healthy traffic; reset

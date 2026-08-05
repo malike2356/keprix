@@ -14,8 +14,11 @@ from keprix.ui_contract.schemas import UiContractResponse
 from keprix.ui_contract.statuses import STATUS_VOCABULARY
 from keprix.ui_contract.tables import TABLE_COLUMNS
 from keprix.api.stt_config import stt_enabled
+from keprix.built_apps.registry import list_installed_apps_summary
 from keprix.governance.config import get_governance_config
 from keprix.products.loader import get_product_feature_flags, load_products_config
+from keprix.agent_os.simplified_mode import get_simplified_mode
+from keprix.feature_flags.store import FeatureFlagStore
 
 
 def build_ui_contract(user: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -23,8 +26,19 @@ def build_ui_contract(user: dict[str, Any] | None = None) -> dict[str, Any]:
     username = str((user or {}).get("username") or "local")
     load_products_config()
     product_flags = get_product_feature_flags()
+    runtime_flags = {
+        "commerce": False,
+        "governance": bool(get_governance_config().get().get("enabled")),
+        "data_workspace": True,
+        "opportunity_engine": True,
+        "voice_input": stt_enabled(),
+        "simplified_mode": get_simplified_mode().simplified_mode,
+        **product_flags,
+    }
+    effective_flags = FeatureFlagStore().resolve(runtime_flags)
     payload = UiContractResponse(
-        navigation=navigation_for_role(role),
+        navigation=navigation_for_role(role, feature_flags=effective_flags),
+        installed_apps=list_installed_apps_summary(),
         statuses=STATUS_VOCABULARY,
         actions=ACTIONS,
         approvals=approval_card_template(),
@@ -44,13 +58,6 @@ def build_ui_contract(user: dict[str, Any] | None = None) -> dict[str, Any]:
             "user": username,
             "role": role,
         },
-        feature_flags={
-            "commerce": False,
-            "governance": bool(get_governance_config().get().get("enabled")),
-            "data_workspace": True,
-            "opportunity_engine": True,
-            "voice_input": stt_enabled(),
-            **product_flags,
-        },
+        feature_flags=effective_flags,
     )
     return payload.model_dump()

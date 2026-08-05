@@ -1,13 +1,13 @@
 ---
 name: productivity-integrations
-description: Route Notion and Trello work across MCP, RAG search, and curl skills.
+description: Route Notion, Trello, and n8n work across MCP, RAG search, and curl skills.
 version: 1.0.0
 author: keprix
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
   keprix:
-    tags: [Notion, Trello, Productivity, MCP, RAG, Routing]
+    tags: [Notion, Trello, n8n, Productivity, MCP, RAG, Routing]
     related_skills: [notion, trello]
 ---
 
@@ -42,6 +42,14 @@ Use the **RAG pipeline**, not live Notion MCP on every question:
 
 Trello has **no RAG connector**; use MCP or the `trello` skill for board data.
 
+### User wants to run or manage n8n workflows (live instance)
+
+1. **If the `n8n` MCP server is installed and enabled**, use `mcp_n8n_*` tools (list/export workflows, inspect executions, optional activate/deactivate if enabled at install).
+2. **Else** guide the operator to `/admin/mcp` → **n8n workflow bridge** → **Install n8n MCP**, or `keprix mcp install n8n` from the CLI. Docs: `/guide/integrations/n8n-sidecar/`.
+3. **One-time JSON → playbook migration** (not live control): `migrate from-n8n` CLI or `/migrate`; see migration doc `#from-n8n`. Do not confuse with the sidecar MCP.
+
+Load this skill when the user mentions "n8n workflow" without specifying import vs live control.
+
 ### User wants one-off read without MCP installed
 
 - **Notion:** load the **`notion`** skill; prefer `ntn api v1/pages/{id}/markdown` on macOS/Linux, else `curl` with `Notion-Version: 2025-09-03`.
@@ -60,8 +68,9 @@ Trello has **no RAG connector**; use MCP or the `trello` skill for board data.
 | `notion` | `mcp_notion_*` | HTTP OAuth (`https://mcp.notion.com/mcp`) |
 | `notion-token` | `mcp_notion_token_*` | stdio (`@notionhq/notion-mcp-server`) |
 | `trello` | `mcp_trello_*` | stdio (`@delorenj/mcp-server-trello`) |
+| `n8n` | `mcp_n8n_*` | stdio (keprix-n8n-mcp bridge) |
 
-List tools after connect: `/admin/mcp` **List tools**, or `keprix mcp tools trello`.
+List tools after connect: `/admin/mcp` **List tools**, or `keprix mcp tools trello` / `keprix mcp tools n8n`.
 
 ## Operator surfaces
 
@@ -77,4 +86,4 @@ List tools after connect: `/admin/mcp` **List tools**, or `keprix mcp tools trel
 - **`notion`**: Notion API + `ntn` CLI (pages, databases, markdown).
 - **`trello`**: Trello REST via `curl` (boards, lists, cards).
 
-Load this skill when the user mentions Notion or Trello but has not specified MCP vs search vs a one-off API call.
+Load this skill when the user mentions Notion, Trello, or n8n but has not specified MCP vs search vs a one-off API call.

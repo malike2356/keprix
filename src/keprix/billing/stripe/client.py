@@ -70,7 +70,7 @@ class StripeClient:
     async def create_product(self, *, name: str, metadata: dict[str, str]) -> dict[str, Any]:
         raise StripeError(
             "Creating Stripe products is forbidden. "
-            "Pin existing price IDs from verlox/.stripe-credentials-and-price-id.md."
+            "Pin existing price IDs from verlox/.access/.stripe-credentials-and-price-id.md."
         )
 
     async def create_price(
@@ -84,7 +84,7 @@ class StripeClient:
     ) -> dict[str, Any]:
         raise StripeError(
             "Creating Stripe prices is forbidden. "
-            "Choose an existing price_id from verlox/.stripe-credentials-and-price-id.md."
+            "Choose an existing price_id from verlox/.access/.stripe-credentials-and-price-id.md."
         )
 
     async def create_customer(self, *, email: str, metadata: dict[str, str]) -> dict[str, Any]:

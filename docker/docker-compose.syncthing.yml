@@ -1,0 +1,35 @@
+# Optional Syncthing sidecar for Obsidian vault sync.
+# Usage:
+#   COMPOSE_FILE=docker/docker-compose.yml:docker/docker-compose.syncthing.yml docker compose up -d
+#
+# Point Keprix Settings -> Syncthing at http://syncthing:8384 (from containers)
+# or http://127.0.0.1:8384 (from host GUI). Paste the API key from Syncthing Actions.
+#
+# ONE WRITER: vault only. Do not share github-agent-sync clone paths here.
+
+services:
+  syncthing:
+    image: syncthing/syncthing:latest
+    container_name: keprix-syncthing
+    restart: unless-stopped
+    hostname: keprix-syncthing
+    environment:
+      - PUID=${KEPRIX_UID:-1000}
+      - PGID=${KEPRIX_GID:-1000}
+    volumes:
+      # Syncthing config/database
+      - ${KEPRIX_HOST_DATA:-${HOME}/.keprix}/syncthing-home:/var/syncthing
+      # Obsidian vault (same bind as Keprix home vault/)
+      - ${KEPRIX_HOST_DATA:-${HOME}/.keprix}/vault:/var/syncthing/vault
+    ports:
+      - "${SYNCTHING_GUI_BIND:-127.0.0.1}:${SYNCTHING_GUI_PORT:-8384}:8384"
+      - "${SYNCTHING_SYNC_BIND:-0.0.0.0}:${SYNCTHING_SYNC_PORT:-22000}:22000/tcp"
+      - "${SYNCTHING_SYNC_BIND:-0.0.0.0}:${SYNCTHING_SYNC_PORT:-22000}:22000/udp"
+    networks:
+      - keprix_network
+    healthcheck:
+      test: ["CMD", "curl", "-fkLsS", "-m", "2", "http://127.0.0.1:8384/rest/noauth/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s

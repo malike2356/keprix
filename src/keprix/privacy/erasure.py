@@ -47,7 +47,7 @@ async def erase_user_data(user_id: str, *, scope: str = "full", dry_run: bool = 
     without modifying any data or writing an audit log entry.
     """
     store = ErasureStore()
-    removed: dict[str, int] = {"memories": 0, "research_jobs": 0}
+    removed: dict[str, int] = {"memories": 0, "research_jobs": 0, "leads": 0, "contacts": 0}
 
     if scope in {"full", "memories"}:
         try:
@@ -76,6 +76,41 @@ async def erase_user_data(user_id: str, *, scope: str = "full", dry_run: bool = 
                 for job in jobs:
                     await research.delete(job.id, user_id)
                     removed["research_jobs"] += 1
+        except Exception:
+            pass
+
+    if scope in {"full", "leads"}:
+        try:
+            from keprix.product_leads.store import get_lead_store
+
+            lead_store = get_lead_store()
+            leads = list(lead_store.list_leads(limit=1000))
+            # Remove leads owned by this user when stamped; otherwise skip mass wipe.
+            targets = [l for l in leads if l.get("owner_user_id") == user_id or l.get("user_id") == user_id]
+            if dry_run:
+                removed["leads"] = len(targets)
+            else:
+                for lead in targets:
+                    lead_store._leads.pop(lead["id"], None)  # noqa: SLF001
+                    removed["leads"] += 1
+                if targets:
+                    lead_store._save()  # noqa: SLF001
+        except Exception:
+            pass
+
+    if scope in {"full", "contacts"}:
+        try:
+            from keprix.contacts.store import get_contact_store
+
+            contacts = await get_contact_store().list_contacts(user_id=user_id, limit=1000)
+            if dry_run:
+                removed["contacts"] = len(contacts)
+            else:
+                store_c = get_contact_store()
+                for contact in contacts:
+                    if hasattr(store_c, "delete"):
+                        await store_c.delete(contact.id, user_id=user_id)
+                        removed["contacts"] += 1
         except Exception:
             pass
 

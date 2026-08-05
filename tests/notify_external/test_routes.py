@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from keprix.api.server import create_app
-from keprix.notify_external.store import reset_notify_external_store
+from keprix.notify_external.store import get_notify_external_store, reset_notify_external_store
 from keprix.notify_external.templates import sanitize_template_html
 from keprix.notify_external.webhook_sender import WebhookTargetRejected, validate_webhook_url, verify_webhook_signature
 
@@ -18,7 +18,12 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
     monkeypatch.setenv("AUTH_ENABLED", "false")
     reset_notify_external_store()
-    return TestClient(create_app())
+    app = create_app()
+    # create_app reloads project .env (AUTH_ENABLED=true); force off for route tests.
+    monkeypatch.setenv("AUTH_ENABLED", "false")
+    monkeypatch.setattr("keprix.auth.config.auth_enabled", lambda: False)
+    monkeypatch.setattr("keprix.auth.dependencies.auth_enabled", lambda: False)
+    return TestClient(app)
 
 
 def test_reject_http_webhook() -> None:
@@ -68,3 +73,107 @@ def test_list_templates(client) -> None:
     names = {row["name"] for row in response.json()["templates"]}
     assert "review_request" in names
     assert "pack_gate_pending" in names
+
+
+def test_test_email_returns_notification_id(client, monkeypatch) -> None:
+    store = get_notify_external_store()
+    store.save_config(
+        "default",
+        {
+            "smtp_host": "smtp.example.com",
+            "smtp_port": 587,
+            "smtp_username": "user",
+            "smtp_from_email": "noreply@example.com",
+        },
+    )
+
+    async def _resolve(cfg):
+        return "secret"
+
+    monkeypatch.setattr("keprix.notify_external.smtp_sender._resolve_smtp_password", _resolve)
+    monkeypatch.setattr("keprix.notify_external.smtp_sender._send_smtp_sync", lambda *a, **k: None)
+
+    response = client.post("/api/notify-external/test-email", json={"to_email": "ops@example.com"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["notification_id"]
+    assert body["status"] == "sent"
+    row = store.get_notification(body["notification_id"])
+    assert row is not None
+    assert row["status"] == "sent"
+
+
+def test_send_email_records_sent_with_mocked_smtp(client, monkeypatch) -> None:
+    store = get_notify_external_store()
+    store.save_config(
+        "default",
+        {
+            "smtp_host": "smtp.example.com",
+            "smtp_username": "user",
+            "smtp_from_email": "noreply@example.com",
+        },
+    )
+
+    async def _resolve(cfg):
+        return "secret"
+
+    monkeypatch.setattr("keprix.notify_external.smtp_sender._resolve_smtp_password", _resolve)
+    monkeypatch.setattr("keprix.notify_external.smtp_sender._send_smtp_sync", lambda *a, **k: None)
+
+    response = client.post(
+        "/api/notify-external/send",
+        json={
+            "channel": "email",
+            "recipient_address": "auditor@example.com",
+            "subject": "Hello",
+            "body_text": "World",
+        },
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "sent"
+
+
+def test_rate_limit_returns_429(client, monkeypatch) -> None:
+    store = get_notify_external_store()
+    monkeypatch.setattr(store, "check_rate_limit", lambda *a, **k: False)
+    response = client.post(
+        "/api/notify-external/send",
+        json={
+            "channel": "email",
+            "recipient_address": "auditor@example.com",
+            "subject": "Hello",
+            "body_text": "World",
+        },
+    )
+    assert response.status_code == 429
+
+
+def test_retry_failed_notification(client, monkeypatch) -> None:
+    store = get_notify_external_store()
+    store.save_config("default", {"smtp_host": "smtp.example.com", "max_retries": 3})
+    row = store.create_notification(
+        "default",
+        {
+            "channel": "email",
+            "recipient_address": "ops@example.com",
+            "subject": "Retry me",
+            "body_text": "please",
+            "status": "failed",
+            "attempts": 1,
+            "last_attempted_at": "2000-01-01T00:00:00+00:00",
+        },
+    )
+    # create_notification overwrites status to pending by default via fields merge
+    store.update_notification(row["id"], {"status": "failed", "attempts": 1})
+
+    async def _resolve(cfg):
+        return "secret"
+
+    monkeypatch.setattr("keprix.notify_external.smtp_sender._resolve_smtp_password", _resolve)
+    monkeypatch.setattr("keprix.notify_external.smtp_sender._send_smtp_sync", lambda *a, **k: None)
+
+    response = client.post(f"/api/notify-external/notifications/{row['id']}/retry")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == "sent"
+    assert body["retried"] is True

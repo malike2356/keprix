@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+import base64
+import hashlib
+import json
+import os
 import secrets
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
@@ -31,6 +36,55 @@ def _message_preview(message: dict[str, Any]) -> str:
     return ""
 
 
+def _calendar_store_path() -> Path:
+    try:
+        from keprix.auth.config import data_dir
+
+        root = Path(data_dir())
+    except Exception:
+        root = Path(os.environ.get("KEPRIX_DATA_DIR") or Path.home() / ".keprix")
+    path = root / "workspace" / "calendar_store.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def _fernet():
+    from cryptography.fernet import Fernet
+
+    raw = (
+        os.environ.get("KEPRIX_VAULT_KEY")
+        or os.environ.get("KEPRIX_SESSION_SECRET")
+        or os.environ.get("SESSION_SECRET")
+        or "keprix-local-calendar-secret"
+    )
+    digest = hashlib.sha256(raw.encode("utf-8")).digest()
+    key = base64.urlsafe_b64encode(digest)
+    return Fernet(key)
+
+
+def _encrypt_secret(value: str) -> str:
+    return _fernet().encrypt(value.encode("utf-8")).decode("utf-8")
+
+
+def _decrypt_secret(token: str) -> str:
+    return _fernet().decrypt(token.encode("utf-8")).decode("utf-8")
+
+
+def _json_default(value: Any) -> Any:
+    if isinstance(value, datetime):
+        return value.isoformat()
+    raise TypeError(f"Not serializable: {type(value)}")
+
+
+def _parse_dt_value(value: Any) -> Any:
+    if isinstance(value, str) and "T" in value:
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return value
+    return value
+
+
 class WorkspaceRepository:
     def __init__(self) -> None:
         self.documents: dict[str, dict[str, Any]] = {}
@@ -44,6 +98,38 @@ class WorkspaceRepository:
         self.profiles: dict[str, dict[str, Any]] = {}
         self.prefs: dict[str, dict[str, Any]] = {}
         self.active_presets: dict[str, str] = {}
+        self._load_calendar_store()
+
+    def _load_calendar_store(self) -> None:
+        path = _calendar_store_path()
+        if not path.exists():
+            return
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return
+        for event_id, event in (payload.get("events") or {}).items():
+            row = dict(event)
+            row["start_at"] = _parse_dt_value(row.get("start_at"))
+            row["end_at"] = _parse_dt_value(row.get("end_at"))
+            row["created_at"] = _parse_dt_value(row.get("created_at")) or _now()
+            row["updated_at"] = _parse_dt_value(row.get("updated_at")) or _now()
+            self.calendar_events[event_id] = row
+        for source_id, source in (payload.get("sources") or {}).items():
+            row = dict(source)
+            row["created_at"] = _parse_dt_value(row.get("created_at")) or _now()
+            row["last_sync_at"] = _parse_dt_value(row.get("last_sync_at"))
+            self.caldav_sources[source_id] = row
+
+    def _persist_calendar_store(self) -> None:
+        path = _calendar_store_path()
+        payload = {
+            "events": self.calendar_events,
+            "sources": self.caldav_sources,
+        }
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(payload, indent=2, default=_json_default), encoding="utf-8")
+        tmp.replace(path)
 
     # Documents
     def create_document(self, user: dict[str, Any], **fields: Any) -> dict[str, Any]:
@@ -58,6 +144,8 @@ class WorkspaceRepository:
             "tags": fields.get("tags") or [],
             "is_shared": False,
             "share_token": None,
+            "is_favorite": bool(fields.get("is_favorite", False)),
+            "folder": fields.get("folder") or "",
             "created_at": now,
             "updated_at": now,
         }
@@ -89,7 +177,7 @@ class WorkspaceRepository:
 
     def update_document(self, user: dict[str, Any], doc_id: str, **fields: Any) -> dict[str, Any]:
         doc = self.get_document(user, doc_id)
-        for key in ("title", "content", "format", "tags"):
+        for key in ("title", "content", "format", "tags", "is_favorite", "folder", "is_shared", "share_token"):
             if fields.get(key) is not None:
                 doc[key] = fields[key]
         doc["updated_at"] = _now()
@@ -231,6 +319,14 @@ class WorkspaceRepository:
         event_id = str(uuid4())
         uid = fields.get("uid") or f"keprix-{event_id}@local"
         now = _now()
+        tenant_id = fields.get("tenant_id")
+        if not tenant_id:
+            try:
+                from keprix.tenancy.isolation import current_tenant_id
+
+                tenant_id = current_tenant_id()
+            except Exception:
+                tenant_id = None
         event = {
             "id": event_id,
             "user_id": _user_key(user),
@@ -244,11 +340,45 @@ class WorkspaceRepository:
             "recurrence": fields.get("recurrence"),
             "reminders": fields.get("reminders") or [15],
             "caldav_source_id": fields.get("caldav_source_id"),
+            "external_readonly": bool(fields.get("external_readonly", False)),
+            "metadata": dict(fields.get("metadata") or {}),
+            "tenant_id": tenant_id,
             "created_at": now,
             "updated_at": now,
         }
         self.calendar_events[event_id] = event
+        self._persist_calendar_store()
         return event
+
+    def upsert_event_by_uid(self, user: dict[str, Any], *, caldav_source_id: str, **fields: Any) -> dict[str, Any]:
+        uid = str(fields.get("uid") or "").strip()
+        if not uid:
+            raise ValueError("uid is required")
+        user_id = _user_key(user)
+        for event in self.calendar_events.values():
+            if event.get("user_id") == user_id and event.get("uid") == uid:
+                for key in ("title", "description", "location", "start_at", "end_at", "all_day", "recurrence", "reminders"):
+                    if fields.get(key) is not None:
+                        event[key] = fields[key]
+                event["caldav_source_id"] = caldav_source_id
+                event["external_readonly"] = bool(fields.get("external_readonly", event.get("external_readonly", False)))
+                event["updated_at"] = _now()
+                self._persist_calendar_store()
+                return event
+        return self.create_event(
+            user,
+            uid=uid,
+            caldav_source_id=caldav_source_id,
+            external_readonly=fields.get("external_readonly", False),
+            title=fields["title"],
+            description=fields.get("description", ""),
+            location=fields.get("location", ""),
+            start_at=fields["start_at"],
+            end_at=fields["end_at"],
+            all_day=fields.get("all_day", False),
+            recurrence=fields.get("recurrence"),
+            reminders=fields.get("reminders") or [15],
+        )
 
     def list_events(
         self,
@@ -258,6 +388,18 @@ class WorkspaceRepository:
         end: datetime | None = None,
     ) -> list[dict[str, Any]]:
         rows = [event for event in self.calendar_events.values() if event["user_id"] == _user_key(user)]
+        try:
+            from keprix.tenancy.isolation import assert_tenant_owns, current_tenant_id, isolation_enabled
+
+            if isolation_enabled():
+                tid = current_tenant_id()
+                filtered = []
+                for event in rows:
+                    if event.get("tenant_id") in (None, tid):
+                        filtered.append(event)
+                rows = filtered
+        except Exception:
+            pass
         if start:
             rows = [event for event in rows if event["end_at"] >= start]
         if end:
@@ -269,36 +411,217 @@ class WorkspaceRepository:
         event = self.calendar_events.get(event_id)
         if not event or event["user_id"] != _user_key(user):
             raise NotFoundError(event_id)
+        try:
+            from keprix.tenancy.isolation import TenantIsolationError, assert_tenant_owns
+
+            assert_tenant_owns(event)
+        except TenantIsolationError as exc:
+            raise NotFoundError(event_id) from exc
         return event
 
     def update_event(self, user: dict[str, Any], event_id: str, **fields: Any) -> dict[str, Any]:
         event = self.get_event(user, event_id)
-        for key in ("title", "description", "location", "start_at", "end_at", "all_day", "recurrence", "reminders"):
-            if fields.get(key) is not None:
+        for key in (
+            "title",
+            "description",
+            "location",
+            "start_at",
+            "end_at",
+            "all_day",
+            "recurrence",
+            "reminders",
+            "caldav_source_id",
+            "uid",
+            "external_readonly",
+        ):
+            if key in fields and fields.get(key) is not None:
                 event[key] = fields[key]
+            elif key in fields and fields.get(key) is None and key in {"caldav_source_id", "recurrence"}:
+                event[key] = None
+        if fields.get("external_etag") is True:
+            event["external_synced_at"] = _now()
         event["updated_at"] = _now()
+        self._persist_calendar_store()
         return event
 
     def delete_event(self, user: dict[str, Any], event_id: str) -> None:
         self.get_event(user, event_id)
         self.calendar_events.pop(event_id, None)
+        self._persist_calendar_store()
 
     def add_caldav_source(self, user: dict[str, Any], **fields: Any) -> dict[str, Any]:
+        from keprix.workspace.calendar_sync_scheduler import clamp_sync_interval_minutes
+
         source_id = str(uuid4())
+        password = fields.get("password")
+        provider = str(fields.get("provider") or "caldav").lower()
+        url = str(fields.get("url") or "").strip()
+        username = str(fields.get("username") or "").strip()
+        if provider == "google" and username and not url:
+            from keprix.workspace.calendar_sync import default_google_caldav_url
+
+            url = default_google_caldav_url(username)
+        is_ics = provider == "ics"
+        default_direction = "pull" if is_ics else "bidirectional"
+        default_push = False if is_ics else bool(fields.get("push_local_events", True))
         source = {
             "id": source_id,
             "user_id": _user_key(user),
             "name": fields["name"],
-            "url": fields["url"],
-            "username": fields["username"],
+            "provider": provider,
+            "url": url,
+            "username": username,
             "vault_item_id": fields.get("vault_item_id"),
+            "password_encrypted": _encrypt_secret(password) if password else None,
+            "has_password": bool(password or fields.get("vault_item_id")),
+            "sync_direction": fields.get("sync_direction") or default_direction,
+            "calendar_href": fields.get("calendar_href"),
+            "calendar_name": fields.get("calendar_name"),
+            "push_local_events": False if is_ics else default_push,
+            "enabled": bool(fields.get("enabled", True)),
+            "auto_sync": bool(fields.get("auto_sync", True)),
+            "sync_interval_minutes": clamp_sync_interval_minutes(fields.get("sync_interval_minutes")),
+            "pull_past_days": int(fields.get("pull_past_days") or 90),
+            "pull_future_days": int(fields.get("pull_future_days") or 365),
+            "last_sync_at": None,
+            "last_sync_ok": None,
+            "last_sync_message": None,
             "created_at": _now(),
         }
+        if is_ics:
+            source["sync_direction"] = "pull"
         self.caldav_sources[source_id] = source
+        self._persist_calendar_store()
+        return self._public_source(source)
+
+    def update_caldav_source(self, user: dict[str, Any], source_id: str, **fields: Any) -> dict[str, Any]:
+        from keprix.workspace.calendar_sync_scheduler import clamp_sync_interval_minutes
+
+        source = self.get_caldav_source(user, source_id)
+        for key in (
+            "name",
+            "url",
+            "username",
+            "provider",
+            "sync_direction",
+            "calendar_href",
+            "calendar_name",
+            "push_local_events",
+            "enabled",
+            "auto_sync",
+            "pull_past_days",
+            "pull_future_days",
+            "vault_item_id",
+        ):
+            if key in fields and fields.get(key) is not None:
+                source[key] = fields[key]
+        if fields.get("sync_interval_minutes") is not None:
+            source["sync_interval_minutes"] = clamp_sync_interval_minutes(fields.get("sync_interval_minutes"))
+        if fields.get("password"):
+            source["password_encrypted"] = _encrypt_secret(str(fields["password"]))
+            source["has_password"] = True
+        if source.get("provider") == "google" and source.get("username") and not source.get("url"):
+            from keprix.workspace.calendar_sync import default_google_caldav_url
+
+            source["url"] = default_google_caldav_url(source["username"])
+        if source.get("provider") == "ics":
+            source["sync_direction"] = "pull"
+            source["push_local_events"] = False
+        self._persist_calendar_store()
+        return self._public_source(source)
+
+    def get_caldav_source(self, user: dict[str, Any], source_id: str) -> dict[str, Any]:
+        source = self.caldav_sources.get(source_id)
+        if not source or source["user_id"] != _user_key(user):
+            raise NotFoundError(source_id)
         return source
 
+    def delete_caldav_source(self, user: dict[str, Any], source_id: str, *, remove_events: bool = False) -> None:
+        self.get_caldav_source(user, source_id)
+        self.caldav_sources.pop(source_id, None)
+        if remove_events:
+            for event_id, event in list(self.calendar_events.items()):
+                if event.get("user_id") == _user_key(user) and event.get("caldav_source_id") == source_id:
+                    self.calendar_events.pop(event_id, None)
+        self._persist_calendar_store()
+
     def list_caldav_sources(self, user: dict[str, Any]) -> list[dict[str, Any]]:
-        return [source for source in self.caldav_sources.values() if source["user_id"] == _user_key(user)]
+        rows = [source for source in self.caldav_sources.values() if source["user_id"] == _user_key(user)]
+        rows.sort(key=lambda row: str(row.get("created_at") or ""))
+        return [self._public_source(row) for row in rows]
+
+    def list_due_caldav_sources(self) -> list[dict[str, Any]]:
+        from keprix.workspace.calendar_sync_scheduler import source_is_due
+
+        due = [source for source in self.caldav_sources.values() if source_is_due(source)]
+        due.sort(key=lambda row: str(row.get("last_sync_at") or ""))
+        return due
+
+    def get_source_password(self, source_id: str) -> str | None:
+        source = self.caldav_sources.get(source_id)
+        if not source:
+            return None
+        token = source.get("password_encrypted")
+        if not token:
+            return None
+        try:
+            return _decrypt_secret(token)
+        except Exception:
+            return None
+
+    def mark_source_synced(
+        self,
+        user: dict[str, Any],
+        source_id: str,
+        *,
+        ok: bool,
+        message: str | None = None,
+    ) -> dict[str, Any]:
+        source = self.get_caldav_source(user, source_id)
+        source["last_sync_at"] = _now()
+        source["last_sync_ok"] = bool(ok)
+        source["last_sync_message"] = message
+        self._persist_calendar_store()
+        return self._public_source(source)
+
+    def default_push_source(self, user: dict[str, Any]) -> dict[str, Any] | None:
+        for source in self.list_caldav_sources(user):
+            full = self.get_caldav_source(user, source["id"])
+            if full.get("enabled") is False:
+                continue
+            if full.get("provider") == "ics":
+                continue
+            if str(full.get("sync_direction") or "").lower() in {"push", "bidirectional"} and full.get("push_local_events"):
+                return full
+        return None
+
+    def _public_source(self, source: dict[str, Any]) -> dict[str, Any]:
+        from keprix.workspace.calendar_sync_scheduler import clamp_sync_interval_minutes, next_sync_at
+
+        nxt = next_sync_at(source)
+        return {
+            "id": source["id"],
+            "name": source.get("name"),
+            "provider": source.get("provider") or "caldav",
+            "url": source.get("url"),
+            "username": source.get("username"),
+            "vault_item_id": source.get("vault_item_id"),
+            "has_password": bool(source.get("has_password") or source.get("password_encrypted")),
+            "sync_direction": source.get("sync_direction") or "bidirectional",
+            "calendar_href": source.get("calendar_href"),
+            "calendar_name": source.get("calendar_name"),
+            "push_local_events": bool(source.get("push_local_events", False)),
+            "enabled": source.get("enabled", True),
+            "auto_sync": source.get("auto_sync", True),
+            "sync_interval_minutes": clamp_sync_interval_minutes(source.get("sync_interval_minutes")),
+            "pull_past_days": source.get("pull_past_days", 90),
+            "pull_future_days": source.get("pull_future_days", 365),
+            "last_sync_at": source.get("last_sync_at"),
+            "last_sync_ok": source.get("last_sync_ok"),
+            "last_sync_message": source.get("last_sync_message"),
+            "next_sync_at": nxt.isoformat() if nxt else None,
+            "created_at": source.get("created_at"),
+        }
 
     # Sessions
     def create_session(self, user: dict[str, Any], title: str, messages: list | None = None) -> dict[str, Any]:

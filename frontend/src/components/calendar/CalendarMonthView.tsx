@@ -3,6 +3,7 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import CalendarEventChip from "@/components/calendar/CalendarEventChip";
+import { calendarDayHoverSx, calendarDayNumberSx } from "@/components/calendar/calendar-motion";
 import {
   eventsForDay,
   getMonthGrid,
@@ -23,7 +24,7 @@ export default function CalendarMonthView({ anchor, events, onSelectEvent, onSel
   const cells = getMonthGrid(anchor);
 
   return (
-    <Box sx={{ border: 1, borderColor: "divider", borderRadius: 1, overflow: "hidden", bgcolor: "background.paper" }}>
+    <Box sx={{ border: 1, borderColor: "divider", borderRadius: 1, overflow: "visible", bgcolor: "background.paper" }}>
       <Box
         sx={{
           display: "grid",
@@ -59,9 +60,12 @@ export default function CalendarMonthView({ anchor, events, onSelectEvent, onSel
                 p: 0.75,
                 bgcolor: inMonth ? "background.paper" : "action.hover",
                 cursor: onSelectDay ? "pointer" : "default",
+                position: "relative",
+                ...calendarDayHoverSx,
               }}
             >
               <Typography
+                className="calendar-day-number"
                 variant="caption"
                 sx={{
                   display: "inline-flex",
@@ -74,6 +78,7 @@ export default function CalendarMonthView({ anchor, events, onSelectEvent, onSel
                   bgcolor: today ? "primary.main" : "transparent",
                   color: today ? "primary.contrastText" : inMonth ? "text.primary" : "text.secondary",
                   mb: 0.5,
+                  ...calendarDayNumberSx,
                 }}
               >
                 {day.getDate()}

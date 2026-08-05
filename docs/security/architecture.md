@@ -13,6 +13,18 @@ Keprix is designed for self-hosted deployment. The security model assumes you co
 | Audit evasion | Immutable append-only audit log, optional Scout export |
 | Data exfiltration | Egress control on skills/packs, network hosts allowlist |
 | Supply chain (packs) | Pack signatures, pack gate approval workflow |
+| Inbound malware / phishing | Channel Shield: intercept, immutable store, analyse, quarantine + safe summary |
+
+## Channel Shield
+
+Shared inbound protection across email, Slack, Teams, Telegram, WhatsApp, Discord, SMS, and web. See `docs/features/channel-shield.md`.
+
+Agent OS is a protected consumer: assistants and employee agents receive only `agentSafeContent` plus verdict/provenance. Raw evidence stays behind `rawEvidenceRef` ACLs. Ingress, memory, and outbound guards live in `src/keprix/channel_shield/agent_ingress.py`.
+
+- Fail-closed default for `malicious` and analysis `error`
+- Raw payloads encrypted at rest (`ENCRYPTION_KEY`)
+- Optional Scout signals/commands; gateway runs without Scout
+- Release of malicious messages and destroy require admin
 
 ## Authentication
 
@@ -66,10 +78,10 @@ In development, the stack is HTTP only. For production:
 
 1. Put a reverse proxy (Nginx, Caddy, Traefik) in front of port 3000 (frontend) and optionally 3333 (backend).
 2. Terminate TLS at the proxy. Redirect HTTP to HTTPS.
-3. Set `KEPRIX_TRUSTED_PROXIES` to the proxy IP if it forwards `X-Forwarded-For` headers.
-4. Use `NEXTAUTH_URL=https://your-domain.com` and `KEPRIX_ALLOWED_ORIGINS=https://your-domain.com`.
+3. Set `KEPRIX_TRUSTED_PROXIES` to the reverse-proxy peer CIDRs (for example `127.0.0.1,::1`). Forwarded headers are ignored unless the peer matches.
+4. Use `KEPRIX_INSTANCE_URL=https://your-domain.com` and `KEPRIX_ALLOWED_ORIGINS=https://your-domain.com`.
 
-See [Hardening](hardening.md) for a production nginx configuration template.
+See [Hardening](hardening.md) and [VPS deploy](../operations/vps-deploy.md) for Caddy/nginx templates under `deploy/`.
 
 ## Vault (secret storage)
 

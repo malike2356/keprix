@@ -34,6 +34,8 @@ jobs:
         run: uv run mypy src/keprix
       - name: Pytest
         run: uv run pytest tests/ -q
+      - name: Capability mesh soft gate
+        run: bash scripts/check-capability-mesh.sh
       - name: Dependency audit
         run: bash scripts/audit-deps.sh || true
 

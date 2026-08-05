@@ -19,7 +19,8 @@ import * as React from "react";
 import type { BillingInterval } from "@/components/billing/billing-types";
 import type { BillingPlan } from "@/lib/billing-api";
 import { formatFeatureValue, formatMoneyMinorUnits } from "@/lib/billing-format";
-import { KEPRIX_COLORS } from "@/theme/keprix-theme";
+import { getMarketingColors } from "@/components/marketing/marketing-section";
+import { useThemeMode } from "@/components/providers/ThemeRegistry";
 
 type SaasPricingPlansProps = {
   plans: BillingPlan[];
@@ -38,6 +39,8 @@ function isFreePlan(plan: BillingPlan): boolean {
 }
 
 export default function SaasPricingPlans({ plans, trialDays }: SaasPricingPlansProps) {
+  const { mode } = useThemeMode();
+  const c = getMarketingColors(mode);
   const [interval, setInterval] = React.useState<BillingInterval>("month");
   const hasPaidPrices = plans.some((plan) => plan.prices?.some((price) => price.amount > 0));
 
@@ -80,10 +83,10 @@ export default function SaasPricingPlans({ plans, trialDays }: SaasPricingPlansP
             <Card
               key={plan.id}
               sx={{
-                bgcolor: alpha(KEPRIX_COLORS.bgPaper, highlight ? 0.75 : 0.45),
+                bgcolor: alpha(c.bgPaper, highlight ? 0.75 : 0.45),
                 border: highlight
-                  ? `2px solid ${alpha(KEPRIX_COLORS.primary, 0.5)}`
-                  : `1px solid ${alpha(KEPRIX_COLORS.divider, 0.45)}`,
+                  ? `2px solid ${alpha(c.primary, 0.5)}`
+                  : `1px solid ${alpha(c.divider, 0.45)}`,
                 borderRadius: 3,
                 height: "100%",
               }}
@@ -96,22 +99,22 @@ export default function SaasPricingPlans({ plans, trialDays }: SaasPricingPlansP
                     sx={{
                       mb: 1.5,
                       alignSelf: "flex-start",
-                      bgcolor: alpha(KEPRIX_COLORS.primary, 0.15),
-                      color: KEPRIX_COLORS.primary,
+                      bgcolor: alpha(c.primary, 0.15),
+                      color: c.primary,
                       fontWeight: 700,
                     }}
                   />
                 ) : null}
-                <Typography sx={{ fontWeight: 800, fontSize: "1.35rem", color: KEPRIX_COLORS.textPrimary, mb: 0.5 }}>
+                <Typography sx={{ fontWeight: 800, fontSize: "1.35rem", color: c.textPrimary, mb: 0.5 }}>
                   {plan.name}
                 </Typography>
-                <Typography sx={{ color: KEPRIX_COLORS.textSecondary, fontSize: "0.9rem", mb: 2, minHeight: 40 }}>
+                <Typography sx={{ color: c.textSecondary, fontSize: "0.9rem", mb: 2, minHeight: 40 }}>
                   {plan.description}
                 </Typography>
-                <Typography sx={{ fontSize: "2.5rem", fontWeight: 800, color: KEPRIX_COLORS.textPrimary, lineHeight: 1 }}>
+                <Typography sx={{ fontSize: "2.5rem", fontWeight: 800, color: c.textPrimary, lineHeight: 1 }}>
                   {free ? "$0" : formatMoneyMinorUnits(price?.amount || 0, price?.currency || "gbp")}
                 </Typography>
-                <Typography sx={{ color: KEPRIX_COLORS.textSecondary, fontSize: "0.85rem", mb: 2 }}>
+                <Typography sx={{ color: c.textSecondary, fontSize: "0.85rem", mb: 2 }}>
                   {free ? "forever" : price?.interval ? `per ${price.interval}` : ""}
                 </Typography>
                 <Button
@@ -128,12 +131,12 @@ export default function SaasPricingPlans({ plans, trialDays }: SaasPricingPlansP
                   {features.map(([key, value]) => (
                     <ListItem key={key} disablePadding sx={{ mb: 0.35 }}>
                       <ListItemIcon sx={{ minWidth: 26 }}>
-                        <CheckIcon sx={{ color: KEPRIX_COLORS.success, fontSize: 16 }} />
+                        <CheckIcon sx={{ color: c.success, fontSize: 16 }} />
                       </ListItemIcon>
                       <ListItemText
                         primary={`${key.replace(/_/g, " ")}: ${formatFeatureValue(value)}`}
                         primaryTypographyProps={{
-                          sx: { fontSize: "0.8rem", color: KEPRIX_COLORS.textSecondary, textTransform: "capitalize" },
+                          sx: { fontSize: "0.8rem", color: c.textSecondary, textTransform: "capitalize" },
                         }}
                       />
                     </ListItem>

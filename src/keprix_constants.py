@@ -2,6 +2,8 @@
 from keprix.keprix_constants import *  # noqa: F401, F403
 from keprix.keprix_constants import (  # noqa: F401
     get_keprix_home,
+    get_legacy_hermes_home,
+    get_state_compatibility_report,
     get_keprix_home_override,
     set_keprix_home_override,
     reset_keprix_home_override,

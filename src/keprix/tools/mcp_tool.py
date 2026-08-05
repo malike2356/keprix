@@ -3308,9 +3308,16 @@ def _convert_mcp_schema(server_name: str, mcp_tool) -> dict:
     safe_tool_name = sanitize_mcp_name_component(mcp_tool.name)
     safe_server_name = sanitize_mcp_name_component(server_name)
     prefixed_name = f"mcp_{safe_server_name}_{safe_tool_name}"
+    raw_desc = mcp_tool.description or f"MCP tool {mcp_tool.name} from {server_name}"
+    try:
+        from agent.connector_router import tag_mcp_description
+
+        description = tag_mcp_description(raw_desc, server_name=server_name)
+    except Exception:
+        description = raw_desc
     return {
         "name": prefixed_name,
-        "description": mcp_tool.description or f"MCP tool {mcp_tool.name} from {server_name}",
+        "description": description,
         "parameters": _normalize_mcp_input_schema(getattr(mcp_tool, "inputSchema", None)),
     }
 

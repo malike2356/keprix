@@ -40,7 +40,7 @@ export KEPRIX_PRODUCTS_CONFIG=/path/to/products.yaml
 | `playbook_localization` | YAML under `config/playbook_localization/` |
 | `voice_categories` | YAML under `config/voice_categories/` |
 | `regulated_domains` | Domains requiring stricter localization review |
-| `feature_flags` | Merged into UI contract `feature_flags` |
+| `feature_flags` | Merged into UI contract `feature_flags` (progressive surfaces; see [Feature flags](../features/feature-flags.md)) |
 
 ## Extensions vs products
 

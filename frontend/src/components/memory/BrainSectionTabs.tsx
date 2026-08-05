@@ -2,7 +2,7 @@
 
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
-import Stack from "@mui/material/Stack";
+import Box from "@mui/material/Box";
 import Link from "next/link";
 
 type BrainSectionTabsProps = {
@@ -11,13 +11,36 @@ type BrainSectionTabsProps = {
 
 export default function BrainSectionTabs({ value }: BrainSectionTabsProps) {
   return (
-    <Stack direction="row" alignItems="center" spacing={1} sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}>
-      <Tabs value={value} sx={{ minHeight: 44 }} variant="scrollable" allowScrollButtonsMobile>
-        <Tab label="Graph" value="graph" component={Link} href="/brain/graph" sx={{ minHeight: 44 }} />
-        <Tab label="Galaxy" value="galaxy" component={Link} href="/memory/galaxy" sx={{ minHeight: 44 }} />
-        <Tab label="List" value="list" component={Link} href="/memory" sx={{ minHeight: 44 }} />
-        <Tab label="Health" value="health" component={Link} href="/brain/health" sx={{ minHeight: 44 }} />
+    <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 0 }}>
+      <Tabs
+        value={value}
+        variant="scrollable"
+        allowScrollButtonsMobile
+        sx={{
+          minHeight: 36,
+          "& .MuiTab-root": {
+            minHeight: 36,
+            textTransform: "none",
+            fontWeight: 500,
+            color: "text.secondary",
+            px: 1.25,
+            py: 0,
+          },
+          "& .Mui-selected": {
+            color: "text.primary",
+            fontWeight: 600,
+          },
+          "& .MuiTabs-indicator": {
+            height: 2,
+            borderRadius: 1,
+          },
+        }}
+      >
+        <Tab label="Graph" value="graph" component={Link} href="/brain/graph" />
+        <Tab label="Galaxy" value="galaxy" component={Link} href="/memory/galaxy" />
+        <Tab label="List" value="list" component={Link} href="/memory" />
+        <Tab label="Health" value="health" component={Link} href="/brain/health" />
       </Tabs>
-    </Stack>
+    </Box>
   );
 }

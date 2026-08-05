@@ -276,6 +276,7 @@ def workspace_user_row(user: dict[str, Any]) -> dict[str, Any]:
         "joined_at": user.get("created_at"),
         "last_active_at": user.get("last_login_at"),
         "source": "account",
+        "totp_enabled": user.get("totp_enabled", False),
     }
 
 

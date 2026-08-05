@@ -212,6 +212,63 @@ export default function AdminSettingsPage() {
                     onChange={(_, value) => setSettings({ ...settings, context_compression_threshold: value as number })}
                   />
                 </Box>
+                <Typography variant="subtitle2" sx={{ mt: 1 }}>
+                  Provider modules
+                </Typography>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={Boolean(settings.rtk_compression_enabled)}
+                      onChange={(e) => setSettings({ ...settings, rtk_compression_enabled: e.target.checked })}
+                    />
+                  }
+                  label="RTK token compression"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={Boolean(settings.caveman_compression_enabled)}
+                      onChange={(e) => setSettings({ ...settings, caveman_compression_enabled: e.target.checked })}
+                    />
+                  }
+                  label="Caveman compression"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.guardrails_pii_enabled !== false}
+                      onChange={(e) => setSettings({ ...settings, guardrails_pii_enabled: e.target.checked })}
+                    />
+                  }
+                  label="PII masking guardrail"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.guardrails_injection_enabled !== false}
+                      onChange={(e) => setSettings({ ...settings, guardrails_injection_enabled: e.target.checked })}
+                    />
+                  }
+                  label="Prompt injection guardrail"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={Boolean(settings.semantic_cache_enabled)}
+                      onChange={(e) => setSettings({ ...settings, semantic_cache_enabled: e.target.checked })}
+                    />
+                  }
+                  label="Semantic prompt cache"
+                />
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={Boolean(settings.combo_routing_enabled)}
+                      onChange={(e) => setSettings({ ...settings, combo_routing_enabled: e.target.checked })}
+                    />
+                  }
+                  label="Combo provider routing"
+                />
                 <FormControlLabel
                   control={
                     <Switch

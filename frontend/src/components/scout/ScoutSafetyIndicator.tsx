@@ -13,6 +13,7 @@ import { fetchGovernanceStatus } from "@/lib/governance-api";
 const ICON_COLORS: Record<string, string> = {
   loading: "text.secondary",
   unknown: "text.secondary",
+  self_governed: "info.main",
   ungoverned: "text.disabled",
   governed: "success.main",
   degraded: "warning.main",

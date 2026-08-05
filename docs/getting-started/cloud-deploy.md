@@ -1,29 +1,46 @@
 # Cloud deploy
 
-Deploy Keprix on a VPS with Docker Compose. Cloud bootstrap scripts (`bootstrap-aws-ec2.sh`, `bootstrap-do-droplet.sh`) are planned in Prompt 33.
+**Primary path:** [VPS deploy](../operations/vps-deploy.md) with Docker Compose + Caddy via `scripts/deploy-keprix-production.sh`.
 
-## Common pattern
+## Recommended
 
-1. Provision Ubuntu 24.04 with at least 4 GB RAM and 40 GB disk
-2. Install Docker and Compose
-3. Clone the repository and copy `.env`
-4. Set `BACKEND_BIND=0.0.0.0` and `FRONTEND_BIND=0.0.0.0` only behind a reverse proxy
-5. Run `docker compose -f docker/docker-compose.yml up -d --build`
-6. Terminate TLS at nginx or Caddy; proxy `/` to port 3000 and `/api` to 3333
+```bash
+bash scripts/generate-production-env.sh --domain https://app.example.com
+bash scripts/deploy-keprix-production.sh --bootstrap --domain app.example.com --skip-scout
+```
 
-## AWS EC2
-
-- Use a `t3.medium` or larger in your region
-- Open ports 80 and 443 on the security group only
-- Attach an elastic IP for stable DNS
-- Store secrets in SSM Parameter Store; inject into `.env` at boot
+Keep `BACKEND_BIND=127.0.0.1` and `FRONTEND_BIND=127.0.0.1`. TLS at Caddy (`deploy/Caddyfile` / template).
 
 ## DigitalOcean
 
-- Droplet with Docker marketplace image
-- Enable backups on the droplet volume
-- Use a managed database only if you split Postgres out of Compose
+```bash
+bash scripts/bootstrap-do-droplet.sh \
+  --domain app.example.com \
+  --email you@example.com \
+  --ssh-key "your-do-ssh-key-name" \
+  --ref v0.16.0
+```
+
+Requires a DO SSH key. Cloud-init installs Docker + Caddy from apt repos, clones a pinned ref, and runs the production path. It does **not** pipe `install.sh` from the network.
+
+## Fly.io (optional helper)
+
+Not one-click. Use `fly.fullstack.toml` after creating Postgres, Redis, volume, and secrets. See file header. Backend-only sketch: `fly.backend-only.toml`.
+
+```bash
+bash scripts/deploy-managed.sh fly
+```
+
+## Verified install
+
+See [Release signing](../security/release-signing.md). `install-curl.sh` blocks raw curl|bash by default.
+
+## Canary
+
+```bash
+bash scripts/deploy-keprix-production.sh --domain app.example.com --canary --tag v0.16.1 --skip-scout
+```
 
 ## Post-deploy
 
-Complete [First run](first-run.md), then review [Hardening](../security/hardening.md).
+[First run](first-run.md), [Hardening](../security/hardening.md).

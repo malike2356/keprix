@@ -1220,6 +1220,50 @@ def init_agent(
     # applies to ALL models, not just the model families enforcement
     # targets.
     agent._task_completion_guidance = bool(_agent_section.get("task_completion_guidance", True))
+    agent._layered_prompt = bool(_agent_section.get("layered_prompt", True))
+
+    # Skill-first execution gate (Prompt 292). Default on. When False, gated
+    # tools run without requiring skill_view. Profile: standard|strict|permissive.
+    agent._skill_first = bool(_agent_section.get("skill_first", True))
+    _sf_cfg = _agent_section.get("skill_first_config", {})
+    if not isinstance(_sf_cfg, dict):
+        _sf_cfg = {}
+    agent._skill_first_config = _sf_cfg
+    _sf_profile = _agent_section.get("skill_first_profile") or _sf_cfg.get("profile") or "standard"
+    agent._skill_first_profile = str(_sf_profile).strip().lower() or "standard"
+    agent._skill_first_gate = None
+
+    # Connector-first routing (Prompt 296). Prefer MCP/integrations over browser.
+    agent._connector_first = bool(_agent_section.get("connector_first", True))
+    agent._connector_first_force_browser = bool(
+        _agent_section.get("connector_first_force_browser", False)
+    )
+
+    # Persona AGENT_GUIDE enforcement (OpenMontage pattern).
+    agent._guide_enforce = bool(_agent_section.get("guide_enforce", True))
+    agent._active_persona = str(
+        _agent_section.get("active_persona")
+        or _agent_section.get("persona")
+        or "nexus"
+    ).strip().lower() or "nexus"
+    agent._guide_enforcer = None
+    if agent._guide_enforce:
+        try:
+            from keprix.agent.guide_enforcer import get_or_create_guide_enforcer
+
+            enforcer = get_or_create_guide_enforcer(agent, agent._active_persona)
+            enforcer.ensure_injected(agent)
+        except Exception:
+            pass
+
+    # Operator-owned policy kernel (Prompt 297): stamp profile onto agent so
+    # skill-first, safety dual-use, and connector gates share one SoT.
+    try:
+        from keprix.security.operator_policy import apply_operator_policy_to_agent
+
+        apply_operator_policy_to_agent(agent)
+    except Exception:
+        pass
 
     # Local Python toolchain probe toggle.  Default True.  When False,
     # the probe is skipped entirely (no subprocess calls, no system-prompt

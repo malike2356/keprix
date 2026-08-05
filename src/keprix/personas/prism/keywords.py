@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass, field
-from enum import StrEnum
+from keprix.compat import StrEnum
 from typing import Any
 
 from keprix.personas.prism.persona import PRISM_PERSONA

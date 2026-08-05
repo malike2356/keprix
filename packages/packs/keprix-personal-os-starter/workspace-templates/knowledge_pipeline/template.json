@@ -1,0 +1,5 @@
+{
+  "id": "knowledge_pipeline",
+  "folders": ["raw", "wiki", "outputs"],
+  "description": "Research inputs, structured knowledge, and deliverables."
+}

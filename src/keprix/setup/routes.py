@@ -11,8 +11,10 @@ from pydantic import BaseModel, Field
 from keprix.auth.dependencies import get_current_user, require_admin
 from keprix.security.vault_service import get_vault_service, reset_vault_service
 from keprix.setup.audit import get_setup_audit
+from keprix.setup.minimal import apply_minimal_setup, minimal_provider_catalog
 from keprix.setup.registry import get_catalog, get_item
 from keprix.setup.runtime_config import get_runtime_config
+from keprix.setup.status import setup_status_snapshot
 from keprix.setup.validation import validate_service
 from keprix.setup.wizard import is_setup_complete, mark_setup_complete, wizard_status
 
@@ -39,6 +41,13 @@ class WizardStep1Body(BaseModel):
 class WizardStep2Body(BaseModel):
     provider: str = Field(..., min_length=1)
     api_key: str = ""
+
+
+class MinimalSetupBody(BaseModel):
+    provider: str = Field(..., min_length=1)
+    api_key: str = ""
+    base_url: str = ""
+    model: str = ""
 
 
 @router.get("/wizard")
@@ -87,6 +96,12 @@ async def wizard_step(step: int, request: Request) -> dict[str, Any]:
                     enabled=True,
                     metadata={"label": item.name},
                 )
+                try:
+                    from keprix.agent_os.onboarding_events import record_onboarding_event
+
+                    record_onboarding_event("admin", "provider.connected")
+                except Exception:
+                    pass
             return {"ok": validation["ok"], "step": 2, "validation": validation}
         return {"ok": True, "step": 2, "skipped": True}
 
@@ -104,7 +119,23 @@ async def setup_catalog(_user: dict = Depends(get_current_user)) -> dict[str, An
 
 @router.get("/status")
 async def setup_status(_user: dict = Depends(get_current_user)) -> dict[str, Any]:
-    return {"services": get_runtime_config().status()}
+    payload = setup_status_snapshot()
+    payload["services"] = get_runtime_config().status()
+    payload["minimal_providers"] = minimal_provider_catalog()
+    return payload
+
+
+@router.post("/minimal")
+async def minimal_setup(body: MinimalSetupBody, _user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    try:
+        return apply_minimal_setup(
+            provider=body.provider,
+            api_key=body.api_key,
+            base_url=body.base_url,
+            model=body.model,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from None
 
 
 @router.post("/secure-input")

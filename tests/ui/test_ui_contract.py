@@ -59,6 +59,13 @@ def test_approval_card_fields_are_complete():
     assert set(APPROVAL_CARD_FIELDS).issubset(set(contract["approvals"]["fields"]))
 
 
+def test_installed_apps_contract_key_present():
+    contract = build_ui_contract({"role": "admin", "username": "admin"})
+    assert "installed_apps" in contract
+    assert isinstance(contract["installed_apps"], list)
+    assert any(group["id"] == "installed_apps" for group in contract["navigation"]["groups"])
+
+
 def test_web_and_mobile_share_action_names():
     web_ids = {action["id"] for action in ACTIONS if "web" in action["surface"]}
     mobile_ids = {action["id"] for action in ACTIONS if "mobile" in action["surface"]}

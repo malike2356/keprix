@@ -76,10 +76,33 @@ class UrlConnector(DocumentConnector):
         )
 
 
+class DiskPathConnector(DocumentConnector):
+    name = "disk"
+
+    async def load(self, **kwargs: Any) -> ConnectorDocument:
+        from keprix.documents.disk_paths import read_path_as_text, resolve_allowed_path
+
+        path = resolve_allowed_path(str(kwargs["path"]))
+        if not path.is_file():
+            raise ValueError("disk connector path must be a file")
+        title, text = read_path_as_text(path)
+        return ConnectorDocument(
+            filename=path.name,
+            source_type="disk",
+            text=text,
+            metadata={
+                "connector": self.name,
+                "path": str(path),
+                "title": title,
+            },
+        )
+
+
 _CONNECTORS: dict[str, DocumentConnector] = {
     "file": FileConnector(),
     "text": TextConnector(),
     "url": UrlConnector(),
+    "disk": DiskPathConnector(),
 }
 
 

@@ -61,9 +61,11 @@ nav:
   - Home: index.md
   - Getting started:
       - Quickstart: getting-started/quickstart.md
+      - Install Keprix: getting-started/install.md
       - Manual install: getting-started/manual-install.md
       - Cloud deploy: getting-started/cloud-deploy.md
       - First run: getting-started/first-run.md
+      - Credentials: getting-started/credentials.md
       - Authentication: getting-started/authentication.md
       - Developer mode: getting-started/developer-mode.md
       - Migration: features/migration.md
@@ -74,6 +76,7 @@ nav:
       - Developer identity: configuration/developer-identity.md
       - Localization: features/localization.md
   - Workspace:
+      - Full product map: features/full-product-map.md
       - Overview: features/workspace.md
       - Chat: features/chat.md
       - Terminal UI: features/tui.md
@@ -84,15 +87,23 @@ nav:
       - Email: features/email.md
       - Contacts: features/contacts.md
       - Gallery: features/gallery.md
+      - Brain graph: features/brain.md
       - Memory and RAG: features/memory.md
+      - GitHub agent-sync: features/agent-sync.md
+      - Syncthing Obsidian vault: features/syncthing.md
       - Voice: features/voice.md
+      - Aiva phone receptionist: voice/aiva-phone-receptionist.md
       - Settings: features/settings.md
+      - Billing: features/billing.md
+      - Feature flags: features/feature-flags.md
+      - Navigation and roles: features/navigation-and-roles.md
       - Notifications: features/notifications.md
       - Project builder: features/project-builder.md
   - Apps and research:
       - Skills and plugins: features/skills.md
       - Hub and domain packs: features/hub-and-packs.md
       - Built apps navigation: features/built-apps-navigation.md
+      - Design live preview: features/design-live-preview.md
       - Deep research: features/research.md
       - RAG pipelines: features/rag-pipelines.md
       - Compare models: features/compare-models.md
@@ -102,14 +113,41 @@ nav:
       - Opportunity examples: opportunity-engine-examples.md
       - Local models: features/local-models.md
       - Analytics workspace: features/analytics-workspace.md
+      - Video ingest: features/video-ingest.md
+      - Notebook research bridge: features/notebook-research-bridge.md
+      - Graphiti bridge: features/graphiti-bridge.md
+      - Obsidian vault starter pack: features/obsidian-vault-starter-pack.md
   - Developer platform: features/developer-platform.md
+  - Architecture:
+      - Core and product boundary: architecture/core-product-boundary.md
+      - TUI freeze and Hermes parity: architecture/tui-freeze-and-parity.md
+      - TUI Hermes behavior parity contract: architecture/tui-hermes-behavior-parity-contract.md
+      - TUI surpass Hermes contract: architecture/tui-surpass-hermes-contract.md
+      - Hermes to Keprix rename inventory: architecture/hermes-to-keprix-rename-inventory.md
+      - Upstream adoption policy: architecture/upstream-adoption-policy.md
+      - Keprix solidness report: architecture/keprix-solidness-report.md
+      - Keprix agent parity report: architecture/keprix-agent-parity-report.md
   - Automations:
       - Agent and Mutation Engine: features/agent.md
       - Agent runtime internals: features/agent-runtime.md
       - Self-coding agent: features/self-coding-agent.md
+      - Coding preflight gates: features/coding-preflight-gates.md
+      - Ponytail ladder: coding/ponytail-ladder.md
       - Playbooks: features/playbooks.md
+      - Agent OS overview: features/agent-os-overview.md
+      - Onboard interview skill: features/onboard-interview-skill.md
+      - Four C's maturity audit: features/four-cs-maturity-audit.md
+      - Level-up remediation: features/level-up-remediation.md
+      - Connections tier matrix: features/connections-tier-matrix.md
+      - Hot cache vault layer: features/hot-cache-vault-layer.md
+      - Agent OS Action Board: features/agent-os-action-board.md
+      - Agent OS client kit: features/agent-os-client-kit.md
+      - Agent OS run ledger: features/agent-os-run-ledger.md
+      - Personal OS starter pack: features/personal-os-starter-pack.md
       - Agent Studio: features/agent-studio.md
       - Agent Apps: features/agent-apps.md
+      - A2A: features/a2a.md
+      - Headless skill execution: skills/headless-execution.md
       - Agent teams: features/agent-teams.md
       - Cron jobs: features/cron-jobs.md
       - Built-in tools: features/tools.md
@@ -117,9 +155,15 @@ nav:
       - Evals: features/evals.md
   - Security:
       - Architecture: security/architecture.md
+      - Channel Shield: features/channel-shield.md
       - Privacy and data handling: security/privacy.md
       - Vault: security/vault.md
       - Credential proxy: security/credential-proxy.md
+      - Cordon integration: security/cordon-integration.md
+      - Proxy comparison: security/proxy-comparison.md
+      - Tool credential isolation: security/tool-credential-isolation.md
+      - Credential rotation: security/credential-rotation.md
+      - Vault migration: security/vault-migration.md
       - CE scope: security/scope.md
       - Governance: security/governance.md
       - Review gateway: security/review-gateway.md
@@ -127,7 +171,9 @@ nav:
       - Hardening: security/hardening.md
   - Integrations:
       - MCP: integrations/mcp.md
+      - AI service accounts: integrations/ai-service-accounts.md
       - Connector catalog: integrations/connector-catalog.md
+      - Google Workspace connector: integrations/google-workspace.md
       - Notion and Trello: integrations/productivity-notion-trello.md
       - n8n sidecar: integrations/n8n-sidecar.md
       - ACP: integrations/acp.md
@@ -137,8 +183,11 @@ nav:
       - Scout: integrations/scout.md
   - Operations:
       - Admin dashboard: operations/admin-dashboard.md
+      - Hermes upstream monitor: operations/upstream-monitor.md
+      - Readiness: operations/readiness.md
       - Changelog automation: operations/changelog-automation.md
       - Loading states (skeleton UI): frontend/loading-states.md
+      - Theme contrast: frontend/theme-contrast.md
       - Control center: features/control-center.md
       - Hot backup: operations/backup.md
       - Data planes: operations/data-planes.md
@@ -154,5 +203,6 @@ nav:
   - Reference:
       - REST API: reference/api.md
       - CLI: reference/cli.md
+      - TUI slash commands: reference/tui-slash.md
       - Changelog: reference/changelog.md
       - License: reference/license.md

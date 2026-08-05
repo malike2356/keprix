@@ -15,11 +15,11 @@ class EmailAccountCreate(BaseModel):
     imap_port: int = 993
     smtp_host: str
     smtp_port: int = 587
-    username: str
+    username: str = ""
     password: str
     use_tls: bool = True
-    use_starttls: bool = False
-    poll_interval_seconds: int = 60
+    use_starttls: bool = True
+    poll_interval_seconds: int = 300
 
 
 class EmailAccountUpdate(BaseModel):
@@ -51,8 +51,12 @@ class EmailAccountOut(BaseModel):
     use_starttls: bool
     poll_interval_seconds: int
     last_polled_at: datetime | None
+    next_sync_at: datetime | None = None
     is_active: bool
+    oauth_provider: str | None = None
     created_at: datetime
+
+    model_config = {"extra": "ignore"}
 
 
 class EmailOut(BaseModel):

@@ -13,13 +13,14 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import AddIcon from "@mui/icons-material/Add";
 import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import StartPlaybookDialog, { usePlaybookTemplates } from "@/components/playbooks/StartPlaybookDialog";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
-import { SkeletonTable } from "@/components/ui/loading";
+import { SkeletonBlock, SkeletonTable } from "@/components/ui/loading";
 import {
   fetchPlaybookRuns,
   type PlaybookGraphTemplate,
@@ -82,9 +83,17 @@ export default function PlaybooksPage() {
         title="Playbooks"
         description="Durable workflow graphs with checkpoints, interrupts, and resume."
         actions={
-          <Button variant="contained" startIcon={<PlayArrowIcon />} onClick={() => openStart()}>
-            Start run
-          </Button>
+          <>
+            <Button component={Link} href="/playbooks/triggers" variant="outlined">
+              Triggers
+            </Button>
+            <Button component={Link} href="/playbooks/studio/new" variant="outlined" startIcon={<AddIcon />}>
+              New in Studio
+            </Button>
+            <Button variant="contained" startIcon={<PlayArrowIcon />} onClick={() => openStart()}>
+              Start run
+            </Button>
+          </>
         }
       />
 
@@ -106,9 +115,11 @@ export default function PlaybooksPage() {
         }}
       >
         {templatesLoading ? (
-          <Typography variant="body2" color="text.secondary">
-            Loading templates...
-          </Typography>
+          <>
+            <SkeletonBlock height={140} />
+            <SkeletonBlock height={140} />
+            <SkeletonBlock height={140} />
+          </>
         ) : (
           templates.map((template) => (
             <TemplateCard key={template.graph_id} template={template} onStart={openStart} />

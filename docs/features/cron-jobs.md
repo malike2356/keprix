@@ -26,6 +26,7 @@ Routes under `/api/cron/*` (see [API reference](../reference/api.md)).
 
 ## Related
 
+- [Trigger builder](trigger-builder.md) (preferred for new schedule/event automations)
 - [Playbooks](playbooks.md)
 - [Admin dashboard](../operations/admin-dashboard.md)
 - [Notifications](notifications.md)

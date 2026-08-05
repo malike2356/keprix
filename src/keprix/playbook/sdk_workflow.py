@@ -6,15 +6,25 @@ import asyncio
 import uuid
 from typing import Any
 
+from keprix.playbook.expression_sandbox import (
+    ExpressionError,
+    build_expression_context,
+    evaluate_condition,
+    render_template,
+)
 from keprix.playbook.runtime import (
     END,
     PlaybookGraph,
     PlaybookRunner,
     playbook_registry,
 )
-from keprix.playbook.runtime.errors import PlaybookGraphError
+from keprix.playbook.runtime.errors import PlaybookGraphError, PlaybookRunError
 from keprix.playbook.runtime.interrupts import interrupt
 from keprix.playbook.runtime.state import PlaybookRun
+
+
+def _invalid_expression(message: str) -> PlaybookRunError:
+    return PlaybookRunError(f"invalid_expression: {message}")
 
 
 def _apply_patch(state: dict[str, Any], patch: dict[str, Any]) -> dict[str, Any]:
@@ -55,6 +65,7 @@ async def _run_step(
     state: dict[str, Any],
 ) -> dict[str, Any]:
     step_id = str(step.get("id") or "step")
+    context = build_expression_context(state)
 
     if step_type == "task":
         patch = dict(config.get("set") or {})
@@ -63,6 +74,43 @@ async def _run_step(
         if config.get("message"):
             patch[f"{step_id}_output"] = str(config["message"])
         return _apply_patch(state, patch)
+
+    if step_type == "agent_task":
+        prompt = render_template(str(config.get("prompt") or ""), context)
+        return _apply_patch(
+            state,
+            {
+                f"{step_id}_output": {
+                    "prompt": prompt,
+                    "tools": list(config.get("tools") or []),
+                    "status": "completed",
+                }
+            },
+        )
+
+    if step_type == "http":
+        url = render_template(str(config.get("url") or ""), context)
+        body = config.get("body")
+        if isinstance(body, str):
+            body = render_template(body, context)
+        method = str(config.get("method") or "GET").upper()
+        output = await _execute_http_step(
+            url=url,
+            method=method,
+            body=body,
+            headers=dict(config.get("headers") or {}),
+            mock_output=config.get("mock_output"),
+        )
+        return _apply_patch(state, {f"{step_id}_output": output})
+
+    if step_type == "condition":
+        expression = str(config.get("expression") or step.get("expression") or "false")
+        try:
+            result = evaluate_condition(expression, context)
+        except ExpressionError as exc:
+            raise _invalid_expression(str(exc)) from exc
+        branch = "true" if result else "false"
+        return _apply_patch(state, {f"{step_id}_branch": branch})
 
     if step_type == "branch":
         key = str(config.get("key") or "")
@@ -174,6 +222,57 @@ async def _run_step(
     raise PlaybookGraphError(f"Unsupported workflow step type '{step_type}'")
 
 
+async def _execute_http_step(
+    *,
+    url: str,
+    method: str,
+    body: Any,
+    headers: dict[str, Any],
+    mock_output: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if isinstance(mock_output, dict):
+        return dict(mock_output)
+    if not url:
+        raise PlaybookRunError("http step requires url")
+
+    try:
+        import httpx
+    except ImportError as exc:
+        raise PlaybookRunError(
+            "http step requires httpx; install httpx or provide config.mock_output for tests"
+        ) from exc
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.request(method, url, content=body, headers=headers)
+    return {
+        "status_code": response.status_code,
+        "headers": dict(response.headers),
+        "body": response.text,
+        "url": url,
+        "method": method,
+    }
+
+
+def _make_edge_condition(when: Any, branch_source: str):
+    when_text = str(when)
+
+    if when_text in {"true", "false"}:
+
+        def _branch_match(state: dict[str, Any], w: str = when_text, sid: str = branch_source) -> bool:
+            return state.get(f"{sid}_branch") == w
+
+        return _branch_match
+
+    def _expression_match(state: dict[str, Any], w: str = when_text) -> bool:
+        context = build_expression_context(state)
+        try:
+            return evaluate_condition(w, context)
+        except ExpressionError as exc:
+            raise _invalid_expression(str(exc)) from exc
+
+    return _expression_match
+
+
 def compile_workflow_spec(spec: dict[str, Any]) -> PlaybookGraph:
     graph_id = str(spec.get("graph_id") or "sdk-workflow")
     steps = list(spec.get("steps") or [])
@@ -188,7 +287,11 @@ def compile_workflow_spec(spec: dict[str, Any]) -> PlaybookGraph:
         step_id = str(step.get("id") or "")
         if not step_id:
             raise PlaybookGraphError("Each step requires an id")
-        graph.add_node(step_id, _make_step_handler(step))
+        graph.add_node(
+            step_id,
+            _make_step_handler(step),
+            metadata={"config": dict(step.get("config") or {})},
+        )
 
     if edges:
         for edge in edges:
@@ -200,13 +303,9 @@ def compile_workflow_spec(spec: dict[str, Any]) -> PlaybookGraph:
                 raise PlaybookGraphError(f"Unknown edge target '{target}'")
             condition = None
             if edge.get("when") is not None:
-                when = str(edge["when"])
+                when = edge["when"]
                 branch_source = source
-
-                def _condition(state: dict[str, Any], w: str = when, sid: str = branch_source) -> bool:
-                    return state.get(f"{sid}_branch") == w
-
-                condition = _condition
+                condition = _make_edge_condition(when, branch_source)
             graph.add_edge(source, target, condition=condition)
     else:
         ordered = [str(step["id"]) for step in steps]

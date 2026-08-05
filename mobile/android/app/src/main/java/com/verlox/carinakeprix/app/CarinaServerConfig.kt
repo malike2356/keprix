@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.verlox.carinakeprix.app
 
 import android.content.Context

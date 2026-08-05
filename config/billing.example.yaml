@@ -43,16 +43,16 @@ plans:
     name: "Pro"
     description: "For professionals"
     prices:
-      # Verlox SaaS Pro from verlox/.stripe-credentials-and-price-id.md; never create new Stripe prices.
+      # Pin your own Stripe price IDs here (from KEPRIX_STRIPE_CREDENTIALS_FILE). Never commit live secrets.
       - amount: 4900
         currency: "gbp"
         interval: "month"
-        stripe_price_id: "price_1Trhnm2WMXleLh8eevN9oBYd"
+        stripe_price_id: "price_YOUR_PRO_MONTH"
       - amount: 44900
         currency: "gbp"
         interval: "year"
         discount_text: "Save 24%"
-        stripe_price_id: "price_1Trhnl2WMXleLh8e9zAYG7F4"
+        stripe_price_id: "price_YOUR_PRO_YEAR"
     seats: 1
     metadata:
       highlight: true
@@ -82,12 +82,12 @@ plans:
       - amount: 12900
         currency: "gbp"
         interval: "month"
-        stripe_price_id: "price_1Trhnm2WMXleLh8etXFvF1VN"
+        stripe_price_id: "price_YOUR_TEAM_MONTH"
       - amount: 129000
         currency: "gbp"
         interval: "year"
         discount_text: "Save 17%"
-        stripe_price_id: "price_1Trhnm2WMXleLh8eYFIXHNDI"
+        stripe_price_id: "price_YOUR_TEAM_YEAR"
     seats: 10
     metadata:
       highlight: false
@@ -117,9 +117,9 @@ ai_wallet:
   trial_credits: 500
   trial_daily_cap_credits: 100
   topup_price_ids:
-    - "price_1TrhlN2WMXleLh8enqPqXHs5"
-    - "price_1Trhnl2WMXleLh8e2zddW2ET"
-    - "price_1Trho42WMXleLh8ekL7R7Vq7"
+    - "price_YOUR_TOPUP_5"
+    - "price_YOUR_TOPUP_10"
+    - "price_YOUR_TOPUP_20"
 
 addons:
   - id: "extra_seats"
@@ -129,7 +129,7 @@ addons:
     currency: "gbp"
     interval: "month"
     applies_to: ["team"]
-    stripe_price_id: "price_1Trhnn2WMXleLh8epAMAXzFJ"
+    stripe_price_id: "price_YOUR_EXTRA_SEATS_MONTH"
 
   - id: "sso"
     name: "Single Sign-On"
@@ -138,7 +138,7 @@ addons:
     currency: "gbp"
     interval: "month"
     applies_to: ["team"]
-    stripe_price_id: "price_1Trhno2WMXleLh8eoiU1Gasw"
+    stripe_price_id: "price_YOUR_SSO_MONTH"
 
 donations:
   - id: "coffee"
@@ -146,7 +146,7 @@ donations:
     description: "Optional open-amount donation from £1. Not compulsory."
     amount: 100
     currency: "gbp"
-    stripe_price_id: "price_1Tri9T2WMXleLh8eA6gCXHbk"
+    # stripe_price_id: optional legacy pin; open-amount coffee uses Checkout price_data
 
 tax:
   regions:

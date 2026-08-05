@@ -83,14 +83,14 @@ export function AdminHeader({ onMenuClick, onCommandPaletteOpen }: AdminHeaderPr
 
         <Breadcrumbs aria-label="breadcrumb" sx={{ display: { xs: "none", sm: "flex" } }}>
           <Link component={NextLink} underline="hover" color="inherit" href="/dashboard">
-            Admin
+            Admin console
           </Link>
           <Typography color="text.primary">{titleFromPath(pathname)}</Typography>
         </Breadcrumbs>
 
         <Button
           component={NextLink}
-          href="/launcher"
+          href="/home"
           size="small"
           variant="text"
           sx={{ display: { xs: "none", md: "inline-flex" }, ml: 1, flexShrink: 0 }}
@@ -139,7 +139,7 @@ export function AdminHeader({ onMenuClick, onCommandPaletteOpen }: AdminHeaderPr
           <MenuItem
             onClick={() => {
               setAnchorEl(null);
-              router.push("/launcher");
+              router.push("/home");
             }}
           >
             Workspace home

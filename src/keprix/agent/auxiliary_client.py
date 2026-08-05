@@ -45,10 +45,26 @@ import logging
 import os
 import threading
 import time
+from contextvars import ContextVar
 from pathlib import Path  # noqa: F401 — used by test mocks
 from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from urllib.parse import urlparse, parse_qs, urlunparse
+
+from keprix.registries.product_hooks import (
+    ManagedAiExhausted,
+    assert_managed_call_allowed,
+    debit_managed_call,
+    estimate_managed_message_tokens,
+    managed_usage_tokens_from_response,
+    sync_assert_managed_call_allowed,
+    sync_debit_managed_call,
+)
+
+_WALLET_DEBIT_CTX: ContextVar[dict[str, Any] | None] = ContextVar(
+    "keprix_wallet_debit_ctx",
+    default=None,
+)
 
 # NOTE: `from openai import OpenAI` is deliberately NOT at module top — the
 # openai SDK pulls a large type tree (~240 ms cold, including responses/*,
@@ -5162,7 +5178,45 @@ def _validate_llm_response(response: Any, task: str = None) -> Any:
             f"Expected object with .choices[0].message — check provider "
             f"adapter or custom endpoint compatibility."
         ) from exc
+    _maybe_debit_managed_wallet(response, task=task)
     return response
+
+
+def _maybe_debit_managed_wallet(response: Any, *, task: str | None = None) -> None:
+    """Best-effort managed-credit debit after a successful auxiliary call."""
+    ctx = _WALLET_DEBIT_CTX.get()
+    if not ctx:
+        return
+    try:
+        tin, tout = managed_usage_tokens_from_response(response)
+        if tin <= 0 and tout <= 0:
+            return
+        kwargs = {
+            "user_id": ctx.get("user_id"),
+            "model": ctx.get("model"),
+            "input_tokens": tin,
+            "output_tokens": tout,
+            "channel": f"auxiliary:{task or ctx.get('task') or 'call'}",
+            "user_supplied_api_key": bool(ctx.get("byok")),
+        }
+        if ctx.get("async"):
+            # Schedule debit without blocking the response path.
+            import asyncio
+
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(debit_managed_call(**kwargs))
+            except RuntimeError:
+                sync_debit_managed_call(**kwargs)
+        else:
+            sync_debit_managed_call(**kwargs)
+    except Exception:
+        logger.debug("managed wallet debit skipped", exc_info=True)
+    finally:
+        try:
+            _WALLET_DEBIT_CTX.set(None)
+        except Exception:
+            pass
 
 
 def call_llm(
@@ -5208,6 +5262,30 @@ def call_llm(
         task, provider, model, base_url, api_key)
     effective_extra_body = _get_task_extra_body(task)
     effective_extra_body.update(extra_body or {})
+
+    # Managed AI wallet: BYOK (explicit api_key) never debits; hosted managed gates spend.
+    _wallet_byok = bool(api_key and str(api_key).strip())
+    _wallet_token = None
+    try:
+        sync_assert_managed_call_allowed(
+            user_id=None,
+            model=resolved_model or model,
+            estimated_tokens=estimate_managed_message_tokens(messages),
+            user_supplied_api_key=_wallet_byok,
+        )
+        _wallet_token = _WALLET_DEBIT_CTX.set(
+            {
+                "byok": _wallet_byok,
+                "model": resolved_model or model,
+                "task": task,
+                "user_id": None,
+                "async": False,
+            }
+        )
+    except ManagedAiExhausted:
+        raise
+    except Exception:
+        _wallet_token = None
 
     if task == "vision":
         effective_provider, client, final_model = resolve_vision_provider_client(
@@ -5717,6 +5795,28 @@ async def async_call_llm(
         task, provider, model, base_url, api_key)
     effective_extra_body = _get_task_extra_body(task)
     effective_extra_body.update(extra_body or {})
+
+    _wallet_byok = bool(api_key and str(api_key).strip())
+    try:
+        await assert_managed_call_allowed(
+            user_id=None,
+            model=resolved_model or model,
+            estimated_tokens=estimate_managed_message_tokens(messages),
+            user_supplied_api_key=_wallet_byok,
+        )
+        _wallet_token = _WALLET_DEBIT_CTX.set(
+            {
+                "byok": _wallet_byok,
+                "model": resolved_model or model,
+                "task": task,
+                "user_id": None,
+                "async": True,
+            }
+        )
+    except ManagedAiExhausted:
+        raise
+    except Exception:
+        pass
 
     if task == "vision":
         effective_provider, client, final_model = resolve_vision_provider_client(

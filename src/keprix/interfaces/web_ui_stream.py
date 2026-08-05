@@ -10,6 +10,7 @@ from keprix.interfaces.web_ui_stream_events import (
     GatewayStreamEvent,
     ndjson_chat_event_to_gateway,
 )
+from keprix.api.turn_registry import turn_registry
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +47,8 @@ def _browser_tool_stream_mode(tool_name: str) -> str | None:
 
 
 async def _stream_slash_reply(*, message: str, user_id: str, trace_id: str, agent_id: str) -> AsyncIterator[GatewayStreamEvent]:
-    from keprix.interfaces.interface_registry import _web_ui_handler
-
+    # `_web_ui_handler` lives in this module; do not import it from interface_registry
+    # (that module imports us, and the symbol is not re-exported there).
     result = await _web_ui_handler(
         agent_id=agent_id,
         trace_id=trace_id,
@@ -164,9 +165,66 @@ async def _stream_agent_tool_loop(
             return
         loop.call_soon_threadsafe(queue.put_nowait, GatewayStreamEvent("text_delta", {"content": delta}))
 
-    def _tool_progress(event_type: str, tool_name: str, preview: str | None = None, args: Any = None) -> None:
+    def _tool_progress(
+        event_type: str,
+        tool_name: str | None = None,
+        preview: str | None = None,
+        args: Any = None,
+        **extra: Any,
+    ) -> None:
         normalized = str(event_type or "").lower()
         name = tool_name or "tool"
+        if normalized in {
+            "subagent.start",
+            "subagent.spawn_requested",
+            "subagent_spawn",
+        }:
+            label = str(preview or extra.get("goal") or name or "subagent")
+            loop.call_soon_threadsafe(
+                queue.put_nowait,
+                GatewayStreamEvent(
+                    "subagent_spawn",
+                    {
+                        "subagent_id": extra.get("subagent_id") or label,
+                        "label": label,
+                        "goal": extra.get("goal") or label,
+                    },
+                ),
+            )
+            return
+        if normalized in {"subagent.complete", "subagent_done"}:
+            label = str(preview or extra.get("goal") or name or "subagent")
+            loop.call_soon_threadsafe(
+                queue.put_nowait,
+                GatewayStreamEvent(
+                    "subagent_done",
+                    {
+                        "subagent_id": extra.get("subagent_id") or label,
+                        "label": label,
+                        "goal": extra.get("goal") or label,
+                        "status": extra.get("status") or "done",
+                        "cost_hint": extra.get("cost_hint") or "",
+                        "duration_seconds": extra.get("duration_seconds"),
+                    },
+                ),
+            )
+            return
+        if normalized in {"subagent.thinking", "subagent.progress", "subagent_progress"}:
+            message = str(preview or tool_name or "").strip()
+            if message:
+                loop.call_soon_threadsafe(
+                    queue.put_nowait,
+                    GatewayStreamEvent("activity", {"message": message}),
+                )
+            return
+        if normalized in {"reasoning.available", "_thinking"}:
+            message = str(preview or tool_name or "").strip()
+            if message:
+                loop.call_soon_threadsafe(
+                    queue.put_nowait,
+                    GatewayStreamEvent("activity", {"message": message[:120]}),
+                )
+            return
         if normalized in {"tool.started", "started", "tool_started", "start"}:
             tool_names[name] = name
             payload = dict(args) if isinstance(args, dict) else {}
@@ -188,15 +246,39 @@ async def _stream_agent_tool_loop(
                 ),
             )
 
+    def _emit_prompt(event: str, payload: dict[str, Any]) -> None:
+        loop.call_soon_threadsafe(
+            queue.put_nowait,
+            GatewayStreamEvent(event, payload),  # type: ignore[arg-type]
+        )
+
     def _worker() -> None:
+        agent = None
+        cleanup = None
         try:
             from run_agent import AIAgent
 
+            from keprix.api.web_ui_prompt_bridge import activate_web_ui_prompt_session
+            from keprix.keprix_cli.config import load_config
+            from keprix.keprix_cli.tools_config import _get_platform_tools
+
+            sid = session_id or "web-ui"
+            cleanup, clarify_callback = activate_web_ui_prompt_session(sid, _emit_prompt)
+            # Web UI uses the same tool scope as CLI (full workspace tools),
+            # including Companies House once it is in the core toolset map.
+            try:
+                enabled_toolsets = sorted(_get_platform_tools(load_config(), "cli"))
+            except Exception:
+                enabled_toolsets = None
             agent = AIAgent(
                 platform="web_ui",
-                session_id=session_id or "web-ui",
+                session_id=sid,
                 quiet_mode=True,
+                clarify_callback=clarify_callback,
+                enabled_toolsets=enabled_toolsets,
             )
+            if session_id:
+                turn_registry.attach_agent(session_id, agent)
             agent.stream_delta_callback = _stream_delta
             agent.tool_progress_callback = _tool_progress
             agent.run_conversation(
@@ -207,6 +289,10 @@ async def _stream_agent_tool_loop(
         except Exception as exc:
             loop.call_soon_threadsafe(queue.put_nowait, f"error:{exc}")
         finally:
+            if cleanup is not None:
+                cleanup()
+            if session_id:
+                turn_registry.detach_agent(session_id)
             loop.call_soon_threadsafe(queue.put_nowait, None)
 
     worker = loop.run_in_executor(None, _worker)

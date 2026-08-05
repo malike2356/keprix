@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "id": "daily_digest",
+  "name": "Daily digest",
+  "description": "Fetch and notify",
+  "entry": "trigger",
+  "nodes": [
+    {
+      "id": "trigger",
+      "type": "trigger",
+      "position": { "x": 80, "y": 120 },
+      "data": { "label": "Trigger" }
+    },
+    {
+      "id": "summarize",
+      "type": "agent_task",
+      "position": { "x": 320, "y": 120 },
+      "data": {
+        "label": "Summarize",
+        "prompt": "Summarize unread inbox threads",
+        "tools": ["email.search"]
+      }
+    },
+    {
+      "id": "notify",
+      "type": "http",
+      "position": { "x": 580, "y": 120 },
+      "data": {
+        "label": "Notify",
+        "url": "https://example.com/webhook",
+        "method": "POST",
+        "headers": { "content-type": "application/json" },
+        "body": "{\"text\":\"{{ steps.summarize.output }}\"}"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e_trigger_summarize",
+      "source": "trigger",
+      "target": "summarize",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "data": { "when": null }
+    },
+    {
+      "id": "e_summarize_notify",
+      "source": "summarize",
+      "target": "notify",
+      "sourceHandle": null,
+      "targetHandle": null,
+      "data": { "when": null }
+    }
+  ],
+  "viewport": { "x": 0, "y": 0, "zoom": 1 }
+}

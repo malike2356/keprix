@@ -118,7 +118,7 @@ export default function OnboardingPage() {
     }
 
     if (activeStep >= steps.length - 1) {
-      router.push("/launcher");
+      router.push("/home");
       return;
     }
     setActiveStep((prev) => prev + 1);
@@ -196,7 +196,7 @@ export default function OnboardingPage() {
           )}
           {activeStep === 5 && (
             <Typography variant="body1" color="text.secondary">
-              Setup complete. Open the launcher to start working.
+              Setup complete. Open the workspace home to start working.
             </Typography>
           )}
 
@@ -205,7 +205,7 @@ export default function OnboardingPage() {
               Back
             </Button>
             <Button variant="contained" disabled={busy} onClick={handleNext}>
-              {busy ? "Saving..." : activeStep === steps.length - 1 ? "Go to launcher" : "Continue"}
+              {busy ? "Saving..." : activeStep === steps.length - 1 ? "Go to workspace" : "Continue"}
             </Button>
           </Box>
         </CardContent>

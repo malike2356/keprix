@@ -3118,6 +3118,44 @@ class GatewaySlashCommandsMixin:
             lines.append("Complete your top-up in the browser — credits will appear in /credits shortly.")
         return "\n".join(lines)
 
+    async def _handle_billing_command(self, event: MessageEvent) -> str:
+        """Handle /billing: Keprix product billing, with Nous credits pointer.
+
+        Hermes 0.17 exposes /billing for Nous terminal billing. Keprix keeps
+        /credits for Nous spend and uses /billing for product plans/portal
+        (Stripe) so Telegram has the Hermes command name plus Keprix modules.
+        """
+        _ = event  # parity with other slash handlers; reserved for future args
+        lines: list[str] = ["**Keprix billing**"]
+        try:
+            from keprix.billing.config_loader import billing_enabled, load_billing_config
+            from keprix.billing.stripe.credentials import stripe_credentials_configured
+
+            cfg = load_billing_config()
+            if cfg is not None and billing_enabled():
+                lines.append(f"Product: {cfg.product.name} (`{cfg.product.id}`)")
+                plan_names = [plan.name for plan in cfg.plans[:12]]
+                lines.append(
+                    "Plans: " + (", ".join(plan_names) if plan_names else "(none configured)")
+                )
+                provider = "stripe" if stripe_credentials_configured() else "mock/unconfigured"
+                lines.append(f"Provider: {provider}")
+                if cfg.product.trial_days:
+                    lines.append(f"Trial days: {cfg.product.trial_days}")
+                lines.append("")
+                lines.append("Manage subscriptions in the Keprix web portal (Settings > Billing).")
+            else:
+                lines.append("Product billing is not enabled on this instance.")
+                lines.append(
+                    "Enable with `KEPRIX_BILLING_ENABLED=1` and a local `config/billing.yaml`."
+                )
+        except Exception as exc:
+            lines.append(f"Could not load product billing: {exc}")
+
+        lines.append("")
+        lines.append("For Nous terminal model credits, use `/credits`.")
+        return "\n".join(lines)
+
     async def _handle_usage_command(self, event: MessageEvent) -> str:
         """Handle /usage command -- show token usage for the current session.
 

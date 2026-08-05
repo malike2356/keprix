@@ -2,6 +2,11 @@
 
 Keprix can route outbound LLM and integration HTTP calls through a **local credential-injection proxy**. The agent keeps dummy API key env vars; the proxy fetches real secrets from an external vault at request time and injects them into outbound headers.
 
+Tool-level route declarations, startup validation, and the admin audit trail are documented in [Tool credential isolation](tool-credential-isolation.md).
+Hot key reload, TTL cache policy, and manual invalidation are documented in [Credential rotation](credential-rotation.md).
+Cordon compatibility and the external-vs-built-in decision matrix are documented in [Using Cordon with Keprix](cordon-integration.md) and [Cordon vs Keprix Proxy](proxy-comparison.md).
+Legacy vault migration and emergency fallback are documented in [Vault migration](vault-migration.md).
+
 ## Why
 
 Environment variables leak into logs, crash dumps, child processes, and `ps` output. The encrypted Keprix vault still loads secrets into agent memory on startup. The proxy keeps the security boundary outside the agent process.

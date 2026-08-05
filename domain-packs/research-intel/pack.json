@@ -1,0 +1,33 @@
+{
+  "domain_name": "research-intel",
+  "version": "0.1.0",
+  "jurisdictions": ["GB", "US"],
+  "common_tasks": [
+    "Summarize open-source intelligence notes",
+    "Draft a research brief checklist",
+    "Map leads to follow-up bookings"
+  ],
+  "playbooks": [
+    {"title": "Research intake", "href": "/playbooks/research-intake"}
+  ],
+  "disclaimers": [
+    "Informational only. Not legal, financial, or investigative advice."
+  ],
+  "limitations": [
+    "Does not replace licensed professional review.",
+    "Does not scrape or bypass source terms of use."
+  ],
+  "can_do": [
+    "Explain research workflow terms",
+    "Suggest checklists for briefs",
+    "Point at create_lead and vical tools"
+  ],
+  "cannot_do": [
+    "Guarantee source accuracy",
+    "Perform covert surveillance"
+  ],
+  "tool_permissions": ["filesystem:read"],
+  "localization_coverage": {"locales": ["en"], "fallback": "en", "voice_friendly": true},
+  "data_schemas": [],
+  "tests": ["tests/domain_packs/test_parity_packs.py"]
+}

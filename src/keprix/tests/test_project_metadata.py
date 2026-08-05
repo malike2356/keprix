@@ -1,9 +1,7 @@
 """Regression tests for packaging metadata in pyproject.toml."""
 
 from pathlib import Path
-import tomllib
-
-
+from keprix.compat import tomllib
 def _load_optional_dependencies():
     pyproject_path = Path(__file__).resolve().parents[1] / "pyproject.toml"
     with pyproject_path.open("rb") as handle:

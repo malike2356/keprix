@@ -4,7 +4,7 @@
   perSystem =
     { pkgs, lib, inputs', ... }:
     let
-      hermesAgent = pkgs.callPackage ./hermes-agent.nix {
+      keprixAgent = pkgs.callPackage ./keprix-agent.nix {
         inherit (inputs) uv2nix pyproject-nix pyproject-build-systems;
         npm-lockfile-fix = inputs'.npm-lockfile-fix.packages.default;
         # Only embed clean revs — dirtyRev doesn't represent any upstream
@@ -14,18 +14,18 @@
     in
     {
       packages = {
-        default = hermesAgent;
+        default = keprixAgent;
 
         # Ships discord.py + python-telegram-bot + slack-sdk so a plain
         # `nix profile install .#messaging` connects to Discord/Telegram/Slack
         # on first run — lazy-install can't write to the read-only /nix/store.
-        messaging = hermesAgent.override {
+        messaging = keprixAgent.override {
           extraDependencyGroups = [ "messaging" ];
         };
 
         # All platform-portable optional integrations pre-built.
         # matrix is Linux-only (oqs/liboqs lacks aarch64-darwin wheels).
-        full = hermesAgent.override {
+        full = keprixAgent.override {
           extraDependencyGroups = [
             "anthropic"
             "azure-identity"
@@ -47,11 +47,11 @@
           ] ++ lib.optionals pkgs.stdenv.isLinux [ "matrix" ];
         };
 
-        tui = hermesAgent.hermesTui;
-        web = hermesAgent.hermesWeb;
-        desktop = hermesAgent.hermesDesktop;
+        tui = keprixAgent.keprixTui;
+        web = keprixAgent.keprixWeb;
+        desktop = keprixAgent.keprixDesktop;
 
-        fix-lockfiles = hermesAgent.hermesNpmLib.mkFixLockfiles { attr = "tui"; };
+        fix-lockfiles = keprixAgent.keprixNpmLib.mkFixLockfiles { attr = "tui" };
       };
     };
 }

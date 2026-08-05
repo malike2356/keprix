@@ -1,6 +1,7 @@
 "use client";
 
 import AddIcon from "@mui/icons-material/Add";
+import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -10,18 +11,23 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
 import {
+  createPipeline,
   ingestNotionPipeline,
   ingestPipelineDocument,
+  ingestPipelinePath,
+  ingestPipelineUpload,
+  ingestPipelineUrl,
   listPipelineStores,
 } from "@/lib/rag-pipeline-api";
 
-type SourceType = "manual" | "notion";
+type SourceType = "manual" | "notion" | "file" | "vault" | "url";
 
 type Props = {
   pipelineId: string;
   onPipelineIdChange: (value: string) => void;
   onIngested?: () => void;
   initialSourceType?: SourceType;
+  defaultPipelineId?: string;
 };
 
 function parseIdList(raw: string): string[] {
@@ -36,6 +42,7 @@ export default function PipelineBuilder({
   onPipelineIdChange,
   onIngested,
   initialSourceType = "manual",
+  defaultPipelineId = "production-default",
 }: Props) {
   const [sourceType, setSourceType] = React.useState<SourceType>(initialSourceType);
   const [sourceId, setSourceId] = React.useState("handbook");
@@ -45,11 +52,14 @@ export default function PipelineBuilder({
   const [notionPageIds, setNotionPageIds] = React.useState("");
   const [notionDatabaseIds, setNotionDatabaseIds] = React.useState("");
   const [notionToken, setNotionToken] = React.useState("");
+  const [filePath, setFilePath] = React.useState("");
+  const [url, setUrl] = React.useState("");
   const [storeKind, setStoreKind] = React.useState("memory");
-  const [stores, setStores] = React.useState<Array<Record<string, string>>>([]);
+  const [stores, setStores] = React.useState<Array<Record<string, string | number>>>([]);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
+  const fileRef = React.useRef<HTMLInputElement | null>(null);
 
   React.useEffect(() => {
     setSourceType(initialSourceType);
@@ -58,22 +68,65 @@ export default function PipelineBuilder({
   React.useEffect(() => {
     listPipelineStores()
       .then((payload) => setStores(payload.stores || []))
-      .catch(() => setStores([{ kind: "memory", description: "In-memory test store" }]));
+      .catch(() => setStores([{ kind: "memory", description: "In-memory test store", run_count: 0 }]));
   }, []);
+
+  const finish = (text: string) => {
+    setMessage(text);
+    onIngested?.();
+  };
+
+  const onCreatePipeline = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await createPipeline(pipelineId, storeKind);
+      finish(`Pipeline ${pipelineId} ready (store ${storeKind}).`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not create pipeline");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const onIngest = async () => {
     setBusy(true);
     setError(null);
     setMessage(null);
     try {
-      const result = await ingestPipelineDocument({
-        pipeline_id: pipelineId,
-        source_id: sourceId,
-        content,
-        store_kind: storeKind,
-      });
-      setMessage(`Ingested ${result.run_id} (${result.trace?.length || 0} trace steps)`);
-      onIngested?.();
+      if (sourceType === "manual") {
+        const result = await ingestPipelineDocument({
+          pipeline_id: pipelineId,
+          source_id: sourceId,
+          content,
+          store_kind: storeKind,
+        });
+        finish(`Ingested ${result.run_id} (${result.trace?.length || 0} trace steps)`);
+      } else if (sourceType === "notion") {
+        const result = await ingestNotionPipeline({
+          pipeline_id: pipelineId,
+          store_kind: storeKind,
+          page_ids: parseIdList(notionPageIds),
+          database_ids: parseIdList(notionDatabaseIds),
+          token: notionToken.trim() || undefined,
+        });
+        finish(`Ingested ${result.documents_ingested} Notion document(s); last run ${result.run_id}`);
+      } else if (sourceType === "vault" || sourceType === "file") {
+        const result = await ingestPipelinePath({
+          path: filePath,
+          pipeline_id: pipelineId,
+          store_kind: storeKind,
+          vault_relative: sourceType === "vault",
+        });
+        finish(`Ingested path run ${result.run_id}`);
+      } else if (sourceType === "url") {
+        const result = await ingestPipelineUrl({
+          url,
+          pipeline_id: pipelineId,
+          store_kind: storeKind,
+        });
+        finish(`Ingested URL run ${result.run_id}`);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Ingest failed");
     } finally {
@@ -81,24 +134,18 @@ export default function PipelineBuilder({
     }
   };
 
-  const onIngestNotion = async () => {
+  const onUpload = async (file: File) => {
     setBusy(true);
     setError(null);
-    setMessage(null);
     try {
-      const result = await ingestNotionPipeline({
+      const result = await ingestPipelineUpload({
+        file,
         pipeline_id: pipelineId,
         store_kind: storeKind,
-        page_ids: parseIdList(notionPageIds),
-        database_ids: parseIdList(notionDatabaseIds),
-        token: notionToken.trim() || undefined,
       });
-      setMessage(
-        `Ingested ${result.documents_ingested} Notion document(s); last run ${result.run_id}`,
-      );
-      onIngested?.();
+      finish(`Uploaded and ingested ${result.run_id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Notion ingest failed");
+      setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setBusy(false);
     }
@@ -108,47 +155,27 @@ export default function PipelineBuilder({
     <Card variant="outlined">
       <CardContent>
         <Typography variant="h6" gutterBottom>
-          Pipeline builder
+          Pipelines and sources
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Default pipeline id is <strong>{defaultPipelineId}</strong> (env KEPRIX_RAG_DEFAULT_PIPELINE_ID).
         </Typography>
         <Box sx={{ display: "grid", gap: 2 }}>
-          <TextField
-            label="Pipeline ID"
-            value={pipelineId}
-            onChange={(e) => onPipelineIdChange(e.target.value)}
-            size="small"
+          <StackFields
+            pipelineId={pipelineId}
+            onPipelineIdChange={onPipelineIdChange}
+            sourceType={sourceType}
+            setSourceType={setSourceType}
+            storeKind={storeKind}
+            setStoreKind={setStoreKind}
+            stores={stores}
+            onCreatePipeline={onCreatePipeline}
+            busy={busy}
           />
-          <TextField
-            select
-            label="Source type"
-            value={sourceType}
-            onChange={(e) => setSourceType(e.target.value as SourceType)}
-            size="small"
-          >
-            <MenuItem value="manual">Manual text</MenuItem>
-            <MenuItem value="notion">Notion</MenuItem>
-          </TextField>
-          <TextField
-            select
-            label="Document store"
-            value={storeKind}
-            onChange={(e) => setStoreKind(e.target.value)}
-            size="small"
-          >
-            {(stores.length ? stores : [{ kind: "memory" }]).map((store) => (
-              <MenuItem key={store.kind} value={store.kind}>
-                {store.kind}
-                {store.description ? ` - ${store.description}` : ""}
-              </MenuItem>
-            ))}
-          </TextField>
+
           {sourceType === "manual" ? (
             <>
-              <TextField
-                label="Source ID"
-                value={sourceId}
-                onChange={(e) => setSourceId(e.target.value)}
-                size="small"
-              />
+              <TextField label="Source ID" value={sourceId} onChange={(e) => setSourceId(e.target.value)} size="small" />
               <TextField
                 label="Document content"
                 value={content}
@@ -157,11 +184,10 @@ export default function PipelineBuilder({
                 multiline
                 minRows={4}
               />
-              <Button variant="contained" startIcon={<AddIcon />} onClick={onIngest} disabled={busy}>
-                Ingest through pipeline
-              </Button>
             </>
-          ) : (
+          ) : null}
+
+          {sourceType === "notion" ? (
             <>
               <TextField
                 label="Page IDs"
@@ -170,8 +196,6 @@ export default function PipelineBuilder({
                 size="small"
                 multiline
                 minRows={2}
-                placeholder="Comma or newline separated Notion page IDs"
-                helperText="Optional when database IDs are set; leave blank to search the workspace"
               />
               <TextField
                 label="Database IDs"
@@ -180,7 +204,6 @@ export default function PipelineBuilder({
                 size="small"
                 multiline
                 minRows={2}
-                placeholder="Comma or newline separated data source / database IDs"
               />
               <TextField
                 label="Notion token (optional)"
@@ -188,30 +211,110 @@ export default function PipelineBuilder({
                 value={notionToken}
                 onChange={(e) => setNotionToken(e.target.value)}
                 size="small"
-                helperText="Leave blank to use KEPRIX_NOTION_TOKEN or NOTION_TOKEN from the environment"
               />
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={onIngestNotion}
-                disabled={busy}
-              >
-                Ingest from Notion
-              </Button>
             </>
-          )}
+          ) : null}
+
+          {sourceType === "file" || sourceType === "vault" ? (
+            <TextField
+              label={sourceType === "vault" ? "Vault-relative path" : "Absolute local path"}
+              value={filePath}
+              onChange={(e) => setFilePath(e.target.value)}
+              size="small"
+              placeholder={sourceType === "vault" ? "notes/handbook.md" : "/data/docs/handbook.md"}
+            />
+          ) : null}
+
+          {sourceType === "url" ? (
+            <TextField label="URL" value={url} onChange={(e) => setUrl(e.target.value)} size="small" />
+          ) : null}
+
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => void onIngest()} disabled={busy}>
+              Ingest
+            </Button>
+            <Button variant="outlined" disabled={busy} onClick={() => fileRef.current?.click()}>
+              Upload text/markdown file
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".txt,.md,.markdown,.csv"
+              hidden
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) void onUpload(file);
+                e.target.value = "";
+              }}
+            />
+          </Box>
         </Box>
         {error ? (
-          <Typography color="error" variant="body2" sx={{ mt: 2 }}>
+          <Alert severity="error" sx={{ mt: 2 }}>
             {error}
-          </Typography>
+          </Alert>
         ) : null}
         {message ? (
-          <Typography variant="body2" sx={{ mt: 2 }}>
+          <Alert severity="success" sx={{ mt: 2 }}>
             {message}
-          </Typography>
+          </Alert>
         ) : null}
       </CardContent>
     </Card>
+  );
+}
+
+function StackFields(props: {
+  pipelineId: string;
+  onPipelineIdChange: (v: string) => void;
+  sourceType: SourceType;
+  setSourceType: (v: SourceType) => void;
+  storeKind: string;
+  setStoreKind: (v: string) => void;
+  stores: Array<Record<string, string | number>>;
+  onCreatePipeline: () => void;
+  busy: boolean;
+}) {
+  return (
+    <>
+      <TextField
+        label="Pipeline ID"
+        value={props.pipelineId}
+        onChange={(e) => props.onPipelineIdChange(e.target.value)}
+        size="small"
+        helperText="Create or open a named pipeline id"
+      />
+      <Button size="small" variant="outlined" disabled={props.busy} onClick={props.onCreatePipeline}>
+        Create / open pipeline
+      </Button>
+      <TextField
+        select
+        label="Source type"
+        value={props.sourceType}
+        onChange={(e) => props.setSourceType(e.target.value as SourceType)}
+        size="small"
+      >
+        <MenuItem value="manual">Manual text</MenuItem>
+        <MenuItem value="notion">Notion</MenuItem>
+        <MenuItem value="file">Local path</MenuItem>
+        <MenuItem value="vault">Vault path</MenuItem>
+        <MenuItem value="url">URL</MenuItem>
+      </TextField>
+      <TextField
+        select
+        label="Document store"
+        value={props.storeKind}
+        onChange={(e) => props.setStoreKind(e.target.value)}
+        size="small"
+      >
+        {(props.stores.length ? props.stores : [{ kind: "memory" }]).map((store) => (
+          <MenuItem key={String(store.kind)} value={String(store.kind)}>
+            {String(store.kind)}
+            {store.description ? ` - ${store.description}` : ""}
+            {store.run_count != null ? ` (${store.run_count} runs)` : ""}
+          </MenuItem>
+        ))}
+      </TextField>
+    </>
   );
 }

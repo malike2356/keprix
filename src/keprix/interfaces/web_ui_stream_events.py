@@ -14,10 +14,16 @@ GatewayStreamEventName = Literal[
     "text_done",
     "tool_call",
     "tool_call_update",
+    "subagent_spawn",
+    "subagent_done",
+    "activity",
     "mutation",
     "error",
     "done",
     "tool_not_found",
+    "clarify",
+    "approval",
+    "approval_resolved",
 ]
 
 
@@ -49,6 +55,27 @@ def map_gateway_event_to_ndjson(event: GatewayStreamEvent) -> dict[str, Any]:
             "output": payload.get("output"),
             "status": payload.get("status") or "done",
         }
+    if name == "subagent_spawn":
+        return {
+            "event": "subagent_spawn",
+            "subagent_id": payload.get("subagent_id"),
+            "label": payload.get("label") or payload.get("goal") or "",
+            "goal": payload.get("goal") or payload.get("label") or "",
+        }
+    if name == "subagent_done":
+        return {
+            "event": "subagent_done",
+            "subagent_id": payload.get("subagent_id"),
+            "label": payload.get("label") or payload.get("goal") or "",
+            "status": payload.get("status") or "done",
+            "cost_hint": payload.get("cost_hint") or "",
+            "duration_seconds": payload.get("duration_seconds"),
+        }
+    if name == "activity":
+        return {
+            "event": "activity",
+            "message": str(payload.get("message") or ""),
+        }
     if name == "mutation":
         return {
             "event": "mutation",
@@ -64,6 +91,26 @@ def map_gateway_event_to_ndjson(event: GatewayStreamEvent) -> dict[str, Any]:
         }
     if name == "error":
         return {"event": "error", "message": str(payload.get("message") or "")}
+    if name == "clarify":
+        return {
+            "event": "clarify",
+            "clarify_id": payload.get("clarify_id"),
+            "question": payload.get("question") or "",
+            "choices": payload.get("choices") or [],
+        }
+    if name == "approval":
+        return {
+            "event": "approval",
+            "approval_id": payload.get("approval_id"),
+            "command": payload.get("command") or "",
+            "description": payload.get("description") or "",
+            "allow_permanent": payload.get("allow_permanent", True),
+        }
+    if name == "approval_resolved":
+        return {
+            "event": "approval_resolved",
+            "status": payload.get("status") or "resolved",
+        }
     if name in {"done", "tool_not_found"}:
         return {"event": name, **{k: v for k, v in payload.items() if k != "event"}}
     return {"event": name, **payload}

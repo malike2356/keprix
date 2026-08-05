@@ -8,10 +8,12 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { IconPlayerPlay } from "@tabler/icons-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ceApi } from "@/lib/ce-api";
 import DashboardCard from "@/components/cards/DashboardCard";
 import { GitCommitPanel } from "@/components/coding/GitCommitPanel";
+import PreflightBanner, { type PreflightReport } from "@/components/coding/PreflightBanner";
 import { RepoMapPanel } from "@/components/coding/RepoMapPanel";
 import { TestRunPanel } from "@/components/coding/TestRunPanel";
 
@@ -46,6 +48,8 @@ export default function AdminCodingPage() {
   const [commands, setCommands] = useState<{ test_command: string | null; lint_command: string | null } | null>(
     null,
   );
+  const [preflight, setPreflight] = useState<PreflightReport | null>(null);
+  const [preflightEnabled, setPreflightEnabled] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -85,6 +89,26 @@ export default function AdminCodingPage() {
     setLoading(true);
     setError(null);
     try {
+      if (preflightEnabled) {
+        const preflightPayload = await parseJson<{ report: PreflightReport }>(
+          await ceApi("/api/coding/preflight/run", {
+            method: "POST",
+            body: JSON.stringify({
+              session_id: `coding:${repoPath}`,
+              intent: message,
+              repo_path: repoPath,
+              repo_index_present: Boolean(repoMap),
+              changed_files: repoMap?.recently_changed || [],
+            }),
+          }),
+          "Preflight failed",
+        );
+        setPreflight(preflightPayload.report);
+        if (preflightPayload.report.overall === "block" && !preflightPayload.report.override_applied) {
+          setLoading(false);
+          return;
+        }
+      }
       const payload = await parseJson<ChatResponse>(
         await ceApi("/api/coding/chat", {
           method: "POST",
@@ -116,6 +140,17 @@ export default function AdminCodingPage() {
       }),
     });
     await runChat();
+  };
+
+  const overridePreflight = async () => {
+    if (!repoPath) return;
+    const payload = await parseJson<{ report: PreflightReport }>(
+      await ceApi(`/api/coding/preflight/${encodeURIComponent(`coding:${repoPath}`)}/override`, {
+        method: "POST",
+      }),
+      "Preflight override failed",
+    );
+    setPreflight(payload.report);
   };
 
   return (
@@ -150,19 +185,36 @@ export default function AdminCodingPage() {
             minRows={3}
           />
           <Box>
-            <Button
-              variant="contained"
-              startIcon={<IconPlayerPlay size={18} stroke={1.75} />}
-              onClick={() => void runChat()}
-              disabled={!repoPath.trim() || !message.trim() || loading}
-            >
-              {loading ? "Running..." : "Run coding session"}
-            </Button>
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              <Button
+                variant="contained"
+                startIcon={<IconPlayerPlay size={18} stroke={1.75} />}
+                onClick={() => void runChat()}
+                disabled={!repoPath.trim() || !message.trim() || loading}
+              >
+                {loading ? "Running..." : "Run coding session"}
+              </Button>
+              <Button
+                variant={preflightEnabled ? "contained" : "outlined"}
+                color="secondary"
+                onClick={() => setPreflightEnabled((value) => !value)}
+              >
+                Preflight
+              </Button>
+              <Button
+                variant="outlined"
+                component={Link}
+                href={repoPath.trim() ? `/design/preview?path=${encodeURIComponent(repoPath.trim())}` : "/design/preview"}
+              >
+                Design preview
+              </Button>
+            </Stack>
           </Box>
         </Stack>
       </DashboardCard>
 
       {error ? <Alert severity="error">{error}</Alert> : null}
+      <PreflightBanner report={preflight} onOverride={() => void overridePreflight()} />
 
       {!repoPath.trim() ? (
         <Alert severity="info">Enter a repository path to load the repo map and run coding tasks.</Alert>

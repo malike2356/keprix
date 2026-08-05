@@ -1,0 +1,12 @@
+services:
+  nllb-service:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./apps/ml-service/models/nllb:/models
+      - ./apps/ml-service/nllb_server:/app
+    command: sh -c "pip install fastapi uvicorn transformers torch sentencepiece && uvicorn server:app --host 0.0.0.0 --port 8210"
+    ports:
+      - "8210:8210"
+    environment:
+      MODEL_PATH: /models/nllb-200-distilled-600M

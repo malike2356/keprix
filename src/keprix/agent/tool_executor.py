@@ -52,6 +52,36 @@ logger = logging.getLogger(__name__)
 _MAX_TOOL_WORKERS = 8
 
 
+def _audit_tool_call(agent, tool_call, function_name: str, function_args: dict) -> None:
+    """Validate a parsed tool call against its ToolSchema when available."""
+    try:
+        from agent.tool_audit import ToolCallAuditor, ToolResult
+        from agent.transports.types import build_tool_call
+        from tools.registry import registry
+
+        schema_map = getattr(agent, "_tool_schema_cache", None)
+        if schema_map is None:
+            names = sorted(getattr(agent, "valid_tool_names", None) or [])
+            schemas = registry.get_tool_schemas(names, quiet=True)
+            schema_map = {schema.name: schema for schema in schemas}
+            agent._tool_schema_cache = schema_map
+
+        schema = schema_map.get(function_name)
+        if schema is None:
+            return
+
+        auditor = getattr(agent, "_tool_call_auditor", None)
+        if auditor is None:
+            auditor = ToolCallAuditor()
+            agent._tool_call_auditor = auditor
+
+        call = build_tool_call(getattr(tool_call, "id", None), function_name, function_args)
+        audit = auditor.validate_call(call, schema)
+        auditor.track_quality(call, ToolResult(success=audit.valid), audit)
+    except Exception as exc:
+        logger.debug("tool call audit skipped: %s", exc)
+
+
 def _ra():
     """Lazy reference to ``run_agent`` so patches like ``run_agent._set_interrupt`` work."""
     import run_agent
@@ -278,6 +308,23 @@ def execute_tool_calls_concurrent(agent, assistant_message, messages: list, effe
         if not isinstance(function_args, dict):
             function_args = {}
 
+        if function_name == "memory":
+            try:
+                from agent.memory_edit_gate import mark_memory_edited
+
+                action = str(function_args.get("action") or "").strip().lower()
+                if action in {"add", "replace", "remove"}:
+                    mark_memory_edited(agent)
+            except Exception:
+                pass
+        elif function_name in {"session_search", "conversation_search", "recent_chats"}:
+            try:
+                from agent.memory_edit_gate import mark_past_chat_search
+
+                mark_past_chat_search(agent)
+            except Exception:
+                pass
+
         # ── Tool Search unwrap ────────────────────────────────────────
         # When the model invokes the tool_call bridge, peel it open so
         # every downstream check (checkpointing, guardrails, plugin
@@ -298,8 +345,19 @@ def execute_tool_calls_concurrent(agent, assistant_message, messages: list, effe
         try:
             from tools import tool_search as _ts
             if function_name == _ts.TOOL_CALL_NAME:
-                _underlying, _underlying_args, _err = _ts.resolve_underlying_call(function_args)
-                if not _err and _underlying:
+                _sid = getattr(agent, "session_id", None) or ""
+                _cache = getattr(agent, "_deferred_schema_cache", None)
+                if _cache is None:
+                    _cache = _ts.get_session_schema_cache(_sid)
+                    agent._deferred_schema_cache = _cache
+                _underlying, _underlying_args, _err = _ts.resolve_underlying_call(
+                    function_args,
+                    session_id=_sid,
+                    cache=_cache,
+                )
+                if _err:
+                    _ts_scope_block = json.dumps({"error": _err}, ensure_ascii=False)
+                elif _underlying:
                     if _underlying in _tool_search_scoped_names(agent):
                         function_name = _underlying
                         function_args = _underlying_args
@@ -320,6 +378,7 @@ def execute_tool_calls_concurrent(agent, assistant_message, messages: list, effe
             effective_task_id=effective_task_id,
             tool_call_id=getattr(tool_call, "id", "") or "",
         )
+        _audit_tool_call(agent, tool_call, function_name, function_args)
 
         # ── Block evaluation (BEFORE checkpoint preflight) ───────────
         # We must know whether the tool will execute before touching
@@ -388,6 +447,100 @@ def execute_tool_calls_concurrent(agent, assistant_message, messages: list, effe
                         error_message=getattr(guardrail_decision, "message", None) or "Tool blocked by guardrail policy",
                         middleware_trace=list(middleware_trace),
                     )
+                else:
+                    try:
+                        from agent.guide_enforcer import apply_guide_enforcer_gate
+
+                        guide_block = apply_guide_enforcer_gate(
+                            agent, function_name, function_args
+                        )
+                    except Exception:
+                        guide_block = None
+                    if guide_block is not None:
+                        block_result = guide_block
+                        _emit_terminal_post_tool_call(
+                            agent,
+                            function_name=function_name,
+                            function_args=function_args,
+                            result=block_result,
+                            effective_task_id=effective_task_id,
+                            tool_call_id=getattr(tool_call, "id", "") or "",
+                            status="blocked",
+                            error_type="guide_enforcer_block",
+                            error_message="Tool blocked until AGENT_GUIDE.md is acknowledged",
+                            middleware_trace=list(middleware_trace),
+                        )
+                    else:
+                        try:
+                            from agent.skill_first import apply_skill_first_gate
+
+                            skill_block = apply_skill_first_gate(
+                                agent, function_name, function_args
+                            )
+                        except Exception:
+                            skill_block = None
+                        if skill_block is not None:
+                            block_result = skill_block
+                            _emit_terminal_post_tool_call(
+                                agent,
+                                function_name=function_name,
+                                function_args=function_args,
+                                result=block_result,
+                                effective_task_id=effective_task_id,
+                                tool_call_id=getattr(tool_call, "id", "") or "",
+                                status="blocked",
+                                error_type="skill_first_block",
+                                error_message="Tool blocked by skill-first policy",
+                                middleware_trace=list(middleware_trace),
+                            )
+                        else:
+                            try:
+                                from agent.connector_router import apply_connector_first_gate
+
+                                connector_block = apply_connector_first_gate(
+                                    agent, function_name, function_args
+                                )
+                            except Exception:
+                                connector_block = None
+                            if connector_block is not None:
+                                block_result = connector_block
+                                _emit_terminal_post_tool_call(
+                                    agent,
+                                    function_name=function_name,
+                                    function_args=function_args,
+                                    result=block_result,
+                                    effective_task_id=effective_task_id,
+                                    tool_call_id=getattr(tool_call, "id", "") or "",
+                                    status="blocked",
+                                    error_type="connector_first_block",
+                                    error_message="Tool blocked by connector-first policy",
+                                    middleware_trace=list(middleware_trace),
+                                )
+                            else:
+                                try:
+                                    from keprix.security.tool_acl_gate import evaluate_tool_acl_gate
+
+                                    acl_block = evaluate_tool_acl_gate(
+                                        agent,
+                                        function_name,
+                                        function_args if isinstance(function_args, dict) else {},
+                                    )
+                                except Exception:
+                                    acl_block = None
+                                if acl_block is not None:
+                                    block_result = acl_block
+                                    _emit_terminal_post_tool_call(
+                                        agent,
+                                        function_name=function_name,
+                                        function_args=function_args,
+                                        result=block_result,
+                                        effective_task_id=effective_task_id,
+                                        tool_call_id=getattr(tool_call, "id", "") or "",
+                                        status="blocked",
+                                        error_type="tool_acl_block",
+                                        error_message="Tool blocked by resource ACL policy",
+                                        middleware_trace=list(middleware_trace),
+                                    )
 
         # ── Checkpoint preflight (only for tools that will execute) ──
         if block_result is None:
@@ -683,6 +836,14 @@ def execute_tool_calls_concurrent(agent, assistant_message, messages: list, effe
                     )
                 except Exception as _ver_err:
                     logging.debug("file-mutation verifier record failed: %s", _ver_err)
+                try:
+                    from agent.skill_first import record_after_skill_view
+
+                    record_after_skill_view(
+                        agent, function_name, function_args, function_result
+                    )
+                except Exception as _sf_err:
+                    logging.debug("skill_first view record failed: %s", _sf_err)
 
             if not blocked and agent.tool_progress_callback:
                 try:
@@ -816,8 +977,19 @@ def execute_tool_calls_sequential(agent, assistant_message, messages: list, effe
         try:
             from tools import tool_search as _ts
             if function_name == _ts.TOOL_CALL_NAME:
-                _underlying, _underlying_args, _err = _ts.resolve_underlying_call(function_args)
-                if not _err and _underlying:
+                _sid = getattr(agent, "session_id", None) or ""
+                _cache = getattr(agent, "_deferred_schema_cache", None)
+                if _cache is None:
+                    _cache = _ts.get_session_schema_cache(_sid)
+                    agent._deferred_schema_cache = _cache
+                _underlying, _underlying_args, _err = _ts.resolve_underlying_call(
+                    function_args,
+                    session_id=_sid,
+                    cache=_cache,
+                )
+                if _err:
+                    _ts_scope_block = _err
+                elif _underlying:
                     if _underlying in _tool_search_scoped_names(agent):
                         function_name = _underlying
                         function_args = _underlying_args
@@ -836,6 +1008,7 @@ def execute_tool_calls_sequential(agent, assistant_message, messages: list, effe
             effective_task_id=effective_task_id,
             tool_call_id=getattr(tool_call, "id", "") or "",
         )
+        _audit_tool_call(agent, tool_call, function_name, function_args)
 
         # Check plugin hooks for a block directive before executing.
         _block_msg: Optional[str] = None
@@ -865,15 +1038,96 @@ def execute_tool_calls_sequential(agent, assistant_message, messages: list, effe
             if not guardrail_decision.allows_execution:
                 _guardrail_block_decision = guardrail_decision
 
-        _execution_blocked = _block_msg is not None or _guardrail_block_decision is not None
+        _skill_first_block: str | None = None
+        _guide_enforcer_block: str | None = None
+        if _block_msg is None and _guardrail_block_decision is None:
+            try:
+                from agent.guide_enforcer import apply_guide_enforcer_gate
+
+                _guide_enforcer_block = apply_guide_enforcer_gate(
+                    agent, function_name, function_args
+                )
+            except Exception:
+                _guide_enforcer_block = None
+        if (
+            _block_msg is None
+            and _guardrail_block_decision is None
+            and _guide_enforcer_block is None
+        ):
+            try:
+                from agent.skill_first import apply_skill_first_gate
+
+                _skill_first_block = apply_skill_first_gate(
+                    agent, function_name, function_args
+                )
+            except Exception:
+                _skill_first_block = None
+
+        _connector_first_block: str | None = None
+        if (
+            _block_msg is None
+            and _guardrail_block_decision is None
+            and _guide_enforcer_block is None
+            and _skill_first_block is None
+        ):
+            try:
+                from agent.connector_router import apply_connector_first_gate
+
+                _connector_first_block = apply_connector_first_gate(
+                    agent, function_name, function_args
+                )
+            except Exception:
+                _connector_first_block = None
+
+        _resource_acl_block: str | None = None
+        if (
+            _block_msg is None
+            and _guardrail_block_decision is None
+            and _guide_enforcer_block is None
+            and _skill_first_block is None
+            and _connector_first_block is None
+        ):
+            try:
+                from keprix.security.tool_acl_gate import evaluate_tool_acl_gate
+
+                _resource_acl_block = evaluate_tool_acl_gate(
+                    agent, function_name, function_args if isinstance(function_args, dict) else {}
+                )
+            except Exception:
+                _resource_acl_block = None
+
+        _execution_blocked = (
+            _block_msg is not None
+            or _guardrail_block_decision is not None
+            or _guide_enforcer_block is not None
+            or _skill_first_block is not None
+            or _connector_first_block is not None
+            or _resource_acl_block is not None
+        )
 
         if _execution_blocked:
-            # Tool blocked by plugin or guardrail policy — skip counters,
-            # callbacks, checkpointing, activity mutation, and real execution.
+            # Tool blocked by plugin, guardrail, guide, skill-first, or
+            # connector-first policy — skip counters, callbacks, checkpointing,
+            # activity mutation, and real execution.
             pass
         # Reset nudge counters when the relevant tool is actually used
         elif function_name == "memory":
             agent._turns_since_memory = 0
+            try:
+                from agent.memory_edit_gate import mark_memory_edited
+
+                action = str(function_args.get("action") or "").strip().lower()
+                if action in {"add", "replace", "remove"}:
+                    mark_memory_edited(agent)
+            except Exception:
+                pass
+        elif function_name in {"session_search", "conversation_search", "recent_chats"}:
+            try:
+                from agent.memory_edit_gate import mark_past_chat_search
+
+                mark_past_chat_search(agent)
+            except Exception:
+                pass
         elif function_name == "skill_manage":
             agent._iters_since_skill = 0
 
@@ -970,6 +1224,66 @@ def execute_tool_calls_sequential(agent, assistant_message, messages: list, effe
                 status="blocked",
                 error_type="guardrail_block",
                 error_message=getattr(_guardrail_block_decision, "message", None) or "Tool blocked by guardrail policy",
+                middleware_trace=list(middleware_trace),
+            )
+        elif _guide_enforcer_block is not None:
+            function_result = _guide_enforcer_block
+            tool_duration = 0.0
+            _emit_terminal_post_tool_call(
+                agent,
+                function_name=function_name,
+                function_args=function_args,
+                result=function_result,
+                effective_task_id=effective_task_id,
+                tool_call_id=getattr(tool_call, "id", "") or "",
+                status="blocked",
+                error_type="guide_enforcer_block",
+                error_message="Tool blocked until AGENT_GUIDE.md is acknowledged",
+                middleware_trace=list(middleware_trace),
+            )
+        elif _skill_first_block is not None:
+            function_result = _skill_first_block
+            tool_duration = 0.0
+            _emit_terminal_post_tool_call(
+                agent,
+                function_name=function_name,
+                function_args=function_args,
+                result=function_result,
+                effective_task_id=effective_task_id,
+                tool_call_id=getattr(tool_call, "id", "") or "",
+                status="blocked",
+                error_type="skill_first_block",
+                error_message="Tool blocked by skill-first policy",
+                middleware_trace=list(middleware_trace),
+            )
+        elif _connector_first_block is not None:
+            function_result = _connector_first_block
+            tool_duration = 0.0
+            _emit_terminal_post_tool_call(
+                agent,
+                function_name=function_name,
+                function_args=function_args,
+                result=function_result,
+                effective_task_id=effective_task_id,
+                tool_call_id=getattr(tool_call, "id", "") or "",
+                status="blocked",
+                error_type="connector_first_block",
+                error_message="Tool blocked by connector-first policy",
+                middleware_trace=list(middleware_trace),
+            )
+        elif _resource_acl_block is not None:
+            function_result = _resource_acl_block
+            tool_duration = 0.0
+            _emit_terminal_post_tool_call(
+                agent,
+                function_name=function_name,
+                function_args=function_args,
+                result=function_result,
+                effective_task_id=effective_task_id,
+                tool_call_id=getattr(tool_call, "id", "") or "",
+                status="blocked",
+                error_type="tool_acl_block",
+                error_message="Tool blocked by resource ACL policy",
                 middleware_trace=list(middleware_trace),
             )
         elif function_name == "todo":
@@ -1344,6 +1658,14 @@ def execute_tool_calls_sequential(agent, assistant_message, messages: list, effe
                 )
             except Exception as _ver_err:
                 logging.debug("file-mutation verifier record failed: %s", _ver_err)
+            try:
+                from agent.skill_first import record_after_skill_view
+
+                record_after_skill_view(
+                    agent, function_name, function_args, function_result
+                )
+            except Exception as _sf_err:
+                logging.debug("skill_first view record failed: %s", _sf_err)
 
         if not _execution_blocked and agent.tool_progress_callback:
             try:

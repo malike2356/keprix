@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import uuid
 from dataclasses import asdict, dataclass, field
-from enum import StrEnum
+from keprix.compat import StrEnum
 from pathlib import Path
 from typing import Any
 

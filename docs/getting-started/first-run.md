@@ -35,3 +35,17 @@ bash scripts/check-health.sh
 ```
 
 Open the workspace at `/workspace` after signing in.
+
+## TUI path (skipped CLI setup)
+
+If you launch chat before running the full wizard:
+
+```bash
+keprix start
+keprix tui
+# or: keprix --tui   (opens Textual TUI in setup mode when unconfigured)
+```
+
+The TUI shows a minimal provider form. Use `/setup` or `/setup model` for the full CLI wizard.
+
+Status API: `GET /api/setup/status` (shared with the web onboarding checklist).

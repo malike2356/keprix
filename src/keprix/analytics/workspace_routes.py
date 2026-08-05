@@ -36,6 +36,20 @@ class ApproveRequest(BaseModel):
     approve_shell: bool = False
 
 
+class CreateSessionBody(BaseModel):
+    title: str | None = None
+
+
+class RenameSessionBody(BaseModel):
+    title: str
+
+
+class DatasetBody(BaseModel):
+    name: str
+    data: str
+    source_filename: str | None = None
+
+
 def _get_session(session_id: str) -> AnalyticsSession:
     session = _interpreter.get_session(session_id)
     if session is None:
@@ -44,9 +58,21 @@ def _get_session(session_id: str) -> AnalyticsSession:
 
 
 @router.post("/sessions")
-async def create_session(_user: str = Depends(require_api_auth)) -> dict:
-    session = _interpreter.create_session()
-    return {"session_id": session.session_id}
+async def create_session(body: CreateSessionBody | None = None, _user: str = Depends(require_api_auth)) -> dict:
+    session = _interpreter.create_session(title=(body.title if body else None))
+    return session.to_dict()
+
+
+@router.patch("/sessions/{session_id}")
+async def rename_session(
+    session_id: str,
+    body: RenameSessionBody,
+    _user: str = Depends(require_api_auth),
+) -> dict:
+    session = _interpreter.rename_session(session_id, body.title)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return session.to_dict()
 
 
 @router.get("/sessions")
@@ -65,6 +91,49 @@ async def list_sessions(_user: str = Depends(require_api_auth)) -> dict:
             for session in sessions
         ],
     }
+
+
+@router.get("/datasets")
+async def list_datasets(_user: str = Depends(require_api_auth)) -> dict:
+    return {
+        "datasets": [
+            {
+                "dataset_id": item["dataset_id"],
+                "name": item["name"],
+                "source_filename": item.get("source_filename"),
+                "created_at": item["created_at"],
+                "chars": len(item.get("data") or ""),
+            }
+            for item in _interpreter.list_datasets()
+        ]
+    }
+
+
+@router.post("/datasets")
+async def save_dataset(body: DatasetBody, _user: str = Depends(require_api_auth)) -> dict:
+    if not body.data.strip():
+        raise HTTPException(status_code=400, detail="Dataset data is empty")
+    return _interpreter.save_dataset(
+        name=body.name,
+        data=body.data,
+        source_filename=body.source_filename,
+    )
+
+
+@router.get("/datasets/{dataset_id}")
+async def get_dataset(dataset_id: str, _user: str = Depends(require_api_auth)) -> dict:
+    item = _interpreter.get_dataset(dataset_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    return item
+
+
+@router.delete("/datasets/{dataset_id}")
+async def delete_dataset(dataset_id: str, _user: str = Depends(require_api_auth)) -> dict:
+    ok = _interpreter.delete_dataset(dataset_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    return {"ok": True}
 
 
 @router.get("/supported-formats")
@@ -94,7 +163,13 @@ async def run_code(
     session = _get_session(session_id)
     if body.auto_repair:
         ok, trail = _reflective.run_with_repair(session, body.code)
-        return {"ok": ok, "trail": [dict(a) for a in trail.attempts]}
+        last = trail.attempts[-1] if trail.attempts else {}
+        return {
+            "ok": ok,
+            "stdout": last.get("stdout") or "",
+            "stderr": last.get("error") or "",
+            "trail": [dict(a) for a in trail.attempts],
+        }
     verification, result = _interpreter.run_code(session, body.code)
     return {
         "ok": result.ok,

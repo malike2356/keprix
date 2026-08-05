@@ -1,0 +1,16 @@
+notion:
+  enabled: false
+  integration_token_env: "NOTION_INTEGRATION_TOKEN"
+  default_parent_page_id: ""
+
+  context_sources:
+    - page_id: ""
+    - database_id: ""
+
+  auto_export:
+    enabled: false
+    persona_pages:
+      sage: ""
+      beacon: ""
+      compass: ""
+      codex: ""

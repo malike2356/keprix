@@ -15,12 +15,48 @@ _START_TIME = time.time()
 
 
 @router.get("/api/health")
-async def basic_health() -> dict[str, str]:
-    return {"status": "ok", "product": PRODUCT_NAME, "version": PRODUCT_VERSION, "edition": EDITION}
+async def basic_health() -> dict[str, str | bool | int | dict]:
+    from keprix.integrations.scout_production import scout_runtime_config, security_layers_payload
+    from keprix.security.scout_client import get_scout_client
+
+    config = scout_runtime_config()
+    return {
+        "status": "ok",
+        "product": PRODUCT_NAME,
+        "version": PRODUCT_VERSION,
+        "edition": EDITION,
+        "uptime_seconds": int(time.time() - _START_TIME),
+        "scout_enabled": config.enabled,
+        "scout_connected": config.enabled and bool(config.api_key),
+        "signals_buffered": get_scout_client().pending_count() if config.enabled else 0,
+        "defense_layers": security_layers_payload(),
+    }
+
+
+@router.get("/api/health/scout")
+async def scout_health() -> dict:
+    from keprix.integrations.scout_production import scout_health_payload
+
+    return await scout_health_payload()
+
+
+@router.get("/api/health/security")
+async def security_health() -> dict:
+    from keprix.integrations.scout_production import security_layers_payload
+
+    return {"status": "ok", "layers": security_layers_payload()}
+
+
+@router.get("/api/health/products")
+async def products_health() -> dict:
+    from keprix.integrations.scout_production import products_health_payload
+
+    payload = products_health_payload()
+    return {"status": "ok", **payload}
 
 
 @router.get("/api/v1/health")
-async def basic_health_v1() -> dict[str, str]:
+async def basic_health_v1() -> dict:
     return await basic_health()
 
 

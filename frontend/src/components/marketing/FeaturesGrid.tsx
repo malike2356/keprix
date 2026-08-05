@@ -12,8 +12,13 @@ import HubIcon from "@mui/icons-material/Hub";
 import MemoryIcon from "@mui/icons-material/Memory";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import ShieldIcon from "@mui/icons-material/Shield";
-import { useMarketingColors } from "@/components/marketing/MarketingSection";
+import {
+  MARKETING_EYEBROW_SX,
+  MARKETING_HEADING_SX,
+  useMarketingColors,
+} from "@/components/marketing/MarketingSection";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
+import { useThemeMode } from "@/components/providers/ThemeRegistry";
 
 const DottedSurfaceBackground = dynamic(
   () => import("@/components/ui/dotted-surface-background").then((mod) => mod.DottedSurfaceBackground),
@@ -27,6 +32,9 @@ function GlowCard({
   children: React.ReactNode;
   glowColor: string;
 }) {
+  const c = useMarketingColors();
+  const { mode } = useThemeMode();
+  const isDark = mode === "dark";
   const [tilt, setTilt] = React.useState({ x: 0, y: 0 });
   const [hovered, setHovered] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
@@ -60,7 +68,7 @@ function GlowCard({
           position: "absolute",
           inset: -16,
           borderRadius: 3,
-          background: `radial-gradient(ellipse at center, ${alpha(glowColor, 0.22)} 0%, transparent 72%)`,
+          background: `radial-gradient(ellipse at center, ${alpha(glowColor, isDark ? 0.22 : 0.14)} 0%, transparent 72%)`,
           filter: "blur(18px)",
           opacity: hovered ? 1 : 0,
           transition: "opacity 0.35s",
@@ -75,32 +83,38 @@ function GlowCard({
           height: "100%",
           borderRadius: 2.5,
           p: 3.5,
-          bgcolor: "rgba(12,12,24,0.7)",
-          border: `1px solid ${hovered ? alpha(glowColor, 0.3) : "rgba(255,255,255,0.07)"}`,
-          backdropFilter: "blur(24px)",
+          bgcolor: isDark ? "rgba(12,12,24,0.7)" : c.bgPaper,
+          border: `1px solid ${hovered ? alpha(glowColor, 0.35) : isDark ? "rgba(255,255,255,0.07)" : c.divider}`,
+          backdropFilter: isDark ? "blur(24px)" : "none",
           position: "relative",
           overflow: "hidden",
-          transition: "border-color 0.25s",
+          transition: "border-color 0.25s, background-color 0.25s ease",
           boxShadow: hovered
-            ? `0 20px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)`
-            : `0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)`,
+            ? isDark
+              ? `0 20px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)`
+              : `0 12px 28px ${alpha("#000", 0.08)}, 0 0 0 1px ${alpha(glowColor, 0.12)}`
+            : isDark
+              ? `0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)`
+              : `0 2px 10px ${alpha("#000", 0.05)}`,
         }}
       >
         {/* Specular gloss at top-left */}
-        <Box
-          aria-hidden
-          sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "50%",
-            background:
-              "linear-gradient(160deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.015) 40%, transparent 70%)",
-            pointerEvents: "none",
-            borderRadius: "10px 10px 0 0",
-          }}
-        />
+        {isDark ? (
+          <Box
+            aria-hidden
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "50%",
+              background:
+                "linear-gradient(160deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.015) 40%, transparent 70%)",
+              pointerEvents: "none",
+              borderRadius: "10px 10px 0 0",
+            }}
+          />
+        ) : null}
         {children}
       </Box>
     </Box>
@@ -109,27 +123,29 @@ function GlowCard({
 
 export function FeaturesGrid() {
   const c = useMarketingColors();
+  const { mode } = useThemeMode();
+  const isDark = mode === "dark";
 
   const features = [
     {
-      icon: AutoFixHighIcon,
-      title: "Mutation Engine",
+      icon: CodeIcon,
+      title: "Command Center TUI",
       body:
-        "When the agent needs a tool that does not exist, it synthesises Python code in a sandbox, shows you the diff, and waits for your approval before installing. No manual plugin writing.",
+        "Run Keprix from a keyboard-first terminal workspace with sessions, slash commands, runtime timeline, tool cards, review mode, and diagnostics.",
       color: "#7c3aed",
     },
     {
-      icon: CodeIcon,
-      title: "Self-coding workspace",
+      icon: HubIcon,
+      title: "Agent OS",
       body:
-        "Give the agent a repo and a task. It plans, writes code, runs tests in an isolated container, and iterates until green. You review a PR, not a pile of instructions.",
+        "Operate action boards, run ledgers, agent apps, skills, plugins, playbooks, and reusable workflows from one self-hosted runtime.",
       color: "#06b6d4",
     },
     {
-      icon: HubIcon,
-      title: "Multi-channel inbox",
+      icon: ShieldIcon,
+      title: "Channel Shield",
       body:
-        "Connect Telegram, Discord, Slack, WhatsApp, email, and webhooks to one runtime. Each channel routes to the right agent persona with its own memory and tool set.",
+        "Route inbound email and messaging through scanning, policy checks, sandboxing, quarantine, and safe summaries before agents or people act.",
       color: "#10b981",
     },
     {
@@ -141,16 +157,16 @@ export function FeaturesGrid() {
     },
     {
       icon: ListAltIcon,
-      title: "Playbooks",
+      title: "Playbooks and triggers",
       body:
-        "Compose deterministic workflows in YAML. Chain tools, conditions, and agent calls. Schedule them with cron or trigger via webhook. No separate orchestration layer needed.",
+        "Compose visual or YAML workflows, schedule them with cron, trigger them from webhooks, and review runs through approvals and ledgers.",
       color: "#ef4444",
     },
     {
-      icon: ShieldIcon,
-      title: "Full observability",
+      icon: AutoFixHighIcon,
+      title: "Reviewable self-coding",
       body:
-        "Every LLM call, tool execution, and mutation event is logged with latency, token cost, and trace ID. Budget alerts fire before you exceed your monthly threshold.",
+        "Let the agent propose tools, skills, and repo changes in a sandbox. You inspect diffs, tests, risk, and approval gates before anything lands.",
       color: "#8b5cf6",
     },
   ] as const;
@@ -165,7 +181,7 @@ export function FeaturesGrid() {
         bgcolor: c.bgDefault,
       }}
     >
-      <DottedSurfaceBackground />
+      <DottedSurfaceBackground mode={isDark ? "dark" : "light"} />
 
       <Box
         aria-hidden
@@ -174,9 +190,14 @@ export function FeaturesGrid() {
           inset: 0,
           zIndex: 0,
           pointerEvents: "none",
-          background: `
+          background: isDark
+            ? `
             radial-gradient(ellipse at 50% 35%, ${alpha(c.primary, 0.08)} 0%, transparent 45%),
             radial-gradient(ellipse at 50% 100%, ${alpha(c.bgDefault, 0.35)} 0%, transparent 65%)
+          `
+            : `
+            radial-gradient(ellipse at 50% 0%, ${alpha(c.primary, 0.1)} 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 100%, ${alpha(c.secondary, 0.08)} 0%, transparent 45%)
           `,
         }}
       />
@@ -203,10 +224,7 @@ export function FeaturesGrid() {
             <Typography
               component="p"
               sx={{
-                fontSize: "0.8rem",
-                fontWeight: 700,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
+                ...MARKETING_EYEBROW_SX,
                 color: c.primary,
                 mb: 2,
               }}
@@ -216,15 +234,10 @@ export function FeaturesGrid() {
             <Typography
               component="h2"
               sx={{
-                fontSize: { xs: "2rem", md: "2.75rem" },
-                fontWeight: 800,
-                letterSpacing: "-0.03em",
-                lineHeight: 1.15,
+                ...MARKETING_HEADING_SX,
+                fontSize: { xs: "2.2rem", md: "3rem" },
                 mb: 2,
-                background: `linear-gradient(140deg, ${c.textPrimary} 30%, ${alpha(c.primary, 0.85)} 100%)`,
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
+                color: c.textPrimary,
               }}
             >
               Everything your agent needs,

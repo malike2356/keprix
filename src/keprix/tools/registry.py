@@ -395,6 +395,42 @@ class ToolRegistry:
             result.append({"type": "function", "function": schema_with_name})
         return result
 
+    def get_tool_schemas(self, tool_names: List[str], quiet: bool = False):
+        """Return provider-agnostic ToolSchema objects for *tool_names*."""
+        from agent.tool_schema import ToolSchema
+
+        entries_by_name = {entry.name: entry for entry in self._snapshot_entries()}
+        schemas = []
+        for name in sorted(tool_names):
+            entry = entries_by_name.get(name)
+            if not entry:
+                continue
+            schema_with_name = {**entry.schema, "name": entry.name}
+            if entry.dynamic_schema_overrides is not None:
+                try:
+                    overrides = entry.dynamic_schema_overrides()
+                    if isinstance(overrides, dict):
+                        schema_with_name.update(overrides)
+                except Exception as exc:
+                    if not quiet:
+                        logger.warning(
+                            "dynamic_schema_overrides for tool %s raised %s; "
+                            "using static schema",
+                            name,
+                            exc,
+                        )
+            schemas.append(
+                ToolSchema.from_openai_function(
+                    {
+                        **schema_with_name,
+                        "description": schema_with_name.get("description")
+                        or entry.description
+                        or name,
+                    }
+                )
+            )
+        return schemas
+
     # ------------------------------------------------------------------
     # Dispatch
     # ------------------------------------------------------------------

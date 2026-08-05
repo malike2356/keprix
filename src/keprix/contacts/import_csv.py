@@ -58,7 +58,7 @@ def _row_to_contact(row: dict[str, str], fmt: str) -> dict[str, Any]:
     }
 
 
-async def import_csv_bytes(content: bytes) -> dict[str, int]:
+async def import_csv_bytes(content: bytes, *, user_id: str = "local") -> dict[str, int]:
     store = get_contact_store()
     text = content.decode("utf-8-sig", errors="replace")
     reader = csv.DictReader(io.StringIO(text))
@@ -71,7 +71,9 @@ async def import_csv_bytes(content: bytes) -> dict[str, int]:
         if not primary and data["display_name"] == "Unknown":
             skipped += 1
             continue
-        _, action = await store.upsert_import(data, source="csv", match_email=primary)
+        _, action = await store.upsert_import(
+            data, source="csv", match_email=primary, user_id=user_id
+        )
         if action == "added":
             added += 1
         elif action == "updated":

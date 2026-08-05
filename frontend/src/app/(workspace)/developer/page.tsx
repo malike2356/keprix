@@ -4,13 +4,10 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import Grid from "@mui/material/Grid2";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
+import Switch from "@mui/material/Switch";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Table from "@mui/material/Table";
@@ -36,6 +33,7 @@ import { useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 import StatCard from "@/components/admin/StatCard";
 import DashboardCard from "@/components/cards/DashboardCard";
+import ClientApprovalPanel from "@/components/security/ClientApprovalPanel";
 import EmptyState from "@/components/ui/EmptyState";
 import { SkeletonBlock, SkeletonChart, SkeletonTable } from "@/components/ui/loading";
 import PageHeader from "@/components/ui/PageHeader";
@@ -46,10 +44,15 @@ import {
   createDeveloperWebhook,
   fetchDeveloperDashboard,
   revokeDeveloperKey,
+  setDeveloperKeyEnabled,
+  updateDeveloperKey,
+  type CreateApiKeyPayload,
   type DeveloperApiKey,
+  type UpdateApiKeyPayload,
 } from "@/lib/developer-api";
+import ApiKeyEditor from "@/components/developer/ApiKeyEditor";
 
-type TabId = "overview" | "keys" | "webhooks" | "code" | "monitor";
+type TabId = "overview" | "keys" | "webhooks" | "clients" | "code" | "monitor";
 
 const RESOURCE_LINKS = [
   {
@@ -69,6 +72,12 @@ const RESOURCE_LINKS = [
     description: "Register and run portable agent applications.",
     href: "/agent-apps",
     icon: IconPlayerPlay,
+  },
+  {
+    title: "Module inventory",
+    description: "Find built pages and API modules that are not exposed in navigation.",
+    href: "/developer/module-inventory",
+    icon: IconApi,
   },
 ];
 
@@ -126,7 +135,8 @@ export default function DeveloperPage() {
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const [keyDialogOpen, setKeyDialogOpen] = useState(false);
-  const [keyName, setKeyName] = useState("");
+  const [keyEditorMode, setKeyEditorMode] = useState<"create" | "edit">("create");
+  const [editingKey, setEditingKey] = useState<DeveloperApiKey | null>(null);
   const [createdSecret, setCreatedSecret] = useState<string | null>(null);
   const [creatingKey, setCreatingKey] = useState(false);
 
@@ -160,19 +170,60 @@ export default function DeveloperPage() {
   const errorCount = data?.recent_errors?.length ?? 0;
   const hasActiveKey = activeKeys > 0;
 
-  const handleCreateKey = async () => {
+  const openCreateKey = () => {
+    setKeyEditorMode("create");
+    setEditingKey(null);
+    setCreatedSecret(null);
+    setKeyDialogOpen(true);
+  };
+
+  const openEditKey = (key: DeveloperApiKey) => {
+    setKeyEditorMode("edit");
+    setEditingKey(key);
+    setCreatedSecret(null);
+    setKeyDialogOpen(true);
+  };
+
+  const handleCreateKey = async (payload: CreateApiKeyPayload) => {
     setCreatingKey(true);
     setActionError(null);
     try {
-      const created = await createDeveloperKey(keyName.trim());
+      const created = await createDeveloperKey(payload);
       setCreatedSecret(created.secret);
-      setKeyName("");
       await mutate();
       setActionMessage(`API key "${created.name}" created. Copy the secret now; it will not be shown again.`);
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Failed to create key");
+      throw err;
     } finally {
       setCreatingKey(false);
+    }
+  };
+
+  const handleUpdateKey = async (keyId: string, payload: UpdateApiKeyPayload) => {
+    setCreatingKey(true);
+    setActionError(null);
+    try {
+      const updated = await updateDeveloperKey(keyId, payload);
+      setKeyDialogOpen(false);
+      await mutate();
+      setActionMessage(`API key "${updated.name}" updated.`);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to update key");
+      throw err;
+    } finally {
+      setCreatingKey(false);
+    }
+  };
+
+  const handleToggleKey = async (key: DeveloperApiKey, enabled: boolean) => {
+    setActionError(null);
+    try {
+      await setDeveloperKeyEnabled(key.id, enabled);
+      await mutate();
+      setActionMessage(`${enabled ? "Enabled" : "Disabled"} key "${key.name}".`);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to update key");
     }
   };
 
@@ -291,9 +342,12 @@ export default function DeveloperPage() {
         <Tab value="overview" label="Get started" />
         <Tab value="keys" label="API keys" />
         <Tab value="webhooks" label="Webhooks" />
+        <Tab value="clients" label="Client approvals" />
         <Tab value="code" label="Code samples" />
         <Tab value="monitor" label="Usage and errors" />
       </Tabs>
+
+      {tab === "clients" ? <ClientApprovalPanel /> : null}
 
       {tab === "overview" ? (
         <Stack spacing={2}>
@@ -306,7 +360,7 @@ export default function DeveloperPage() {
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
                   Generate a secret for programmatic access to chat, tools, and agent endpoints.
                 </Typography>
-                <Button variant="contained" size="small" onClick={() => setKeyDialogOpen(true)}>
+                <Button variant="contained" size="small" onClick={openCreateKey}>
                   Create API key
                 </Button>
               </Box>
@@ -380,59 +434,89 @@ export default function DeveloperPage() {
       {tab === "keys" ? (
         <DashboardCard
           title="API keys"
-          subtitle="Create and revoke keys without leaving the developer portal"
+          subtitle="Least-privilege keys for external apps. Secrets shown once."
           action={
-            <Button variant="contained" size="small" onClick={() => setKeyDialogOpen(true)}>
-              Create key
+            <Button variant="contained" size="small" onClick={openCreateKey}>
+              + Create Key
             </Button>
           }
         >
           {isLoading ? (
-            <SkeletonTable rows={4} columns={4} />
+            <SkeletonTable rows={4} columns={5} />
           ) : !data?.api_keys?.length ? (
             <EmptyState
               title="No API keys yet"
-              description="Create a key to authenticate requests from your apps, scripts, or SDK clients."
+              description="Create a restricted key (chat-only by default) for scripts, SDKs, or other apps."
               icon={<IconKey size={40} stroke={1.5} />}
               actionLabel="Create API key"
-              onAction={() => setKeyDialogOpen(true)}
+              onAction={openCreateKey}
             />
           ) : (
             <Table size="small">
               <TableHead>
                 <TableRow>
                   <TableCell>Name</TableCell>
-                  <TableCell>Prefix</TableCell>
-                  <TableCell>Status</TableCell>
+                  <TableCell>Key</TableCell>
+                  <TableCell>Created</TableCell>
+                  <TableCell>Expires</TableCell>
+                  <TableCell>Enabled</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {data.api_keys.map((key) => (
                   <TableRow key={key.id} hover>
-                    <TableCell>{key.name}</TableCell>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={600}>
+                        {key.name}
+                      </Typography>
+                      {key.restrict_key === false ? (
+                        <Typography variant="caption" color="warning.main">
+                          Unrestricted
+                        </Typography>
+                      ) : (
+                        <Typography variant="caption" color="text.secondary">
+                          Restricted
+                        </Typography>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Typography variant="caption" sx={{ fontFamily: "monospace" }}>
-                        {key.key_prefix}...
+                        {key.masked_key || `${key.key_prefix}...`}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Chip
+                      <Typography variant="caption" color="text.secondary">
+                        {key.created_at ? key.created_at.slice(0, 10) : ";"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="caption" color="text.secondary">
+                        {key.expires_at ? key.expires_at.slice(0, 10) : "Never"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Switch
                         size="small"
-                        label={key.revoked ? "Revoked" : "Active"}
-                        color={key.revoked ? "default" : "success"}
-                        variant="outlined"
+                        checked={!key.revoked && key.enabled !== false}
+                        disabled={key.revoked}
+                        onChange={(e) => void handleToggleKey(key, e.target.checked)}
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <Button
-                        size="small"
-                        color="inherit"
-                        disabled={key.revoked}
-                        onClick={() => void handleRevokeKey(key)}
-                      >
-                        Revoke
-                      </Button>
+                      <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                        <Button size="small" disabled={key.revoked} onClick={() => openEditKey(key)}>
+                          Edit
+                        </Button>
+                        <Button
+                          size="small"
+                          color="inherit"
+                          disabled={key.revoked}
+                          onClick={() => void handleRevokeKey(key)}
+                        >
+                          Revoke
+                        </Button>
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -679,40 +763,22 @@ export default function DeveloperPage() {
         </Stack>
       ) : null}
 
-      <Dialog open={keyDialogOpen} onClose={() => { setKeyDialogOpen(false); setCreatedSecret(null); }} fullWidth maxWidth="sm">
-        <DialogTitle>{createdSecret ? "API key created" : "Create API key"}</DialogTitle>
-        <DialogContent>
-          {createdSecret ? (
-            <Stack spacing={2} sx={{ pt: 1 }}>
-              <Alert severity="warning">
-                Copy this secret now. It will not be shown again.
-              </Alert>
-              <CodeBlock code={createdSecret} />
-            </Stack>
-          ) : (
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Key name"
-              placeholder="My integration"
-              value={keyName}
-              onChange={(event) => setKeyName(event.target.value)}
-              fullWidth
-              sx={{ mt: 1 }}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => { setKeyDialogOpen(false); setCreatedSecret(null); }}>
-            {createdSecret ? "Done" : "Cancel"}
-          </Button>
-          {!createdSecret ? (
-            <Button variant="contained" disabled={creatingKey || !keyName.trim()} onClick={() => void handleCreateKey()}>
-              {creatingKey ? "Creating..." : "Create"}
-            </Button>
-          ) : null}
-        </DialogActions>
-      </Dialog>
+      <ApiKeyEditor
+        open={keyDialogOpen}
+        mode={keyEditorMode}
+        catalog={data?.scope_catalog || null}
+        models={data?.models || ["keprix"]}
+        initial={editingKey}
+        createdSecret={createdSecret}
+        saving={creatingKey}
+        onClose={() => {
+          setKeyDialogOpen(false);
+          setCreatedSecret(null);
+          setEditingKey(null);
+        }}
+        onCreate={handleCreateKey}
+        onUpdate={handleUpdateKey}
+      />
     </Box>
   );
 }

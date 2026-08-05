@@ -5,7 +5,25 @@ export type EmailAccount = {
   label: string;
   email_address: string;
   is_active: boolean;
+  poll_interval_seconds?: number;
   last_polled_at?: string | null;
+  next_sync_at?: string | null;
+  oauth_provider?: string | null;
+  imap_host?: string;
+  smtp_host?: string;
+};
+
+export type EmailProviderPreset = {
+  id: string;
+  label: string;
+  email_hint: string;
+  imap_host: string;
+  imap_port: number;
+  smtp_host: string;
+  smtp_port: number;
+  use_tls: boolean;
+  use_starttls: boolean;
+  help: string;
 };
 
 export type EmailMessage = {
@@ -36,8 +54,60 @@ async function parseJson<T>(response: Response, fallback: string): Promise<T> {
   return response.json();
 }
 
+export async function fetchEmailProviders(): Promise<{
+  items: EmailProviderPreset[];
+  gmail_oauth_configured?: boolean;
+  microsoft_oauth_configured?: boolean;
+}> {
+  return parseJson(await ceApi("/api/email/providers"), "Failed to load email providers");
+}
+
 export async function fetchEmailAccounts(): Promise<EmailAccount[]> {
   return parseJson(await ceApi("/api/email/accounts"), "Failed to load accounts");
+}
+
+export async function createEmailAccount(body: {
+  label: string;
+  email_address: string;
+  username?: string;
+  password: string;
+  imap_host: string;
+  imap_port?: number;
+  smtp_host: string;
+  smtp_port?: number;
+  use_tls?: boolean;
+  use_starttls?: boolean;
+  poll_interval_seconds?: number;
+}): Promise<EmailAccount> {
+  return parseJson(
+    await ceApi("/api/email/accounts", { method: "POST", body: JSON.stringify(body) }),
+    "Failed to create account",
+  );
+}
+
+export async function updateEmailAccount(
+  accountId: string,
+  body: { poll_interval_seconds?: number; is_active?: boolean; label?: string },
+): Promise<EmailAccount> {
+  return parseJson(
+    await ceApi(`/api/email/accounts/${accountId}`, { method: "PUT", body: JSON.stringify(body) }),
+    "Failed to update account",
+  );
+}
+
+export async function deleteEmailAccount(accountId: string): Promise<void> {
+  const response = await ceApi(`/api/email/accounts/${accountId}`, { method: "DELETE" });
+  if (!response.ok) {
+    throw new Error("Failed to delete account");
+  }
+}
+
+export async function testEmailAccount(accountId: string): Promise<{ ok?: boolean }> {
+  return parseJson(await ceApi(`/api/email/accounts/${accountId}/test`, { method: "POST" }), "Test failed");
+}
+
+export async function fetchGmailAuthUrl(): Promise<{ auth_url: string }> {
+  return parseJson(await ceApi("/api/email/accounts/gmail/auth"), "Gmail OAuth unavailable");
 }
 
 export async function fetchInbox(limit = 50): Promise<EmailMessage[]> {
@@ -86,6 +156,7 @@ export async function sendEmail(body: {
   subject: string;
   body: string;
   account_id?: string;
+  cc_addresses?: string[];
 }): Promise<void> {
   await parseJson(
     await ceApi("/api/email/send", {

@@ -1,0 +1,42 @@
+- version: "0.4.0"
+  date: "2026-04-01"
+  entries:
+    - type: feature
+      id: compression
+      title: Compression
+    - type: feature
+      id: guardrails
+      title: Guardrails
+
+- version: "0.5.0"
+  date: "2026-05-01"
+  entries:
+    - type: feature
+      id: a2a
+      title: A2A Protocol
+    - type: config_migration
+      id: providers-layout
+      title: providers.yaml layout change
+    - type: config_migration
+      id: audit-relocation
+      title: audit.db relocation
+
+- version: "0.6.0"
+  date: "2026-06-01"
+  entries:
+    - type: feature
+      id: semantic-cache
+      title: Semantic Cache
+    - type: deprecation
+      id: depr-billing-v1
+      title: billing.create_invoice() deprecated
+
+- version: "0.7.0"
+  date: "2026-07-01"
+  entries:
+    - type: feature
+      id: cli-auto-config
+      title: CLI Auto-Config
+    - type: breaking
+      id: break-routing-api
+      title: Routing API changed

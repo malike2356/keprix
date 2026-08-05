@@ -5,8 +5,9 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from enum import StrEnum
 from typing import Any, Callable
+
+from keprix.compat import StrEnum
 
 GraderFn = Callable[["GradingContext", dict[str, Any]], tuple[bool, str | None]]
 

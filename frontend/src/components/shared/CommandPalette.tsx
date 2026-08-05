@@ -15,6 +15,7 @@ import * as React from "react";
 import useSWR from "swr";
 import { ADMIN_NAV_ITEMS } from "@/components/admin/admin-nav";
 import { fetchAdminTools } from "@/lib/admin-workspace-api";
+import { ceApi } from "@/lib/ce-api";
 import { fetchConversations as fetchWorkspaceConversations } from "@/lib/workspace-api";
 
 type PaletteItem = {
@@ -38,15 +39,20 @@ export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const { data: conversations } = useSWR(open ? "palette-conversations" : null, () =>
     fetchWorkspaceConversations(10).catch(() => []),
   );
+  const { data: board } = useSWR(open ? "palette-agent-os-board" : null, async () => {
+    const response = await ceApi("/api/agent-os/board");
+    if (!response.ok) return null;
+    return response.json() as Promise<{ config?: { pins?: Array<{ pin_id: string; label: string; id: string; type: string }> } }>;
+  });
 
   const items = React.useMemo(() => {
     const base: PaletteItem[] = [
       {
         id: "workspace-home",
         label: "Workspace home",
-        href: "/launcher",
+        href: "/home",
         group: "Workspace",
-        description: "Return to the main app hub",
+        description: "Return to the main workspace start page",
       },
     ];
     for (const entry of ADMIN_NAV_ITEMS.filter((entry) => entry.type === "item")) {
@@ -75,8 +81,17 @@ export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
         description: tool.description,
       });
     }
+    for (const pin of board?.config?.pins || []) {
+      base.unshift({
+        id: `run-action-${pin.pin_id}`,
+        label: `Run action: ${pin.label}`,
+        href: `/agent-os?run=${encodeURIComponent(pin.pin_id)}`,
+        group: "Agent OS",
+        description: `${pin.type}: ${pin.id}`,
+      });
+    }
     return base;
-  }, [conversations, toolsData?.items]);
+  }, [board?.config?.pins, conversations, toolsData?.items]);
 
   const fuse = React.useMemo(
     () => new Fuse(items, { keys: ["label", "description", "group"], threshold: 0.35 }),

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "approval_gate",
+  "name": "Approval gate",
+  "entry": "trigger",
+  "nodes": [
+    {
+      "id": "trigger",
+      "type": "trigger",
+      "position": { "x": 80, "y": 180 },
+      "data": { "label": "Trigger" }
+    },
+    {
+      "id": "score",
+      "type": "condition",
+      "position": { "x": 320, "y": 180 },
+      "data": { "label": "Score", "expression": "risk_score > 70" }
+    },
+    {
+      "id": "approval",
+      "type": "human_approval",
+      "position": { "x": 580, "y": 100 },
+      "data": { "label": "Approval", "message": "Approve high risk item", "risk": "high" }
+    },
+    {
+      "id": "record",
+      "type": "agent_task",
+      "position": { "x": 580, "y": 260 },
+      "data": { "label": "Record", "prompt": "Record low risk item", "tools": [] }
+    }
+  ],
+  "edges": [
+    { "id": "e_trigger_score", "source": "trigger", "target": "score", "data": { "when": null } },
+    { "id": "e_score_approval", "source": "score", "target": "approval", "sourceHandle": "true", "data": { "when": "true" } },
+    { "id": "e_score_record", "source": "score", "target": "record", "sourceHandle": "false", "data": { "when": "false" } }
+  ],
+  "viewport": { "x": 0, "y": 0, "zoom": 1 }
+}

@@ -397,6 +397,7 @@ async def list_mcp_catalog(profile: Optional[str] = None):
             }
         for entry in catalog_entries:
             auth = entry.auth
+            default_tools = entry.tools.default_enabled
             entries.append({
                 "name": entry.name,
                 "description": entry.description,
@@ -411,6 +412,9 @@ async def list_mcp_catalog(profile: Optional[str] = None):
                 "needs_install": entry.install is not None,
                 "installed": installed_state.get(entry.name, (False, False))[0],
                 "enabled": installed_state.get(entry.name, (False, False))[1],
+                "docs_url": entry.docs_url or None,
+                "category": entry.category or None,
+                "default_tools": list(default_tools) if default_tools else None,
             })
     except HTTPException:
         # Unknown/invalid profile → 404, not a silently-empty catalog.

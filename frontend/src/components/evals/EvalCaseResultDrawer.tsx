@@ -13,6 +13,7 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import NextLink from "next/link";
 import * as React from "react";
+import { SkeletonList } from "@/components/ui/loading";
 import type { EvalTaskResult, EvalTrace } from "@/lib/evals-harness-api";
 import { fetchEvalTrace } from "@/lib/evals-harness-api";
 
@@ -116,11 +117,7 @@ export default function EvalCaseResultDrawer({ open, task, suiteName, onClose }:
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
             Trace spans
           </Typography>
-          {loading ? (
-            <Typography variant="body2" color="text.secondary">
-              Loading trace...
-            </Typography>
-          ) : null}
+          {loading ? <SkeletonList rows={4} rowHeight={40} /> : null}
           {error ? (
             <Typography variant="body2" color="error">
               {error}

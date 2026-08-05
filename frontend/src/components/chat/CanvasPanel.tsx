@@ -39,7 +39,7 @@ export default function CanvasPanel({
   onWidthChange,
 }: CanvasPanelProps) {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"), { noSsr: true });
   const [resizing, setResizing] = React.useState(false);
   const [activeIndex, setActiveIndex] = React.useState(0);
   const startX = React.useRef(0);

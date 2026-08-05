@@ -254,6 +254,25 @@ def test_local_mode_upload_read_mkdir_delete_roundtrip(local_files_client):
     assert not folder.exists()
 
 
+def test_listing_skips_broken_child_entries(forced_files_client):
+    client, root = forced_files_client
+    root.mkdir(parents=True, exist_ok=True)
+    good = root / "good.txt"
+    good.write_text("ok")
+    broken = root / "broken-link.txt"
+
+    try:
+        broken.symlink_to(root / "missing.txt")
+    except OSError:
+        pytest.skip("filesystem does not allow symlinks")
+
+    listing = client.get("/api/files", params={"path": str(root)})
+
+    assert listing.status_code == 200
+    names = [entry["name"] for entry in listing.json()["entries"]]
+    assert names == ["good.txt"]
+
+
 def _seed_file(client, root, name="out/hello.txt"):
     file_path = root / name
     created = client.post(

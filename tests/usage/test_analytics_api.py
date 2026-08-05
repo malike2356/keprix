@@ -140,12 +140,31 @@ def test_budget_set_and_alert(usage_client):
 
 
 def test_usage_export_csv(usage_client):
-    admin, _user, _store, _alice_id = usage_client
+    admin, user, _store, _alice_id = usage_client
     response = admin.get("/api/usage/export?days=90")
     assert response.status_code == 200
     text = response.text
     assert "recorded_at,user_id,channel" in text.splitlines()[0]
     assert text.count("\n") >= 2
+
+    scoped = user.get("/api/usage/export?days=90&format=csv")
+    assert scoped.status_code == 200
+    assert "recorded_at,user_id,channel" in scoped.text.splitlines()[0]
+
+    as_json = user.get("/api/usage/export?days=90&format=json")
+    assert as_json.status_code == 200
+    payload = as_json.json()
+    assert "items" in payload
+    assert isinstance(payload["items"], list)
+
+
+def test_usage_status_endpoint(usage_client):
+    _admin, user, _store, _alice_id = usage_client
+    response = user.get("/api/usage/status")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["enabled"] is True
+    assert "enable_hint" in body
 
 
 def test_pricing_models_catalog(usage_client):

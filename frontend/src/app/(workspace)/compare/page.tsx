@@ -189,7 +189,7 @@ export default function ComparePage() {
         title="Compare Models"
         description="Blind A/B evaluation using your configured LLM providers. Vote before model names are revealed."
         breadcrumbs={[
-          { label: "Workspace", href: "/launcher" },
+          { label: "Workspace", href: "/home" },
           { label: "Compare", href: "/compare" },
         ]}
       />

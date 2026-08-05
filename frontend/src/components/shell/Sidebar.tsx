@@ -11,6 +11,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
+import * as React from "react";
 import KeprixLogo from "@/components/shared/KeprixLogo";
 import Scrollbar from "@/components/shared/Scrollbar";
 import NavIcon from "@/components/ui/NavIcon";
@@ -24,8 +25,28 @@ const DRAWER_WIDTH = 260;
 type SidebarProps = {
   mobileOpen: boolean;
   onMobileClose: () => void;
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
   contract?: UiContract | null;
 };
+
+export function useWorkspaceSidebarCollapsed(): [boolean, () => void] {
+  const [collapsed, setCollapsed] = React.useState(false);
+
+  React.useEffect(() => {
+    setCollapsed(window.localStorage.getItem("keprix-sidebar-collapsed") === "true");
+  }, []);
+
+  const toggle = React.useCallback(() => {
+    setCollapsed((current) => {
+      const next = !current;
+      window.localStorage.setItem("keprix-sidebar-collapsed", String(next));
+      return next;
+    });
+  }, []);
+
+  return [collapsed, toggle];
+}
 
 function groupItems(group: NavGroupId, items: ReturnType<typeof navigationFromContract>["items"]) {
   return items.filter((item) => item.group === group);

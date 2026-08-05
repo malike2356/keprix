@@ -15,6 +15,14 @@ export type VaultItem = VaultItemMeta & {
   value?: string;
 };
 
+export type VaultFile = {
+  path: string;
+  name: string;
+  is_dir: boolean;
+  size: number;
+  modified_at?: string | null;
+};
+
 async function parseJson<T>(response: Response, fallback: string): Promise<T> {
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
@@ -98,4 +106,34 @@ export async function updateVaultItem(
 
 export async function deleteVaultItem(itemId: string): Promise<void> {
   await parseJson(await ceApi(`/api/vault/items/${itemId}`, { method: "DELETE" }), "Failed to delete item");
+}
+
+export async function listVaultFiles(path = "/"): Promise<VaultFile[]> {
+  const params = new URLSearchParams();
+  if (path && path !== "/") {
+    params.set("path", path);
+  }
+  const query = params.toString();
+  const data = await parseJson<{ files: VaultFile[] }>(
+    await ceApi(`/api/vault/files${query ? `?${query}` : ""}`),
+    "Failed to list vault files",
+  );
+  return data.files;
+}
+
+export async function readVaultFile(path: string): Promise<string> {
+  const data = await parseJson<{ content: string }>(
+    await ceApi(`/api/vault/files/${encodeURIComponent(path).replace(/%2F/g, "/")}`),
+    "Failed to read vault file",
+  );
+  return data.content;
+}
+
+export async function searchVaultFiles(query: string): Promise<VaultFile[]> {
+  const params = new URLSearchParams({ query });
+  const data = await parseJson<{ results: VaultFile[] }>(
+    await ceApi(`/api/vault/search?${params}`),
+    "Failed to search vault files",
+  );
+  return data.results;
 }

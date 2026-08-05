@@ -8,15 +8,13 @@ import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import Collapse from "@mui/material/Collapse";
 import Divider from "@mui/material/Divider";
-import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
-import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
 import useSWR from "swr";
+import PlaybookStepTimeline from "@/components/playbooks/PlaybookStepTimeline";
 import PageHeader from "@/components/ui/PageHeader";
 import { SkeletonBlock } from "@/components/ui/loading";
 import {
@@ -24,7 +22,6 @@ import {
   cancelPlaybookRun,
   fetchPlaybookRun,
   fetchPlaybookRunEvents,
-  formatPlaybookEventLabel,
   pausePlaybookRun,
   resumePlaybookRun,
   type PlaybookRun,
@@ -136,9 +133,27 @@ export default function PlaybookRunDetailPage() {
         title={`Playbook: ${run.graph_id}`}
         description={`Run ${run.run_id}`}
         actions={
-          <Button variant="outlined" onClick={() => router.push("/playbooks")}>
-            All playbooks
-          </Button>
+          <>
+            <Button
+              variant="outlined"
+              onClick={() =>
+                router.push(`/playbooks/studio/${encodeURIComponent(run.graph_id)}?run=${encodeURIComponent(run.run_id)}`)
+              }
+            >
+              View on canvas
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() =>
+                router.push(`/agent-os/runs?source_type=playbook&source_id=${encodeURIComponent(run.graph_id)}&run_id=${encodeURIComponent(run.run_id)}`)
+              }
+            >
+              View in ledger
+            </Button>
+            <Button variant="outlined" onClick={() => router.push("/playbooks")}>
+              All playbooks
+            </Button>
+          </>
         }
       />
 
@@ -213,25 +228,10 @@ export default function PlaybookRunDetailPage() {
       </Card>
 
       <Typography variant="h6" sx={{ mb: 1 }}>
-        Event timeline
+        Step timeline
       </Typography>
-      <Card variant="outlined" sx={{ mb: 2 }}>
-        <List dense>
-          {events.length === 0 ? (
-            <ListItem>
-              <ListItemText primary="No events yet" />
-            </ListItem>
-          ) : (
-            events.map((event) => (
-              <ListItem key={event.event_id} alignItems="flex-start">
-                <ListItemText
-                  primary={formatPlaybookEventLabel(event)}
-                  secondary={new Date(event.timestamp).toLocaleString()}
-                />
-              </ListItem>
-            ))
-          )}
-        </List>
+      <Card variant="outlined" sx={{ mb: 2, px: 2, py: 1 }}>
+        <PlaybookStepTimeline events={events} />
       </Card>
 
       <Button

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import time
+import asyncio
 from typing import Any
 from uuid import uuid4
 
@@ -12,10 +14,18 @@ from keprix.playbook.runtime.errors import (
     PlaybookPaused,
     PlaybookRunError,
 )
+from keprix.playbook.runtime.event_payload import (
+    build_node_completed_payload,
+    build_node_failed_payload,
+    build_node_started_payload,
+)
 from keprix.playbook.runtime.events import EventEmitter, EventType
 from keprix.playbook.runtime.graph import END, CompiledPlaybookGraph
 from keprix.playbook.runtime.interrupts import merge_state_patch
 from keprix.playbook.runtime.state import PlaybookRun, RunStatus
+from keprix.integrations.connector_audit import enrich_run_event
+from keprix.integrations.scout_lifecycle_client import emit_scout_lifecycle_event
+from keprix.playbook.run_telemetry import enrich_run_completion
 
 
 class PlaybookRunner:
@@ -105,17 +115,18 @@ class PlaybookRunner:
             run.current_node = current
             node = self.graph.nodes[current]
             input_state = dict(run.state)
+            started_at = time.perf_counter()
 
             self.events.emit(
                 EventType.NODE_STARTED,
                 run.run_id,
-                node=current,
-                state=input_state,
+                **build_node_started_payload(node=current, input_state=input_state),
             )
 
             try:
                 output_state = await node.invoke(run.state)
                 run.state = output_state
+                duration_ms = int((time.perf_counter() - started_at) * 1000)
                 await self._checkpoint(
                     run,
                     node_name=current,
@@ -125,8 +136,15 @@ class PlaybookRunner:
                 self.events.emit(
                     EventType.NODE_COMPLETED,
                     run.run_id,
-                    node=current,
-                    state=output_state,
+                    **enrich_run_event(
+                        build_node_completed_payload(
+                            node=current,
+                            input_state=input_state,
+                            output_state=output_state,
+                            duration_ms=duration_ms,
+                        ),
+                        step_config=dict(node.metadata.get("config") or {}),
+                    ),
                 )
             except PlaybookInterrupt as exc:
                 run.status = (
@@ -167,6 +185,7 @@ class PlaybookRunner:
             except Exception as exc:
                 run.status = RunStatus.FAILED
                 run.error = str(exc)
+                duration_ms = int((time.perf_counter() - started_at) * 1000)
                 await self._checkpoint(
                     run,
                     node_name=current,
@@ -177,9 +196,14 @@ class PlaybookRunner:
                 self.events.emit(
                     EventType.NODE_FAILED,
                     run.run_id,
-                    node=current,
-                    error=str(exc),
+                    **build_node_failed_payload(
+                        node=current,
+                        input_state=input_state,
+                        error=str(exc),
+                        duration_ms=duration_ms,
+                    ),
                 )
+                self._emit_terminal_telemetry(run)
                 if inline:
                     raise
                 return run
@@ -192,7 +216,37 @@ class PlaybookRunner:
         run.status = RunStatus.COMPLETED
         run.current_node = None
         self.events.emit(EventType.COMPLETED, run.run_id, state=run.state)
+        self._emit_terminal_telemetry(run)
         return run
+
+    def _emit_terminal_telemetry(self, run: PlaybookRun) -> None:
+        events = [event.to_dict() for event in self.events.list_events(run.run_id)]
+        try:
+            from keprix.agent_os.hooks import record_playbook_run_completion
+
+            record_playbook_run_completion(run, events)
+        except Exception:
+            pass
+        payload = enrich_run_completion(
+            run,
+            playbook_id=str(run.state.get("_playbook_id") or run.graph_id),
+            version_hash=(
+                str(run.state.get("_playbook_version_hash"))
+                if run.state.get("_playbook_version_hash")
+                else None
+            ),
+            events=events,
+        )
+        try:
+            asyncio.create_task(
+                emit_scout_lifecycle_event(
+                    "playbook_run_completed",
+                    payload,
+                    workspace_id=run.workspace_id,
+                )
+            )
+        except RuntimeError:
+            pass
 
     async def _checkpoint(
         self,

@@ -5,6 +5,8 @@ import * as THREE from "three";
 
 const DEFAULT_TINT = { r: 108 / 255, g: 92 / 255, b: 231 / 255 };
 const DEFAULT_FOG = 0x08080f;
+const LIGHT_TINT = { r: 92 / 255, g: 72 / 255, b: 210 / 255 };
+const LIGHT_FOG = 0xffffff;
 
 type DottedSurfaceBackgroundProps = {
   className?: string;
@@ -15,15 +17,22 @@ type DottedSurfaceBackgroundProps = {
   /** Fog and clear color. */
   fogColor?: number;
   particleOpacity?: number;
+  /** Dark additive-style dots vs light-mode high-contrast dots. */
+  mode?: "dark" | "light";
 };
 
 export function DottedSurfaceBackground({
   className,
   fixed = false,
-  tint = DEFAULT_TINT,
-  fogColor = DEFAULT_FOG,
-  particleOpacity = 0.6,
+  tint,
+  fogColor,
+  particleOpacity,
+  mode = "dark",
 }: DottedSurfaceBackgroundProps) {
+  const isLight = mode === "light";
+  const resolvedTint = tint ?? (isLight ? LIGHT_TINT : DEFAULT_TINT);
+  const resolvedFog = fogColor ?? (isLight ? LIGHT_FOG : DEFAULT_FOG);
+  const resolvedOpacity = particleOpacity ?? (isLight ? 0.7 : 0.6);
   const mountRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -38,14 +47,14 @@ export function DottedSurfaceBackground({
     const AMOUNTY = mobile ? 42 : 60;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(fogColor, 2000, 10000);
+    scene.fog = new THREE.Fog(resolvedFog, 2000, 10000);
 
     const camera = new THREE.PerspectiveCamera(60, 1, 1, 10000);
     camera.position.set(0, 355, 1220);
 
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(fogColor, 0);
+    renderer.setClearColor(resolvedFog, 0);
     mount.appendChild(renderer.domElement);
 
     const positions: number[] = [];
@@ -56,8 +65,8 @@ export function DottedSurfaceBackground({
         const x = ix * SEPARATION - (AMOUNTX * SEPARATION) / 2;
         const z = iy * SEPARATION - (AMOUNTY * SEPARATION) / 2;
         positions.push(x, 0, z);
-        const mix = 0.55 + Math.random() * 0.45;
-        colors.push(tint.r * mix, tint.g * mix, tint.b * mix);
+        const mix = isLight ? 0.7 + Math.random() * 0.3 : 0.55 + Math.random() * 0.45;
+        colors.push(resolvedTint.r * mix, resolvedTint.g * mix, resolvedTint.b * mix);
       }
     }
 
@@ -66,11 +75,13 @@ export function DottedSurfaceBackground({
     geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
 
     const material = new THREE.PointsMaterial({
-      size: mobile ? 6 : 8,
+      size: mobile ? (isLight ? 7 : 6) : isLight ? 9 : 8,
       vertexColors: true,
       transparent: true,
-      opacity: particleOpacity,
+      opacity: resolvedOpacity,
       sizeAttenuation: true,
+      blending: THREE.NormalBlending,
+      depthWrite: false,
     });
 
     const points = new THREE.Points(geometry, material);
@@ -141,7 +152,7 @@ export function DottedSurfaceBackground({
         mount.removeChild(renderer.domElement);
       }
     };
-  }, [fixed, tint.r, tint.g, tint.b, fogColor, particleOpacity]);
+  }, [fixed, resolvedTint.r, resolvedTint.g, resolvedTint.b, resolvedFog, resolvedOpacity, isLight]);
 
   return (
     <div

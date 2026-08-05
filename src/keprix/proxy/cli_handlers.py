@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import multiprocessing
 import sys
 from typing import Any
@@ -11,10 +12,13 @@ from keprix.proxy.config import load_proxy_config
 from keprix.proxy.doctor import run_doctor
 from keprix.proxy.env_writer import print_proxy_env, write_proxy_env
 from keprix.proxy.migrate import migrate_vault_from_env
+from keprix.proxy.fallback import disable_fallback, enable_fallback, fallback_status
 from keprix.proxy.pidfile import is_running, read_pid, stop_running, write_pid
 from keprix.proxy.routes import add_route, list_routes, remove_route
+from keprix.proxy.rotation_cli import rotate_credential
 from keprix.proxy.server import run_proxy_server_sync
 from keprix.proxy.setup_wizard import run_setup_wizard
+from keprix.proxy.vault_purge import purge_legacy_vault
 from keprix.proxy.verify import verify_routes
 
 
@@ -78,8 +82,8 @@ def cmd_credential_proxy_env(_args: Any) -> int:
     return 0
 
 
-def cmd_credential_proxy_migrate_vault(_args: Any) -> int:
-    result = migrate_vault_from_env()
+def cmd_credential_proxy_migrate_vault(args: Any) -> int:
+    result = migrate_vault_from_env(only_secret_ref=getattr(args, "secret_ref", None))
     if result.migrated:
         print("Migrated env keys:", ", ".join(result.migrated))
     if result.skipped:
@@ -88,11 +92,39 @@ def cmd_credential_proxy_migrate_vault(_args: Any) -> int:
     return 0
 
 
+def cmd_credential_proxy_vault_purge(args: Any) -> int:
+    result = purge_legacy_vault(confirm=bool(getattr(args, "confirm", False)))
+    if result.get("requires_confirmation"):
+        print("Vault purge requires --confirm. A backup will be created before deletion.")
+        return 1
+    print(f"Vault purged: {result.get('purged')} backup={result.get('backup_path')}")
+    return 0
+
+
+def cmd_credential_proxy_fallback(args: Any) -> int:
+    command = getattr(args, "fallback_command", None)
+    if command == "enable":
+        result = enable_fallback(hours=getattr(args, "hours", 24))
+    elif command == "disable":
+        result = disable_fallback()
+    else:
+        result = fallback_status()
+    print(json.dumps(result, indent=2))
+    return 0
+
+
 def cmd_credential_proxy_verify(_args: Any) -> int:
     report = verify_routes()
     for line in report.lines:
         print(line)
     return 0 if report.ok else 1
+
+
+def cmd_credential_proxy_rotate(args: Any) -> int:
+    signal = rotate_credential(args)
+    suffix = " with verification" if signal.get("verify") else ""
+    print(f"Queued rotation for {signal['secret_ref']}{suffix}")
+    return 0
 
 
 def cmd_credential_proxy_route_add(args: Any) -> int:
@@ -138,7 +170,10 @@ def dispatch_credential_proxy(args: Any) -> int:
         "doctor": cmd_credential_proxy_doctor,
         "env": cmd_credential_proxy_env,
         "migrate-vault": cmd_credential_proxy_migrate_vault,
+        "migrate": cmd_credential_proxy_migrate_vault,
         "verify": cmd_credential_proxy_verify,
+        "rotate": cmd_credential_proxy_rotate,
+        "vault-purge": cmd_credential_proxy_vault_purge,
     }
     handler = handlers.get(sub or "")
     if handler:
@@ -151,6 +186,8 @@ def dispatch_credential_proxy(args: Any) -> int:
             return cmd_credential_proxy_route_list(args)
         if route_cmd == "rm":
             return cmd_credential_proxy_route_rm(args)
+    if sub == "fallback":
+        return cmd_credential_proxy_fallback(args)
     if sub in {"providers", "list"}:
         from keprix_cli.proxy.cli import cmd_proxy_list_providers
 
@@ -181,7 +218,11 @@ def _print_help() -> None:
         "  keprix proxy doctor\n"
         "  keprix proxy env\n"
         "  keprix proxy migrate-vault\n"
+        "  keprix proxy migrate SECRET_REF\n"
+        "  keprix proxy vault-purge --confirm\n"
+        "  keprix proxy fallback enable|disable|status\n"
         "  keprix proxy verify\n"
+        "  keprix proxy rotate SECRET_REF [--verify]\n"
         "  keprix proxy route add --host HOST --header-name NAME --secret-ref REF\n"
         "  keprix proxy route list\n"
         "  keprix proxy route rm --host HOST\n"
@@ -209,7 +250,20 @@ def build_credential_proxy_parsers(proxy_subparsers: argparse._SubParsersAction)
     proxy_subparsers.add_parser("doctor", help="Run credential proxy diagnostics")
     proxy_subparsers.add_parser("env", help="Print proxy environment exports")
     proxy_subparsers.add_parser("migrate-vault", help="Migrate .env keys into proxy vault")
+    migrate_one = proxy_subparsers.add_parser("migrate", help="Migrate one credential by secret ref")
+    migrate_one.add_argument("secret_ref")
     proxy_subparsers.add_parser("verify", help="Verify configured routes resolve secrets")
+    purge = proxy_subparsers.add_parser("vault-purge", help="Backup and remove the legacy local vault")
+    purge.add_argument("--confirm", action="store_true")
+    fallback = proxy_subparsers.add_parser("fallback", help="Emergency fallback to the legacy vault")
+    fallback_sub = fallback.add_subparsers(dest="fallback_command")
+    enable = fallback_sub.add_parser("enable")
+    enable.add_argument("--hours", type=int, default=24)
+    fallback_sub.add_parser("disable")
+    fallback_sub.add_parser("status")
+    rotate = proxy_subparsers.add_parser("rotate", help="Invalidate a cached credential")
+    rotate.add_argument("secret_ref")
+    rotate.add_argument("--verify", action="store_true", help="Probe before switching when supported")
 
     route_parser = proxy_subparsers.add_parser("route", help="Manage proxy routes")
     route_sub = route_parser.add_subparsers(dest="route_command")

@@ -63,7 +63,7 @@ export default function ContactsPage() {
         title="Contacts"
         description="Search people and start email or call actions from the agent."
         breadcrumbs={[
-          { label: "Workspace", href: "/launcher" },
+          { label: "Workspace", href: "/home" },
           { label: "Contacts", href: "/contacts" },
         ]}
         actions={

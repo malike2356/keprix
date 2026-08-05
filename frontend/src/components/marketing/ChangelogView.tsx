@@ -20,7 +20,8 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { alpha } from "@mui/material/styles";
 import type { ChangelogRelease } from "@/lib/changelog";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
-import { KEPRIX_COLORS } from "@/theme/keprix-theme";
+import { getMarketingColors } from "@/components/marketing/marketing-section";
+import { useThemeMode } from "@/components/providers/ThemeRegistry";
 
 const DottedSurfaceBackground = dynamic(
   () => import("@/components/ui/dotted-surface-background").then((mod) => mod.DottedSurfaceBackground),
@@ -28,12 +29,12 @@ const DottedSurfaceBackground = dynamic(
 );
 
 const CATEGORY_META: Record<string, { icon: React.ElementType; color: string }> = {
-  Added: { icon: AddCircleOutlineIcon, color: KEPRIX_COLORS.success },
-  Changed: { icon: EditOutlinedIcon, color: KEPRIX_COLORS.info },
-  Fixed: { icon: AutoFixHighIcon, color: KEPRIX_COLORS.primary },
-  Removed: { icon: DeleteOutlineIcon, color: KEPRIX_COLORS.error },
-  Deprecated: { icon: WarningAmberIcon, color: KEPRIX_COLORS.warning },
-  Security: { icon: SecurityIcon, color: KEPRIX_COLORS.secondary },
+  Added: { icon: AddCircleOutlineIcon, color: "#10B981" },
+  Changed: { icon: EditOutlinedIcon, color: "#6495ed" },
+  Fixed: { icon: AutoFixHighIcon, color: "#6c5ce7" },
+  Removed: { icon: DeleteOutlineIcon, color: "#EF4444" },
+  Deprecated: { icon: WarningAmberIcon, color: "#F59E0B" },
+  Security: { icon: SecurityIcon, color: "#6495ed" },
 };
 
 function formatDate(date: string): string {
@@ -55,14 +56,16 @@ type ChangelogViewProps = {
 };
 
 export function ChangelogView({ releases }: ChangelogViewProps) {
-  const c = KEPRIX_COLORS;
+  const { mode } = useThemeMode();
+  const c = getMarketingColors(mode);
+  const isDark = mode === "dark";
   const shipped = releases.filter((r) => !r.isUnreleased);
   const latest = shipped[0];
   const totalChanges = releases.reduce((sum, r) => sum + releaseItemCount(r), 0);
 
   return (
-    <Box sx={{ bgcolor: "#08080f", minHeight: "100vh", position: "relative" }}>
-      <DottedSurfaceBackground fixed />
+    <Box sx={{ bgcolor: c.bgDefault, minHeight: "100vh", position: "relative", transition: "background-color 0.25s ease" }}>
+      <DottedSurfaceBackground fixed mode={isDark ? "dark" : "light"} />
 
       <Box
         aria-hidden
@@ -71,10 +74,15 @@ export function ChangelogView({ releases }: ChangelogViewProps) {
           inset: 0,
           zIndex: 0,
           pointerEvents: "none",
-          background: `
+          background: isDark
+            ? `
             radial-gradient(ellipse at 50% 20%, ${alpha(c.primary, 0.1)} 0%, transparent 50%),
             radial-gradient(ellipse at 80% 80%, ${alpha(c.secondary, 0.06)} 0%, transparent 40%),
             radial-gradient(ellipse at 50% 100%, rgba(8, 8, 15, 0.4) 0%, transparent 65%)
+          `
+            : `
+            radial-gradient(ellipse at 50% 0%, ${alpha(c.primary, 0.1)} 0%, transparent 45%),
+            radial-gradient(ellipse at 90% 80%, ${alpha(c.secondary, 0.08)} 0%, transparent 40%)
           `,
         }}
       />

@@ -7,7 +7,7 @@
   <a href="https://github.com/NousResearch/keprix/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
 </p>
 
-**The native desktop app for [Keprix](../../README.md); the self-improving AI agent from [Nous Research](https://nousresearch.com).** Same agent, same skills, same memory as the CLI and gateway, in a polished native window; chat with streaming tool output, side-by-side previews, a file browser, voice, and settings, no terminal required. Available for **macOS, Windows, and Linux**.
+**The native desktop app for [Keprix](../../README.md); the self-improving AI agent from [Nous Research](https://nousresearch.com).** Same engine, in a polished native window; chat with streaming tool output, side-by-side previews, a file browser, voice, and settings, no terminal required. Keprix uses its own home by default, so it does not load a live Hermes install's sessions, memory, or skills unless you explicitly point it there. Available for **macOS, Windows, and Linux**.
 
 <table>
 <tr><td><b>Chat with the full agent</b></td><td>Streaming responses, live tool activity, structured tool summaries, and the same conversation history as every other Keprix surface.</td></tr>
@@ -30,7 +30,7 @@ Already have the Keprix CLI? Just run:
 keprix desktop
 ```
 
-It builds and launches the GUI against your existing install; same config, keys, sessions, and skills. On first launch Keprix walks you through picking a provider and model; nothing else to configure.
+It builds and launches the GUI against your Keprix home by default. On first launch Keprix creates its own config, keys, sessions, memory, and skills store; if you want to import from another install, do that explicitly.
 
 ### Prebuilt installers
 
@@ -85,7 +85,7 @@ Installers are built and uploaded to GitHub Releases manually. macOS/Windows sig
 
 ### How it works
 
-The packaged app ships only the Electron shell. On first launch it installs the Keprix runtime into `KEPRIX_HOME` (`~/.keprix`, or `%LOCALAPPDATA%\keprix` on Windows); the **same layout a CLI install uses**, so the two are interchangeable. The renderer (React, in `src/`) talks to a `keprix dashboard` backend over the standard gateway APIs and reuses the embedded TUI rather than reimplementing chat. The install, backend-resolution, and self-update logic all live in `electron/main.cjs`.
+The packaged app ships only the Electron shell. On first launch it installs the Keprix runtime into `KEPRIX_HOME` (`~/.keprix`, or `%LOCALAPPDATA%\keprix` on Windows); that is separate from any Hermes install. The renderer (React, in `src/`) talks to a `keprix dashboard` backend over the standard gateway APIs and reuses the embedded TUI rather than reimplementing chat. The install, backend-resolution, and self-update logic all live in `electron/main.cjs`.
 
 ### Verification
 
@@ -106,9 +106,9 @@ Boot logs land in `KEPRIX_HOME/logs/desktop.log` (includes backend output and re
 
 ```bash
 # Force a clean first-launch setup
-rm "$HOME/.keprix/keprix/.keprix-bootstrap-complete"
+rm "$HOME/.keprix/hermes-agent/.hermes-bootstrap-complete"
 # Rebuild a broken Python venv
-rm -rf "$HOME/.keprix/keprix/venv"
+rm -rf "$HOME/.keprix/hermes-agent/venv"
 # Reset a stuck macOS microphone prompt (macOS only)
 tccutil reset Microphone com.nousresearch.keprix
 ```
@@ -117,9 +117,9 @@ tccutil reset Microphone com.nousresearch.keprix
 
 ```powershell
 # Force a clean first-launch setup
-Remove-Item "$env:LOCALAPPDATA\keprix\keprix\.keprix-bootstrap-complete"
+Remove-Item "$env:LOCALAPPDATA\keprix\hermes-agent\.hermes-bootstrap-complete"
 # Rebuild a broken Python venv
-Remove-Item -Recurse -Force "$env:LOCALAPPDATA\keprix\keprix\venv"
+Remove-Item -Recurse -Force "$env:LOCALAPPDATA\keprix\hermes-agent\venv"
 ```
 
 > The default Keprix home on Windows is `%LOCALAPPDATA%\keprix`. Set the `KEPRIX_HOME` env var if you've relocated it.

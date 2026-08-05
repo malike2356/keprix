@@ -40,17 +40,30 @@ def microsoft_auth_url(*, scope: str, state: str = "") -> str:
     return f"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize?{urlencode(params)}"
 
 
-async def exchange_google_code(code: str, *, redirect_uri: str | None = None) -> dict[str, Any]:
-    client_id = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
-    client_secret = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "")
+async def exchange_google_code(
+    code: str,
+    *,
+    redirect_uri: str | None = None,
+    client_id: str | None = None,
+    client_secret: str | None = None,
+) -> dict[str, Any]:
+    resolved_id = (client_id or os.environ.get("GOOGLE_OAUTH_CLIENT_ID") or os.environ.get("KEPRIX_GOOGLE_CLIENT_ID") or "").strip()
+    resolved_secret = (
+        client_secret
+        or os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET")
+        or os.environ.get("KEPRIX_GOOGLE_CLIENT_SECRET")
+        or ""
+    ).strip()
     redirect = redirect_uri or os.environ.get("GOOGLE_OAUTH_REDIRECT_URI", "")
+    if not resolved_id or not resolved_secret:
+        raise RuntimeError("Google OAuth client credentials are not configured")
     async with httpx.AsyncClient(timeout=30) as client:
         response = await client.post(
             "https://oauth2.googleapis.com/token",
             data={
                 "code": code,
-                "client_id": client_id,
-                "client_secret": client_secret,
+                "client_id": resolved_id,
+                "client_secret": resolved_secret,
                 "redirect_uri": redirect,
                 "grant_type": "authorization_code",
             },
@@ -105,16 +118,55 @@ async def load_oauth_tokens(vault_item_id: str, user_id: str) -> dict[str, Any]:
     return await get_vault_service().get_oauth_bundle(vault_item_id, user_id)
 
 
-async def refresh_google_tokens(vault_item_id: str, user_id: str) -> dict[str, Any]:
+async def refresh_google_tokens(
+    vault_item_id: str,
+    user_id: str,
+    *,
+    client_id: str | None = None,
+    client_secret: str | None = None,
+) -> dict[str, Any]:
     tokens = await load_oauth_tokens(vault_item_id, user_id)
     refresh = tokens.get("refresh_token")
     if not refresh:
         return tokens
-    client_id = os.environ.get("GOOGLE_OAUTH_CLIENT_ID", "")
-    client_secret = os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET", "")
+    resolved_id = (client_id or os.environ.get("GOOGLE_OAUTH_CLIENT_ID") or os.environ.get("KEPRIX_GOOGLE_CLIENT_ID") or "").strip()
+    resolved_secret = (
+        client_secret
+        or os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET")
+        or os.environ.get("KEPRIX_GOOGLE_CLIENT_SECRET")
+        or ""
+    ).strip()
+    if not resolved_id or not resolved_secret:
+        raise RuntimeError("Google OAuth client credentials are not configured")
     async with httpx.AsyncClient(timeout=30) as client:
         response = await client.post(
             "https://oauth2.googleapis.com/token",
+            data={
+                "client_id": resolved_id,
+                "client_secret": resolved_secret,
+                "refresh_token": refresh,
+                "grant_type": "refresh_token",
+            },
+        )
+        response.raise_for_status()
+        data = response.json()
+        tokens.update(data)
+        tokens["expires_at"] = int(time.time()) + int(data.get("expires_in", 3600))
+    await get_vault_service().update_oauth_bundle(vault_item_id, user_id, tokens)
+    return tokens
+
+
+async def refresh_microsoft_tokens(vault_item_id: str, user_id: str) -> dict[str, Any]:
+    tokens = await load_oauth_tokens(vault_item_id, user_id)
+    refresh = tokens.get("refresh_token")
+    if not refresh:
+        return tokens
+    client_id = os.environ.get("MICROSOFT_OAUTH_CLIENT_ID", "")
+    client_secret = os.environ.get("MICROSOFT_OAUTH_CLIENT_SECRET", "")
+    tenant = os.environ.get("MICROSOFT_OAUTH_TENANT_ID", "common")
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.post(
+            f"https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
             data={
                 "client_id": client_id,
                 "client_secret": client_secret,

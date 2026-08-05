@@ -49,9 +49,9 @@ function selectTrigger(
       trigger: {
         key: "brain_discovery",
         title: "Your agent can remember things",
-        body: "After 10+ sessions, it has enough context to build a long-term memory. Open the Brain to get started.",
-        actionLabel: "Open Brain",
-        actionHref: "/memory",
+        body: "Your agent has remembered enough context to show it as a graph.",
+        actionLabel: "Open brain graph",
+        actionHref: "/brain/graph",
       },
     },
     {

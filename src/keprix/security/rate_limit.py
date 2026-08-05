@@ -112,6 +112,18 @@ def get_rate_limiter() -> RateLimiter:
 def reset_rate_limiter() -> None:
     """Clear the shared limiter (for tests)."""
     global _limiter
+    if _limiter is not None and getattr(_limiter, "_redis", None) is not None:
+        try:
+            client = _limiter._redis._client
+            for key in client.scan_iter("rl:*"):
+                client.delete(key)
+        except Exception:
+            pass
+    if _limiter is not None:
+        try:
+            _limiter._memory._events.clear()
+        except Exception:
+            pass
     _limiter = None
 
 

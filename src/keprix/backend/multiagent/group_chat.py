@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
 from keprix.backend.multiagent.message import AgentMessage, MessageType
 from keprix.backend.multiagent.runtime import send_message
+
+from keprix.compat import StrEnum
 
 
 class GroupChatPolicy(StrEnum):

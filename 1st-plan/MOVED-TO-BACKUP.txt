@@ -1,0 +1,18 @@
+Moved out of the Keprix product tree on 2026-07-27:
+
+- competitor-research/  (merged unique content, including 00-agents-to-adopt/gstack)
+- retired-project-compasslab/  (from apps-on-keprix/)
+
+Also previously moved on 2026-07-18:
+- ui-references/
+- pitch-and-sell/
+
+Backup location:
+/opt/lampp/htdocs/verlox/archive/keprix-wip-bakups/
+
+Paths:
+/opt/lampp/htdocs/verlox/archive/keprix-wip-bakups/1st-plan/competitor-research/
+/opt/lampp/htdocs/verlox/archive/keprix-wip-bakups/1st-plan/ui-references/
+/opt/lampp/htdocs/verlox/archive/keprix-wip-bakups/1st-plan/pitch-and-sell/
+/opt/lampp/htdocs/verlox/archive/keprix-wip-bakups/apps-on-keprix/retired-project-compasslab/
+/opt/lampp/htdocs/verlox/archive/keprix-wip-bakups/graphify-out/

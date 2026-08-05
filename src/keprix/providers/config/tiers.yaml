@@ -1,0 +1,9 @@
+tiers:
+  free_forever:
+    description: No-signup or free providers tried first for cost control.
+  subscription:
+    description: User subscription-backed providers.
+  api_keys:
+    description: Paid API key providers.
+  fallback:
+    description: Local providers used when remote options fail or quotas are exhausted.

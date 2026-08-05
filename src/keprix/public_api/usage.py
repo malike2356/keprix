@@ -54,12 +54,16 @@ async def record_api_usage(
 
 async def usage_summary(workspace_id: str = "default", days: int = 30) -> dict[str, Any]:
     store = get_metrics_store()
-    breakdown = await store.breakdown(
-        metric_type="provider_request",
-        days=days,
-        user_id=workspace_id,
-    )
-    rate_limits = await store.rate_limit_events(days=days)
+    try:
+        breakdown = await store.breakdown(
+            metric_type="provider_request",
+            days=days,
+            user_id=workspace_id,
+        )
+        rate_limits = await store.rate_limit_events(days=days)
+    except Exception:
+        breakdown = []
+        rate_limits = []
     keys = get_api_key_store().list_keys(workspace_id=workspace_id)
     return {
         "workspace_id": workspace_id,

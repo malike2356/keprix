@@ -76,6 +76,9 @@ class DsarStore:
             "memories": [],
             "research_jobs": [],
             "consents": [],
+            "leads": [],
+            "contacts": [],
+            "tenant_memberships": [],
         }
         try:
             from keprix.memory.episodic.store import create_episodic_store
@@ -98,8 +101,38 @@ class DsarStore:
             payload["research_jobs"] = [j.to_dict() for j in jobs]
         except Exception:
             pass
+        try:
+            from keprix.product_leads.store import get_lead_store
 
-        export_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+            payload["leads"] = [
+                lead
+                for lead in get_lead_store().list_leads(limit=500)
+                if lead.get("email") or True
+            ]
+            # Prefer leads explicitly tagged for this user when present
+            uid = row["user_id"]
+            tagged = [l for l in payload["leads"] if l.get("user_id") == uid or l.get("owner_user_id") == uid]
+            if tagged:
+                payload["leads"] = tagged
+        except Exception:
+            payload["leads"] = []
+        try:
+            from keprix.contacts.store import get_contact_store
+
+            contacts = await get_contact_store().list_contacts(user_id=row["user_id"], limit=500)
+            payload["contacts"] = [c.to_dict() for c in contacts]
+        except Exception:
+            payload["contacts"] = []
+        try:
+            from keprix.tenancy.store import get_tenant_store
+
+            payload["tenant_memberships"] = [
+                m.to_dict() for m in get_tenant_store().list_memberships(user_id=row["user_id"])
+            ]
+        except Exception:
+            payload["tenant_memberships"] = []
+
+        export_path.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
         row["status"] = "completed"
         row["completed_at"] = _utcnow()
         row["export_path"] = str(export_path)

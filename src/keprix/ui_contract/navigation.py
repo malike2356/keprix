@@ -1,4 +1,15 @@
-"""Navigation groups and items for the Keprix app shell."""
+"""Navigation groups and items for the Keprix app shell.
+
+Order follows a common workspace UX flow:
+1. Daily work (Workspace)
+2. Knowledge and content systems (Data)
+3. Discovery (Research)
+4. Extensions and channels (Apps / Installed apps)
+5. Agent systems and schedules (Automations)
+6. Trust and governance (Security)
+7. Commercial (Commerce)
+8. Instance operations (Admin), with Developer last
+"""
 
 from __future__ import annotations
 
@@ -6,108 +17,126 @@ from typing import Any
 
 NAV_GROUP_LABELS: dict[str, str] = {
     "workspace": "Workspace",
-    "apps": "Apps",
-    "installed_apps": "Installed apps",
     "data": "Data",
     "research": "Research",
+    "apps": "Apps",
+    "installed_apps": "Installed apps",
     "automations": "Automations",
-    "commerce": "Commerce",
     "security": "Security",
+    "commerce": "Commerce",
     "admin": "Admin",
 }
 
 NAV_GROUPS_ORDER: list[str] = [
     "workspace",
-    "apps",
-    "installed_apps",
     "data",
     "research",
+    "apps",
+    "installed_apps",
     "automations",
-    "commerce",
     "security",
+    "commerce",
     "admin",
 ]
 
 # Curated nav. Admins/owners always get the full list.
 # Users/operators get this minus admin group, minus items gated by off feature flags.
 NAV_ITEMS: list[dict[str, Any]] = [
+    # --- Workspace: start work, organize, communicate, capture ---
     {"id": "home", "label": "Home", "href": "/home", "group": "workspace", "icon": "home"},
     {"id": "chat", "label": "Chat", "href": "/chat", "group": "workspace", "icon": "chat"},
     {"id": "sessions", "label": "Sessions", "href": "/sessions", "group": "workspace", "icon": "chat"},
-    {"id": "documents", "label": "Documents", "href": "/documents", "group": "workspace", "icon": "folder"},
-    {"id": "notes", "label": "Notes", "href": "/notes", "group": "workspace", "icon": "notes"},
+    {"id": "voice", "label": "Voice", "href": "/voice", "group": "workspace", "icon": "voice"},
     {"id": "tasks", "label": "Tasks", "href": "/tasks", "group": "workspace", "icon": "tasks"},
     {"id": "calendar", "label": "Calendar", "href": "/calendar", "group": "workspace", "icon": "calendar"},
+    {"id": "vical", "label": "viCal", "href": "/vical", "group": "workspace", "icon": "calendar"},
+    {"id": "notes", "label": "Notes", "href": "/notes", "group": "workspace", "icon": "notes"},
     {"id": "email", "label": "Email", "href": "/email", "group": "workspace", "icon": "email"},
     {"id": "notifications", "label": "Notifications", "href": "/notifications", "group": "workspace", "icon": "email"},
     {"id": "contacts", "label": "Contacts", "href": "/contacts", "group": "workspace", "icon": "contacts"},
+    {"id": "leads", "label": "Leads", "href": "/leads", "group": "workspace", "icon": "contacts"},
+    {"id": "tenants", "label": "Tenants", "href": "/tenants", "group": "admin", "icon": "users"},
+    {"id": "documents", "label": "Documents", "href": "/documents", "group": "workspace", "icon": "folder"},
+    {"id": "files", "label": "Files", "href": "/files", "group": "workspace", "icon": "folder"},
     {"id": "gallery", "label": "Gallery", "href": "/gallery", "group": "workspace", "icon": "image"},
-    {"id": "voice", "label": "Voice", "href": "/voice", "group": "workspace", "icon": "voice"},
     {"id": "memory", "label": "Memory", "href": "/memory", "group": "workspace", "icon": "memory"},
     {"id": "memory-galaxy", "label": "Memory Galaxy", "href": "/memory/galaxy", "group": "workspace", "icon": "memory"},
     {"id": "brain", "label": "Brain", "href": "/brain/graph", "group": "workspace", "icon": "memory"},
+    {"id": "tools", "label": "Tools", "href": "/admin/tools", "group": "workspace", "icon": "tool"},
+    {"id": "workspace-new", "label": "New workspace", "href": "/workspace/new", "group": "workspace", "icon": "folder"},
+    # --- Data: knowledge graph, pipelines, models, telemetry ---
     {"id": "brain-graph", "label": "Brain graph", "href": "/brain/graph", "group": "data", "icon": "memory"},
     {"id": "brain-health", "label": "Brain health", "href": "/brain/health", "group": "data", "icon": "monitoring"},
     {"id": "graphiti", "label": "Graphiti", "href": "/brain/graphiti", "group": "data", "icon": "memory"},
-    {"id": "workspace-new", "label": "New workspace", "href": "/workspace/new", "group": "workspace", "icon": "folder"},
-    {"id": "opportunities", "label": "Opportunities", "href": "/opportunities", "group": "research", "icon": "science"},
+    {"id": "rag-pipeline", "label": "RAG Pipelines", "href": "/data?tab=rag", "group": "data", "icon": "science"},
+    {"id": "playbook", "label": "Local models", "href": "/data?tab=models", "group": "data", "icon": "playbook"},
+    {"id": "video-ingest", "label": "Video ingest", "href": "/data?tab=video", "group": "data", "icon": "video"},
+    {"id": "analytics", "label": "Analytics workspace", "href": "/data?tab=analytics", "group": "data", "icon": "compare"},
+    {"id": "usage", "label": "LLM usage", "href": "/data?tab=usage", "group": "data", "icon": "monitoring"},
+    {"id": "observability", "label": "Observability", "href": "/data?tab=observability", "group": "data", "icon": "activity"},
+    # --- Research: discover and evaluate ---
     {"id": "research", "label": "Deep Research", "href": "/research", "group": "research", "icon": "science"},
+    {"id": "companies-house", "label": "Companies House", "href": "/companies-house", "group": "research", "icon": "business"},
+    {"id": "opportunities", "label": "Opportunities", "href": "/opportunities", "group": "research", "icon": "science"},
     {"id": "compare", "label": "Compare Models", "href": "/compare", "group": "research", "icon": "compare"},
-    {"id": "playbook", "label": "Local models", "href": "/playbook", "group": "data", "icon": "playbook"},
-    {"id": "rag-pipeline", "label": "RAG Pipelines", "href": "/rag-pipeline", "group": "data", "icon": "science"},
-    {"id": "analytics", "label": "Analytics workspace", "href": "/analytics", "group": "data", "icon": "compare"},
-    {"id": "usage", "label": "LLM usage", "href": "/usage", "group": "data", "icon": "monitoring"},
-    {"id": "observability", "label": "Observability", "href": "/observability", "group": "data", "icon": "monitoring"},
-    {"id": "video-ingest", "label": "Video ingest", "href": "/ingest/video", "group": "data", "icon": "image"},
+    # --- Apps: installable surfaces, channels, builders ---
     {"id": "hub", "label": "Hub", "href": "/hub", "group": "apps", "icon": "apps"},
-    {"id": "design-preview", "label": "Design preview", "href": "/design/preview", "group": "apps", "icon": "image"},
+    {"id": "agent-apps", "label": "Agent Apps", "href": "/agent-apps", "group": "apps", "icon": "apps"},
+    {"id": "skills", "label": "Skills Hub", "href": "/skills", "group": "apps", "icon": "skills"},
     {"id": "domain-packs", "label": "Domain Packs", "href": "/domain-packs", "group": "apps", "icon": "skills"},
-    {"id": "migrate", "label": "Migrate", "href": "/migrate", "group": "apps", "icon": "backup"},
+    {"id": "builder", "label": "Project Builder", "href": "/builder", "group": "apps", "icon": "code"},
+    {"id": "design-preview", "label": "Design preview", "href": "/design/preview", "group": "apps", "icon": "image"},
     {"id": "channels", "label": "Channels", "href": "/dashboard/channels", "group": "apps", "icon": "extension"},
     {"id": "messaging-settings", "label": "Messaging", "href": "/settings/messaging", "group": "apps", "icon": "email"},
     {"id": "voice-wake", "label": "Wake words", "href": "/settings/voice/wake-words", "group": "apps", "icon": "settings"},
-    {"id": "skills", "label": "Skills Hub", "href": "/skills", "group": "apps", "icon": "skills"},
-    {"id": "builder", "label": "Project Builder", "href": "/builder", "group": "apps", "icon": "code"},
+    {"id": "migrate", "label": "Migrate", "href": "/migrate", "group": "apps", "icon": "backup"},
+    # --- Automations: orchestrate agents and schedules ---
+    {"id": "control-center", "label": "Control Center", "href": "/control-center", "group": "automations", "icon": "hub"},
     {"id": "agent-os-glass", "label": "Agent OS", "href": "/agent-os/glass", "group": "automations", "icon": "dashboard"},
-    {"id": "playbooks", "label": "Playbooks", "href": "/playbooks", "group": "automations", "icon": "playbook"},
-    {"id": "playbook-triggers", "label": "Triggers", "href": "/playbooks/triggers", "group": "automations", "icon": "schedule"},
-    {"id": "integrations", "label": "Integrations", "href": "/integrations", "group": "automations", "icon": "extension"},
+    {"id": "agent-studio", "label": "Agent Studio", "href": "/agent-studio", "group": "automations", "icon": "apps"},
     {"id": "agent-teams", "label": "Agent Teams", "href": "/admin/teams", "group": "automations", "icon": "extension"},
     {"id": "agent-runtime", "label": "Agent Runtime", "href": "/agent-runtime", "group": "automations", "icon": "extension"},
     {"id": "a2a", "label": "A2A", "href": "/a2a", "group": "automations", "icon": "hub"},
-    {"id": "browser-adoption", "label": "Browser", "href": "/browser", "group": "automations", "icon": "extension"},
-    {"id": "analytics-adoption", "label": "Analytics", "href": "/analytics", "group": "automations", "icon": "compare"},
-    {"id": "coding-adoption", "label": "Coding", "href": "/admin/coding", "group": "automations", "icon": "code"},
-    {"id": "ponytail-ladder", "label": "Ponytail ladder", "href": "/coding/ladder", "group": "automations", "icon": "code"},
-    {"id": "tools-adoption", "label": "Tools", "href": "/admin/tools", "group": "automations", "icon": "extension"},
-    {"id": "evals", "label": "Evals", "href": "/evals", "group": "automations", "icon": "science"},
-    {"id": "control-center", "label": "Control Center", "href": "/control-center", "group": "automations", "icon": "hub"},
-    {"id": "agent-studio", "label": "Agent Studio", "href": "/agent-studio", "group": "automations", "icon": "apps"},
-    {"id": "agent-apps", "label": "Agent Apps", "href": "/agent-apps", "group": "automations", "icon": "apps"},
+    {"id": "playbooks", "label": "Playbooks", "href": "/playbooks", "group": "automations", "icon": "playbook"},
+    {"id": "playbook-triggers", "label": "Triggers", "href": "/playbooks/triggers", "group": "automations", "icon": "schedule"},
+    {"id": "integrations", "label": "Integrations", "href": "/integrations", "group": "automations", "icon": "extension"},
     {"id": "cron", "label": "Cron Jobs", "href": "/admin/cron", "group": "automations", "icon": "schedule"},
     {"id": "mcp", "label": "MCP Servers", "href": "/admin/mcp", "group": "automations", "icon": "extension"},
-    {"id": "review-gateway", "label": "Review gateway", "href": "/review-gateway", "group": "security", "icon": "shield"},
+    {"id": "browser-adoption", "label": "Browser", "href": "/browser", "group": "automations", "icon": "extension"},
+    {"id": "coding-adoption", "label": "Coding", "href": "/admin/coding", "group": "automations", "icon": "code"},
+    {"id": "ponytail-ladder", "label": "Ponytail ladder", "href": "/coding/ladder", "group": "automations", "icon": "code"},
+    {"id": "tools-adoption", "label": "Tool library", "href": "/admin/tools", "group": "automations", "icon": "extension"},
+    {"id": "analytics-adoption", "label": "Analytics", "href": "/data?tab=analytics", "group": "automations", "icon": "compare"},
+    {"id": "evals", "label": "Evals", "href": "/evals", "group": "automations", "icon": "science"},
+    # --- Security: secrets, gates, support ---
     {"id": "vault", "label": "Vault", "href": "/vault", "group": "security", "icon": "lock"},
     {"id": "vault-setup", "label": "Vault setup", "href": "/vault/setup", "group": "security", "icon": "folder"},
     {"id": "knowledge-vault-settings", "label": "Knowledge vault", "href": "/settings/vault", "group": "security", "icon": "folder"},
-    {"id": "support", "label": "Support", "href": "/support", "group": "security", "icon": "help"},
+    {"id": "review-gateway", "label": "Review gateway", "href": "/review-gateway", "group": "security", "icon": "shield"},
+    {"id": "channel-shield", "label": "Channel Shield", "href": "/channel-shield", "group": "security", "icon": "shield"},
+    {"id": "scout-warden", "label": "Scout Warden", "href": "/admin/scout-warden", "group": "security", "icon": "shield"},
+    {"id": "dsar", "label": "DSAR", "href": "/admin/dsar", "group": "security", "icon": "shield"},
     {"id": "operator-copilot", "label": "Operator copilot", "href": "/control-center", "group": "security", "icon": "extension"},
-    {"id": "backup", "label": "Backup", "href": "/admin/backup", "group": "admin", "icon": "backup"},
-    {"id": "readiness", "label": "Readiness", "href": "/admin/readiness", "group": "admin", "icon": "monitoring"},
+    {"id": "support", "label": "Support", "href": "/support", "group": "security", "icon": "help"},
+    # --- Admin: overview → people → product → governance → reliability → platform ---
+    {"id": "settings", "label": "Settings", "href": "/settings", "group": "admin", "icon": "settings"},
     {"id": "dashboard", "label": "Dashboard", "href": "/dashboard", "group": "admin", "icon": "monitoring"},
+    {"id": "admin", "label": "Admin", "href": "/dashboard", "group": "admin", "icon": "shield"},
     {"id": "users", "label": "Users", "href": "/settings/users", "group": "admin", "icon": "users"},
     {"id": "billing", "label": "Billing", "href": "/settings/billing", "group": "admin", "icon": "payments"},
-    {"id": "upgrade", "label": "Keprix upgrades", "href": "/settings/upgrade", "group": "admin", "icon": "backup"},
     {"id": "modules", "label": "Modules", "href": "/settings/modules", "group": "admin", "icon": "apps"},
-    {"id": "feature-flags", "label": "Feature Flags", "href": "/admin/feature-flags", "group": "admin", "icon": "toggle_on"},
-    {"id": "self-knowledge", "label": "Self-Knowledge", "href": "/admin/self-knowledge", "group": "admin", "icon": "psychology"},
+    {"id": "upgrade", "label": "Keprix upgrades", "href": "/settings/upgrade", "group": "admin", "icon": "backup"},
+    {"id": "feature-flags", "label": "Feature Flags", "href": "/admin/feature-flags", "group": "admin", "icon": "apps"},
     {"id": "admin-quotas", "label": "Quotas", "href": "/admin/quotas", "group": "admin", "icon": "monitoring"},
     {"id": "admin-tool-acl", "label": "Tool ACL", "href": "/admin/tools", "group": "admin", "icon": "shield"},
     {"id": "admin-network-egress", "label": "Network egress", "href": "/admin/network-egress", "group": "admin", "icon": "shield"},
     {"id": "admin-isolation-audit", "label": "Isolation audit", "href": "/admin/isolation-audit", "group": "admin", "icon": "shield"},
-    {"id": "settings", "label": "Settings", "href": "/settings", "group": "admin", "icon": "settings"},
-    {"id": "developer", "label": "Developer", "href": "/developer", "group": "admin", "icon": "code"},
+    {"id": "admin-upstream", "label": "Hermes upstream", "href": "/admin/upstream", "group": "admin", "icon": "monitoring"},
+    {"id": "backup", "label": "Backup", "href": "/admin/backup", "group": "admin", "icon": "backup"},
+    {"id": "readiness", "label": "Readiness", "href": "/admin/readiness", "group": "admin", "icon": "monitoring"},
+    {"id": "self-knowledge", "label": "Self-Knowledge", "href": "/admin/self-knowledge", "group": "admin", "icon": "apps"},
     {"id": "module-inventory", "label": "Module inventory", "href": "/developer/module-inventory", "group": "admin", "icon": "monitoring"},
+    {"id": "developer", "label": "Developer", "href": "/developer", "group": "admin", "icon": "code"},
 ]
 
 # When a flag is off, hide these nav ids for non-admin roles.
@@ -117,8 +146,8 @@ FLAG_NAV_GATES: dict[str, set[str]] = {
     "data_workspace": {"rag-pipeline", "analytics", "analytics-adoption", "video-ingest", "observability"},
     "opportunity_engine": {"opportunities", "contacts"},
     "playbooks": {"playbooks", "playbook-triggers"},
-    "research": {"research", "compare"},
-    "calendar": {"calendar"},
+    "research": {"research", "compare", "companies-house"},
+    "calendar": {"calendar", "vical"},
     "email": {"email", "messaging-settings"},
     "contacts": {"contacts"},
     "agent_apps": {"agent-apps", "hub"},
@@ -127,6 +156,7 @@ FLAG_NAV_GATES: dict[str, set[str]] = {
     "evals": {"evals"},
     "coding": {"coding-adoption", "ponytail-ladder"},
     "governance": {"review-gateway", "operator-copilot"},
+    "channel_shield": {"channel-shield"},
     "commerce": {"billing"},
 }
 

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "id": "invalid_missing_entry",
+  "name": "Invalid",
+  "nodes": [
+    {
+      "id": "one",
+      "type": "agent_task",
+      "position": { "x": 80, "y": 80 },
+      "data": { "label": "One", "prompt": "Do one thing", "tools": [] }
+    },
+    {
+      "id": "two",
+      "type": "agent_task",
+      "position": { "x": 320, "y": 80 },
+      "data": { "label": "Two", "prompt": "Do another thing", "tools": [] }
+    }
+  ],
+  "edges": [],
+  "viewport": { "x": 0, "y": 0, "zoom": 1 }
+}

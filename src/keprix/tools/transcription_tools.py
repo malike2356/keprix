@@ -90,6 +90,7 @@ DEFAULT_STT_MODEL = os.getenv("STT_OPENAI_MODEL", "whisper-1")
 DEFAULT_GROQ_STT_MODEL = os.getenv("STT_GROQ_MODEL", "whisper-large-v3-turbo")
 DEFAULT_MISTRAL_STT_MODEL = os.getenv("STT_MISTRAL_MODEL", "voxtral-mini-latest")
 DEFAULT_ELEVENLABS_STT_MODEL = os.getenv("STT_ELEVENLABS_MODEL", "scribe_v2")
+DEFAULT_GEMINI_STT_MODEL = os.getenv("STT_GEMINI_MODEL", "gemini-2.5-flash")
 LOCAL_STT_COMMAND_ENV = "KEPRIX_LOCAL_STT_COMMAND"
 LOCAL_STT_LANGUAGE_ENV = "KEPRIX_LOCAL_STT_LANGUAGE"
 COMMON_LOCAL_BIN_DIRS = ("/opt/homebrew/bin", "/usr/local/bin")
@@ -98,6 +99,25 @@ GROQ_BASE_URL = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
 OPENAI_BASE_URL = os.getenv("STT_OPENAI_BASE_URL", "https://api.openai.com/v1")
 XAI_STT_BASE_URL = os.getenv("XAI_STT_BASE_URL", "https://api.x.ai/v1")
 ELEVENLABS_STT_BASE_URL = os.getenv("ELEVENLABS_STT_BASE_URL", "https://api.elevenlabs.io/v1")
+GEMINI_STT_BASE_URL = os.getenv(
+    "STT_GEMINI_BASE_URL",
+    "https://generativelanguage.googleapis.com/v1beta",
+)
+GEMINI_STT_MIME_BY_SUFFIX = {
+    ".wav": "audio/wav",
+    ".wave": "audio/wav",
+    ".mp3": "audio/mp3",
+    ".mpeg": "audio/mpeg",
+    ".mpga": "audio/mpga",
+    ".m4a": "audio/mp4",
+    ".mp4": "audio/mp4",
+    ".aac": "audio/aac",
+    ".ogg": "audio/ogg",
+    ".flac": "audio/flac",
+    ".webm": "audio/webm",
+    ".aiff": "audio/aiff",
+    ".aif": "audio/aiff",
+}
 
 SUPPORTED_FORMATS = {".mp3", ".mp4", ".mpeg", ".mpga", ".m4a", ".wav", ".webm", ".ogg", ".aac", ".flac"}
 LOCAL_NATIVE_AUDIO_FORMATS = {".wav", ".aiff", ".aif"}
@@ -241,6 +261,8 @@ BUILTIN_STT_PROVIDERS = frozenset({
     "openai",
     "mistral",
     "xai",
+    "gemini",
+    "google",
 })
 
 
@@ -823,6 +845,14 @@ def _get_provider(stt_config: dict) -> str:
                 return "elevenlabs"
             logger.warning(
                 "STT provider 'elevenlabs' configured but ELEVENLABS_API_KEY not set"
+            )
+            return "none"
+
+        if provider in {"gemini", "google"}:
+            if _resolve_gemini_api_key():
+                return "gemini"
+            logger.warning(
+                "STT provider 'gemini' configured but GEMINI_API_KEY/GOOGLE_API_KEY not set"
             )
             return "none"
 
@@ -1616,6 +1646,154 @@ def _transcribe_elevenlabs(file_path: str, model_name: str) -> Dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Provider: Google Gemini (multimodal audio understanding)
+# ---------------------------------------------------------------------------
+
+
+def _resolve_gemini_api_key() -> Optional[str]:
+    stt_config = _load_stt_config()
+    gemini_cfg = stt_config.get("gemini", {}) if isinstance(stt_config.get("gemini"), dict) else {}
+    cfg_key = str(gemini_cfg.get("api_key") or "").strip()
+    if cfg_key:
+        return cfg_key
+    for key in ("GEMINI_API_KEY", "GOOGLE_API_KEY"):
+        value = get_env_value(key)
+        if value and str(value).strip():
+            return str(value).strip()
+    return None
+
+
+def _gemini_mime_type(file_path: str) -> str:
+    suffix = Path(file_path).suffix.lower()
+    return GEMINI_STT_MIME_BY_SUFFIX.get(suffix, "audio/webm")
+
+
+def _extract_gemini_transcript(payload: Any) -> str:
+    if not isinstance(payload, dict):
+        return str(payload or "").strip()
+    candidates = payload.get("candidates") or []
+    texts: list[str] = []
+    for candidate in candidates:
+        if not isinstance(candidate, dict):
+            continue
+        content = candidate.get("content") or {}
+        parts = content.get("parts") if isinstance(content, dict) else None
+        if not isinstance(parts, list):
+            continue
+        for part in parts:
+            if isinstance(part, dict) and isinstance(part.get("text"), str):
+                text = part["text"].strip()
+                if text:
+                    texts.append(text)
+    return "\n".join(texts).strip()
+
+
+def _transcribe_gemini(file_path: str, model_name: str) -> Dict[str, Any]:
+    """Transcribe using Gemini multimodal generateContent (audio -> text)."""
+    import base64
+
+    api_key = _resolve_gemini_api_key()
+    if not api_key:
+        return {
+            "success": False,
+            "transcript": "",
+            "error": "GEMINI_API_KEY or GOOGLE_API_KEY not set",
+        }
+
+    stt_config = _load_stt_config()
+    gemini_cfg = stt_config.get("gemini", {}) if isinstance(stt_config.get("gemini"), dict) else {}
+    base_url = str(
+        gemini_cfg.get("base_url") or get_env_value("STT_GEMINI_BASE_URL") or GEMINI_STT_BASE_URL
+    ).strip().rstrip("/")
+    prompt = str(
+        gemini_cfg.get("prompt")
+        or "Transcribe this audio. Return only the spoken transcript text with no commentary, labels, or markdown."
+    ).strip()
+    language = str(gemini_cfg.get("language") or "").strip()
+    if language:
+        prompt = f"{prompt} The audio language is {language}."
+
+    try:
+        import requests
+
+        audio_bytes = Path(file_path).read_bytes()
+        # Keep chat dictation clips bounded; Gemini inline data is fine under ~20MB.
+        if len(audio_bytes) > 18 * 1024 * 1024:
+            return {
+                "success": False,
+                "transcript": "",
+                "error": "Audio too large for Gemini inline STT (max ~18MB). Shorten the recording.",
+            }
+
+        mime_type = _gemini_mime_type(file_path)
+        body = {
+            "contents": [
+                {
+                    "role": "user",
+                    "parts": [
+                        {"text": prompt},
+                        {
+                            "inline_data": {
+                                "mime_type": mime_type,
+                                "data": base64.b64encode(audio_bytes).decode("ascii"),
+                            }
+                        },
+                    ],
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0,
+            },
+        }
+        url = f"{base_url}/models/{model_name}:generateContent"
+        response = requests.post(
+            url,
+            params={"key": api_key},
+            headers={"Content-Type": "application/json"},
+            json=body,
+            timeout=120,
+        )
+        if response.status_code != 200:
+            detail = ""
+            try:
+                err_body = response.json()
+                error_value = err_body.get("error")
+                if isinstance(error_value, dict):
+                    detail = str(error_value.get("message") or error_value)
+                else:
+                    detail = response.text[:300]
+            except Exception:
+                detail = response.text[:300]
+            return {
+                "success": False,
+                "transcript": "",
+                "error": f"Gemini STT API error (HTTP {response.status_code}): {detail}",
+            }
+
+        transcript_text = _extract_gemini_transcript(response.json())
+        if not transcript_text:
+            return {
+                "success": False,
+                "transcript": "",
+                "error": "Gemini STT returned empty transcript",
+            }
+
+        logger.info(
+            "Transcribed %s via Gemini (%s, %d chars)",
+            Path(file_path).name,
+            model_name,
+            len(transcript_text),
+        )
+        return {"success": True, "transcript": transcript_text, "provider": "gemini"}
+
+    except PermissionError:
+        return {"success": False, "transcript": "", "error": f"Permission denied: {file_path}"}
+    except Exception as e:
+        logger.error("Gemini STT transcription failed: %s", e, exc_info=True)
+        return {"success": False, "transcript": "", "error": f"Gemini STT transcription failed: {e}"}
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
@@ -1693,6 +1871,11 @@ def transcribe_audio(file_path: str, model: Optional[str] = None) -> Dict[str, A
         model_name = model or elevenlabs_cfg.get("model_id", DEFAULT_ELEVENLABS_STT_MODEL)
         return _transcribe_elevenlabs(file_path, model_name)
 
+    if provider in {"gemini", "google"}:
+        gemini_cfg = stt_config.get("gemini", {}) if isinstance(stt_config.get("gemini"), dict) else {}
+        model_name = model or gemini_cfg.get("model", DEFAULT_GEMINI_STT_MODEL)
+        return _transcribe_gemini(file_path, model_name)
+
     # User-declared command-type provider
     # (``stt.providers.<name>: type: command``). Fires after the built-in
     # elif chain — built-in names short-circuit upstream so a user's
@@ -1744,7 +1927,8 @@ def transcribe_audio(file_path: str, model: Optional[str] = None) -> Dict[str, A
             f"transcription, configure {LOCAL_STT_COMMAND_ENV} or install a local whisper CLI, "
             "set GROQ_API_KEY for free Groq Whisper, set MISTRAL_API_KEY for Mistral "
             "Voxtral Transcribe, configure xAI OAuth or set XAI_API_KEY for xAI Grok STT, "
-            "set ELEVENLABS_API_KEY for ElevenLabs Scribe, or set VOICE_TOOLS_OPENAI_KEY "
+            "set ELEVENLABS_API_KEY for ElevenLabs Scribe, set GEMINI_API_KEY or "
+            "GOOGLE_API_KEY for Gemini audio transcription, or set VOICE_TOOLS_OPENAI_KEY "
             "or OPENAI_API_KEY for the OpenAI Whisper API."
         ),
     }

@@ -40,6 +40,7 @@ class GovernanceStore:
     """PostgreSQL-backed store with JSON file fallback."""
 
     def __init__(self, base_dir: Path | None = None) -> None:
+        self._force_file = base_dir is not None
         self._dir = base_dir or _governance_dir()
         self._dir.mkdir(parents=True, exist_ok=True)
         self._config_path = self._dir / "config.json"
@@ -72,6 +73,8 @@ class GovernanceStore:
         self._config_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
     async def get_config(self) -> dict[str, Any]:
+        if self._force_file:
+            return self._load_file_config()
         factory = get_session_factory()
         if factory is None:
             return self._load_file_config()
@@ -96,6 +99,11 @@ class GovernanceStore:
             }
 
     async def save_config(self, patch: dict[str, Any]) -> dict[str, Any]:
+        if self._force_file:
+            data = self._load_file_config()
+            data.update(patch)
+            self._save_file_config(data)
+            return data
         factory = get_session_factory()
         if factory is None:
             data = self._load_file_config()
@@ -152,7 +160,7 @@ class GovernanceStore:
             "created_at": _utcnow().isoformat(),
             "sent": False,
         }
-        if factory is None:
+        if self._force_file or factory is None:
             row_data["id"] = str(uuid.uuid4())
             with self._events_path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(row_data) + "\n")
@@ -174,7 +182,7 @@ class GovernanceStore:
 
     async def list_pending_events(self, *, limit: int = 100) -> list[dict[str, Any]]:
         factory = get_session_factory()
-        if factory is None:
+        if self._force_file or factory is None:
             if not self._events_path.exists():
                 return []
             pending = []
@@ -208,7 +216,7 @@ class GovernanceStore:
 
     async def mark_events_sent(self, event_ids: list[int | str]) -> None:
         factory = get_session_factory()
-        if factory is None:
+        if self._force_file or factory is None:
             if not self._events_path.exists():
                 return
             lines = []
@@ -236,7 +244,7 @@ class GovernanceStore:
 
     async def list_recent_events(self, *, limit: int = 50) -> list[dict[str, Any]]:
         factory = get_session_factory()
-        if factory is None:
+        if self._force_file or factory is None:
             if not self._events_path.exists():
                 return []
             rows = [json.loads(line) for line in self._events_path.read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -268,7 +276,7 @@ class GovernanceStore:
             "received_at": _utcnow().isoformat(),
             "active": True,
         }
-        if factory is None:
+        if self._force_file or factory is None:
             policies = []
             if self._policies_path.exists():
                 policies = json.loads(self._policies_path.read_text(encoding="utf-8"))
@@ -289,7 +297,7 @@ class GovernanceStore:
 
     async def list_policies(self, *, active_only: bool = True) -> list[dict[str, Any]]:
         factory = get_session_factory()
-        if factory is None:
+        if self._force_file or factory is None:
             if not self._policies_path.exists():
                 return []
             policies = json.loads(self._policies_path.read_text(encoding="utf-8"))

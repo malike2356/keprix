@@ -1,0 +1,72 @@
+[proxy]
+listen = "127.0.0.1:6790"
+vault = "1password"
+log_level = "warn"
+
+[[routes]]
+host = "api.anthropic.com"
+header_name = "x-api-key"
+type = "header"
+secret_ref = "anthropic-api-key"
+
+[[routes]]
+host = "api.openai.com"
+header_name = "Authorization"
+type = "header"
+secret_ref = "openai-api-key"
+scheme = "Bearer"
+
+[[routes]]
+host = "generativelanguage.googleapis.com"
+header_name = "x-goog-api-key"
+type = "header"
+secret_ref = "gemini-api-key"
+
+[[routes]]
+host = "api.deepseek.com"
+header_name = "Authorization"
+type = "header"
+secret_ref = "deepseek-api-key"
+scheme = "Bearer"
+
+[[routes]]
+host = "api.groq.com"
+header_name = "Authorization"
+type = "header"
+secret_ref = "groq-api-key"
+scheme = "Bearer"
+
+[[routes]]
+host = "openrouter.ai"
+header_name = "Authorization"
+type = "header"
+secret_ref = "openrouter-api-key"
+scheme = "Bearer"
+
+[[routes]]
+host = "api.mistral.ai"
+header_name = "Authorization"
+type = "header"
+secret_ref = "mistral-api-key"
+scheme = "Bearer"
+
+[[routes]]
+host = "api.together.xyz"
+header_name = "Authorization"
+type = "header"
+secret_ref = "together-api-key"
+scheme = "Bearer"
+
+[[routes]]
+host = "api.fireworks.ai"
+header_name = "Authorization"
+type = "header"
+secret_ref = "fireworks-api-key"
+scheme = "Bearer"
+
+[[routes]]
+host = "api.x.ai"
+header_name = "Authorization"
+type = "header"
+secret_ref = "xai-api-key"
+scheme = "Bearer"

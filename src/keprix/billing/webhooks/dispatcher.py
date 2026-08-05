@@ -11,6 +11,7 @@ from typing import Any
 
 from keprix.billing.config_loader import load_billing_config
 from keprix.billing.store import get_billing_store
+from keprix.billing.stripe.credentials import stripe_webhook_secret
 from keprix.billing.webhooks.handlers import HANDLERS
 
 
@@ -37,7 +38,7 @@ def _idempotency_key(event: dict[str, Any]) -> str:
 def verify_stripe_signature(payload: bytes, signature_header: str | None) -> bool:
     cfg = load_billing_config()
     secret_env = cfg.webhooks.signing_secret_env if cfg else "STRIPE_WEBHOOK_SECRET"
-    secret = os.environ.get(secret_env, "").strip()
+    secret = os.environ.get(secret_env, "").strip() or stripe_webhook_secret()
     if not secret:
         return os.environ.get("KEPRIX_BILLING_ALLOW_UNSIGNED_WEBHOOKS", "").lower() in {"1", "true", "yes"}
     if not signature_header:

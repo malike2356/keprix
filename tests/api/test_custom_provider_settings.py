@@ -22,7 +22,10 @@ def admin_client(tmp_path, monkeypatch):
 
     monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
     monkeypatch.setenv("KEPRIX_ADMIN_PASSWORD", "admin-pass")
+    monkeypatch.setenv("KEPRIX_ADMIN_EMAIL", "")
+    monkeypatch.setenv("ADMIN_EMAIL", "")
     monkeypatch.setenv("AUTH_ENABLED", "true")
+    monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
     monkeypatch.setenv("KEPRIX_ENV_FILE", str(env_path))
     monkeypatch.setattr("keprix_cli.config.get_config_path", lambda: config_path)
     monkeypatch.setattr("keprix.api.provider_settings._resolve_env_file", lambda: env_path)

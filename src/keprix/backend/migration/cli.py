@@ -10,6 +10,7 @@ from pathlib import Path
 from keprix.backend.migration.adapters import parse_source
 from keprix.backend.migration.importer import MigrationImporter, preview_manifest
 from keprix.backend.migration.manifest import AgentMigrationManifest
+from keprix.backend.migration.n8n_converter import convert_n8n_workflow, load_n8n_export
 
 
 def cmd_migrate_from(args: argparse.Namespace) -> int:
@@ -71,6 +72,66 @@ def cmd_migrate_apply(args: argparse.Namespace) -> int:
     return 0 if result.failed == 0 else 1
 
 
+def cmd_migrate_from_n8n(args: argparse.Namespace) -> int:
+    source = Path(args.source).expanduser()
+    if not source.exists():
+        print(f"Source not found: {source}", file=sys.stderr)
+        return 1
+
+    try:
+        payload = load_n8n_export(source)
+        result = convert_n8n_workflow(payload, playbook_id=args.id)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(f"Failed to convert n8n workflow: {exc}", file=sys.stderr)
+        return 1
+
+    summary = (
+        f"Converted '{result.name}' -> playbook id '{result.playbook_id}' "
+        f"({len(result.mapped_nodes)} mapped, {len(result.skipped_nodes)} skipped)"
+    )
+
+    if args.dry_run:
+        print(summary)
+        if result.warnings:
+            print("\nWarnings:")
+            for warning in result.warnings:
+                print(f"  - {warning}")
+        if result.skipped_nodes:
+            print("\nSkipped nodes:")
+            for row in result.skipped_nodes:
+                print(f"  - {row['name']} ({row['type']}): {row['reason']}")
+        print("\n--- YAML ---\n")
+        print(result.yaml_text, end="")
+        return 0
+
+    output_path: Path | None = None
+    if args.output:
+        output_path = Path(args.output).expanduser()
+    elif args.output_dir:
+        output_dir = Path(args.output_dir).expanduser()
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_path = output_dir / f"{result.playbook_id}.yml"
+    else:
+        print("Provide --output or --output-dir (or use --dry-run).", file=sys.stderr)
+        return 1
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(result.yaml_text, encoding="utf-8")
+    print(f"Wrote playbook YAML to {output_path}")
+
+    if args.report:
+        report_path = output_path.with_name(f"{result.playbook_id}.migration-report.json")
+        report_path.write_text(
+            json.dumps(result.report_dict(), indent=2),
+            encoding="utf-8",
+        )
+        print(f"Wrote migration report to {report_path}")
+
+    if result.skipped_nodes:
+        print(f"Note: {len(result.skipped_nodes)} node(s) skipped; review header comments in YAML.")
+    return 0
+
+
 def register_migrate_agent_subparsers(migrate_subparsers) -> None:
     from_parser = migrate_subparsers.add_parser("from", help="Build a migration manifest from a source export")
     from_parser.add_argument("source", choices=["hermes", "openclaw", "markdown", "generic"])
@@ -91,3 +152,19 @@ def register_migrate_agent_subparsers(migrate_subparsers) -> None:
     apply_parser.add_argument("--workspace-id", default="default")
     apply_parser.add_argument("--user-id", default="default")
     apply_parser.set_defaults(func=cmd_migrate_apply)
+
+    n8n_parser = migrate_subparsers.add_parser(
+        "from-n8n",
+        help="Convert an exported n8n workflow JSON file to Keprix playbook YAML",
+    )
+    n8n_parser.add_argument("--source", required=True, help="Path to n8n workflow JSON export")
+    n8n_parser.add_argument("--output", help="Write a single playbook .yml file")
+    n8n_parser.add_argument("--output-dir", help="Write {playbook_id}.yml into this directory")
+    n8n_parser.add_argument("--id", help="Override generated playbook id slug")
+    n8n_parser.add_argument("--dry-run", action="store_true", help="Print YAML and summary only")
+    n8n_parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Also write {playbook_id}.migration-report.json next to output",
+    )
+    n8n_parser.set_defaults(func=cmd_migrate_from_n8n)

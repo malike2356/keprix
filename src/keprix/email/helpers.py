@@ -76,7 +76,16 @@ def open_imap_connection(
     return conn
 
 
-def imap_login(conn: imaplib.IMAP4, username: str, password: str) -> None:
+def imap_login(conn: imaplib.IMAP4, username: str, password: str | None = None, *, access_token: str | None = None) -> None:
+    if access_token:
+
+        def _auth(_challenge: bytes | None = None) -> bytes:
+            return f"user={username}\x01auth=Bearer {access_token}\x01\x01".encode("utf-8")
+
+        conn.authenticate("XOAUTH2", _auth)
+        return
+    if not password:
+        raise ValueError("IMAP password or OAuth access token is required")
     conn.login(username, password)
 
 
@@ -89,7 +98,11 @@ def imap_session(account: dict[str, Any]):
         use_starttls=bool(account.get("use_starttls", False)),
     )
     try:
-        imap_login(conn, account["username"], account["password"])
+        access_token = str(account.get("access_token") or "").strip() or None
+        password = account.get("password")
+        if password is None and account.get("password_encrypted"):
+            password = decrypt_secret(account["password_encrypted"])
+        imap_login(conn, account["username"], password, access_token=access_token)
         yield conn
     finally:
         try:
@@ -112,24 +125,47 @@ def list_imap_folders(conn: imaplib.IMAP4) -> list[str]:
 
 
 def test_imap_smtp(account: dict[str, Any]) -> dict[str, Any]:
-    password = decrypt_secret(account.get("password_encrypted", ""))
-    cfg = {**account, "password": password, "username": account["username"]}
+    cfg = dict(account)
+    if not cfg.get("access_token") and cfg.get("password_encrypted") and not cfg.get("password"):
+        cfg["password"] = decrypt_secret(cfg.get("password_encrypted", ""))
     folders: list[str] = []
     with imap_session(cfg) as conn:
         folders = list_imap_folders(conn)
 
-    security = smtp_security_mode(int(account["smtp_port"]), bool(account.get("use_starttls")))
-    host = account["smtp_host"]
-    port = int(account["smtp_port"])
+    # SMTP auth probe without sending mail.
+    probe = MIMEText("keprix connection test", "plain", "utf-8")
+    probe["Subject"] = "Keprix connection test"
+    probe["From"] = cfg.get("email_address") or cfg["username"]
+    probe["To"] = cfg.get("email_address") or cfg["username"]
+    security = smtp_security_mode(int(cfg["smtp_port"]), bool(cfg.get("use_starttls")))
+    host = cfg["smtp_host"]
+    port = int(cfg["smtp_port"])
+    username = cfg["username"]
+    access_token = str(cfg.get("access_token") or "").strip() or None
+    password = cfg.get("password")
+
+    def _auth(smtp: smtplib.SMTP) -> None:
+        if access_token:
+            import base64
+
+            auth_str = base64.b64encode(f"user={username}\x01auth=Bearer {access_token}\x01\x01".encode("utf-8")).decode(
+                "ascii"
+            )
+            code, response = smtp.docmd("AUTH", f"XOAUTH2 {auth_str}")
+            if code != 235:
+                raise smtplib.SMTPAuthenticationError(code, response)
+            return
+        smtp.login(username, password or "")
+
     if security == "ssl":
         with smtplib.SMTP_SSL(host, port, timeout=IMAP_TIMEOUT) as smtp:
-            smtp.login(account["username"], password)
+            _auth(smtp)
     else:
         with smtplib.SMTP(host, port, timeout=IMAP_TIMEOUT) as smtp:
             if security == "starttls":
                 smtp.starttls()
-            smtp.login(account["username"], password)
-    return {"ok": True, "folders": folders}
+            _auth(smtp)
+    return {"ok": True, "folders": folders[:20], "smtp": "ok"}
 
 
 def extract_text_body(msg: email_mod.message.Message) -> str:
@@ -265,7 +301,10 @@ def send_smtp_message(
     subject: str,
     body: str,
 ) -> None:
-    password = decrypt_secret(account.get("password_encrypted", ""))
+    access_token = str(account.get("access_token") or "").strip() or None
+    password = account.get("password")
+    if password is None and account.get("password_encrypted"):
+        password = decrypt_secret(account.get("password_encrypted", ""))
     recipients = list(dict.fromkeys([*to_addresses, *cc_addresses]))
     message = MIMEMultipart()
     message["From"] = from_addr
@@ -279,13 +318,61 @@ def send_smtp_message(
     host = account["smtp_host"]
     port = int(account["smtp_port"])
     raw = message.as_string()
+    username = account["username"]
+
+    def _smtp_auth(smtp: smtplib.SMTP) -> None:
+        if access_token:
+            import base64
+
+            auth_str = base64.b64encode(f"user={username}\x01auth=Bearer {access_token}\x01\x01".encode("utf-8")).decode(
+                "ascii"
+            )
+            code, response = smtp.docmd("AUTH", f"XOAUTH2 {auth_str}")
+            if code != 235:
+                raise smtplib.SMTPAuthenticationError(code, response)
+            return
+        if not password:
+            raise ValueError("SMTP password or OAuth access token is required")
+        smtp.login(username, password)
+
     if security == "ssl":
         with smtplib.SMTP_SSL(host, port, timeout=IMAP_TIMEOUT) as smtp:
-            smtp.login(account["username"], password)
+            _smtp_auth(smtp)
             smtp.sendmail(from_addr, recipients, raw)
         return
     with smtplib.SMTP(host, port, timeout=IMAP_TIMEOUT) as smtp:
         if security == "starttls":
             smtp.starttls()
-        smtp.login(account["username"], password)
+        _smtp_auth(smtp)
         smtp.sendmail(from_addr, recipients, raw)
+
+
+async def resolve_account_connection(account: Any) -> dict[str, Any]:
+    """Build IMAP/SMTP connection dict, resolving OAuth access tokens when needed."""
+    if hasattr(account, "to_connection"):
+        payload = account.to_connection()
+        user_id = account.user_id
+        oauth_provider = getattr(account, "oauth_provider", None)
+        vault_id = getattr(account, "oauth_vault_item_id", None)
+    else:
+        payload = dict(account)
+        user_id = str(payload.get("user_id") or "")
+        oauth_provider = payload.get("oauth_provider")
+        vault_id = payload.get("oauth_vault_item_id")
+
+    if vault_id and oauth_provider == "google":
+        from keprix.oauth.tokens import refresh_google_tokens
+
+        tokens = await refresh_google_tokens(vault_id, user_id)
+        payload["access_token"] = tokens.get("access_token")
+    elif vault_id and oauth_provider == "microsoft":
+        from keprix.oauth.tokens import load_oauth_tokens
+
+        tokens = await load_oauth_tokens(vault_id, user_id)
+        payload["access_token"] = tokens.get("access_token")
+    elif payload.get("password_encrypted") and not payload.get("password"):
+        try:
+            payload["password"] = decrypt_secret(payload["password_encrypted"])
+        except Exception:
+            payload["password"] = ""
+    return payload

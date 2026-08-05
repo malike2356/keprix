@@ -35,3 +35,12 @@ def mark_setup_complete(*, owner_email: str | None = None) -> dict[str, Any]:
 
 def wizard_status() -> dict[str, Any]:
     return {"complete": is_setup_complete()}
+
+
+def credential_management_options() -> list[dict[str, Any]]:
+    return [
+        {"id": "external_vault", "label": "External vault", "recommended": True, "legacy": False},
+        {"id": "cordon", "label": "Cordon proxy", "recommended": False, "legacy": False},
+        {"id": "keprix_vault", "label": "Keprix encrypted vault", "recommended": False, "legacy": True},
+        {"id": "env", "label": "Plain environment variables", "recommended": False, "legacy": True},
+    ]

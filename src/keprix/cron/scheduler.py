@@ -1333,6 +1333,32 @@ def run_job(job: dict) -> tuple[bool, str, str, Optional[str]]:
             logger.error("Job '%s' agent_app_run failed: %s", job_id, err)
             return False, "", "", err
 
+    if job.get("job_type") == "notify_external_retry":
+        try:
+            import asyncio
+
+            from keprix.notify_external.retry import retry_failed_external_notifications
+
+            payload = job.get("payload") or {}
+            workspace_id = payload.get("workspace_id")
+            result = asyncio.run(retry_failed_external_notifications(workspace_id=workspace_id))
+            output = (
+                f"retried={result.get('retried')} skipped={result.get('skipped')} "
+                f"errors={result.get('errors')}"
+            )
+            now_iso = _keprix_now().strftime("%Y-%m-%d %H:%M:%S")
+            doc = (
+                f"# Notify external retry\n\n"
+                f"**Job ID:** {job_id}\n"
+                f"**Run Time:** {now_iso}\n\n"
+                f"{output}\n"
+            )
+            return True, doc, output, None
+        except Exception as exc:
+            err = str(exc)
+            logger.error("Job '%s' notify_external_retry failed: %s", job_id, err)
+            return False, "", "", err
+
     # ---------------------------------------------------------------
     # no_agent short-circuit — the script IS the job, no LLM involvement.
     # ---------------------------------------------------------------

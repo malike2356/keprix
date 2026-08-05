@@ -1,0 +1,51 @@
+combos:
+  - id: default
+    name: Keprix Default
+    description: Smart routing with free-first, subscription/API-key fallback, and local last resort.
+    tiers:
+      - id: free_forever
+        name: Free Forever
+        providers:
+          - kiro
+          - qoder
+          - pollinations
+        max_concurrent: 3
+        cooldown_seconds: 5
+      - id: subscription
+        name: Subscription Providers
+        providers:
+          - claude_code
+          - codex
+          - gemini_cli
+        max_concurrent: 1
+        cooldown_seconds: 15
+      - id: api_keys
+        name: API Key Providers
+        providers:
+          - deepseek
+          - groq
+          - xai
+          - mistral
+          - openai
+          - anthropic
+        max_concurrent: 2
+        cooldown_seconds: 30
+      - id: fallback
+        name: Local Fallback
+        providers:
+          - ollama
+          - lm_studio
+        max_concurrent: 1
+        cooldown_seconds: 5
+  - id: petraclus_default
+    name: Petraclus Default
+    extends: default
+    tiers:
+      - id: api_keys
+        name: Petraclus API Key Providers
+        providers:
+          - deepseek
+          - openai
+          - anthropic
+        max_concurrent: 2
+        cooldown_seconds: 30

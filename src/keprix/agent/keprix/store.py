@@ -75,10 +75,12 @@ class GeneratedToolStore:
         self._write(rows)
         return self._to_record(row)
 
-    def list_all(self, *, status: str | None = None) -> list[GeneratedToolRecord]:
+    def list_all(self, *, status: str | None = None, include_deleted: bool = False) -> list[GeneratedToolRecord]:
         rows = self._read()
         if status:
             rows = [row for row in rows if row.get("status") == status]
+        elif not include_deleted:
+            rows = [row for row in rows if row.get("status") != "deleted"]
         return [self._to_record(row) for row in rows]
 
     def get(self, record_id: str) -> GeneratedToolRecord | None:
@@ -95,6 +97,14 @@ class GeneratedToolStore:
                 self._write(rows)
                 return self._to_record(row)
         return None
+
+    def delete(self, record_id: str) -> bool:
+        rows = self._read()
+        next_rows = [row for row in rows if row.get("id") != record_id]
+        if len(next_rows) == len(rows):
+            return False
+        self._write(next_rows)
+        return True
 
     def _to_record(self, row: dict[str, Any]) -> GeneratedToolRecord:
         row.setdefault("channel_approvals", {})

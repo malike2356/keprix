@@ -64,6 +64,14 @@ class InMemoryVaultStore(VaultStore):
     ) -> dict[str, Any]:
         item_id = str(uuid4())
         encrypted = encrypt_aes_gcm(value.encode("utf-8"), encryption_key)
+        try:
+            from keprix.tenancy.isolation import current_tenant_id
+
+            tenant_tag = f"tenant:{current_tenant_id()}"
+            if tenant_tag not in tags:
+                tags = [*tags, tenant_tag]
+        except Exception:
+            pass
         item = {
             "id": item_id,
             "user_id": user_id,

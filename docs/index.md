@@ -8,11 +8,13 @@ This site is the complete operator and developer reference for every workspace s
 
 | I want to... | Read |
 | --- | --- |
+| Understand the full product | [Full product map](features/full-product-map.md) |
 | Install in five minutes | [Quickstart](getting-started/quickstart.md) |
 | Complete the setup wizard | [First run](getting-started/first-run.md) |
 | Configure `.env` and providers | [Environment variables](configuration/environment-variables.md), [LLM providers](configuration/llm-providers.md) |
-| Use chat and tools | [Chat](features/chat.md), [Web voice input](features/web-voice-input.md) |
+| Use chat, tools, and the terminal Command Center | [Chat](features/chat.md), [Terminal UI](features/tui.md), [TUI slash commands](reference/tui-slash.md) |
 | Configure the instance | [Settings](features/settings.md), [Admin dashboard](operations/admin-dashboard.md) |
+| Protect inbound channels | [Channel Shield](features/channel-shield.md) |
 | Call the REST API | [API reference](reference/api.md), [Developer platform](features/developer-platform.md) |
 | Harden production | [Hardening](security/hardening.md) |
 
@@ -22,8 +24,9 @@ This site is the complete operator and developer reference for every workspace s
 
 | Area | Route | Documentation |
 | --- | --- | --- |
-| Home | `/launcher` | [Workspace overview](features/workspace.md) |
+| Home | `/home` | [Workspace overview](features/workspace.md) |
 | Chat | `/chat` | [Chat](features/chat.md), [Web voice input](features/web-voice-input.md) |
+| Terminal Command Center | `keprix tui` | [Terminal UI](features/tui.md), [TUI slash commands](reference/tui-slash.md) |
 | Documents | `/documents` | [Documents](features/documents.md) |
 | Notes | `/notes` | [Notes](features/notes.md) |
 | Tasks | `/tasks` | [Tasks](features/tasks.md) |
@@ -31,8 +34,10 @@ This site is the complete operator and developer reference for every workspace s
 | Email | `/email` | [Email](features/email.md) |
 | Contacts | `/contacts` | [Contacts](features/contacts.md) |
 | Gallery | `/gallery` | [Gallery](features/gallery.md) |
-| Memory | `/memory` | [Memory and RAG](features/memory.md) |
+| Brain | `/brain/graph` | [Brain graph](features/brain.md) |
+| Memory (list) | `/memory` | [Memory and RAG](features/memory.md) |
 | Settings | `/settings` | [Settings](features/settings.md) |
+| Billing | `/settings/billing` | [Billing](features/billing.md) |
 
 ### Apps, research, and data
 
@@ -46,6 +51,8 @@ This site is the complete operator and developer reference for every workspace s
 | Opportunities | `/opportunities` | [Opportunity engine](opportunity-engine.md) |
 | Local models | `/playbook` | [Local models](features/local-models.md) |
 | Analytics | `/analytics` | [Analytics workspace](features/analytics-workspace.md) |
+| Observability | `/observability` | [Evals and observability](features/evals.md) |
+| Notebook research | `/research/notebooks` | [Notebook research bridge](features/notebook-research-bridge.md) |
 
 ### Automations and agent runtime
 
@@ -56,8 +63,10 @@ This site is the complete operator and developer reference for every workspace s
 | Playbooks | `/playbooks` | [Playbooks](features/playbooks.md) |
 | Cron jobs | `/admin/cron` | [Cron jobs](features/cron-jobs.md) |
 | Tools | `/admin/tools` | [Built-in tools](features/tools.md) |
+| Agent OS | `/agent-os` | [Agent OS overview](features/agent-os-overview.md), [Run ledger](features/agent-os-run-ledger.md) |
 | Agent Studio | `/agent-studio` | [Agent Studio](features/agent-studio.md) |
 | Agent Apps | `/agent-apps` | [Agent Apps](features/agent-apps.md) |
+| A2A | `/a2a` | [A2A](features/a2a.md) |
 | MCP | `/admin/mcp` | [MCP](integrations/mcp.md), [Notion & Trello](integrations/productivity-notion-trello.md) |
 | Control Center | `/control-center` | [Control Center](features/control-center.md) |
 
@@ -68,7 +77,11 @@ This site is the complete operator and developer reference for every workspace s
 | Vault | `/vault` | [Vault](security/vault.md) |
 | Governance | `/settings/governance` | [Governance](security/governance.md) |
 | Review gateway | `/review-gateway` | [Review gateway](security/review-gateway.md) |
+| Channel Shield | `/channel-shield`, `/settings/channel-shield` | [Channel Shield](features/channel-shield.md) |
 | Admin dashboard | `/dashboard` | [Admin dashboard](operations/admin-dashboard.md) |
+| Feature flags | `/admin/feature-flags` | [Feature flags](features/feature-flags.md) |
+| Navigation policy | (sidebar) | [Navigation and roles](features/navigation-and-roles.md) |
+| Readiness | `/admin/readiness` | [Readiness](operations/readiness.md) |
 | Developer | `/developer` | [Developer platform](features/developer-platform.md) |
 | Notifications | `/notifications` | [Notifications](features/notifications.md) |
 

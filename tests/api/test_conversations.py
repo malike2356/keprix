@@ -17,7 +17,10 @@ from keprix.workspace.repository import WorkspaceRepository
 def conversation_client(tmp_path, monkeypatch):
     monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
     monkeypatch.setenv("KEPRIX_ADMIN_PASSWORD", "admin-pass")
+    monkeypatch.setenv("KEPRIX_ADMIN_EMAIL", "")
+    monkeypatch.setenv("ADMIN_EMAIL", "")
     monkeypatch.setenv("AUTH_ENABLED", "true")
+    monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
     reset_rate_limits()
 
     auth = AuthManager(str(tmp_path / "auth.json"))
@@ -98,7 +101,8 @@ def test_rename_and_delete_conversation(conversation_client):
     assert renamed.json()["title"] == "Renamed"
 
     deleted = client.delete(f"/api/conversations/{session_id}")
-    assert deleted.status_code == 204
+    # Product returns 200 with an empty body for successful deletes.
+    assert deleted.status_code == 200
     assert client.get(f"/api/conversations/{session_id}").status_code == 404
 
 

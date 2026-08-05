@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import shutil
 import subprocess
 import tempfile
+from contextlib import redirect_stderr, redirect_stdout
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -50,11 +52,24 @@ class ContainerExecutor:
             }
         }
         local_ns = dict(namespace)
+        out_buf = io.StringIO()
+        err_buf = io.StringIO()
         try:
-            exec(code, safe_globals, local_ns)
-            return ExecutionResult(ok=True, variables=local_ns)
+            with redirect_stdout(out_buf), redirect_stderr(err_buf):
+                exec(code, safe_globals, local_ns)
+            return ExecutionResult(
+                ok=True,
+                stdout=out_buf.getvalue(),
+                stderr=err_buf.getvalue(),
+                variables=local_ns,
+            )
         except Exception as exc:
-            return ExecutionResult(ok=False, stderr=str(exc), variables=local_ns)
+            return ExecutionResult(
+                ok=False,
+                stdout=out_buf.getvalue(),
+                stderr=str(exc) or err_buf.getvalue(),
+                variables=local_ns,
+            )
 
     def run_r(self, code: str) -> ExecutionResult:
         r_bin = shutil.which("Rscript")

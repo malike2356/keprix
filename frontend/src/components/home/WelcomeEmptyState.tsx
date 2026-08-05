@@ -3,6 +3,7 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
@@ -44,9 +45,14 @@ export default function WelcomeEmptyState() {
         at working with you.
       </Typography>
 
-      <Button component={NextLink} href="/chat" variant="contained" size="large" sx={{ mb: 4 }}>
-        Start a session
-      </Button>
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mb: 4 }}>
+        <Button component={NextLink} href="/chat" variant="contained" size="large">
+          Start a session
+        </Button>
+        <Button component={NextLink} href="/files" variant="outlined" size="large">
+          Open files
+        </Button>
+      </Stack>
 
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, justifyContent: "center", maxWidth: 480 }}>
         {SUGGESTIONS.map((s) => (

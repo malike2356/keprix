@@ -471,25 +471,37 @@ class TestRegression_ToolsetScoping:
 
     def test_tool_call_rejects_out_of_scope_tool(self):
         import model_tools
+        from tools.tool_search import clear_session_schema_cache, get_session_schema_cache
 
+        clear_session_schema_cache()
         self._register("mcp_inscope_gh_op", "mcp-inscope-gh")
         self._register("inscope_oos_plugin", "inscopeoosplugin")
 
-        # Out-of-scope plugin tool: rejected even though it is registered
-        # and deferrable in the global registry.
+        # Out-of-scope plugin tool: rejected (schema miss or scope) even though
+        # it is registered and deferrable in the global registry.
         rejected = json.loads(model_tools.handle_function_call(
             function_name="tool_call",
             function_args={"name": "inscope_oos_plugin", "arguments": {}},
             enabled_toolsets=["mcp-inscope-gh"],
+            session_id="scope-test-oos",
         ))
         assert "error" in rejected
-        assert "not available in this session" in rejected["error"]
 
-        # In-scope tool: dispatches normally.
+        # Grant schema via search, then invoke in-scope tool.
+        search = json.loads(model_tools.handle_function_call(
+            function_name="tool_search",
+            function_args={"query": "mcp_inscope_gh_op", "limit": 5},
+            enabled_toolsets=["mcp-inscope-gh"],
+            session_id="scope-test-in",
+        ))
+        assert any(m["name"] == "mcp_inscope_gh_op" for m in search.get("matches", []))
+        assert get_session_schema_cache("scope-test-in").has("mcp_inscope_gh_op")
+
         ok = json.loads(model_tools.handle_function_call(
             function_name="tool_call",
             function_args={"name": "mcp_inscope_gh_op", "arguments": {"repo": "a/b"}},
             enabled_toolsets=["mcp-inscope-gh"],
+            session_id="scope-test-in",
         ))
         assert ok.get("ok") is True
         assert ok.get("tool") == "mcp_inscope_gh_op"

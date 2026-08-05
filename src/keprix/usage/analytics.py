@@ -26,7 +26,7 @@ class LlmUsageAnalytics:
         self,
         filters: UsageQueryFilters,
         *,
-        dimension: Literal["model", "provider", "channel", "user"],
+        dimension: Literal["model", "provider", "channel", "user", "agent"],
     ) -> list[dict[str, Any]]:
         return await get_llm_usage_store().aggregate_breakdown(filters, dimension=dimension)
 

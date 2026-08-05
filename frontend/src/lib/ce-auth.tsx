@@ -14,8 +14,13 @@ import {
 type SessionContextValue = {
   user: CEUser | null;
   isLoading: boolean;
-  signIn: (username: string, password: string) => Promise<void>;
+  signIn: (
+    username: string,
+    password: string,
+    options?: { totpCode?: string; recoveryCode?: string },
+  ) => Promise<void>;
   signOut: () => void;
+  refreshUser: () => Promise<void>;
 };
 
 const SessionContext = React.createContext<SessionContextValue | undefined>(undefined);
@@ -76,9 +81,33 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     void bootstrap();
   }, []);
 
-  const signIn = React.useCallback(async (username: string, password: string) => {
-    const nextUser = await loginWithCredentials(username, password);
-    setUser(nextUser);
+  const signIn = React.useCallback(
+    async (
+      username: string,
+      password: string,
+      options?: { totpCode?: string; recoveryCode?: string },
+    ) => {
+      const nextUser = await loginWithCredentials(username, password, options);
+      setUser(nextUser);
+    },
+    [],
+  );
+
+  const refreshUser = React.useCallback(async () => {
+    const token = getCEToken();
+    if (!token) {
+      setUser(null);
+      return;
+    }
+    const response = await ceApi("/api/auth/me");
+    if (!response.ok) {
+      return;
+    }
+    const payload = (await response.json()) as { user?: CEUser };
+    if (payload.user) {
+      setCESession(token, payload.user);
+      setUser(payload.user);
+    }
   }, []);
 
   const signOut = React.useCallback(() => {
@@ -88,8 +117,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   const value = React.useMemo(
-    () => ({ user, isLoading, signIn, signOut }),
-    [user, isLoading, signIn, signOut],
+    () => ({ user, isLoading, signIn, signOut, refreshUser }),
+    [user, isLoading, signIn, signOut, refreshUser],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

@@ -4360,6 +4360,46 @@ def run_conversation(
                     length_continue_retries = 0
                 
                 final_response = agent._strip_think_blocks(final_response).strip()
+
+                # Prompt 295: remember/forget must call memory before confirm;
+                # continuity refs should search past chats before asking again.
+                try:
+                    from agent.memory_edit_gate import (
+                        evaluate_continuity_search_gate,
+                        evaluate_memory_edit_gate,
+                    )
+
+                    _mem_nudge = evaluate_memory_edit_gate(
+                        original_user_message, final_response, agent
+                    )
+                    if _mem_nudge:
+                        agent._memory_edit_gate_retried = True
+                        logger.info("memory_edit_gate: nudging for missing memory tool call")
+                        messages.append(agent._build_assistant_message(assistant_message, finish_reason))
+                        messages.append({
+                            "role": "user",
+                            "content": _mem_nudge,
+                            "_memory_edit_gate_synthetic": True,
+                        })
+                        agent._session_messages = messages
+                        continue
+
+                    _cont_nudge = evaluate_continuity_search_gate(
+                        original_user_message, final_response, agent
+                    )
+                    if _cont_nudge:
+                        agent._continuity_search_gate_retried = True
+                        logger.info("continuity_search_gate: nudging for past-chat search")
+                        messages.append(agent._build_assistant_message(assistant_message, finish_reason))
+                        messages.append({
+                            "role": "user",
+                            "content": _cont_nudge,
+                            "_continuity_search_gate_synthetic": True,
+                        })
+                        agent._session_messages = messages
+                        continue
+                except Exception as _gate_err:
+                    logger.debug("memory continuity gate skipped: %s", _gate_err)
                 
                 final_msg = agent._build_assistant_message(assistant_message, finish_reason)
 
@@ -4441,7 +4481,28 @@ def run_conversation(
                 # session resume (avoids consecutive user messages).
                 messages.append({"role": "assistant", "content": final_response})
                 break
-    
+
+    # ── After-turn product hooks ──
+    # Product modules register hooks via registries.product_hooks.
+    # These fire after every turn completes, regardless of exit reason.
+    # Hooks receive the full turn context and can mutate nothing.
+    # Errors in hooks are logged and swallowed — they must not break the loop.
+    from registries.product_hooks import iter_after_turn_hooks
+    _after_turn_context = {
+        "final_response": final_response,
+        "api_call_count": api_call_count,
+        "interrupted": interrupted,
+        "failed": failed,
+        "turn_id": turn_id,
+        "user_message": user_message,
+        "_turn_exit_reason": _turn_exit_reason,
+    }
+    for hook in iter_after_turn_hooks():
+        try:
+            hook.hook(_after_turn_context)
+        except Exception:
+            logger.exception("After-turn hook '%s' (product=%s) raised", hook.name, hook.product)
+
     # Post-loop turn finalization extracted to agent/turn_finalizer.finalize_turn
     # (god-file decomposition Phase 1 step 4). Behavior-neutral: the assembled
     # result dict is returned exactly as before.

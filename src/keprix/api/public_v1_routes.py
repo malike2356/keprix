@@ -12,9 +12,10 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from keprix.public_api.agent_runtime import run_agent_chat_completion
-from keprix.public_api.auth import check_tool_permission, require_api_key
+from keprix.public_api.auth import check_endpoint_allowed, check_tool_permission, require_api_key
 from keprix.public_api.keys import ApiKeyContext
 from keprix.observability.metrics import get_metrics_store
+from keprix.security.prompt_guard_policy import analyze_prompt_turn
 
 router = APIRouter(prefix="/v1", tags=["public"])
 
@@ -37,6 +38,11 @@ class TaskBody(BaseModel):
     description: str = ""
 
 
+class ToolCallBody(BaseModel):
+    arguments: dict = Field(default_factory=dict)
+    args: dict = Field(default_factory=dict)
+
+
 def _tools_allowed(ctx: ApiKeyContext) -> bool:
     try:
         check_tool_permission(ctx)
@@ -47,10 +53,23 @@ def _tools_allowed(ctx: ApiKeyContext) -> bool:
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(body: ChatBody, ctx: ApiKeyContext = Depends(require_api_key)) -> ChatResponse:
+    check_endpoint_allowed(ctx, "/v1/chat")
     session_id = body.session_id or str(uuid.uuid4())
+    prompt_decision = analyze_prompt_turn(body.message)
+    if prompt_decision.blocked:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "prompt_guard_blocked",
+                "message": "Prompt guard blocked this turn before model execution.",
+                "patterns": prompt_decision.patterns,
+                "confidence": prompt_decision.confidence,
+            },
+        )
+    message = prompt_decision.sanitized_text or body.message
     try:
         result = await run_agent_chat_completion(
-            messages=[{"role": "user", "content": body.message}],
+            messages=[{"role": "user", "content": message}],
             allow_tools=_tools_allowed(ctx),
             session_id=session_id,
         )
@@ -80,7 +99,20 @@ async def chat(body: ChatBody, ctx: ApiKeyContext = Depends(require_api_key)) ->
 
 @router.post("/chat/stream")
 async def chat_stream(body: ChatBody, ctx: ApiKeyContext = Depends(require_api_key)) -> StreamingResponse:
+    check_endpoint_allowed(ctx, "/v1/chat/stream")
     session_id = body.session_id or str(uuid.uuid4())
+    prompt_decision = analyze_prompt_turn(body.message)
+    if prompt_decision.blocked:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "prompt_guard_blocked",
+                "message": "Prompt guard blocked this turn before model execution.",
+                "patterns": prompt_decision.patterns,
+                "confidence": prompt_decision.confidence,
+            },
+        )
+    message = prompt_decision.sanitized_text or body.message
     stream_queue: queue.Queue[str | None] = queue.Queue()
     result_holder: list = []
 
@@ -91,7 +123,7 @@ async def chat_stream(body: ChatBody, ctx: ApiKeyContext = Depends(require_api_k
     async def _run_agent() -> None:
         try:
             result = await run_agent_chat_completion(
-                messages=[{"role": "user", "content": body.message}],
+                messages=[{"role": "user", "content": message}],
                 allow_tools=_tools_allowed(ctx),
                 session_id=session_id,
                 stream_delta_callback=_on_delta,
@@ -154,7 +186,15 @@ async def chat_stream(body: ChatBody, ctx: ApiKeyContext = Depends(require_api_k
 
 
 @router.post("/tools/{tool_name}")
-async def call_tool(tool_name: str, ctx: ApiKeyContext = Depends(require_api_key)) -> dict:
+async def call_tool(
+    tool_name: str,
+    body: ToolCallBody | None = None,
+    ctx: ApiKeyContext = Depends(require_api_key),
+) -> dict:
+    check_endpoint_allowed(ctx, "/v1/tools")
+    check_tool_permission(ctx)
+    payload_body = body or ToolCallBody()
+    args = dict(payload_body.arguments or payload_body.args or {})
     store = get_metrics_store()
     await store.record(
         metric_type="tool_call",
@@ -162,22 +202,57 @@ async def call_tool(tool_name: str, ctx: ApiKeyContext = Depends(require_api_key
         metric_value=1,
         user_id=ctx.workspace_id,
     )
-    return {"tool": tool_name, "status": "queued", "note": "Direct tool execution requires agent runtime."}
+    try:
+        from keprix.tools.registry import registry
+
+        try:
+            import keprix.tools.mesh_workspace_tools  # noqa: F401
+        except Exception:
+            pass
+        try:
+            import keprix.tools.product_lead_tools  # noqa: F401
+        except Exception:
+            pass
+        result = registry.dispatch(tool_name, args, user_id=str(ctx.workspace_id))
+        try:
+            payload = json.loads(result) if isinstance(result, str) else result
+        except Exception:
+            payload = {"raw": result}
+        return {"tool": tool_name, "status": "completed", "result": payload}
+    except Exception as exc:
+        return {"tool": tool_name, "status": "error", "error": str(exc)}
 
 
 @router.get("/memory/search")
 async def memory_search(q: str, ctx: ApiKeyContext = Depends(require_api_key)) -> dict:
+    check_endpoint_allowed(ctx, "/v1/memory/search")
     if not q.strip():
         raise HTTPException(status_code=400, detail="q is required")
-    return {"query": q, "results": [], "user": ctx.workspace_id}
+    from keprix.memory.orchestrator import MemoryOrchestrator
+
+    user_id = str(getattr(ctx, "workspace_id", None) or getattr(ctx, "user_id", None) or "default")
+    payload = await MemoryOrchestrator().recall(user_id, q, limit=10, reinforce=False)
+    return {
+        "query": q,
+        "results": payload.get("hits") or [],
+        "context": payload.get("context") or "",
+        "user": ctx.workspace_id,
+    }
 
 
 @router.post("/tasks")
 async def create_task(body: TaskBody, ctx: ApiKeyContext = Depends(require_api_key)) -> dict:
-    task_id = str(uuid.uuid4())
-    return {"id": task_id, "title": body.title, "status": "open", "user": ctx.workspace_id}
+    check_endpoint_allowed(ctx, "/v1/tasks")
+    from keprix.public_api.task_store import get_public_task_store
+
+    row = get_public_task_store().create(workspace_id=str(ctx.workspace_id), title=body.title)
+    return row
 
 
 @router.get("/tasks")
 async def list_tasks(ctx: ApiKeyContext = Depends(require_api_key)) -> dict:
-    return {"tasks": [], "user": ctx.workspace_id}
+    check_endpoint_allowed(ctx, "/v1/tasks")
+    from keprix.public_api.task_store import get_public_task_store
+
+    rows = get_public_task_store().list_for_workspace(str(ctx.workspace_id))
+    return {"tasks": rows, "user": ctx.workspace_id}

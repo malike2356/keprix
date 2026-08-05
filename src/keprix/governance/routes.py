@@ -60,7 +60,7 @@ async def governance_disconnect(body: GovernanceDisconnectBody, admin: dict = De
     if not body.accept_responsibility:
         raise HTTPException(
             status_code=400,
-            detail="You must confirm: I accept responsibility for ungoverned operation.",
+            detail="You must confirm: I accept responsibility for local-only operation.",
         )
     user_id = str(admin.get("id") or admin.get("username") or "admin")
     config = await get_governance_client().disconnect(user_id=user_id, accept_responsibility=True)

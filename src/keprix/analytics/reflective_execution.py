@@ -28,7 +28,14 @@ class ReflectiveExecutor:
         current = code
         for attempt in range(max_retries + 1):
             _verification, result = self.interpreter.run_code(session, current, namespace)
-            trail.attempts.append({"code": current, "ok": str(result.ok), "error": result.stderr})
+            trail.attempts.append(
+                {
+                    "code": current,
+                    "ok": str(result.ok),
+                    "error": result.stderr or "",
+                    "stdout": result.stdout or "",
+                }
+            )
             if result.ok:
                 return True, trail
             if attempt < max_retries:

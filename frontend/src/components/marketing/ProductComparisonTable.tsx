@@ -7,146 +7,248 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import CheckIcon from "@mui/icons-material/Check";
+import Button from "@mui/material/Button";
 import { alpha } from "@mui/material/styles";
-import { useMarketingColors } from "@/components/marketing/MarketingSection";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import {
+  MARKETING_EYEBROW_SX,
+  MARKETING_HEADING_SX,
+  useMarketingColors,
+} from "@/components/marketing/MarketingSection";
 
+/** Outcome-focused benchmark: DIY glue, Keprix self-hosting, and the wider Carina path. */
 const ROWS = [
-  { feature: "Self-hosted", keprix: true, n8n: true, dify: true, langchain: false, autogen: false },
   {
-    feature: "Mutation Engine (self-coding tools)",
-    keprix: true,
-    n8n: false,
-    dify: false,
-    langchain: false,
-    autogen: false,
-  },
-  { feature: "Multi-channel inbox", keprix: true, n8n: true, dify: false, langchain: false, autogen: false },
-  { feature: "Playbook scheduler", keprix: true, n8n: true, dify: false, langchain: false, autogen: false },
-  {
-    feature: "Long-term memory (structured)",
-    keprix: true,
-    n8n: false,
-    dify: true,
-    langchain: true,
-    autogen: true,
+    job: "Stand up a private agent OS",
+    diy: "Wire LLM, DB, auth, and a process manager",
+    keprix: "Docker Compose; one runtime with web, CLI, TUI, and API",
+    carina: "Broader agent platform for teams, products, and managed deployments",
   },
   {
-    feature: "Budget alerts + observability",
-    keprix: true,
-    n8n: false,
-    dify: false,
-    langchain: false,
-    autogen: false,
+    job: "Operate from the terminal",
+    diy: "Build a separate CLI, stream renderer, command palette, and diagnostics",
+    keprix: "Command Center TUI with sessions, slash commands, tool cards, and runtime timeline",
+    carina: "CLI and TUI surfaces for agent operations, Scout overlays, approvals, and sessions",
   },
-  { feature: "MIT license", keprix: true, n8n: true, dify: true, langchain: true, autogen: false },
   {
-    feature: "No cloud account required",
-    keprix: true,
-    n8n: true,
-    dify: true,
-    langchain: true,
-    autogen: true,
+    job: "Protect inbound messages",
+    diy: "Bolted-on filters, quarantine scripts, and manual review",
+    keprix: "Channel Shield scanning, quarantine, policy hooks, and safe summaries",
+    carina: "Platform-level channel protection patterns for customer-facing agent products",
+  },
+  {
+    job: "Need a tool that does not exist",
+    diy: "Write, test, and ship a plugin yourself",
+    keprix: "Mutation Engine synthesises; you approve",
+    carina: "Agent platform patterns for reusable capabilities, packs, and governed extensions",
+  },
+  {
+    job: "Remember across sessions",
+    diy: "Roll your own store and retrieval",
+    keprix: "Structured long-term memory built in",
+    carina: "Memory, profiles, and product-aware agent context across Carina-powered apps",
+  },
+  {
+    job: "Repeatable workflows",
+    diy: "Cron plus scripts plus glue",
+    keprix: "Playbooks with schedule and webhooks",
+    carina: "Workflow and agent orchestration for products built on the Carina platform",
+  },
+  {
+    job: "Know cost and failures",
+    diy: "Scatter logs across services",
+    keprix: "Traces, token cost, budget alerts",
+    carina: "Operations, usage, governance, and visibility across deployed agent surfaces",
+  },
+  {
+    job: "Own the stack",
+    diy: "Depends on each SaaS you bolted on",
+    keprix: "Self-hosted, MIT, no cloud account required",
+    carina: "Best when you want the broader Carina ecosystem, cloud path, or product platform",
   },
 ] as const;
-
-const COLUMNS = [
-  { key: "keprix", label: "Keprix", highlight: true },
-  { key: "n8n", label: "n8n", highlight: false },
-  { key: "dify", label: "Dify", highlight: false },
-  { key: "langchain", label: "LangChain", highlight: false },
-  { key: "autogen", label: "AutoGen", highlight: false },
-] as const;
-
-function CellValue({ value }: { value: boolean }) {
-  const c = useMarketingColors();
-  return value ? (
-    <CheckIcon sx={{ fontSize: 18, color: c.success }} aria-label="Yes" />
-  ) : (
-    <Typography component="span" sx={{ color: alpha(c.textSecondary, 0.5), fontSize: "1.1rem" }}>
-      -
-    </Typography>
-  );
-}
 
 export function ProductComparisonTable() {
   const c = useMarketingColors();
 
   return (
-    <Box sx={{ mt: { xs: 6, md: 8 } }}>
+    <Box>
       <Typography
-        component="h3"
+        component="p"
         sx={{
-          fontSize: { xs: "1.35rem", md: "1.65rem" },
-          fontWeight: 800,
-          letterSpacing: "-0.02em",
-          mb: 1,
+          ...MARKETING_EYEBROW_SX,
+          color: c.primary,
+          mb: 2,
+          textAlign: "center",
+        }}
+      >
+        Runtime benchmark
+      </Typography>
+      <Typography
+        component="h2"
+        sx={{
+          ...MARKETING_HEADING_SX,
+          fontSize: { xs: "2.1rem", md: "2.9rem" },
+          mb: 1.5,
           color: c.textPrimary,
           textAlign: "center",
         }}
       >
-        How Keprix compares
+        Choose the path that matches how you want to run agents.
       </Typography>
       <Typography
         sx={{
           textAlign: "center",
           color: c.textSecondary,
-          fontSize: "0.9rem",
-          mb: 3,
-          maxWidth: 520,
+          fontSize: "0.95rem",
+          mb: 4,
+          maxWidth: 680,
           mx: "auto",
+          lineHeight: 1.7,
         }}
       >
-        Agent runtime with mutation and observability vs workflow builders and frameworks.
+        Keprix is the self-hosted mutant runtime. Carina is the broader agent
+        platform path for teams, products, and managed deployments. Both beat
+        stitching together fragile automation glue.
       </Typography>
 
-      <Box sx={{ overflowX: "auto", borderRadius: 2, border: `1px solid ${alpha(c.primary, 0.15)}` }}>
-        <Table size="small" sx={{ minWidth: 640, bgcolor: alpha(c.bgCard, 0.6) }}>
+      <Box
+        sx={{
+          overflowX: "auto",
+          borderRadius: 2,
+          border: `1px solid ${alpha(c.primary, 0.15)}`,
+        }}
+      >
+        <Table size="small" sx={{ minWidth: 920, bgcolor: alpha(c.bgCard, 0.6) }}>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 700, color: c.textSecondary, borderColor: c.divider }}>
-                Capability
+              <TableCell
+                sx={{
+                  fontWeight: 700,
+                  color: c.textSecondary,
+                  borderColor: c.divider,
+                  width: "18%",
+                }}
+              >
+                Job
               </TableCell>
-              {COLUMNS.map((col) => (
-                <TableCell
-                  key={col.key}
-                  align="center"
-                  sx={{
-                    fontWeight: col.highlight ? 800 : 600,
-                    color: col.highlight ? c.primary : c.textSecondary,
-                    borderColor: c.divider,
-                    bgcolor: col.highlight ? alpha(c.primary, 0.08) : "transparent",
-                    borderLeft: col.highlight ? `2px solid ${alpha(c.primary, 0.35)}` : undefined,
-                    borderRight: col.highlight ? `2px solid ${alpha(c.primary, 0.35)}` : undefined,
-                  }}
-                >
-                  {col.label}
-                </TableCell>
-              ))}
+              <TableCell
+                sx={{
+                  fontWeight: 600,
+                  color: c.textSecondary,
+                  borderColor: c.divider,
+                  width: "27%",
+                }}
+              >
+                Piecewise stack
+              </TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: 800,
+                  color: c.primary,
+                  borderColor: c.divider,
+                  bgcolor: alpha(c.primary, 0.08),
+                  borderLeft: `2px solid ${alpha(c.primary, 0.35)}`,
+                  width: "28%",
+                }}
+              >
+                Keprix runtime
+              </TableCell>
+              <TableCell
+                sx={{
+                  fontWeight: 800,
+                  color: c.textPrimary,
+                  borderColor: c.divider,
+                  bgcolor: alpha(c.secondary, 0.08),
+                  borderLeft: `2px solid ${alpha(c.secondary, 0.32)}`,
+                  borderRight: `2px solid ${alpha(c.secondary, 0.32)}`,
+                  width: "27%",
+                }}
+              >
+                Carina platform
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {ROWS.map((row) => (
-              <TableRow key={row.feature} hover>
-                <TableCell sx={{ color: c.textPrimary, borderColor: c.divider, fontSize: "0.85rem" }}>
-                  {row.feature}
+              <TableRow key={row.job} hover>
+                <TableCell
+                  sx={{
+                    color: c.textPrimary,
+                    borderColor: c.divider,
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    verticalAlign: "top",
+                  }}
+                >
+                  {row.job}
                 </TableCell>
-                {COLUMNS.map((col) => (
-                  <TableCell
-                    key={col.key}
-                    align="center"
-                    sx={{
-                      borderColor: c.divider,
-                      bgcolor: col.highlight ? alpha(c.primary, 0.04) : "transparent",
-                    }}
-                  >
-                    <CellValue value={row[col.key as keyof typeof row] as boolean} />
-                  </TableCell>
-                ))}
+                <TableCell
+                  sx={{
+                    color: c.textSecondary,
+                    borderColor: c.divider,
+                    fontSize: "0.85rem",
+                    lineHeight: 1.5,
+                    verticalAlign: "top",
+                  }}
+                >
+                  {row.diy}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: c.textPrimary,
+                    borderColor: c.divider,
+                    bgcolor: alpha(c.primary, 0.04),
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    lineHeight: 1.5,
+                    verticalAlign: "top",
+                  }}
+                >
+                  {row.keprix}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: c.textPrimary,
+                    borderColor: c.divider,
+                    bgcolor: alpha(c.secondary, 0.04),
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                    lineHeight: 1.5,
+                    verticalAlign: "top",
+                  }}
+                >
+                  {row.carina}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+      </Box>
+
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+        <Button
+          component="a"
+          href="https://carinaai.uk"
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="outlined"
+          endIcon={<OpenInNewIcon />}
+          sx={{
+            borderRadius: "9999px",
+            px: 3,
+            fontWeight: 700,
+            borderColor: alpha(c.secondary, 0.38),
+            color: c.textPrimary,
+            bgcolor: alpha(c.secondary, 0.04),
+            "&:hover": {
+              borderColor: c.secondary,
+              bgcolor: alpha(c.secondary, 0.09),
+            },
+          }}
+        >
+          Visit Carina
+        </Button>
       </Box>
     </Box>
   );

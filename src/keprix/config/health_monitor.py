@@ -48,6 +48,7 @@ class ConfigHealthMonitor:
             self._check_postgres(),
             self._check_egress(),
             self._check_channel_adapters(),
+            self._check_credential_proxy(),
         ]
         results = await asyncio.gather(*checks, return_exceptions=True)
         for batch in results:
@@ -202,6 +203,11 @@ class ConfigHealthMonitor:
                     )
                 )
         return results
+
+    async def _check_credential_proxy(self) -> list[ComponentHealth]:
+        from keprix.proxy.cordon_bridge import CordonHealthCheck
+
+        return [await CordonHealthCheck().check()]
 
     def get_all(self) -> dict[str, ComponentHealth]:
         return dict(self._results)

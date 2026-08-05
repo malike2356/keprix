@@ -73,6 +73,7 @@ cross-referenced by the agent.
 
 When the user has an existing wiki, **always orient yourself before doing anything**:
 
+⓪ **Read `hot.md` first when present and enabled**; use it as the rolling high-signal cache.
 ① **Read `SCHEMA.md`**; understand the domain, conventions, and tag taxonomy.
 ② **Read `index.md`**; learn what pages exist and their summaries.
 ③ **Scan recent `log.md`**; read the last 20-30 entries to understand recent activity.
@@ -80,6 +81,7 @@ When the user has an existing wiki, **always orient yourself before doing anythi
 ```bash
 WIKI="${WIKI_PATH:-$HOME/wiki}"
 # Orientation reads at session start
+test -f "$WIKI/hot.md" && read_file "$WIKI/hot.md"
 read_file "$WIKI/SCHEMA.md"
 read_file "$WIKI/index.md"
 read_file "$WIKI/log.md" offset=<last 30 lines>

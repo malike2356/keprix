@@ -1,0 +1,21 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Khepri mark">
+  <!-- head disc removed so claws stay visible -->
+  <path d="M256 190c-61 0-110 48-110 108 0 54 38 98 91 107v20c0 17 14 31 31 31s31-14 31-31v-20c53-9 91-53 91-107 0-60-49-108-110-108Z" fill="#1D355E"/>
+  <path d="M206 216c-34 14-58 47-58 82 0 37 23 69 57 84l18-19c-29-12-48-40-48-65 0-28 19-53 48-64l-17-18Z" fill="#244C85"/>
+  <path d="M306 216c34 14 58 47 58 82 0 37-23 69-57 84l-18-19c29-12 48-40 48-65 0-28-19-53-48-64l17-18Z" fill="#244C85"/>
+  <path d="M176 244c-31 18-51 47-51 80 0 31 16 59 41 77l16-14c-21-14-34-36-34-61 0-26 14-50 36-67l-8-15Z" fill="#234C7A"/>
+  <path d="M336 244c31 18 51 47 51 80 0 31-16 59-41 77l-16-14c21-14 34-36 34-61 0-26-14-50-36-67l8-15Z" fill="#234C7A"/>
+  <path d="M232 246h48v150h-48z" fill="#0F1C2E"/>
+  <path d="M214 255h84l-12 16h-60l-12-16Z" fill="#D8A84A"/>
+  <path d="M214 287h84l-12 16h-60l-12-16Z" fill="#D8A84A"/>
+  <path d="M214 319h84l-12 16h-60l-12-16Z" fill="#D8A84A"/>
+  <path d="M214 351h84l-12 16h-60l-12-16Z" fill="#D8A84A"/>
+  <path d="M160 406c16-10 31-14 44-12 8 1 16 6 22 13 7 9 13 14 30 14 17 0 23-5 30-14 6-7 14-12 22-13 13-2 28 2 44 12" stroke="#D8A84A" stroke-width="18" stroke-linecap="round"/>
+  <path d="M378 207c24-2 42-11 56-28" stroke="#D8A84A" stroke-width="14" stroke-linecap="round"/>
+  <path d="M394 181c16 4 28 12 38 25" stroke="#F5D77B" stroke-width="10" stroke-linecap="round"/>
+  <path d="M394 219c16-4 28-12 38-25" stroke="#F5D77B" stroke-width="10" stroke-linecap="round"/>
+  <path d="M134 207c-24-2-42-11-56-28" stroke="#D8A84A" stroke-width="14" stroke-linecap="round"/>
+  <path d="M118 181c-16 4-28 12-38 25" stroke="#F5D77B" stroke-width="10" stroke-linecap="round"/>
+  <path d="M118 219c-16-4-28-12-38-25" stroke="#F5D77B" stroke-width="10" stroke-linecap="round"/>
+  <path d="M196 420c16 18 36 28 60 28s44-10 60-28" stroke="#F5D77B" stroke-width="12" stroke-linecap="round"/>
+</svg>

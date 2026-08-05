@@ -124,7 +124,7 @@ def _read_default_model(codex_home: Path) -> Optional[str]:
     if not config_path.exists():
         return None
     try:
-        import tomllib
+        from keprix.compat import tomllib
     except Exception:
         return None
     try:

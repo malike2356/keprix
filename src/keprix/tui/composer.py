@@ -1,4 +1,4 @@
-"""Composer helpers: message queue and input history (Hermes useQueue / cycleHistory port)."""
+"""Composer helpers: message queue and input history (ported from upstream)."""
 
 from __future__ import annotations
 

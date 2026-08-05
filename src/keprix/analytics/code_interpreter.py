@@ -16,6 +16,7 @@ from keprix.analytics.plugin_runner import PluginRunner
 @dataclass(slots=True)
 class AnalyticsSession:
     session_id: str
+    title: str = "Untitled session"
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     chat_history: list[dict[str, str]] = field(default_factory=list)
     code_history: list[str] = field(default_factory=list)
@@ -30,6 +31,7 @@ class AnalyticsSession:
     def to_dict(self) -> dict[str, Any]:
         return {
             "session_id": self.session_id,
+            "title": self.title,
             "created_at": self.created_at,
             "chat_history": list(self.chat_history),
             "code_history": list(self.code_history),
@@ -53,11 +55,43 @@ class CodeInterpreter:
         self.executor = executor or ContainerExecutor(container_required=True)
         self.plugins = plugins or PluginRunner()
         self.sessions: dict[str, AnalyticsSession] = {}
+        self.datasets: dict[str, dict[str, Any]] = {}
 
-    def create_session(self) -> AnalyticsSession:
-        session = AnalyticsSession(session_id=str(uuid4()))
+    def create_session(self, *, title: str | None = None) -> AnalyticsSession:
+        session = AnalyticsSession(
+            session_id=str(uuid4()),
+            title=(title or "Untitled session").strip() or "Untitled session",
+        )
         self.sessions[session.session_id] = session
         return session
+
+    def rename_session(self, session_id: str, title: str) -> AnalyticsSession | None:
+        session = self.sessions.get(session_id)
+        if session is None:
+            return None
+        session.title = title.strip() or session.title
+        return session
+
+    def save_dataset(self, *, name: str, data: str, source_filename: str | None = None) -> dict[str, Any]:
+        dataset_id = str(uuid4())
+        entry = {
+            "dataset_id": dataset_id,
+            "name": name.strip() or "Dataset",
+            "data": data,
+            "source_filename": source_filename,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        }
+        self.datasets[dataset_id] = entry
+        return entry
+
+    def list_datasets(self) -> list[dict[str, Any]]:
+        return sorted(self.datasets.values(), key=lambda item: item["created_at"], reverse=True)
+
+    def get_dataset(self, dataset_id: str) -> dict[str, Any] | None:
+        return self.datasets.get(dataset_id)
+
+    def delete_dataset(self, dataset_id: str) -> bool:
+        return self.datasets.pop(dataset_id, None) is not None
 
     def get_session(self, session_id: str) -> AnalyticsSession | None:
         return self.sessions.get(session_id)

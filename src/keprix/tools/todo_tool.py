@@ -294,6 +294,53 @@ TODO_SCHEMA = {
 }
 
 
+TODO_TOOL_SCHEMA = None
+try:
+    from agent.tool_schema import ParameterSchema, ReturnSchema, ToolExample, ToolSchema
+
+    TODO_TOOL_SCHEMA = ToolSchema(
+        name="todo",
+        description=(
+            "Manage your task list for the current session. Use for complex tasks "
+            "with 3+ steps or when the user provides multiple tasks."
+        ),
+        parameters={
+            "todos": ParameterSchema(
+                name="todos",
+                type="array",
+                description="Task items to write. Omit to read the current list.",
+                required=False,
+            ),
+            "merge": ParameterSchema(
+                name="merge",
+                type="boolean",
+                description="true updates by id; false replaces the full list.",
+                required=False,
+                default=False,
+            ),
+        },
+        returns=ReturnSchema(
+            type="json",
+            description="The full current todo list and status counts.",
+        ),
+        examples=[
+            ToolExample(
+                description="Plan three implementation steps for a feature",
+                parameters={
+                    "todos": [
+                        {"id": "1", "content": "Draft API", "status": "pending"},
+                        {"id": "2", "content": "Add tests", "status": "pending"},
+                    ],
+                    "merge": False,
+                },
+                result_summary="Returns the updated todo list with pending counts.",
+            ),
+        ],
+    )
+except Exception:
+    TODO_TOOL_SCHEMA = None
+
+
 # --- Registry ---
 from tools.registry import registry, tool_error
 

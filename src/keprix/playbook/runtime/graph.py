@@ -22,10 +22,16 @@ class PlaybookGraph:
         self._entry: str | None = None
         self._subgraphs: dict[str, CompiledPlaybookGraph] = {}
 
-    def add_node(self, name: str, handler: NodeHandler) -> None:
+    def add_node(
+        self,
+        name: str,
+        handler: NodeHandler,
+        *,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
         if name == END:
             raise PlaybookGraphError("Node name '__end__' is reserved")
-        self._nodes[name] = PlaybookNode(name, handler)
+        self._nodes[name] = PlaybookNode(name, handler, metadata=metadata)
         if self._entry is None:
             self._entry = name
 

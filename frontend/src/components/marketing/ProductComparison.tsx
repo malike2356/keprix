@@ -34,7 +34,7 @@ export function ProductComparison() {
         }}
       />
 
-      <Container maxWidth="md" sx={{ position: "relative" }}>
+      <Container maxWidth="lg" sx={{ position: "relative" }}>
         <ScrollReveal delay={0.08}>
           <ProductComparisonTable />
         </ScrollReveal>

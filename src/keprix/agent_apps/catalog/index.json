@@ -11,6 +11,86 @@
       "featured": true
     },
     {
+      "id": "error-paste",
+      "name": "error-paste",
+      "display_name": "Error Paste Loop",
+      "description": "Paste an error \u2192 classify \u2192 fix plan \u2192 re-run \u2192 paste again.",
+      "category": "productivity",
+      "tier": "free",
+      "icon": "bug",
+      "featured": true
+    },
+    {
+      "id": "content-series",
+      "name": "content-series",
+      "display_name": "Content Series Generator",
+      "description": "One topic \u2192 hooks, scripts, captions, and cross-platform variants ready to publish.",
+      "category": "marketing",
+      "tier": "free",
+      "icon": "megaphone",
+      "featured": true
+    },
+    {
+      "id": "video-agent",
+      "name": "video-agent",
+      "display_name": "Video Agent",
+      "description": "Topic \u2192 script, storyboard, description, tags, and thumbnail text for human review.",
+      "category": "marketing",
+      "tier": "free",
+      "icon": "movie",
+      "featured": true
+    },
+    {
+      "id": "seo-agent",
+      "name": "seo-agent",
+      "display_name": "SEO Agent",
+      "description": "Keywords + website \u2192 competitor gaps, outline, draft, internal links, ranking checklist.",
+      "category": "marketing",
+      "tier": "free",
+      "icon": "search",
+      "featured": true
+    },
+    {
+      "id": "outreach-agent",
+      "name": "outreach-agent",
+      "display_name": "Outreach Lead Agent",
+      "description": "Audience + offer \u2192 calendar, hooks, follow-ups, and lead-stage next steps.",
+      "category": "sales",
+      "tier": "free",
+      "icon": "send",
+      "featured": true
+    },
+    {
+      "id": "onboarding-path",
+      "name": "onboarding-path",
+      "display_name": "Onboarding Path Builder",
+      "description": "Product description \u2192 welcome sequence, first-call prep, walkthrough, day 1/7/30 checklist.",
+      "category": "productivity",
+      "tier": "free",
+      "icon": "route",
+      "featured": true
+    },
+    {
+      "id": "memory-system",
+      "name": "memory-system",
+      "display_name": "Memory System",
+      "description": "Capture \u2192 store \u2192 read \u2192 visualize against the single markdown vault.",
+      "category": "productivity",
+      "tier": "free",
+      "icon": "memory",
+      "featured": true
+    },
+    {
+      "id": "crm-import",
+      "name": "crm-import",
+      "display_name": "CRM Import Cleaner",
+      "description": "Cleans messy CSV data (dedupe, normalize, map columns) before CRM import.",
+      "category": "sales",
+      "tier": "free",
+      "icon": "table",
+      "featured": true
+    },
+    {
       "id": "research-brief",
       "name": "research-brief",
       "display_name": "Research Brief",

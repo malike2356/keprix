@@ -140,7 +140,7 @@ def _parse_pyproject_pins(text: str) -> list[tuple[str, str]]:
     Uses stdlib ``tomllib`` (3.11+). Same exact-pin policy as requirements.
     """
     try:
-        import tomllib
+        from keprix.compat import tomllib
     except ImportError:  # pragma: no cover - 3.10 only
         return []
     try:

@@ -18,9 +18,10 @@ import { costTooltip, formatRecordedAt, formatTokenCount, formatUsdCost } from "
 type UsageRecentTableProps = {
   items?: UsageEventRow[];
   loading?: boolean;
+  subtitle?: string;
 };
 
-export default function UsageRecentTable({ items, loading }: UsageRecentTableProps) {
+export default function UsageRecentTable({ items, loading, subtitle }: UsageRecentTableProps) {
   if (loading) {
     return (
       <DashboardCard title="Recent usage">
@@ -32,7 +33,10 @@ export default function UsageRecentTable({ items, loading }: UsageRecentTablePro
   const rows = items ?? [];
 
   return (
-    <DashboardCard title="Recent usage" subtitle="Latest LLM calls for your account">
+    <DashboardCard
+      title="Recent usage"
+      subtitle={subtitle || "Latest LLM calls for your account"}
+    >
       {rows.length === 0 ? (
         <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
           No recent events in this period.

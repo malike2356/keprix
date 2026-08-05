@@ -37,6 +37,23 @@ def auth_enabled() -> bool:
     return os.getenv("AUTH_ENABLED", "true").lower() in {"1", "true", "yes"}
 
 
+def otp_login_enabled() -> bool:
+    return os.getenv("KEPRIX_OTP_LOGIN", "false").lower() in {"1", "true", "yes"}
+
+
+def otp_step_up_enabled() -> bool:
+    return os.getenv("KEPRIX_OTP_STEP_UP", "true").lower() in {"1", "true", "yes"}
+
+
+def otp_ttl_minutes() -> int:
+    raw = os.getenv("KEPRIX_OTP_TTL_MINUTES", "10").strip()
+    try:
+        value = int(raw)
+    except ValueError:
+        return 10
+    return max(1, min(value, 60))
+
+
 def _writable_data_root(path: Path) -> bool:
     try:
         path.mkdir(parents=True, exist_ok=True)

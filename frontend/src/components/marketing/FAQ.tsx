@@ -9,13 +9,16 @@ import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { alpha } from "@mui/material/styles";
-import { useMarketingColors } from "@/components/marketing/MarketingSection";
+import {
+  MARKETING_HEADING_SX,
+  useMarketingColors,
+} from "@/components/marketing/MarketingSection";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
 
 const FAQS = [
   {
     q: "How is Keprix different from n8n or Dify?",
-    a: "n8n and Dify are workflow builders. Keprix is an agent runtime with a conversational interface, long-term memory, and the Mutation Engine. It can plan and build new capabilities at runtime, not just execute pre-built nodes.",
+    a: "n8n and Dify are workflow builders. Keprix is a self-hosted agent OS with a web workspace, Command Center TUI, long-term memory, playbooks, Channel Shield, governance, and reviewable self-coding.",
   },
   {
     q: "What channels can I connect?",
@@ -26,8 +29,16 @@ const FAQS = [
     a: "Yes. MIT license. Use it commercially, modify it, self-host it. Optional governance connectors are separate paid add-ons.",
   },
   {
-    q: "What does the Mutation engine mean?",
-    a: "When Keprix cannot complete a task with its existing tools, it writes a new Python tool, runs it in a Docker sandbox, and asks you to approve before installing it. No code change required.",
+    q: "What is the Command Center TUI?",
+    a: "It is the terminal interface for Keprix. Operators can chat, switch sessions, run slash commands, inspect runtime events, review tool calls, open diagnostics, and work without leaving the keyboard.",
+  },
+  {
+    q: "What does Channel Shield do?",
+    a: "Channel Shield routes inbound email and messaging through scanning, policy checks, sandboxing, and quarantine before unsafe content reaches agents or people.",
+  },
+  {
+    q: "What does the Mutation Engine mean?",
+    a: "When Keprix cannot complete a task with its existing tools, it can propose a new tool or code change, run it in a sandbox, and ask you to approve before installing it.",
   },
   {
     q: "Do I need a GPU?",
@@ -76,9 +87,8 @@ export function FAQ() {
           <Typography
             component="h2"
             sx={{
-              fontSize: { xs: "2rem", md: "2.75rem" },
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
+              ...MARKETING_HEADING_SX,
+              fontSize: { xs: "2.2rem", md: "3rem" },
               mb: 8,
               textAlign: "center",
               color: c.textPrimary,

@@ -50,4 +50,17 @@ def build_memory_parser(subparsers, *, cmd_memory: Callable) -> None:
         default="all",
         help="Which store to reset: 'all' (default), 'memory', or 'user'",
     )
+    index_self = memory_sub.add_parser(
+        "index-self",
+        help="Index Keprix docs, capabilities, and codebase into shared self-knowledge RAG",
+    )
+    index_self.add_argument("--docs-only", action="store_true", help="Skip codebase file indexing")
+    index_self.add_argument("--codebase-only", action="store_true", help="Skip curated product docs")
+    index_self.add_argument("--max-files", type=int, default=2000, help="Max codebase files to index")
+    search_self = memory_sub.add_parser(
+        "search-self",
+        help="Search the shared Keprix self-knowledge RAG corpus",
+    )
+    search_self.add_argument("query", help="Natural-language query about Keprix")
+    search_self.add_argument("--limit", type=int, default=8)
     memory_parser.set_defaults(func=cmd_memory)

@@ -3,20 +3,43 @@
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import dynamic from "next/dynamic";
 import * as React from "react";
 import { SkeletonText } from "@/components/ui/loading";
-import { fetchUiContract, type UiContract } from "@/lib/ui-contract";
-import CommandPalette from "./CommandPalette";
+import OnboardingBanner from "@/components/agent-os/OnboardingBanner";
+import UpgradeBanner from "@/components/upgrade/UpgradeBanner";
+import { fetchUiContract, getCachedUiContract, type UiContract } from "@/lib/ui-contract";
 import ContextPanel from "./ContextPanel";
-import Sidebar from "./Sidebar";
+import MobileBottomNav from "./MobileBottomNav";
+import Sidebar, { useWorkspaceSidebarCollapsed } from "./Sidebar";
 import TopBar from "./TopBar";
 import WorkspaceFooter from "./WorkspaceFooter";
+import { OperatorCopilotFab, useOperatorAttentionBadge } from "@/components/operator/OperatorCopilotDrawer";
+
+const CommandPalette = dynamic(() => import("./CommandPalette"), { ssr: false });
+const OperatorCopilotDrawer = dynamic(
+  () => import("@/components/operator/OperatorCopilotDrawer").then((mod) => mod.default),
+  { ssr: false },
+);
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [collapsed, toggleCollapsed] = useWorkspaceSidebarCollapsed();
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   const [contextOpen, setContextOpen] = React.useState(false);
+  const [copilotOpen, setCopilotOpen] = React.useState(false);
   const [contract, setContract] = React.useState<UiContract | null>(null);
+  const operatorBadge = useOperatorAttentionBadge();
+
+  React.useEffect(() => {
+    const cached = getCachedUiContract();
+    if (cached) {
+      setContract(cached);
+    }
+    fetchUiContract()
+      .then(setContract)
+      .catch(() => undefined);
+  }, []);
 
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -33,15 +56,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  React.useEffect(() => {
-    fetchUiContract()
-      .then(setContract)
-      .catch(() => setContract(null));
-  }, []);
-
   return (
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} contract={contract} />
+      <Sidebar
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+        collapsed={collapsed}
+        onToggleCollapsed={toggleCollapsed}
+        contract={contract}
+      />
       <Box
         sx={{
           flex: 1,
@@ -65,12 +88,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               sx={{
                 flex: 1,
                 p: { xs: 2, sm: 3 },
+                pb: { xs: 9, md: 3 },
                 minWidth: 0,
                 overflow: "auto",
               }}
             >
               <Toolbar sx={{ display: { xs: "block", md: "none" }, minHeight: 0 }} />
-              <Box sx={{ width: "100%" }}>{children}</Box>
+              <Box sx={{ width: "100%" }}>
+                <OnboardingBanner />
+                <UpgradeBanner />
+                {children}
+              </Box>
             </Box>
             <ContextPanel
               open={contextOpen}
@@ -107,6 +135,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <WorkspaceFooter />
         </Box>
       </Box>
+      <OperatorCopilotFab onClick={() => setCopilotOpen(true)} badge={operatorBadge} />
+      <OperatorCopilotDrawer open={copilotOpen} onClose={() => setCopilotOpen(false)} />
+      <MobileBottomNav />
     </Box>
   );
 }

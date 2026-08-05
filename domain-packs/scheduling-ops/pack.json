@@ -1,0 +1,33 @@
+{
+  "domain_name": "scheduling-ops",
+  "version": "0.1.0",
+  "jurisdictions": ["GB"],
+  "common_tasks": [
+    "Offer booking slots",
+    "Confirm and reschedule sessions",
+    "Link bookings to leads"
+  ],
+  "playbooks": [
+    {"title": "viCal host setup", "href": "/vical"}
+  ],
+  "disclaimers": [
+    "Scheduling helpers do not replace calendar system of record policies."
+  ],
+  "limitations": [
+    "Deposit flows may be mock-pay in CE.",
+    "Channel reminders require explicit env configuration."
+  ],
+  "can_do": [
+    "Guide hosts through viCal setup",
+    "Explain slot and booking tooling",
+    "Map bookings to contacts and leads"
+  ],
+  "cannot_do": [
+    "Guarantee third-party calendar sync",
+    "Bypass host approval rules"
+  ],
+  "tool_permissions": ["filesystem:read"],
+  "localization_coverage": {"locales": ["en"], "fallback": "en", "voice_friendly": true},
+  "data_schemas": [],
+  "tests": ["tests/domain_packs/test_parity_packs.py"]
+}

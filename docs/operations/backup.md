@@ -9,6 +9,8 @@ python3 scripts/keprix-backup verify backups/keprix_*.tar.gz
 
 The admin UI also creates hot backups via `POST /api/admin/backup/create`.
 
+For readiness-gated backups with a hard timeout (no hang) and restore-test evidence, see [Readiness and recovery gates](readiness.md) (`POST /api/admin/readiness/backup`).
+
 CLI zip backup of `~/.keprix`:
 
 ```bash

@@ -17,6 +17,8 @@ Catalog of available packs with install actions. Packs may include:
 - Tool and skill bundles
 - YAML playbooks
 
+For connector discovery across MCP, hub packs, sidecars, and built-in tools, use [Connector catalog](../integrations/connector-catalog.md).
+
 ## Domain packs (`/domain-packs`)
 
 Domain-specific pack versions with optional **pack gate** sign-off before activation.
@@ -41,3 +43,4 @@ See [Governance](../security/governance.md).
 - [Governance](../security/governance.md)
 - [Skills](skills.md)
 - [Playbooks](playbooks.md)
+- [Connector catalog](../integrations/connector-catalog.md)

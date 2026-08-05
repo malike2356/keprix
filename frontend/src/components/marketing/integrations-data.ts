@@ -1,18 +1,3 @@
-export const INTEGRATION_GROUPS = [
-  {
-    label: "LLM Providers",
-    items: ["Anthropic", "OpenAI", "Gemini", "Groq", "Ollama", "OpenRouter", "DeepSeek"],
-  },
-  {
-    label: "Channels",
-    items: ["Telegram", "Discord", "Slack", "WhatsApp", "Email (IMAP)", "Webhook", "REST API"],
-  },
-  {
-    label: "Infrastructure",
-    items: ["Docker", "PostgreSQL", "SQLite", "Redis", "pgvector", "MCP", "SFTP"],
-  },
-] as const;
-
 export const INTEGRATION_PROVIDERS = [
   { name: "Anthropic", color: "#cc785c" },
   { name: "OpenAI", color: "#10a37f" },

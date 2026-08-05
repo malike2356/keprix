@@ -11,9 +11,16 @@ NodeHandler = Callable[[dict[str, Any]], dict[str, Any] | Awaitable[dict[str, An
 class PlaybookNode:
     """A single step in a playbook graph."""
 
-    def __init__(self, name: str, handler: NodeHandler) -> None:
+    def __init__(
+        self,
+        name: str,
+        handler: NodeHandler,
+        *,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
         self.name = name
         self.handler = handler
+        self.metadata = metadata or {}
 
     async def invoke(self, state: dict[str, Any]) -> dict[str, Any]:
         result = self.handler(state)

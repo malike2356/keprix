@@ -13,6 +13,16 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
+  async redirects() {
+    return [
+      { source: "/rag-pipeline", destination: "/data?tab=rag", permanent: false },
+      { source: "/playbook", destination: "/data?tab=models", permanent: false },
+      { source: "/ingest/video", destination: "/data?tab=video", permanent: false },
+      { source: "/analytics", destination: "/data?tab=analytics", permanent: false },
+      { source: "/usage", destination: "/data?tab=usage", permanent: false },
+      { source: "/observability", destination: "/data?tab=observability", permanent: false },
+    ];
+  },
   async rewrites() {
     const base = backendBase.replace(/\/$/, "");
     return [

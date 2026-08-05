@@ -1,6 +1,6 @@
 @config "../../tailwind.voice.config.ts";
 
-@layer theme, base, components, utilities;
+@layer theme, base, mui, components, utilities;
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities" layer(utilities);
 

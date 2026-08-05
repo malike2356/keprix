@@ -37,7 +37,7 @@ _KEPRIX_CORE_TOOLS = [
     # via check_fn in tools/read_terminal_tool.py — hidden outside the GUI).
     "read_terminal",
     # File manipulation
-    "read_file", "write_file", "patch", "search_files",
+    "read_file", "write_file", "patch", "search_files", "present_files",
     # Vision + image generation
     "vision_analyze", "image_generate",
     # Skills
@@ -52,9 +52,11 @@ _KEPRIX_CORE_TOOLS = [
     # Planning & memory
     "todo", "memory",
     # Session history search
-    "session_search",
+    "session_search", "conversation_search", "recent_chats",
     # Clarifying questions
     "clarify",
+    # MCP connector registry (Prompt 296)
+    "search_mcp_registry", "suggest_connectors",
     # Autonomous MCP spawn (gated on KEPRIX_AUTO_MCP_SPAWN via check_fn)
     "keprix_spawn_mcp",
     # Code execution + delegation
@@ -63,6 +65,15 @@ _KEPRIX_CORE_TOOLS = [
     "cronjob",
     # Cross-platform messaging (gated on gateway running via check_fn)
     "send_message",
+    # Conversational channel / mail setup (BotFather-style)
+    "channel_config",
+    # Conversational provider BYOK + Scout pairing (Wave 2)
+    "provider_config",
+    "scout_config",
+    # Conversational integrations, workspace prefs, companion pairing
+    "integration_config",
+    "workspace_config",
+    "companion_config",
     # Home Assistant smart home control (gated on HASS_TOKEN via check_fn)
     "ha_list_entities", "ha_get_state", "ha_list_services", "ha_call_service",
     # Kanban multi-agent coordination — only in schema when the agent is
@@ -75,6 +86,13 @@ _KEPRIX_CORE_TOOLS = [
     "kanban_unblock",
     # Computer use (macOS, gated on cua-driver being installed via check_fn)
     "computer_use",
+    # UK Companies House Public Data API (search + profile)
+    "search:companies_house", "get:company_profile",
+    # Capability mesh pilot: viCal + calendar + contacts
+    "vical_offer_slots", "vical_create_booking", "vical_list_bookings", "vical_cancel_booking",
+    "calendar_list_events", "contacts_search", "contacts_get",
+    "create_lead", "list_leads", "link_booking_to_lead",
+    "research_intel_brief_checklist", "scheduling_ops_ensure_host",
 ]
 
 # Webhook events may originate from untrusted third-party content (for example,
@@ -196,11 +214,74 @@ TOOLSETS = {
         "includes": []
     },
 
+    "channels": {
+        "description": (
+            "Conversational channel and mail configuration: list, requirements, "
+            "configure, test, and remove Telegram, Slack, Discord, WhatsApp, "
+            "email/SMTP, Signal, Matrix, SMS, Teams, and related adapters."
+        ),
+        "tools": ["channel_config"],
+        "includes": []
+    },
+
+    "providers": {
+        "description": (
+            "Conversational LLM provider BYOK setup: API keys, default model, "
+            "and default provider selection."
+        ),
+        "tools": ["provider_config"],
+        "includes": []
+    },
+
+    "scout": {
+        "description": "Conversational Labyrinth Scout pair / unpair and status.",
+        "tools": ["scout_config"],
+        "includes": []
+    },
+
+    "integrations": {
+        "description": "Conversational Notion, Trello, Google Workspace, and webhook setup.",
+        "tools": ["integration_config"],
+        "includes": []
+    },
+
+    "workspace": {
+        "description": "Conversational durable workspace preferences (timezone, quiet hours, ...).",
+        "tools": ["workspace_config"],
+        "includes": []
+    },
+
+    "companion": {
+        "description": "Conversational companion device pairing (QR / short code).",
+        "tools": ["companion_config"],
+        "includes": []
+    },
+
     
     "file": {
-        "description": "File manipulation tools: read, write, patch (with fuzzy matching), and search (content + files)",
-        "tools": ["read_file", "write_file", "patch", "search_files"],
+        "description": "File manipulation tools: read, write, patch (with fuzzy matching), search, and present_files for outputs",
+        "tools": ["read_file", "write_file", "patch", "search_files", "present_files"],
         "includes": []
+    },
+
+    "companies_house": {
+        "description": "UK Companies House Public Data API: search companies and open profiles (officers, SIC, status)",
+        "tools": ["search:companies_house", "get:company_profile"],
+        "includes": [],
+    },
+
+    "workspace_mesh": {
+        "description": "viCal booking, calendar list, and contacts (capability mesh pilot)",
+        "tools": [
+            "vical_offer_slots",
+            "vical_create_booking",
+            "vical_list_bookings",
+            "vical_cancel_booking",
+            "calendar_list_events",
+            "contacts_search",
+            "contacts_get",
+        ],
+        "includes": [],
     },
     
     "tts": {
@@ -221,6 +302,24 @@ TOOLSETS = {
         "includes": []
     },
 
+    "github-agent-sync": {
+        "description": "Durable shared memory over the GitHub agent-sync repo (Hermes/Fowler, Carina, Aiva compatible)",
+        "tools": ["github_agent_sync"],
+        "includes": [],
+    },
+
+    "syncthing": {
+        "description": "Obsidian vault Syncthing bridge (vault only; not GitHub agent-sync)",
+        "tools": ["syncthing_vault"],
+        "includes": [],
+    },
+
+    "brain": {
+        "description": "Optional graph memory tools such as Graphiti query.",
+        "tools": ["graphiti_query"],
+        "includes": []
+    },
+
     "context_engine": {
         "description": "Runtime tools exposed by the active context engine",
         "tools": [],
@@ -228,14 +327,20 @@ TOOLSETS = {
     },
     
     "session_search": {
-        "description": "Search and recall past conversations with summarization",
-        "tools": ["session_search"],
+        "description": "Search and browse past conversations (session_search, conversation_search, recent_chats)",
+        "tools": ["session_search", "conversation_search", "recent_chats"],
         "includes": []
     },
     
     "clarify": {
         "description": "Ask the user clarifying questions (multiple-choice or open-ended)",
         "tools": ["clarify"],
+        "includes": []
+    },
+
+    "mcp_registry": {
+        "description": "Search connector/MCP registry and suggest one-click connect",
+        "tools": ["search_mcp_registry", "suggest_connectors"],
         "includes": []
     },
     
@@ -351,7 +456,7 @@ TOOLSETS = {
         "tools": [
             "web_search", "web_extract",
             "terminal", "process", "read_terminal",
-            "read_file", "write_file", "patch", "search_files",
+            "read_file", "write_file", "patch", "search_files", "present_files",
             "vision_analyze",
             "skills_list", "skill_view", "skill_manage",
             "browser_navigate", "browser_snapshot", "browser_click",
@@ -381,7 +486,7 @@ TOOLSETS = {
         "tools": [
             "web_search", "web_extract",
             "terminal", "process",
-            "read_file", "write_file", "patch", "search_files",
+            "read_file", "write_file", "patch", "search_files", "present_files",
             "vision_analyze",
             "skills_list", "skill_view", "skill_manage",
             "browser_navigate", "browser_snapshot", "browser_click",
@@ -403,7 +508,7 @@ TOOLSETS = {
             # Terminal + process management
             "terminal", "process",
             # File manipulation
-            "read_file", "write_file", "patch", "search_files",
+            "read_file", "write_file", "patch", "search_files", "present_files",
             # Vision + image generation
             "vision_analyze", "image_generate",
             # Skills
@@ -421,8 +526,19 @@ TOOLSETS = {
             "execute_code", "delegate_task",
             # Cronjob management
             "cronjob",
+            # Conversational channel / mail setup
+            "channel_config",
+            # Conversational provider BYOK + Scout
+            "provider_config",
+            "scout_config",
+            # Integrations / workspace / companion
+            "integration_config",
+            "workspace_config",
+            "companion_config",
             # Home Assistant smart home control (gated on HASS_TOKEN via check_fn)
             "ha_list_entities", "ha_get_state", "ha_list_services", "ha_call_service",
+            # UK Companies House
+            "search:companies_house", "get:company_profile",
 
         ],
         "includes": []

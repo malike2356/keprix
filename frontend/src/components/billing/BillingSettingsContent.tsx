@@ -4,6 +4,7 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid2";
+import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
@@ -44,6 +45,7 @@ export default function BillingSettingsContent() {
   const [actionLoading, setActionLoading] = React.useState(false);
   const [actionError, setActionError] = React.useState<string | null>(null);
   const [checkoutBanner, setCheckoutBanner] = React.useState<CheckoutBannerState | null>(null);
+  const [promoCode, setPromoCode] = React.useState("");
 
   const { data: status, isLoading: statusLoading } = useSWR("billing-status", fetchBillingStatus);
   const billingEnabled = status?.enabled === true;
@@ -110,7 +112,7 @@ export default function BillingSettingsContent() {
         window.location.href = checkout_url;
         return;
       }
-      await redirectToCheckout(planId, selectedInterval);
+      await redirectToCheckout(planId, selectedInterval, promoCode.trim() || null);
     });
 
   const handleViewInvoice = async (invoiceId: string) => {
@@ -159,6 +161,17 @@ export default function BillingSettingsContent() {
           {actionError}
         </Alert>
       ) : null}
+
+      <Box sx={{ mb: 2, maxWidth: 360 }}>
+        <TextField
+          size="small"
+          fullWidth
+          label="Promo code (optional)"
+          value={promoCode}
+          onChange={(e) => setPromoCode(e.target.value)}
+          helperText="Applies to subscribe checkout against existing catalog prices only."
+        />
+      </Box>
 
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, lg: 6 }}>

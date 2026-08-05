@@ -9,10 +9,12 @@ from pydantic import BaseModel, Field
 
 from keprix.api.auth import require_api_auth
 from keprix.documents.connector_registry import list_connectors
+from keprix.documents.disk_folder_store import get_disk_folder_store
+from keprix.documents.disk_paths import allowed_disk_roots
 from keprix.documents.document_agent import get_document_agent
 from keprix.documents.index_manager import get_index_manager
 from keprix.documents.structured_extract import SCHEMAS
-from keprix.documents.workflow import run_query_workflow
+from keprix.documents.workflow import run_ingest_workflow, run_query_workflow
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
 
@@ -35,9 +37,74 @@ class ExtractBody(BaseModel):
     schema_name: str = "generic"
 
 
+class DiskFolderBody(BaseModel):
+    path: str = Field(..., min_length=1)
+    name: str | None = None
+    index_id: str | None = None
+    user_id: str = "default"
+    recursive: bool = True
+    extensions: list[str] = Field(default_factory=list)
+    also_import_workspace: bool = False
+
+
+class DiskPathIngestBody(BaseModel):
+    path: str = Field(..., min_length=1)
+
+
 @router.get("/connectors")
 async def document_connectors(_user: str = Depends(require_api_auth)) -> dict[str, Any]:
-    return {"connectors": list_connectors(), "schemas": sorted(SCHEMAS.keys())}
+    return {
+        "connectors": list_connectors(),
+        "schemas": sorted(SCHEMAS.keys()),
+        "disk_roots": [str(root) for root in allowed_disk_roots()],
+    }
+
+
+@router.get("/disk-folders")
+async def list_disk_folders(user_id: str = "default", _user: str = Depends(require_api_auth)) -> dict[str, Any]:
+    return {
+        "folders": get_disk_folder_store().list_folders(user_id),
+        "disk_roots": [str(root) for root in allowed_disk_roots()],
+    }
+
+
+@router.post("/disk-folders")
+async def add_disk_folder(body: DiskFolderBody, _user: str = Depends(require_api_auth)) -> dict[str, Any]:
+    try:
+        return await get_disk_folder_store().add_folder(
+            user_id=body.user_id,
+            path=body.path,
+            name=body.name,
+            index_id=body.index_id,
+            recursive=body.recursive,
+            extensions=body.extensions or None,
+            also_import_workspace=body.also_import_workspace,
+        )
+    except KeyError as exc:
+        raise HTTPException(404, "Index not found") from exc
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@router.post("/disk-folders/{folder_id}/sync")
+async def sync_disk_folder(
+    folder_id: str, user_id: str = "default", _user: str = Depends(require_api_auth)
+) -> dict[str, Any]:
+    try:
+        return await get_disk_folder_store().sync_folder(folder_id, user_id=user_id)
+    except KeyError as exc:
+        raise HTTPException(404, "Disk folder not found") from exc
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
+@router.delete("/disk-folders/{folder_id}")
+async def delete_disk_folder(
+    folder_id: str, user_id: str = "default", _user: str = Depends(require_api_auth)
+) -> dict[str, Any]:
+    if not get_disk_folder_store().delete(folder_id, user_id):
+        raise HTTPException(404, "Disk folder not found")
+    return {"deleted": True, "id": folder_id}
 
 
 @router.post("/indexes")
@@ -91,6 +158,26 @@ async def upload_document(
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail="Index not found") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/indexes/{index_id}/disk-path")
+async def ingest_disk_path(
+    index_id: str,
+    body: DiskPathIngestBody,
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    try:
+        return await run_ingest_workflow(
+            index_id=index_id,
+            connector="disk",
+            payload={"path": body.path},
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="Index not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

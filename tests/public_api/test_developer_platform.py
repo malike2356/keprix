@@ -174,6 +174,33 @@ async def test_models_endpoint(client, key_store):
 
 
 @pytest.mark.asyncio
+async def test_embeddings_returns_vectors(client, key_store):
+    from keprix.memory.embeddings import EMBEDDING_DIM
+
+    created = key_store.create(
+        CreateApiKeyRequest(
+            name="embed",
+            permissions={
+                "v1.chat": "access",
+                "v1.models": "access",
+                "v1.embeddings": "access",
+            },
+            allowed_endpoints=["/v1/embeddings", "/v1/models"],
+            allowed_models=["keprix", "keprix-embed"],
+        )
+    )
+    response = await client.post(
+        "/v1/embeddings",
+        headers={"Authorization": f"Bearer {created.secret}"},
+        json={"model": "keprix-embed", "input": ["alpha", "beta"]},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert len(payload["data"]) == 2
+    assert len(payload["data"][0]["embedding"]) == EMBEDDING_DIM
+
+
+@pytest.mark.asyncio
 async def test_developer_create_and_list_keys(client, key_store, monkeypatch):
     monkeypatch.setenv("KEPRIX_API_ADMIN_TOKEN", "admin")
     created = await client.post(
@@ -182,8 +209,11 @@ async def test_developer_create_and_list_keys(client, key_store, monkeypatch):
         json={"name": "dashboard-key"},
     )
     assert created.status_code == 200
-    secret = created.json()["secret"]
+    body = created.json()
+    secret = body["secret"]
     assert secret.startswith("kp_")
+    assert body.get("restrict_key") is True
+    assert "/v1/chat/completions" in body.get("allowed_endpoints", [])
 
     listed = await client.get(
         "/api/developer/keys",
@@ -195,7 +225,18 @@ async def test_developer_create_and_list_keys(client, key_store, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_responses_api_shape(client, key_store, mock_agent_runtime):
-    created = key_store.create(CreateApiKeyRequest(name="responses"))
+    created = key_store.create(
+        CreateApiKeyRequest(
+            name="responses",
+            permissions={
+                "v1.chat": "access",
+                "v1.models": "access",
+                "v1.responses": "access",
+            },
+            allowed_endpoints=["/v1/responses", "/v1/models"],
+            allowed_models=["keprix"],
+        )
+    )
     response = await client.post(
         "/v1/responses",
         headers={"Authorization": f"Bearer {created.secret}"},
@@ -206,22 +247,6 @@ async def test_responses_api_shape(client, key_store, mock_agent_runtime):
     assert payload["object"] == "response"
     assert payload["output_text"] == "Agent runtime response"
     assert payload["usage"]["total_tokens"] > 0
-
-
-@pytest.mark.asyncio
-async def test_embeddings_returns_vectors(client, key_store):
-    from keprix.memory.embeddings import EMBEDDING_DIM
-
-    created = key_store.create(CreateApiKeyRequest(name="embed"))
-    response = await client.post(
-        "/v1/embeddings",
-        headers={"Authorization": f"Bearer {created.secret}"},
-        json={"model": "keprix-embed", "input": ["alpha", "beta"]},
-    )
-    assert response.status_code == 200
-    payload = response.json()
-    assert len(payload["data"]) == 2
-    assert len(payload["data"][0]["embedding"]) == EMBEDDING_DIM
 
 
 @pytest.mark.asyncio
@@ -237,6 +262,8 @@ async def test_developer_dashboard_payload(client, key_store, monkeypatch):
     assert "enabled_tools" in payload
     assert "sdk_snippets" in payload
     assert "webhooks" in payload
+    assert "scope_catalog" in payload
+    assert payload["scope_catalog"]["defaults"]["restrict_key"] is True
 
 
 @pytest.mark.asyncio

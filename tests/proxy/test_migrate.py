@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 
 from keprix.proxy.config import load_proxy_config
-from keprix.proxy.migrate import migrate_vault_from_env
+from keprix.proxy.migrate import load_migration_state, migrate_vault_from_env, migration_health
 from keprix.proxy.paths import local_vault_path
 
 
@@ -38,3 +38,22 @@ def test_migrate_skips_dummy_keys(tmp_path, monkeypatch):
     result = migrate_vault_from_env(env_path)
 
     assert "ANTHROPIC_API_KEY" in result.skipped
+
+
+def test_migrate_single_secret_and_health(tmp_path, monkeypatch):
+    monkeypatch.setenv("KEPRIX_HOME", str(tmp_path))
+    env_path = tmp_path / ".env"
+    env_path.write_text(
+        "ANTHROPIC_API_KEY=sk-ant-test\nOPENAI_API_KEY=sk-openai-test\n",
+        encoding="utf-8",
+    )
+
+    result = migrate_vault_from_env(env_path, only_secret_ref="openai-api-key")
+
+    assert result.migrated == ["OPENAI_API_KEY"]
+    assert "openai-api-key" in result.verified
+    state = load_migration_state()
+    assert "openai-api-key" in state["verified"]
+    health = migration_health()
+    assert health["total"] == 1
+    assert health["migrated"] == 1

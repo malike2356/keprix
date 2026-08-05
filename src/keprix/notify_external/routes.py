@@ -200,6 +200,35 @@ async def test_email(body: TestEmailBody, request: Request, _admin: dict = Depen
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@router.post("/notifications/{notification_id}/retry")
+async def retry_one(
+    notification_id: str,
+    request: Request,
+    _admin: dict = Depends(require_admin),
+) -> dict[str, Any]:
+    from keprix.notify_external.retry import retry_notification
+
+    workspace_id = _workspace_id(request)
+    row = get_notify_external_store().get_notification(notification_id)
+    if row is None or row.get("workspace_id") != workspace_id:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    try:
+        return await retry_notification(notification_id)
+    except RateLimitExceeded as exc:
+        raise HTTPException(status_code=429, detail=str(exc), headers={"Retry-After": "3600"}) from exc
+    except SMTPNotConfigured as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/retry-pending")
+async def retry_pending(request: Request, _admin: dict = Depends(require_admin)) -> dict[str, Any]:
+    from keprix.notify_external.retry import retry_failed_external_notifications
+
+    return await retry_failed_external_notifications(workspace_id=_workspace_id(request))
+
+
 @router.get("/templates")
 async def list_templates(_admin: dict = Depends(require_admin)) -> dict[str, Any]:
     builtin = []

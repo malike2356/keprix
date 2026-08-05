@@ -1,20 +1,20 @@
 "use client";
 
 import Button from "@mui/material/Button";
-import AppsOutlinedIcon from "@mui/icons-material/AppsOutlined";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import NextLink from "next/link";
 
 export default function AppSwitcher() {
   return (
     <Button
       component={NextLink}
-      href="/launcher"
+      href="/home"
       size="small"
       color="inherit"
-      startIcon={<AppsOutlinedIcon />}
+      startIcon={<HomeOutlinedIcon />}
       sx={{ textTransform: "none", fontWeight: 600 }}
     >
-      Apps
+      Workspace home
     </Button>
   );
 }

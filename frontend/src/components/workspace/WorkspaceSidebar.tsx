@@ -3,6 +3,7 @@
 import AddIcon from "@mui/icons-material/Add";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -72,6 +73,27 @@ export default function WorkspaceSidebar() {
       }}
     >
       <Box sx={{ flexShrink: 0, p: 2 }}>
+        <Box sx={{ display: "grid", gap: 0.75, mb: 1.5 }}>
+          <Button
+            component={NextLink}
+            href="/home"
+            size="small"
+            variant="text"
+            sx={{ justifyContent: "flex-start" }}
+          >
+            Workspace
+          </Button>
+          <Button
+            component={NextLink}
+            href="/files"
+            size="small"
+            variant="text"
+            startIcon={<FolderOutlinedIcon fontSize="small" />}
+            sx={{ justifyContent: "flex-start" }}
+          >
+            Files
+          </Button>
+        </Box>
         <Button
           fullWidth
           variant="outlined"

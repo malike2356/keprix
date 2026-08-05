@@ -120,7 +120,7 @@ Keprix is not a chatbot or assistant framework. It is an agent OS:
 - Embeddings: EmbeddingService (Gemini primary, OpenAI fallback, deterministic fallback)
 - RAG store: SQLite at ~/.keprix/rag_pipeline/chunks.sqlite (default)
 - Knowledge graph: Graphiti (in brain/ module)
-- Config: ~/.keprix/ (persistent home), /opt/lampp/htdocs/verlox/keprix-data/ (runtime data)
+- Config: ~/.keprix/ (persistent home), /opt/lampp/htdocs/verlox/keprix-data/ (runtime data via the repo symlink to top-level keprix-data/)
 
 ## System Prompt Tiers
 
@@ -135,7 +135,7 @@ KEPRIX_DEFAULT_PROVIDER=deepseek (DeepSeek API, sk-* key in .env)
 
 ## Key Environment Variables
 
-- KEPRIX_DATA_DIR: /opt/lampp/htdocs/verlox/keprix-data/ (persistent)
+- KEPRIX_DATA_DIR: /opt/lampp/htdocs/verlox/keprix-data/ (persistent via symlink to top-level keprix-data/)
 - KEPRIX_DATABASE_URL: postgresql+asyncpg://keprix:changeme@localhost:5432/keprix
 - KEPRIX_REDIS_URL: redis://localhost:6379/0
 - KEPRIX_BILLING_ENABLED: true
@@ -445,10 +445,9 @@ def _settings_document() -> KnowledgeDocument:
 
 ### Billing (/settings/billing)
 Stripe billing UI. Requires KEPRIX_BILLING_ENABLED=true.
-Price IDs come from the Verlox catalog (.stripe-credentials-and-price-id.md); pin in billing.yaml.
-Admins/owners can pin catalog prices via the pricing panel (GET/PUT /api/billing/admin/pricing).
-Keprix Community Donation: £1 one-off (price_1Tri9T2WMXleLh8eA6gCXHbk); voluntary.
-Pro example: £49/mo and £449/yr catalog pins. Monthly/yearly toggle only when interval exists.
+Price IDs come from the operator catalog (KEPRIX_STRIPE_CREDENTIALS_FILE); pin in billing.yaml.
+Admins/owners can pin Keprix-scoped catalog prices via the pricing panel (GET/PUT /api/billing/admin/pricing).
+Community coffee donation is open-amount and voluntary (never gates usage).
 
 ### Modules (/settings/modules)
 Catalog of packages and surfaces beyond the curated sidebar. Complements Developer → Module inventory.
@@ -596,33 +595,28 @@ def _billing_document() -> KnowledgeDocument:
     content = """\
 # Keprix Billing and Stripe Configuration
 
-Keprix uses Stripe for billing. All price IDs and amounts come from the Verlox
-catalog file `.stripe-credentials-and-price-id.md` (not committed with secrets).
+Keprix uses Stripe when billing is enabled. Live `price_*` IDs are operator-owned:
+set KEPRIX_STRIPE_CREDENTIALS_FILE and pin IDs in config/billing.yaml (gitignored).
+Do not ship account-specific price IDs in open-source source trees.
 
-NEVER create new Stripe prices. Only pin existing price_* IDs into config/billing.yaml
-or via the admin pricing GUI on /settings/billing.
+NEVER create new Stripe prices unless you own the Stripe account and intend to.
+Admin pricing GUI: /settings/billing (Keprix-scoped catalog by default).
 
 ## Environment (names only; values live in .env)
 
 - KEPRIX_BILLING_ENABLED / KEPRIX_BILLING_PROVIDER
 - KEPRIX_BILLING_CONFIG (default config/billing.yaml)
+- KEPRIX_STRIPE_CREDENTIALS_FILE
 - STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET
 
 ## Keprix Community Donation
 Open-amount voluntary support (min £1, max £500) via Checkout price_data.
 POST /api/billing/donation/checkout { amount_gbp, donation_id? }.
-Documentary £1 catalog pin: price_1Tri9T2WMXleLh8eA6gCXHbk (not used for open amounts).
 Never gates usage.
-
-## Verlox SaaS plan pins (examples; confirm against catalog)
-
-- Pro: £49/mo (price_1Trhnm2WMXleLh8eevN9oBYd), £449/yr (price_1Trhnl2WMXleLh8e9zAYG7F4)
-- Team: £129/mo (price_1Trhnm2WMXleLh8etXFvF1VN) and yearly catalog pin
-- SSO / extra seat / top-ups: catalog only
 
 ## Admin pricing API
 
-- GET /api/billing/admin/catalog
+- GET /api/billing/admin/catalog (?scope=keprix|all)
 - GET/PUT /api/billing/admin/pricing (writes billing.yaml; admin/owner only)
 
 ## Billing Settings Page (/settings/billing)
@@ -850,12 +844,26 @@ Connect Scout: POST /api/governance/connect
 }
 
 ## Defense Layers (always active)
-- prompt_guard: true
-- egress_gate: true
-- tool_acl: true
-- checkpoint_manager: true
-- governance_kill_relay: true
-- scout_client: false (until Scout connected)
+- prompt_guard:
+  - present: true
+  - mode: quarantine or block in production
+  - enforced: true when mode is not log
+- egress_gate:
+  - present: true
+  - enforced: true
+- tool_acl:
+  - present: true
+  - default profile: assistant
+  - enforced: true
+- checkpoint_manager:
+  - present: true
+  - enabled: true
+- governance_kill_relay:
+  - present: true
+  - enabled: true
+- scout_client:
+  - present: true
+  - enabled: false until Scout is connected
 """
     return KnowledgeDocument(
         source_id="security_architecture",
@@ -926,6 +934,54 @@ Current self-knowledge corpus covers:
     )
 
 
+
+def _capability_mesh_document() -> KnowledgeDocument:
+    """Capability mesh discoverability generated from the live graph seed."""
+    try:
+        from keprix.capability_mesh.discovery import render_discovery_markdown, write_discovery
+
+        write_discovery()
+        content = render_discovery_markdown()
+    except Exception as exc:
+        content = (
+            "# Keprix capability mesh\n\n"
+            "Graph discoverability unavailable in this runtime: "
+            f"{exc}\n"
+        )
+    return KnowledgeDocument(
+        source_id="capability_mesh",
+        title="Keprix Capability Mesh",
+        content=content,
+        category="features",
+    )
+
+
+def _parity_guide_documents() -> list[KnowledgeDocument]:
+    """Curated guides from docs/self-knowledge/parity/."""
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[3] / "docs" / "self-knowledge" / "parity"
+    if not root.is_dir():
+        return []
+    docs: list[KnowledgeDocument] = []
+    for path in sorted(root.glob("*.md")):
+        text = path.read_text(encoding="utf-8")
+        title = path.stem.replace("-", " ").title()
+        for line in text.splitlines():
+            if line.startswith("# "):
+                title = line[2:].strip()
+                break
+        docs.append(
+            KnowledgeDocument(
+                source_id=f"parity_{path.stem}",
+                title=title,
+                content=text,
+                category="parity",
+            )
+        )
+    return docs
+
+
 def generate_all_documents() -> list[KnowledgeDocument]:
     """Return all self-knowledge documents."""
     docs: list[KnowledgeDocument] = [
@@ -942,7 +998,9 @@ def generate_all_documents() -> list[KnowledgeDocument]:
         _apps_document(),
         _security_document(),
         _self_knowledge_document(),
+        _capability_mesh_document(),
     ]
     # Add navigation group documents
     docs.extend(_nav_documents())
+    docs.extend(_parity_guide_documents())
     return docs
