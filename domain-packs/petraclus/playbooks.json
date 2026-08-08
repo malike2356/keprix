@@ -1,0 +1,116 @@
+{
+  "schema_version": "petraclus-playbooks@1.0.0",
+  "playbooks": [
+    {
+      "key": "authorised_scan_plan",
+      "title": "Authorised scan plan",
+      "actor": "security_analyst",
+      "edition_min": "community",
+      "requires_target_grant": true,
+      "nodes": ["asset_get", "scan_plan_propose"],
+      "approval_points": ["scan_plan_propose"],
+      "stop_paths": ["missing_grant", "expired_grant", "edition_denied"],
+      "remediation": "proposal_only"
+    },
+    {
+      "key": "post_scan_triage",
+      "title": "Post-scan triage",
+      "actor": "security_analyst",
+      "edition_min": "community",
+      "requires_target_grant": true,
+      "nodes": ["scan_get", "finding_search", "finding_explain", "finding_triage_propose"],
+      "approval_points": ["finding_triage_propose"],
+      "stop_paths": ["scan_incomplete", "cross_workspace"],
+      "remediation": "proposal_only"
+    },
+    {
+      "key": "false_positive_review",
+      "title": "False positive review",
+      "actor": "security_analyst",
+      "edition_min": "community",
+      "requires_target_grant": false,
+      "nodes": ["finding_get", "evidence_get_redacted", "false_positive_propose"],
+      "approval_points": ["false_positive_propose", "finding_update"],
+      "stop_paths": ["missing_approval", "read_only_role"],
+      "remediation": "proposal_only"
+    },
+    {
+      "key": "remediation_planning",
+      "title": "Remediation planning",
+      "actor": "security_analyst",
+      "edition_min": "pro",
+      "requires_target_grant": false,
+      "nodes": ["finding_get", "remediation_plan", "remediation_change_propose"],
+      "approval_points": ["remediation_change_propose"],
+      "stop_paths": ["execute_forbidden"],
+      "remediation": "proposal_only",
+      "note": "Remediation remains proposal-only; no remediation_execute node."
+    },
+    {
+      "key": "control_mapping",
+      "title": "Control mapping",
+      "actor": "compliance_analyst",
+      "edition_min": "pro",
+      "requires_target_grant": false,
+      "nodes": ["finding_search", "control_map"],
+      "approval_points": [],
+      "stop_paths": ["edition_denied"],
+      "remediation": "proposal_only"
+    },
+    {
+      "key": "ticket_handoff",
+      "title": "Ticket handoff",
+      "actor": "security_analyst",
+      "edition_min": "pro",
+      "requires_target_grant": false,
+      "nodes": ["finding_get", "ticket_propose", "ticket_create"],
+      "approval_points": ["ticket_propose", "ticket_create"],
+      "stop_paths": ["stale_approval", "read_only_role"],
+      "remediation": "proposal_only"
+    },
+    {
+      "key": "retest_plan",
+      "title": "Retest plan",
+      "actor": "security_analyst",
+      "edition_min": "pro",
+      "requires_target_grant": true,
+      "nodes": ["finding_get", "scan_plan_propose"],
+      "approval_points": ["scan_plan_propose", "scan_start"],
+      "stop_paths": ["revoked_grant", "wildcard_denied"],
+      "remediation": "proposal_only"
+    },
+    {
+      "key": "executive_report",
+      "title": "Executive report",
+      "actor": "security_lead",
+      "edition_min": "pro",
+      "requires_target_grant": false,
+      "nodes": ["finding_search", "executive_summary", "report_draft", "report_publish"],
+      "approval_points": ["report_draft", "report_publish"],
+      "stop_paths": ["missing_provenance", "read_only_role"],
+      "remediation": "proposal_only"
+    },
+    {
+      "key": "daily_risk_digest",
+      "title": "Daily risk digest",
+      "actor": "security_lead",
+      "edition_min": "team",
+      "requires_target_grant": false,
+      "nodes": ["finding_search", "query_findings", "executive_summary"],
+      "approval_points": [],
+      "stop_paths": ["edition_denied"],
+      "remediation": "proposal_only"
+    },
+    {
+      "key": "feed_to_affected_assets",
+      "title": "Feed to affected assets",
+      "actor": "threat_intel_analyst",
+      "edition_min": "pro",
+      "requires_target_grant": false,
+      "nodes": ["feed_item_assess", "asset_get", "finding_search"],
+      "approval_points": [],
+      "stop_paths": ["injection_detected", "poisoned_feed"],
+      "remediation": "proposal_only"
+    }
+  ]
+}

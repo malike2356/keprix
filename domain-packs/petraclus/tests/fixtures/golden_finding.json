@@ -1,0 +1,19 @@
+{
+  "id": "finding-golden-1",
+  "workspace_id": "ws-alpha",
+  "asset_id": "asset-alpha-1",
+  "scan_id": "scan-1",
+  "title": "TLS weak cipher",
+  "severity": "high",
+  "verified_state": "scanner_observed",
+  "cve": "CVE-2016-2183",
+  "cwe": "CWE-327",
+  "cvss": 7.5,
+  "description": "Observed weak cipher suite TLS_RSA_WITH_3DES_EDE_CBC_SHA",
+  "evidence_ids": ["evidence-2"],
+  "expected_review": {
+    "scanner_severity_unchanged": true,
+    "must_cite": ["cve", "cwe", "cvss"],
+    "provenance_required": ["observed_scanner_fact", "model_inference"]
+  }
+}

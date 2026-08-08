@@ -1,0 +1,12 @@
+{
+  "pack_id": "petraclus",
+  "version": "0.1.0",
+  "title": "Petraclus cybersecurity sidecar",
+  "summary": "Keprix product sidecar for Petraclus: authorised security analysis, proposals and gated actions without becoming an unscoped scanner or licence bypass.",
+  "hub_visibility": "private",
+  "product_key": "petraclus",
+  "contract_version": "1.0.0",
+  "port": 3362,
+  "licence_authority": "keys.petraclus.uk",
+  "editions": ["community", "pro", "team"]
+}

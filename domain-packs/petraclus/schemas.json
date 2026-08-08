@@ -1,0 +1,55 @@
+{
+  "schema_version": "petraclus-schemas@1.0.0",
+  "contract_version": "1.0.0",
+  "common": {
+    "workspace_id": {"type": "string", "minLength": 1},
+    "target_grant_id": {"type": "string"},
+    "approval_id": {"type": "string"},
+    "input_hash": {"type": "string"},
+    "idempotency_key": {"type": "string"},
+    "provenance": {
+      "type": "object",
+      "required": ["observed_scanner_fact", "feed_data", "model_inference", "human_verification"],
+      "properties": {
+        "observed_scanner_fact": {"type": "object"},
+        "feed_data": {"type": "object"},
+        "model_inference": {"type": "object"},
+        "human_verification": {"type": "object"},
+        "cited_ids": {
+          "type": "object",
+          "properties": {
+            "asset_ids": {"type": "array", "items": {"type": "string"}},
+            "finding_ids": {"type": "array", "items": {"type": "string"}},
+            "evidence_ids": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      }
+    }
+  },
+  "nodes": {
+    "asset_get": {"input": {"required": ["workspace_id", "asset_id"]}, "output": {"required": ["asset", "provenance"]}},
+    "scan_get": {"input": {"required": ["workspace_id", "scan_id"]}, "output": {"required": ["scan", "provenance"]}},
+    "finding_get": {"input": {"required": ["workspace_id", "finding_id"]}, "output": {"required": ["finding", "provenance"]}},
+    "finding_search": {"input": {"required": ["workspace_id"]}, "output": {"required": ["findings", "provenance"]}},
+    "evidence_get_redacted": {"input": {"required": ["workspace_id", "evidence_id"]}, "output": {"required": ["evidence", "redacted"]}},
+    "report_get": {"input": {"required": ["workspace_id", "report_id"]}, "output": {"required": ["report"]}},
+    "audit_get": {"input": {"required": ["workspace_id"]}, "output": {"required": ["events"]}},
+    "integration_health": {"input": {"required": ["workspace_id"]}, "output": {"required": ["integrations"]}},
+    "finding_explain": {"input": {"required": ["workspace_id", "finding_id"]}, "output": {"required": ["explanation", "provenance"]}},
+    "severity_review": {"input": {"required": ["workspace_id", "finding_id"]}, "output": {"required": ["review", "provenance"]}},
+    "scan_plan_propose": {"input": {"required": ["workspace_id", "target_grant_id"]}, "output": {"required": ["preview_hash", "plan"]}},
+    "scan_start": {"input": {"required": ["workspace_id", "target_grant_id", "approval_id", "input_hash"]}, "output": {"required": ["scan_id", "status"]}},
+    "finding_update": {"input": {"required": ["workspace_id", "finding_id", "approval_id", "input_hash"]}, "output": {"required": ["status"]}},
+    "ticket_create": {"input": {"required": ["workspace_id", "approval_id", "input_hash"]}, "output": {"required": ["ticket_id"]}},
+    "report_publish": {"input": {"required": ["workspace_id", "report_id", "approval_id", "input_hash"]}, "output": {"required": ["status"]}}
+  },
+  "forbidden_nodes": [
+    "shell",
+    "arbitrary_http",
+    "nmap_freeform",
+    "exploit_run",
+    "credential_read",
+    "unrestricted_file_read",
+    "remediation_execute"
+  ]
+}

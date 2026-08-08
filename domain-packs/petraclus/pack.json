@@ -1,0 +1,55 @@
+{
+  "domain_name": "petraclus",
+  "version": "0.1.0",
+  "jurisdictions": ["GB", "EU", "US"],
+  "common_tasks": [
+    "Explain authorised findings with provenance labels",
+    "Propose scan plans within exact target grants",
+    "Triage findings and draft remediation proposals",
+    "Map controls and draft executive reports",
+    "Queue AI work when the sidecar or model is degraded"
+  ],
+  "playbooks": [
+    {"title": "Authorised scan plan", "href": "/playbooks/authorised_scan_plan"},
+    {"title": "Post-scan triage", "href": "/playbooks/post_scan_triage"},
+    {"title": "False positive review", "href": "/playbooks/false_positive_review"},
+    {"title": "Remediation planning", "href": "/playbooks/remediation_planning"},
+    {"title": "Control mapping", "href": "/playbooks/control_mapping"},
+    {"title": "Ticket handoff", "href": "/playbooks/ticket_handoff"},
+    {"title": "Retest plan", "href": "/playbooks/retest_plan"},
+    {"title": "Executive report", "href": "/playbooks/executive_report"},
+    {"title": "Daily risk digest", "href": "/playbooks/daily_risk_digest"},
+    {"title": "Feed to affected assets", "href": "/playbooks/feed_to_affected_assets"}
+  ],
+  "disclaimers": [
+    "Petraclus remains the source of truth for targets, authorisation evidence, finding truth, workflows, licences and UI.",
+    "Keprix provides grounded explanation, proposed prioritisation, playbooks and policy-gated tools only.",
+    "Licence authority remains product-side and keys.petraclus.uk; Keprix never mints or unlocks licences."
+  ],
+  "limitations": [
+    "Exploit automation is off. No shell, arbitrary HTTP, free-form nmap, exploit-run, credential-read, unrestricted file-read or remediation-execute nodes.",
+    "Active scan, credentialed scan and mutate actions require exact target grant, approval and edition entitlement, revalidated before each action.",
+    "Live product API must be wired for production; local fixture is for contract tests only."
+  ],
+  "can_do": [
+    "Expose /v1/products/petraclus/* product-sidecar contract on port 3362",
+    "Register read, analysis, proposal and gated action capability nodes",
+    "Enforce product, workspace, edition, role, target grant and purpose isolation",
+    "Run air-gapped provision plans without phone-home"
+  ],
+  "cannot_do": [
+    "Create target authorisation or extend licence grace",
+    "Run exploits or apply production remediation",
+    "Silently change scanner severity or verified state",
+    "Read cross-workspace findings or secrets"
+  ],
+  "tool_permissions": ["network:product_api"],
+  "data_schemas": ["schemas.json"],
+  "tests": [
+    "domain-packs/petraclus/tests/test_petraclus_sidecar.py",
+    "domain-packs/petraclus/tests/test_isolation_and_grants.py",
+    "domain-packs/petraclus/tests/test_connector_contract.py",
+    "domain-packs/petraclus/tests/test_adversarial.py",
+    "domain-packs/petraclus/tests/test_provision_airgap.py"
+  ]
+}

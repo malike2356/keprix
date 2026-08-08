@@ -1,0 +1,15 @@
+{
+  "schema_version": "petraclus-glossary@1.0.0",
+  "terms": {
+    "target_grant": "Signed, time-bounded authorisation for an exact target with ports, techniques, exclusions and approver evidence.",
+    "finding_truth": "Petraclus-owned severity, verification state and evidence linkage; models may propose but not silently mutate.",
+    "observed_scanner_fact": "Raw or redacted scanner observation labelled as observed, not inference.",
+    "feed_data": "External intel feed payload treated as untrusted input.",
+    "model_inference": "Keprix-generated explanation or prioritisation that must cite asset/finding/evidence ids.",
+    "human_verification": "Operator-confirmed state recorded by Petraclus workflows.",
+    "soft_wall": "Proposal or action that requires product preview and human approval before apply.",
+    "edition": "Community, Pro or Team entitlement returned by Petraclus licence/effective-entitlements.",
+    "airgap": "Mode with no licence, telemetry, feed or update phone-home unless explicitly configured.",
+    "provenance_label": "Label distinguishing observed scanner fact, feed data, model inference and human verification."
+  }
+}

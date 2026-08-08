@@ -1,0 +1,20 @@
+soft_wall_default: true
+require_approval_for:
+  - scan_start
+  - scan_cancel
+  - finding_update
+  - ticket_create
+  - report_publish
+require_target_grant_for:
+  - scan_plan_propose
+  - scan_start
+revalidate_before_action: true
+read_only_cannot_mutate: true
+licence_authority: keys.petraclus.uk
+keprix_cannot:
+  - mint_licence
+  - unlock_edition
+  - extend_grace
+  - create_target_grant
+remediation_execute: false
+exploit_automation: false

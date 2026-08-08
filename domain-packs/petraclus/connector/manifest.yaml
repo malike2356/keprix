@@ -1,0 +1,116 @@
+base_url_env: PETRACLUS_PRODUCT_API_URL
+default_deny: true
+no_sql: true
+no_ui_scrape: true
+never_log:
+  - tokens
+  - findings
+  - raw_evidence
+  - credentials
+  - target_inventories
+routes:
+  - method: GET
+    path: /api/keprix/v1/health
+    purpose: liveness
+  - method: GET
+    path: /api/keprix/v1/capabilities
+    purpose: negotiate
+  - method: POST
+    path: /api/keprix/v1/token/exchange
+    purpose: identity
+  - method: GET
+    path: /api/keprix/v1/context
+    purpose: context
+  - method: POST
+    path: /api/keprix/v1/events/ack
+    purpose: event_ack
+  - method: GET
+    path: "/api/keprix/v1/workspaces/{id}"
+    purpose: workspace_read
+  - method: GET
+    path: /api/keprix/v1/assets
+    purpose: assets_list
+  - method: GET
+    path: "/api/keprix/v1/assets/{id}"
+    purpose: asset_read
+  - method: GET
+    path: "/api/keprix/v1/target-grants/{id}"
+    purpose: grant_read
+  - method: GET
+    path: /api/keprix/v1/scans
+    purpose: scans_list
+  - method: GET
+    path: "/api/keprix/v1/scans/{id}"
+    purpose: scan_read
+  - method: GET
+    path: /api/keprix/v1/findings
+    purpose: findings_list
+  - method: GET
+    path: "/api/keprix/v1/findings/{id}"
+    purpose: finding_read
+  - method: GET
+    path: "/api/keprix/v1/evidence/{id}"
+    purpose: evidence_redacted
+  - method: GET
+    path: /api/keprix/v1/reports
+    purpose: reports_list
+  - method: GET
+    path: "/api/keprix/v1/reports/{id}"
+    purpose: report_read
+  - method: GET
+    path: /api/keprix/v1/audit
+    purpose: audit_read
+  - method: GET
+    path: /api/keprix/v1/retention-policy
+    purpose: retention
+  - method: GET
+    path: /api/keprix/v1/licence/effective-entitlements
+    purpose: licence
+  - method: POST
+    path: /api/keprix/v1/scan-plans/validate
+    purpose: proposal
+    idempotency: true
+  - method: POST
+    path: /api/keprix/v1/finding-changes/preview
+    purpose: proposal
+    idempotency: true
+  - method: POST
+    path: /api/keprix/v1/remediation/preview
+    purpose: proposal
+    idempotency: true
+  - method: POST
+    path: /api/keprix/v1/reports/preview
+    purpose: proposal
+    idempotency: true
+  - method: POST
+    path: /api/keprix/v1/tickets/preview
+    purpose: proposal
+    idempotency: true
+  - method: POST
+    path: /api/keprix/v1/scans/start
+    purpose: action
+    approval_required: true
+    idempotency: true
+  - method: POST
+    path: "/api/keprix/v1/scans/{id}/cancel"
+    purpose: action
+    approval_required: true
+    idempotency: true
+  - method: POST
+    path: "/api/keprix/v1/findings/{id}/transition"
+    purpose: action
+    approval_required: true
+    idempotency: true
+  - method: POST
+    path: "/api/keprix/v1/reports/{id}/publish"
+    purpose: action
+    approval_required: true
+    idempotency: true
+  - method: POST
+    path: /api/keprix/v1/tickets/create
+    purpose: action
+    approval_required: true
+    idempotency: true
+  - method: POST
+    path: "/api/keprix/v1/approvals/{id}/decision"
+    purpose: approval

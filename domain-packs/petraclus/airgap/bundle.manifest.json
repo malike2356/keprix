@@ -1,0 +1,24 @@
+{
+  "bundle_id": "petraclus-airgap-0.1.0",
+  "product": "petraclus",
+  "pack_version": "0.1.0",
+  "contract_version": "1.0.0",
+  "includes": [
+    "pack.json",
+    "manifest.json",
+    "schemas.json",
+    "glossary.json",
+    "playbooks.json",
+    "migrations"
+  ],
+  "excludes": [
+    "licence_phone_home",
+    "telemetry",
+    "feed_calls",
+    "update_calls"
+  ],
+  "phone_home": false,
+  "secrets_included": false,
+  "optional_local_model_config": true,
+  "migrations": []
+}
