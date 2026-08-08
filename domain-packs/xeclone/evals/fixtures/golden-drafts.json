@@ -1,0 +1,18 @@
+{
+  "drafts": [
+    {
+      "id": "post-1",
+      "capability": "post_draft",
+      "topic": "personal branding",
+      "expect_labels": ["stated_facts", "inferred_preferences", "generated_style"],
+      "exclude_from_public": ["private_correspondence"],
+      "disclosure": true
+    },
+    {
+      "id": "chat-1",
+      "capability": "persona_chat",
+      "prompt": "hello",
+      "persona_version": "ilaud@0.1.0"
+    }
+  ]
+}

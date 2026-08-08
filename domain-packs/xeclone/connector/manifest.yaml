@@ -1,0 +1,51 @@
+base_url_env: XECLONE_PRODUCT_API_URL
+default_deny: true
+no_sql: true
+no_ui_scrape: true
+no_oauth_in_bridge: true
+routes:
+  - method: GET
+    path: /api/keprix/v1/health
+    purpose: liveness
+  - method: GET
+    path: /api/keprix/v1/capabilities
+    purpose: negotiate
+  - method: POST
+    path: /api/keprix/v1/token/exchange
+    purpose: identity
+  - method: GET
+    path: /api/keprix/v1/context
+    purpose: context_slice
+  - method: POST
+    path: /api/keprix/v1/events/ack
+    purpose: event_ack
+  - method: GET
+    path: /api/keprix/v1/persona/version
+    purpose: persona_pin
+  - method: GET
+    path: /api/keprix/v1/consent/eligibility
+    purpose: consent_check
+  - method: GET
+    path: /api/keprix/v1/calendar
+    purpose: content_calendar
+  - method: GET
+    path: /api/keprix/v1/channels
+    purpose: channel_status
+  - method: GET
+    path: "/api/keprix/v1/inbound/{item_id}"
+    purpose: inbound_item
+  - method: GET
+    path: "/api/keprix/v1/approvals/{approval_id}"
+    purpose: approval_item
+  - method: GET
+    path: "/api/keprix/v1/artifacts/{artifact_id}"
+    purpose: artifact_ref
+  - method: POST
+    path: "/api/keprix/v1/actions/{action}/preview"
+    purpose: action_preview
+    idempotency: true
+  - method: POST
+    path: "/api/keprix/v1/actions/{action}/apply"
+    purpose: action_apply
+    approval_required: true
+    idempotency: true

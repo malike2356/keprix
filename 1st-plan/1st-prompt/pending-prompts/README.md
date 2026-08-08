@@ -27,8 +27,9 @@ ready to build next.
      edition gates, findings, remediation proposals and reports.
    - ~~`keprix-sidecar-abbis/`~~ COMPLETED 2026-08-08 (archived under `../prompts-archive/keprix-sidecar-abbis/`). Pack: `domain-packs/abbis/`. Sign-off: `docs/architecture/abbis-sidecar.md`.
      isolation, Ghana localisation, field channels and offline resilience.
-   - `keprix-sidecar-xeclone/`: consent-governed persona and multimodal clone,
-     Carina bridge, dual-run, biometric assets, publishing and Scout governance.
+   - ~~`keprix-sidecar-xeclone/`~~ COMPLETED 2026-08-08 (archived under
+     `../prompts-archive/keprix-sidecar-xeclone/`). Pack: `domain-packs/xeclone/`.
+     Sign-off: `docs/architecture/xeclone-keprix-sidecar-signoff.md`.
    - ~~`keprix-sidecar-fleetz/`~~ COMPLETED 2026-08-08 (archived under
      `../prompts-archive/keprix-sidecar-fleetz/`). Pack: `domain-packs/fleetz/`.
      Sign-off: `domain-packs/fleetz/docs/PILOT-SIGNOFF.md`.

@@ -1,0 +1,28 @@
+{
+  "product": "xeclone",
+  "playbooks": [
+    {
+      "id": "xeclone-post-ideation",
+      "title": "Post ideation to approval",
+      "nodes": ["post_draft", "approval_submit"],
+      "notes": "Generation stops at draft; distribution is a separate approval_submit."
+    },
+    {
+      "id": "xeclone-inbound-reply",
+      "title": "Inbound reply draft",
+      "nodes": ["reply_draft", "approval_submit", "private_reply_send"],
+      "notes": "private_reply_send remains high-risk and owner-reviewed."
+    },
+    {
+      "id": "xeclone-weekly-digest",
+      "title": "Weekly digest",
+      "nodes": ["digest", "approval_submit", "content_schedule"]
+    },
+    {
+      "id": "xeclone-talking-head",
+      "title": "Talking-head package",
+      "nodes": ["talking_head_script", "talking_head_generate", "caption_and_package", "approval_submit"],
+      "notes": "Media stubs carry disclosure and watermark; removal blocked in Phase 1-4."
+    }
+  ]
+}

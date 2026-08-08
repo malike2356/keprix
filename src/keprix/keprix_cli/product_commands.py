@@ -63,6 +63,40 @@ def cmd_product(args) -> int:
             _print(receipt, as_json=args.json, text=f"Clinicom provision status: {receipt['status']}")
             return 0 if receipt["status"] in {"ready_for_owner_review", "not_provisioned"} else 1
 
+        if args.product_id == "xeclone":
+            from keprix.integrations.xeclone_provision import (
+                provision_status as xeclone_status,
+                provision_xeclone,
+            )
+
+            receipt = xeclone_status() if args.status else provision_xeclone(write_receipt=not args.plan)
+            if args.json:
+                print(json.dumps(receipt, indent=2))
+            else:
+                print(f"Xeclone provision status: {receipt['status']}")
+                for check in receipt.get("checks") or []:
+                    print(f"- {check['name']}: {check['status']}")
+                if receipt.get("receipt_path"):
+                    print(f"Receipt: {receipt['receipt_path']}")
+            return 0 if receipt["status"] in {"ready_for_owner_review", "not_provisioned"} else 1
+
+        if args.product_id == "petraclus":
+            from keprix.integrations.petraclus_provision import (
+                provision_petraclus,
+                provision_status as petraclus_status,
+            )
+
+            receipt = petraclus_status() if args.status else provision_petraclus(write_receipt=not args.plan)
+            if args.json:
+                print(json.dumps(receipt, indent=2))
+            else:
+                print(f"Petraclus provision status: {receipt['status']}")
+                for check in receipt.get("checks") or []:
+                    print(f"- {check['name']}: {check['status']}")
+                if receipt.get("receipt_path"):
+                    print(f"Receipt: {receipt['receipt_path']}")
+            return 0 if receipt["status"] in {"ready_for_owner_review", "not_provisioned"} else 1
+
         from keprix.product_sidecar.provision import plan_provision, provision_product, provision_status
 
         if args.plan:

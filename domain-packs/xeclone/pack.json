@@ -1,0 +1,50 @@
+{
+  "domain_name": "xeclone",
+  "version": "0.1.0",
+  "jurisdictions": ["GB"],
+  "common_tasks": [
+    "Draft public posts in the pinned iLaud persona",
+    "Draft replies and emails with labeled provenance",
+    "Produce consent-gated voice, likeness image and talking-head stubs",
+    "Submit drafts into owner approval without publishing",
+    "Shadow-compare Carina and Keprix drafts without dual publish"
+  ],
+  "playbooks": [
+    {"title": "Post ideation to approval", "href": "/playbooks/xeclone-post-ideation"},
+    {"title": "Inbound reply draft", "href": "/playbooks/xeclone-inbound-reply"},
+    {"title": "Weekly digest", "href": "/playbooks/xeclone-weekly-digest"}
+  ],
+  "disclaimers": [
+    "Xeclone/iLaud remains the source of truth for identity assets, consent, channel accounts and approvals.",
+    "Keprix provides scoped persona runtime, multimodal draft jobs and playbooks only.",
+    "Carina remains the Phase 1 live path for inbound webhooks and OAuth until a separately signed cutover.",
+    "Autonomous mode is OFF unless separately signed."
+  ],
+  "limitations": [
+    "Media providers are deterministic stubs in Wave 1; no live ElevenLabs or HeyGen calls from this pack.",
+    "Generation never calls distribution implicitly.",
+    "Private replies stay draft-only unless a narrow owner policy allows send.",
+    "Watermark and disclosure removal is blocked in Phase 1-4."
+  ],
+  "can_do": [
+    "Expose /v1/products/xeclone/* product-sidecar contract",
+    "Register text, audio, image, video and distribution capability nodes",
+    "Enforce versioned consent ledger and persona pin ilaud@0.1.0",
+    "Shadow dual-run against Carina without publishing shadow output"
+  ],
+  "cannot_do": [
+    "Face-swap, voice-clone-anyone, upload-arbitrary-person or remove-watermark",
+    "Read raw OAuth or provider secrets into handlers",
+    "Change live Carina/Aiva runtime paths from this pack",
+    "Enable autonomous engagement without separate owner sign-off"
+  ],
+  "tool_permissions": ["network:read"],
+  "data_schemas": ["schemas.json"],
+  "tests": [
+    "domain-packs/xeclone/tests/test_xeclone_sidecar.py",
+    "domain-packs/xeclone/tests/test_consent_and_generation.py",
+    "domain-packs/xeclone/tests/test_provision_and_connector.py",
+    "domain-packs/xeclone/tests/test_approvals_publish_kill.py",
+    "domain-packs/xeclone/tests/test_shadow_and_evals.py"
+  ]
+}

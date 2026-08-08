@@ -1,0 +1,13 @@
+{
+  "product": "xeclone",
+  "terms": {
+    "ilaud": "Pinned owner digital persona consumed by Carina and Keprix at the same version.",
+    "consent_purpose": "Versioned allow/deny purpose attached to an asset (ingest, generate, publish, and related).",
+    "distribution": "Separate approval, schedule, publish and private-reply actions; never implied by generation.",
+    "shadow_mode": "Same redacted input sent to Carina and Keprix for comparison; shadow output never publishes.",
+    "wave_0": "Architecture and pack work that must not change the live Carina/Aiva path.",
+    "wave_1": "Keprix draft memory only; Carina remains live inbound and OAuth authority.",
+    "kill_switch": "Operator control that blocks queued publish and media jobs immediately.",
+    "outbox": "Transactional publish ledger keyed by idempotency so retries cannot double-post."
+  }
+}

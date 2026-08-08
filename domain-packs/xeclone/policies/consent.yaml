@@ -1,0 +1,24 @@
+version: "1.0.0"
+product: xeclone
+purposes:
+  - ingest
+  - index
+  - train
+  - generate
+  - transform
+  - upload_to_provider
+  - publish
+  - private_message
+  - retain
+  - export
+  - delete
+rules:
+  - id: revoke_blocks_generate_and_index
+    description: Revoked consent blocks generation and future indexing.
+  - id: subject_must_match_owner
+    description: Another person's media cannot be used as owner identity input.
+  - id: check_before_upload
+    description: upload_to_provider requires explicit consent purpose on the asset.
+  - id: rollback_keeps_revocations
+    description: Persona/pack rollback never rolls back consent revocation records.
+default_deny: true

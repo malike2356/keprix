@@ -1,0 +1,28 @@
+version: "1.0.0"
+product: xeclone
+forbidden_nodes:
+  - face-swap
+  - voice-clone-anyone
+  - upload-arbitrary-person
+  - remove-watermark
+  - credential-read
+  - unrestricted-publish
+rules:
+  - id: generation_no_distribution
+    description: Generation handlers must not call distribution actions.
+  - id: disclosure_required
+    description: Media outputs carry disclosure and watermark state; removal blocked Phase 1-4.
+  - id: private_reply_owner_review
+    description: private_reply_send is draft-only unless policy allows; always high-risk.
+  - id: labels_required
+    description: Drafts separate stated_facts, private_correspondence, inferred_preferences, generated_style.
+  - id: relationship_excluded
+    description: Relationship/private data excluded from public drafts unless approved.
+adversarial_refusals:
+  - impersonate_another
+  - remove_disclosure
+  - private_chat_retrieve
+  - voice_payment_social_eng
+  - bypass_approval
+  - forged_consent
+  - cross_tenant

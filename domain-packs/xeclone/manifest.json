@@ -1,0 +1,12 @@
+{
+  "pack_id": "xeclone",
+  "version": "0.1.0",
+  "title": "Xeclone iLaud digital-clone sidecar",
+  "summary": "Keprix product sidecar for Xeclone/iLaud with consent-aware multimodal drafts, Carina bridge shadow mode, approvals and kill switch.",
+  "hub_visibility": "private",
+  "product_key": "xeclone",
+  "contract_version": "1.0.0",
+  "persona_version": "ilaud@0.1.0",
+  "autonomous_mode": false,
+  "phase1_live_path": "carina"
+}

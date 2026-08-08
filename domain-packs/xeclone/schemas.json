@@ -1,0 +1,43 @@
+{
+  "product": "xeclone",
+  "contract_version": "1.0.0",
+  "common": {
+    "tenant_id": {"type": "string"},
+    "actor_id": {"type": "string"},
+    "persona_version": {"type": "string", "const": "ilaud@0.1.0"},
+    "asset_id": {"type": "string"},
+    "consent_purpose": {
+      "type": "string",
+      "enum": [
+        "ingest",
+        "index",
+        "train",
+        "generate",
+        "transform",
+        "upload_to_provider",
+        "publish",
+        "private_message",
+        "retain",
+        "export",
+        "delete"
+      ]
+    }
+  },
+  "draft_labels": {
+    "stated_facts": {"type": "object"},
+    "private_correspondence": {"type": "object"},
+    "inferred_preferences": {"type": "object"},
+    "generated_style": {"type": "object"}
+  },
+  "media_output": {
+    "job_id": {"type": "string"},
+    "model": {"type": "string"},
+    "version": {"type": "string"},
+    "source_consent_ids": {"type": "array", "items": {"type": "string"}},
+    "content_hash": {"type": "string"},
+    "prompt_template": {"type": "string"},
+    "disclosure": {"type": "boolean"},
+    "watermark": {"type": "boolean"},
+    "storage_expiry": {"type": "string"}
+  }
+}
