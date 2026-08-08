@@ -12,12 +12,43 @@ from typing import Any
 # Load project .env before any keprix imports that read settings/auth paths.
 # AuthManager is constructed at import time; without this, login uses the wrong
 # data dir and empty KEPRIX_ADMIN_* values (always "Invalid credentials").
-try:
-    from dotenv import load_dotenv
+# Also load KEPRIX_HOME/.env (GUI provider saves) so Docker Contabo sidecar
+# keeps LLM keys across recreate when compose host .env drifts.
 
-    load_dotenv(Path(__file__).resolve().parents[3] / ".env", override=False)
-except Exception:
-    pass
+
+def _load_runtime_dotenv() -> None:
+    try:
+        from dotenv import load_dotenv
+    except Exception:
+        return
+    try:
+        load_dotenv(Path(__file__).resolve().parents[3] / ".env", override=False)
+    except Exception:
+        pass
+    # Explicit GUI/docker SoT, then KEPRIX_HOME/.env (override so Admin Settings wins).
+    candidates: list[Path] = []
+    explicit = os.environ.get("KEPRIX_ENV_FILE", "").strip()
+    if explicit:
+        candidates.append(Path(explicit))
+    home = os.environ.get("KEPRIX_HOME", "").strip()
+    if home:
+        candidates.append(Path(home) / ".env")
+    else:
+        candidates.append(Path.home() / ".keprix" / ".env")
+    seen: set[str] = set()
+    for path in candidates:
+        key = str(path.resolve()) if path.exists() else str(path)
+        if key in seen:
+            continue
+        seen.add(key)
+        if path.is_file():
+            try:
+                load_dotenv(path, override=True)
+            except Exception:
+                pass
+
+
+_load_runtime_dotenv()
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -359,14 +390,7 @@ def _error_payload(status_code: int, detail: Any) -> dict[str, Any]:
 
 
 def create_app() -> FastAPI:
-    try:
-        from pathlib import Path
-
-        from dotenv import load_dotenv
-
-        load_dotenv(Path(__file__).resolve().parents[3] / ".env", override=False)
-    except Exception:
-        pass
+    _load_runtime_dotenv()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):

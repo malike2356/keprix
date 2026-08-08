@@ -1,6 +1,19 @@
 # LLM providers
 
-Keprix routes inference through pluggable providers. Set keys in `.env` or via `keprix model`.
+Keprix routes inference through pluggable providers. Prefer the **GUI** on a
+running instance; `.env` / CLI remain valid for automation.
+
+## GUI (recommended for Contabo sidecar / app.keprixai.com)
+
+1. Sign in as admin at `https://app.keprixai.com/auth/login` (or your instance).
+2. Open **Admin → Settings** (`/dashboard/settings`).
+3. Tab **LLM Providers** → **DeepSeek** → paste API key → Save.
+4. Optionally **Set as default**, then **Test**.
+5. Keys persist under `KEPRIX_HOME/.env` (Docker: `/home/keprix/.keprix/.env`)
+   and apply immediately to the Carina/Aiva product sidecar on the same backend.
+
+Do not put LLM keys only in the host compose `.env` and expect GUI edits to
+update that file; the GUI SoT is `KEPRIX_HOME/.env` (and `KEPRIX_ENV_FILE` when set).
 
 ## Cloud providers
 

@@ -1,0 +1,132 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Keprix Propreneur product sidecar",
+    "version": "1.0.0",
+    "description": "Northbound /v1/products/propreneur contract plus Carina-compat agent run and tool routes."
+  },
+  "x-keprix-contract-version": "1.0.0",
+  "x-product": "propreneur",
+  "paths": {
+    "/v1/products/propreneur/health": {
+      "get": {
+        "summary": "Pack health",
+        "operationId": "propreneurHealth",
+        "responses": {
+          "200": {
+            "description": "Pack enabled state, version, checksum, node counts"
+          }
+        }
+      }
+    },
+    "/v1/products/propreneur/capabilities": {
+      "get": {
+        "summary": "Capability negotiation",
+        "operationId": "propreneurCapabilities",
+        "responses": {
+          "200": {
+            "description": "Live and soft-walled Propreneur nodes"
+          }
+        }
+      }
+    },
+    "/v1/products/propreneur/manifest": {
+      "get": {
+        "summary": "Pack manifest",
+        "operationId": "propreneurManifest"
+      }
+    },
+    "/v1/products/propreneur/sessions": {
+      "post": {
+        "summary": "Mint scoped session token",
+        "operationId": "propreneurSessions"
+      }
+    },
+    "/v1/products/propreneur/invoke": {
+      "post": {
+        "summary": "Invoke a capability node",
+        "operationId": "propreneurInvoke",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "X-Correlation-ID",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ]
+      }
+    },
+    "/v1/products/propreneur/jobs": {
+      "get": {
+        "summary": "List jobs for product workspace"
+      }
+    },
+    "/v1/products/propreneur/jobs/{job_id}": {
+      "get": {
+        "summary": "Job status"
+      }
+    },
+    "/v1/products/propreneur/jobs/{job_id}/cancel": {
+      "post": {
+        "summary": "Cancel job"
+      }
+    },
+    "/v1/products/propreneur/events": {
+      "get": {
+        "summary": "List events"
+      }
+    },
+    "/v1/products/propreneur/events/stream": {
+      "get": {
+        "summary": "Cursor event stream"
+      }
+    },
+    "/v1/products/propreneur/approvals/{approval_id}/decision": {
+      "post": {
+        "summary": "Soft-wall approval decision"
+      }
+    },
+    "/v1/products/propreneur/metrics": {
+      "get": {
+        "summary": "Product metrics"
+      }
+    },
+    "/carina/agent/run": {
+      "post": {
+        "summary": "Compatibility agent run path used by legacy Propreneur bridges",
+        "operationId": "propreneurCompatAgentRun",
+        "description": "Compatibility alias. Prefer /v1/products/propreneur/invoke with node agent.run where available."
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Scope": {
+        "type": "string",
+        "enum": [
+          "properties.read",
+          "properties.write",
+          "contacts.read",
+          "contacts.write",
+          "tenancies.read",
+          "tenancies.write",
+          "deals.read",
+          "deals.propose",
+          "tasks.write",
+          "notes.write",
+          "portfolio.read"
+        ]
+      },
+      "RiskClass": {
+        "type": "string",
+        "enum": ["read", "propose", "mutate", "outbound", "destructive", "high_risk"]
+      }
+    }
+  }
+}

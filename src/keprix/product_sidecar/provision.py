@@ -14,6 +14,7 @@ from keprix.product_sidecar.registry import (
     STABLE_PRODUCT_KEYS,
     build_abbis_pack,
     build_fleetz_pack,
+    build_propreneur_pack,
     get_product_pack_registry,
 )
 from keprix.product_sidecar.state import get_event_store, get_job_store, get_kill_switches, get_memory_store
@@ -95,6 +96,12 @@ def provision_product(
                 registry.install(pack, activate=activate)
             elif product_key == "fleetz":
                 pack = build_fleetz_pack()
+                if version and version != pack.version:
+                    pack.version = version
+                pack.enabled = activate
+                registry.install(pack, activate=activate)
+            elif product_key == "propreneur":
+                pack = build_propreneur_pack()
                 if version and version != pack.version:
                     pack.version = version
                 pack.enabled = activate
@@ -181,6 +188,11 @@ def upgrade_product(product_key: str, *, version: str) -> dict[str, Any]:
             registry.upgrade(pack)
         elif product_key == "fleetz":
             pack = build_fleetz_pack()
+            pack.version = version
+            pack.enabled = True
+            registry.upgrade(pack)
+        elif product_key == "propreneur":
+            pack = build_propreneur_pack()
             pack.version = version
             pack.enabled = True
             registry.upgrade(pack)

@@ -66,6 +66,26 @@ def _is_private_ip(host: str) -> bool:
     )
 
 
+def _host_allowlisted(host: str, host_allowlist: list[str] | None) -> bool:
+    """Exact match, or suffix match for patterns like ``*.propreneur.test``."""
+    if not host_allowlist:
+        return True
+    host_l = host.lower()
+    for pattern in host_allowlist:
+        p = pattern.lower().strip()
+        if not p:
+            continue
+        if p.startswith("*."):
+            suffix = p[1:]  # ".example.test"
+            bare = p[2:]  # "example.test"
+            if host_l == bare or host_l.endswith(suffix):
+                return True
+            continue
+        if host_l == p:
+            return True
+    return False
+
+
 def assert_safe_url(url: str, *, host_allowlist: list[str] | None = None) -> str:
     """Reject SSRF targets: non-http(s), credentials, DNS rebinding to metadata, etc."""
     parsed = urlparse(url)
@@ -78,8 +98,8 @@ def assert_safe_url(url: str, *, host_allowlist: list[str] | None = None) -> str
         raise ConnectorDenied("missing_host")
     if host in BLOCKED_HOST_LITERALS:
         raise ConnectorDenied("ssrf_blocked_host")
-    allow = {h.lower() for h in (host_allowlist or [])}
-    if allow and host not in allow:
+    allow = list(host_allowlist or [])
+    if allow and not _host_allowlisted(host, allow):
         raise ConnectorDenied("host_not_allowlisted")
     # Resolve and reject link-local/metadata even if DNS returns them
     try:
@@ -92,7 +112,12 @@ def assert_safe_url(url: str, *, host_allowlist: list[str] | None = None) -> str
         if ip in {"169.254.169.254", "::ffff:169.254.169.254"}:
             raise ConnectorDenied("ssrf_metadata")
         # Production egress: only allowlisted hosts; loopback OK for fixtures
-        if allow and host not in {"127.0.0.1", "localhost"} and _is_private_ip(ip) and host not in allow:
+        if (
+            allow
+            and host not in {"127.0.0.1", "localhost"}
+            and _is_private_ip(ip)
+            and not _host_allowlisted(host, allow)
+        ):
             raise ConnectorDenied("ssrf_private_ip")
     return url
 

@@ -12,10 +12,11 @@ from keprix.product_sidecar.catalog import build_aiva_wrapper_nodes, build_carin
 from keprix.product_sidecar.fixtures import FIXTURE_PRODUCT_KEYS, build_all_fixture_packs
 from keprix.product_sidecar.packs.abbis import build_abbis_nodes
 from keprix.product_sidecar.packs.fleetz import build_fleetz_nodes
+from keprix.product_sidecar.packs.propreneur import build_propreneur_nodes
 from keprix.product_sidecar.types import ProductPackManifest
 
 STABLE_PRODUCT_KEYS = frozenset(
-    {"petraclus", "abbis", "xeclone", "fleetz", "clinicom", "carina", "aiva"}
+    {"petraclus", "abbis", "xeclone", "fleetz", "clinicom", "carina", "aiva", "propreneur"}
 )
 
 _CONTRACT_VERSION = "1.0.0"
@@ -193,6 +194,82 @@ def build_fleetz_pack() -> ProductPackManifest:
     )
 
 
+def _propreneur_connector() -> dict[str, Any]:
+    return {
+        "base_url_env": "PROPRENEUR_PRODUCT_API_URL",
+        "host_allowlist": [
+            "127.0.0.1",
+            "localhost",
+            "propreneur.local",
+            "*.propreneur.test",
+        ],
+        "routes": [
+            {"method": "GET", "path": "/api/keprix/v1/health", "purpose": "liveness"},
+            {"method": "GET", "path": "/api/keprix/v1/capabilities", "purpose": "negotiate"},
+            {"method": "POST", "path": "/api/keprix/v1/token/exchange", "purpose": "identity"},
+            {"method": "GET", "path": "/api/keprix/v1/context", "purpose": "context_slice"},
+            {"method": "GET", "path": "/api/carina/tools", "purpose": "compat_catalog"},
+            {
+                "method": "POST",
+                "path": "/api/carina/tools/{toolName}",
+                "purpose": "compat_execute",
+                "approval_required": True,
+                "idempotency": True,
+            },
+            {
+                "method": "POST",
+                "path": "/api/keprix/v1/events/ack",
+                "purpose": "event_ack",
+                "idempotency": True,
+            },
+        ],
+        "default_deny": True,
+        "no_sql": True,
+        "no_ui_scrape": True,
+    }
+
+
+def build_propreneur_pack() -> ProductPackManifest:
+    nodes = build_propreneur_nodes()
+    payload = {"product": "propreneur", "nodes": sorted(nodes.keys()), "version": "0.1.0"}
+    return ProductPackManifest(
+        product_key="propreneur",
+        pack_id="propreneur-sidecar",
+        version="0.1.0",
+        title="Propreneur UK property MIS pack",
+        contract_version=_CONTRACT_VERSION,
+        nodes=nodes,
+        enabled=True,
+        checksum=_checksum(payload),
+        signature="propreneur-dev",
+        connector=_propreneur_connector(),
+        policies={
+            "soft_wall_bus": "product",
+            "cross_product": "deny",
+            "timezone": "Europe/London",
+            "currency": "GBP",
+            "locale": "en-GB",
+        },
+        memory_namespace="product:propreneur",
+        playbooks=(
+            "propreneur.property_onboard",
+            "propreneur.tenancy_setup",
+            "propreneur.deal_propose",
+            "propreneur.portfolio_brief",
+        ),
+        events=(
+            "propreneur.property.changed",
+            "propreneur.contact.changed",
+            "propreneur.tenancy.changed",
+            "propreneur.deal.proposed",
+            "propreneur.task.created",
+            "propreneur.note.created",
+        ),
+        migrations=("001_propreneur_ns",),
+        feature_flag="product.propreneur.sidecar",
+    )
+
+
 def _carina_connector() -> dict[str, Any]:
     return {
         "base_url_env": "CARINA_PRODUCT_API_URL",
@@ -332,17 +409,20 @@ class ProductPackRegistry:
         aiva = build_aiva_pack(carina)
         abbis = build_abbis_pack()
         fleetz = build_fleetz_pack()
+        propreneur = build_propreneur_pack()
         self._packs["carina"] = carina
         self._packs["aiva"] = aiva
         self._packs["abbis"] = abbis
         self._packs["fleetz"] = fleetz
+        self._packs["propreneur"] = propreneur
         self._lkg["carina"] = deepcopy(carina)
         self._lkg["aiva"] = deepcopy(aiva)
         self._lkg["abbis"] = deepcopy(abbis)
         self._lkg["fleetz"] = deepcopy(fleetz)
+        self._lkg["propreneur"] = deepcopy(propreneur)
         if self._install_fixtures:
             for key, pack in build_all_fixture_packs().items():
-                if key in {"abbis", "fleetz"}:
+                if key in {"abbis", "fleetz", "propreneur"}:
                     # Real product packs replace foundation fixtures.
                     continue
                 self._packs[key] = pack
@@ -546,6 +626,7 @@ __all__ = [
     "build_abbis_pack",
     "build_carina_pack",
     "build_fleetz_pack",
+    "build_propreneur_pack",
     "get_product_pack_registry",
     "reset_product_pack_registry_for_tests",
     "validate_pack",

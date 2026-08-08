@@ -333,7 +333,7 @@ CARINA_ADMIN_EXTRA = frozenset(
 
 
 def grants_for_product(product: str, *, admin: bool = False) -> frozenset[str]:
-    if product in {"petraclus", "abbis", "xeclone", "fleetz", "clinicom"}:
+    if product in {"petraclus", "abbis", "xeclone", "fleetz", "clinicom", "propreneur"}:
         return frozenset({f"node:pack.ping", f"{product}:ping", "*"} if admin else {f"node:pack.ping", f"{product}:ping"})
     base = set(AIVA_WORKER_GRANTS)
     if product == "carina" or admin:

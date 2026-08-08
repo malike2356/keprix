@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://keprix.dev/schemas/propreneur-sidecar/contract.schema.json",
+  "title": "Propreneur Keprix sidecar contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "product_key", "northbound", "southbound"],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "product_key": {
+      "type": "string",
+      "const": "propreneur"
+    },
+    "northbound": {
+      "type": "object",
+      "required": ["base_path", "compat"],
+      "properties": {
+        "base_path": {
+          "type": "string",
+          "const": "/v1/products/propreneur"
+        },
+        "compat": {
+          "type": "object",
+          "properties": {
+            "agent_run": {
+              "type": "string",
+              "const": "/carina/agent/run"
+            }
+          }
+        }
+      }
+    },
+    "southbound": {
+      "type": "object",
+      "required": ["base_url_env", "host_allowlist", "routes"],
+      "properties": {
+        "base_url_env": {
+          "type": "string",
+          "const": "PROPRENEUR_PRODUCT_API_URL"
+        },
+        "host_allowlist": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "routes": {
+          "type": "array",
+          "minItems": 1
+        }
+      }
+    }
+  }
+}

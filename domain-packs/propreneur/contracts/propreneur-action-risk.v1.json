@@ -1,0 +1,107 @@
+{
+  "contract": "propreneur-action-risk",
+  "version": "1.0.0",
+  "compatible_versions": ["1.0.0"],
+  "classes": {
+    "read": {
+      "description": "Fetch or list domain data without mutation",
+      "default_approval": "none",
+      "dual_control": false,
+      "operator_pause_blocks": false
+    },
+    "routine_write": {
+      "description": "Reversible create/update of ordinary operational records",
+      "default_approval": "propreneur_bridge_proposal",
+      "dual_control": false,
+      "operator_pause_blocks": true
+    },
+    "sensitive_pii": {
+      "description": "Create or update personal data (contacts, tenancy PII)",
+      "default_approval": "explicit",
+      "dual_control": false,
+      "operator_pause_blocks": true
+    },
+    "destructive": {
+      "description": "Permanent delete, archive that is hard to reverse, or irreversible destroy",
+      "default_approval": "explicit",
+      "dual_control": false,
+      "operator_pause_blocks": true,
+      "require_explicit_for": ["permanent_delete"]
+    },
+    "bulk": {
+      "description": "Mass import, mass update, or batch operations",
+      "default_approval": "explicit",
+      "dual_control": true,
+      "dual_control_threshold": 25,
+      "operator_pause_blocks": true
+    },
+    "financial": {
+      "description": "Payments, charges, invoices, rent logs, expense writes",
+      "default_approval": "explicit",
+      "dual_control": true,
+      "dual_control_threshold_amount": 1000,
+      "operator_pause_blocks": true,
+      "require_explicit_for": ["payment", "charge"]
+    },
+    "legal": {
+      "description": "Contract acceptance, notices with legal effect, tenancy agreements",
+      "default_approval": "explicit",
+      "dual_control": true,
+      "operator_pause_blocks": true,
+      "require_explicit_for": ["contract_acceptance"]
+    },
+    "access_control": {
+      "description": "Invites, roles, permissions, credentials, API keys",
+      "default_approval": "explicit",
+      "dual_control": false,
+      "operator_pause_blocks": true
+    },
+    "compliance": {
+      "description": "Certificates, regulatory attestations, HMO / safety records",
+      "default_approval": "explicit",
+      "dual_control": false,
+      "operator_pause_blocks": true,
+      "require_explicit_for": ["compliance_certification"]
+    },
+    "external_communication": {
+      "description": "Email, SMS, social, or other outbound messaging",
+      "default_approval": "explicit",
+      "dual_control": false,
+      "operator_pause_blocks": true,
+      "require_explicit_for": ["bulk_external_messaging"]
+    }
+  },
+  "always_require_explicit_approval": [
+    "permanent_delete",
+    "payment",
+    "charge",
+    "contract_acceptance",
+    "compliance_certification",
+    "bulk_import",
+    "bulk_update",
+    "bulk_external_messaging",
+    "credential_change",
+    "permission_change"
+  ],
+  "approval_digest": {
+    "algorithm": "sha256",
+    "canonicalization": "json_sorted_keys",
+    "single_use": true,
+    "default_ttl_seconds": 900,
+    "invalidate_on": ["resource_version_change", "auth_revocation", "scope_change", "operator_pause"]
+  },
+  "audit": {
+    "mode": "append_only",
+    "redact_keys": [
+      "password",
+      "secret",
+      "token",
+      "api_key",
+      "apiKey",
+      "authorization",
+      "refresh_token",
+      "webhook_secret",
+      "private_key"
+    ]
+  }
+}

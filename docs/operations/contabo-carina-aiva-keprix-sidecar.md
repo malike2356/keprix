@@ -17,14 +17,16 @@ owner explicitly runs Clinicom `switch-sidecar.sh keprix`.
 | Task | Where |
 | --- | --- |
 | Login Keprix admin | https://app.keprixai.com/auth/login |
+| LLM keys (DeepSeek etc.) | https://app.keprixai.com/dashboard/settings → LLM Providers |
 | Connect Scout | Keprix Settings > Governance |
 | Switch Carina/Aiva brain | https://ops.carinaai.uk/agent-engine (Global engine = keprix) |
 | Set Keprix URL | Same OPS page (Keprix URL field); prefer `http://keprix-backend:3333` |
 | Emergency rollback | OPS Agent Engine > type `SWITCH_ALL_TO_CARINA` |
 | Sidecar project kill | Keprix Settings > Sidecars |
 
-Shared token for OPS probes still lives in Contabo env once (operator set-and-forget).
-After that, engine flips are GUI-only.
+LLM keys saved in the GUI land in bind-mounted `KEPRIX_HOME/.env` and apply to
+the same `keprix-backend` Carina/Aiva call. Prefer GUI over editing compose `.env`
+for day-2 provider rotation.
 
 ## One-time Contabo wiring
 

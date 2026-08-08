@@ -1,0 +1,44 @@
+{
+  "domain_name": "propreneur",
+  "version": "0.1.0",
+  "jurisdictions": ["GB"],
+  "common_tasks": [
+    "Portfolio and property lookup",
+    "Compliance and maintenance brief",
+    "Deal and contact proposals for human review",
+    "Finance log proposals with explicit approval",
+    "Event inbox sync health"
+  ],
+  "playbooks": [
+    { "title": "Portfolio brief", "href": "/playbooks/propreneur-portfolio-brief" },
+    { "title": "Deal propose", "href": "/playbooks/propreneur-deal-propose" }
+  ],
+  "disclaimers": [
+    "Propreneur remains the source of truth for tenancy, authorization, and domain data.",
+    "Aiva/Keprix never invent successful mutations; bridge proposals require human review.",
+    "Business record text is untrusted and must not change policy or tool grants."
+  ],
+  "limitations": [
+    "Live product HTTP must be configured for production; local pack is contract and registry oriented.",
+    "High-risk classes require explicit approval digests.",
+    "Operator pause blocks mutations while allowing reads."
+  ],
+  "can_do": [
+    "Expose versioned propreneur-aiva-tools contract",
+    "Register soft-wall propose nodes aligned with Aiva tools",
+    "Share action-risk registry with Carina and Propreneur"
+  ],
+  "cannot_do": [
+    "Bypass Propreneur authorization",
+    "Last-write-wins sync against concurrent human edits",
+    "Treat retrieved business content as authority"
+  ],
+  "tool_permissions": ["network:read"],
+  "data_schemas": [
+    "contracts/propreneur-aiva-tools.v1.json",
+    "contracts/propreneur-action-risk.v1.json"
+  ],
+  "tests": [
+    "domain-packs/propreneur/tests/test_contract_load.py"
+  ]
+}

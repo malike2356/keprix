@@ -53,7 +53,26 @@ services:
       - SEARXNG_URL=${SEARXNG_URL:-}
       - KEPRIX_TRUSTED_PROXIES=${KEPRIX_TRUSTED_PROXIES:-127.0.0.1,::1}
       - KEPRIX_PUBLIC_BASE_URL=${KEPRIX_PUBLIC_BASE_URL:-https://app.keprixai.com}
+      # Critical browser/auth settings: pass via compose --env-file (service
+      # env_file:.env is relative to compose-file dir and often silently misses).
+      - KEPRIX_ALLOWED_ORIGINS=${KEPRIX_ALLOWED_ORIGINS:-https://app.keprixai.com,https://keprixai.com}
+      - KEPRIX_INSTANCE_URL=${KEPRIX_INSTANCE_URL:-https://app.keprixai.com}
+      - KEPRIX_FRONTEND_URL=${KEPRIX_FRONTEND_URL:-https://app.keprixai.com}
+      - KEPRIX_ADMIN_EMAIL=${KEPRIX_ADMIN_EMAIL:-}
+      - KEPRIX_ADMIN_PASSWORD=${KEPRIX_ADMIN_PASSWORD:-}
+      - KEPRIX_ADMIN_USERNAME=${KEPRIX_ADMIN_USERNAME:-}
+      # LLM for Carina/Aiva product sidecar (and shared backend brain)
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - KEPRIX_DEFAULT_PROVIDER=${KEPRIX_DEFAULT_PROVIDER:-deepseek}
+      - KEPRIX_DEFAULT_MODEL=${KEPRIX_DEFAULT_MODEL:-deepseek-chat}
+      # GUI Admin Settings writes LLM keys here (bind-mounted KEPRIX_HOME).
+      - KEPRIX_ENV_FILE=${KEPRIX_ENV_FILE:-/home/keprix/.keprix/.env}
     env_file:
+      # Resolve from --project-directory (repo root). Always also pass critical
+      # keys via environment: above so --env-file alone is enough.
       - path: .env
         required: false
     extra_hosts:

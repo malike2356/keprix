@@ -23,6 +23,18 @@ NORTHBOUND_PATHS = (
 )
 
 
+STABLE_PRODUCTS = (
+    "petraclus",
+    "abbis",
+    "xeclone",
+    "fleetz",
+    "clinicom",
+    "carina",
+    "aiva",
+    "propreneur",
+)
+
+
 def openapi_fragment() -> dict[str, Any]:
     """Stable OpenAPI-shaped contract description for product sidecar."""
     return {
@@ -62,6 +74,12 @@ def openapi_fragment() -> dict[str, Any]:
         },
         "x-keprix-contract-version": "1.0.0",
         "x-stable-error-codes": [e.value for e in ErrorCode],
+        "x-products": list(STABLE_PRODUCTS),
+        "x-propreneur-compat": {
+            "agent_run": "/carina/agent/run",
+            "tools_catalog": "/api/carina/tools",
+            "tools_execute": "/api/carina/tools/{toolName}",
+        },
     }
 
 

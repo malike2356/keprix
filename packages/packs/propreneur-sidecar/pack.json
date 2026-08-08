@@ -1,0 +1,11 @@
+{
+  "name": "propreneur-sidecar",
+  "version": "0.1.0",
+  "title": "Propreneur UK property MIS product sidecar pack",
+  "products": ["propreneur"],
+  "contract_version": "1.0.0",
+  "description": "Advertises Keprix capability nodes for Propreneur shell consumption over the product sidecar contract.",
+  "feature_flag": "product.propreneur.sidecar",
+  "memory_namespace": "product:propreneur",
+  "base_url_env": "PROPRENEUR_PRODUCT_API_URL"
+}
