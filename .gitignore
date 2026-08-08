@@ -50,7 +50,9 @@ src/keprix/skills/generated/*.yaml
 # ---- Keprix runtime data ----
 /data/
 keprix-data/
+keprix-data
 .keprix-data/
+/logs/
 
 # ---- Local scratch (never commit) ----
 *.local.md
@@ -92,7 +94,8 @@ frontend/tsconfig.tsbuildinfo
 # Local billing config (may reference live Stripe)
 config/billing.yaml
 
-# ---- Quarantined baggage (moved to archive/keprix-wip-bakups) ----
-1st-plan/competitor-research/
-apps-on-keprix/retired-project-compasslab/
+# ---- Internal planning / agent prompts (dev-local only; not product source) ----
+# Keep on the workstation for build queues; never publish to the public GitHub tree.
+/1st-plan/
+/apps-on-keprix/
 

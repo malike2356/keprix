@@ -83,11 +83,10 @@ More: [docs/getting-started/quickstart.md](docs/getting-started/quickstart.md)
 | `mobile/` | Optional Android client |
 | `sdk/`, `keprix_sdk/` | SDK surfaces |
 | `packages/`, `apps/` | Workspace packages and app services |
-| `apps-on-keprix/` | On-Keprix app notes / marketplace surfaces |
 | `keprix-proxy/` | Credential proxy |
 | `deploy/` | Deploy helpers |
 
-`keprix-data/` is local runtime data (gitignored); do not commit secrets.
+`keprix-data/` and `logs/` are local runtime data (gitignored); do not commit secrets. Internal planning trees such as `1st-plan/` stay on the workstation only and are not part of this public repository.
 
 ## Documentation
 

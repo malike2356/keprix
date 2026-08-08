@@ -14,6 +14,7 @@ When you finish building and have deployed or verified locally, complete all thr
 rsync -az --delete \
   --exclude '.git/' --exclude '.env' --exclude '.env.*' --exclude '!.env.example' \
   --exclude '.keprix/' --exclude '.keprix-data/' --exclude 'keprix-data/' \
+  --exclude '1st-plan/' --exclude 'apps-on-keprix/' \
   --exclude 'node_modules/' --exclude 'frontend/node_modules/' --exclude 'frontend/.next/' \
   --exclude '.venv/' --exclude 'venv/' --exclude '__pycache__/' \
   /opt/lampp/htdocs/verlox/keprix/ \
@@ -26,6 +27,19 @@ ssh malike@80.190.81.208 'cd /home/malike/apps/keprix && docker compose \
 ```
 
 Verify `https://app.keprixai.com/`, `/api/health`, `https://keprixai.com/`, and `https://carinaai.uk/` return HTTP 200. Contabo checkout is an rsync mirror, not a git pull. Full note: `shared/workspace-governance/THREE-WAY-DEPLOY.md` and `docs/operations/keprixai-com-origin.md`.
+
+## Public GitHub hygiene (working product only)
+
+The public `keprix` git tree must contain only files that ship or operate the product (runtime, frontend, SDKs, docs that operators need, tests, deploy).
+
+**Never commit or push** internal build queues, agent prompts, competitor research, or planning scratch:
+
+- `1st-plan/` (gitignored; keep local for prompts/archives)
+- `apps-on-keprix/` (gitignored; downstream product notes stay local)
+- Runtime locals: `keprix-data`, `logs/` (gitignored; never publish ACL dumps)
+- Other non-product scratch under `/planning/`, `/product/`, `docs/internal/` (already ignored)
+
+If a change does not contribute to Keprix functionality, keep it workstation-local. Do not add new ignored internal trees back into git.
 
 ## Clinicom Contabo note
 
