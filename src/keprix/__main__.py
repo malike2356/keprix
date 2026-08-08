@@ -2,12 +2,20 @@
 
 from __future__ import annotations
 
+import json
 import sys
 
 
-def _print_version() -> int:
+def _print_version(*, as_json: bool = False) -> int:
     from keprix_cli import __release_date__, __version__
 
+    if as_json:
+        from keprix.release_manifest import current_identity
+
+        payload = current_identity().as_dict()
+        payload["release_date"] = __release_date__
+        print(json.dumps(payload, sort_keys=True))
+        return 0
     print(f"Keprix {__version__} ({__release_date__})")
     return 0
 
@@ -123,7 +131,7 @@ def _run_start(argv: list[str]) -> int:
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if argv and argv[0] in {"-V", "--version", "version"}:
-        return _print_version()
+        return _print_version(as_json="--json" in argv[1:])
 
     if not argv:
         import fire

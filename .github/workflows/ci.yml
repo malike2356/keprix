@@ -20,6 +20,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate community files
         run: bash scripts/validate-community-files.sh
+      - name: Validate release version agreement
+        run: python3 scripts/check-release-version-sync.py
 
   backend:
     runs-on: ubuntu-latest
