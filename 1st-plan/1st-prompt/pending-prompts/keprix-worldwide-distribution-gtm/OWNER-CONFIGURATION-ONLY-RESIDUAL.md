@@ -16,8 +16,10 @@ external publication and clean-machine evidence exists.
 5. Enable protected tags, required checks, and owner approvals in GitHub.
 6. Select and approve the privacy, support, vulnerability, and telemetry policies.
 
-Use `docs/operations/owner-release-configuration.md`. Do not place these release
-credentials in source, `.env`, Keprix tenant storage, or runtime credential forms.
+Follow `OWNER-SETUP-AND-CODEX-HANDOFF-GUIDE.md` in this directory. The shorter
+operator summary remains at `docs/operations/owner-release-configuration.md`. Do
+not place release credentials in source, `.env`, Keprix tenant storage, or runtime
+credential forms.
 
 ## Evidence that can exist only after configuration
 
