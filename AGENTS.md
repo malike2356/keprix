@@ -1,5 +1,10 @@
 # Keprix agent guidelines
 
+
+## CRITICAL: Public GitHub hygiene (product files only)
+
+Before any commit or push to GitHub, track **only files that make this product work**. Planning docs, prompt queues, competitor research, personal notes, runtime logs, secrets, and nested foreign product trees stay workstation-local (`.gitignore` + `git rm --cached`). Canonical rule: `/opt/lampp/htdocs/verlox/shared/workspace-governance/PUBLIC-GITHUB-HYGIENE.md` and `/opt/lampp/htdocs/verlox/.cursor/rules/public-github-hygiene.mdc`. Guard: `bash /opt/lampp/htdocs/verlox/scripts/guard-public-github-hygiene.sh`.
+
 Follow `/opt/lampp/htdocs/verlox/AGENTS.md` for writing style and shared Verlox rules.
 
 ## CRITICAL: 3-way deploy (local → git → Contabo)
