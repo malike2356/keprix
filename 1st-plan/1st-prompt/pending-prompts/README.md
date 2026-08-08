@@ -25,7 +25,7 @@ ready to build next.
      `docs/architecture/carina-aiva-keprix-sidecar-signoff.md`.
    - `keprix-sidecar-petraclus/`: authorised security targets, air-gap,
      edition gates, findings, remediation proposals and reports.
-   - `keprix-sidecar-abbis/`: unified intelligence mesh, stakeholder/accessory
+   - ~~`keprix-sidecar-abbis/`~~ COMPLETED 2026-08-08 (archived under `../prompts-archive/keprix-sidecar-abbis/`). Pack: `domain-packs/abbis/`. Sign-off: `docs/architecture/abbis-sidecar.md`.
      isolation, Ghana localisation, field channels and offline resilience.
    - `keprix-sidecar-xeclone/`: consent-governed persona and multimodal clone,
      Carina bridge, dual-run, biometric assets, publishing and Scout governance.

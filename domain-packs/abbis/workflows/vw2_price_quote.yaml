@@ -1,0 +1,5 @@
+id: vw2
+name: price_quote
+channel_default: whatsapp
+confirmation_required: true
+nodes: [quote_calculate]

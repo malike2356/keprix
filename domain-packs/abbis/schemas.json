@@ -1,0 +1,8 @@
+{
+  "schemas": [
+    {"name": "pipe_count_input", "type": "object", "required": ["overburden_m"]},
+    {"name": "pump_yield_input", "type": "object", "required": ["cycles"]},
+    {"name": "quote_input", "type": "object", "required": ["depth_m", "overburden_m", "margin_pct"]},
+    {"name": "cloudevent", "type": "object", "required": ["id", "type", "source", "tenant"]}
+  ]
+}

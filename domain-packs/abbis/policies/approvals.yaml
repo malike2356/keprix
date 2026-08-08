@@ -1,0 +1,19 @@
+approvals:
+  require_for:
+    - stock_usage_propose
+    - debt_followup_propose
+    - receipt_draft
+    - drilling_log_assist
+    - marketplace actions
+  hash_scoped: true
+  expire_seconds: 3600
+egress:
+  allowlist_only: true
+  deny_sql: true
+  deny_ui_scrape: true
+retention:
+  default_days: 90
+  national_aggregate_days: 365
+budgets:
+  per_tenant_daily_invokes: 5000
+  calculator_units: 1

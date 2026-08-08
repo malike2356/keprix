@@ -1,0 +1,5 @@
+id: vw1
+name: submit_drilling_log
+channel_default: whatsapp
+confirmation_required: true
+nodes: [drilling_log_assist]

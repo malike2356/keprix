@@ -1,0 +1,18 @@
+{
+  "events": [
+    {"type": "project.created", "version": "1.0"},
+    {"type": "project.completed", "version": "1.0"},
+    {"type": "drilling_log.submitted", "version": "1.0"},
+    {"type": "drf.submitted", "version": "1.0"},
+    {"type": "drf.approved", "version": "1.0"},
+    {"type": "quotation.created", "version": "1.0"},
+    {"type": "quotation.sent", "version": "1.0"},
+    {"type": "pump_test.published", "version": "1.0"},
+    {"type": "payment.recorded", "version": "1.0"},
+    {"type": "marketplace.order_placed", "version": "1.0"},
+    {"type": "compliance.export_generated", "version": "1.0"},
+    {"type": "calculator.run", "version": "1.0"},
+    {"type": "intelligence.query", "version": "1.0"},
+    {"type": "intelligence.fact_contributed", "version": "1.0"}
+  ]
+}

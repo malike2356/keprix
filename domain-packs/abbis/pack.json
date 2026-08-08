@@ -1,0 +1,53 @@
+{
+  "domain_name": "abbis",
+  "version": "0.1.0",
+  "jurisdictions": ["GH"],
+  "common_tasks": [
+    "Calculate pipe count from overburden",
+    "Run pump yield analysis",
+    "Estimate borehole quotes in GHS",
+    "Assist field drilling logs with confirmation",
+    "Serve BDAG aggregate digests without tenant leakage"
+  ],
+  "playbooks": [
+    {"title": "Job setup", "href": "/playbooks/abbis-job-setup"},
+    {"title": "Daily field report", "href": "/playbooks/abbis-daily-field-report"},
+    {"title": "Quote to receipt", "href": "/playbooks/abbis-quote-to-receipt"}
+  ],
+  "disclaimers": [
+    "ABBIS remains the source of truth for tenancy, entitlements, billing and Ghana operations.",
+    "Keprix provides scoped agent sessions, tools, RAG and queued AI jobs only.",
+    "Operator identity belongs to the Ghanaian operating company; association is BDAG only."
+  ],
+  "limitations": [
+    "National and BDAG tools accept authorised aggregate schemas only.",
+    "Canonical math lives in versioned calculators; LLMs must not replace formulas.",
+    "Live product API must be wired for production; local fixture is for contract tests."
+  ],
+  "can_do": [
+    "Expose /v1/products/abbis/* product-sidecar contract",
+    "Register field and business capability nodes",
+    "Run deterministic pipe, pump and quote calculators",
+    "Enforce six-layer isolation and degraded AI queues"
+  ],
+  "cannot_do": [
+    "Own SaaS billing, marketplace ledger or stakeholder portals",
+    "Expose raw cross-tenant or worker records via national tools",
+    "Use VERLOX as operator or Kari/KB quote prefixes"
+  ],
+  "tool_permissions": ["network:read"],
+  "localization_coverage": {
+    "locales": ["en", "tw", "ha", "ee"],
+    "fallback": "en",
+    "low_resource_fallback": "en",
+    "voice_friendly": true
+  },
+  "data_schemas": ["schemas.json"],
+  "tests": [
+    "domain-packs/abbis/tests/test_formulas_golden.py",
+    "domain-packs/abbis/tests/test_abbis_sidecar.py",
+    "domain-packs/abbis/tests/test_isolation_matrix.py",
+    "domain-packs/abbis/tests/test_channels_and_queue.py",
+    "domain-packs/abbis/tests/test_provision_and_connector.py"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "pack_id": "abbis",
+  "version": "0.1.0",
+  "title": "ABBIS borehole industry sidecar",
+  "summary": "Keprix product sidecar for ABBIS Ghana/West Africa borehole platform with mesh registration, calculators, channels and isolation.",
+  "hub_visibility": "private",
+  "product_key": "abbis",
+  "contract_version": "1.0.0",
+  "operator": "ghanaian_operating_company",
+  "association": "BDAG"
+}

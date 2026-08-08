@@ -1,0 +1,25 @@
+chunkers:
+  - key: project_summary
+    index: corpus_operational
+    owner: abbis
+    scope: tenant
+  - key: drilling_log_text
+    index: corpus_operational
+    owner: abbis
+    scope: tenant
+  - key: standards_chunker
+    index: corpus_static
+    owner: abbis
+    scope: public
+    authority: standard
+  - key: aggregate_cell_chunker
+    index: corpus_national
+    owner: bdag
+    scope: association
+    authority: law
+    min_cell_threshold: 5
+  - key: formula_chunker
+    index: corpus_calculator
+    owner: abbis
+    scope: public
+    authority: product_spec

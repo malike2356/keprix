@@ -1,0 +1,78 @@
+mesh_node:
+  key: abbis_intelligence_mesh
+  product: abbis
+  version: "1.0.0"
+  prompts:
+    - keprix-sidecar-abbis/00
+    - keprix-sidecar-abbis/01
+  stakeholders: [S01, S07, S08, S09, S14, S15, S16, S17, S18, S19]
+  operator: ghanaian_operating_company
+  association: BDAG
+emits_events:
+  - project.created
+  - project.completed
+  - drilling_log.submitted
+  - drf.submitted
+  - drf.approved
+  - quotation.created
+  - quotation.sent
+  - pump_test.published
+  - payment.recorded
+  - marketplace.order_placed
+  - compliance.export_generated
+  - calculator.run
+  - credential.issued
+  - training.completed
+  - internship.completed
+  - dispute.opened
+  - intelligence.query
+  - intelligence.fact_contributed
+  - tenant.registered
+  - user.login
+context_slices:
+  - slice_key: dashboard.rig_owner
+    routes: ["/portal/rig_owner"]
+  - slice_key: drf.detail
+    routes: ["/portal/rig_owner/drf/:id"]
+  - slice_key: project.detail
+    routes: ["/portal/*/projects/:id"]
+  - slice_key: quotation.builder
+    routes: ["/portal/*/quotes/:id/edit"]
+  - slice_key: field.staff_home
+    routes: ["/portal/staff"]
+  - slice_key: client.project
+    routes: ["/portal/client/projects/:id"]
+  - slice_key: marketplace.vendor
+    routes: ["/portal/vendor"]
+  - slice_key: association.exec
+    routes: ["/portal/association"]
+  - slice_key: intelligence.explore
+    routes: ["/intelligence/explore"]
+  - slice_key: calculator.run
+    routes: ["/calculators/:key"]
+tools:
+  - group: calculators
+    tools: [pipe_count_calculate, pump_yield_calculate, quote_calculate]
+  - group: field
+    tools: [job_brief, drilling_log_assist, field_report_draft]
+  - group: national
+    tools: [national_aggregate_summary, association_digest, bdag_intelligence_query]
+rag:
+  - index: corpus_static
+    chunkers: [standards_chunker]
+  - index: corpus_dynamic_tenant
+    chunkers: [project_summary, drilling_log_text]
+  - index: corpus_national
+    chunkers: [aggregate_cell_chunker]
+  - index: corpus_operational
+    chunkers: [project_summary, drilling_log_text]
+  - index: corpus_workforce
+    chunkers: [credential_chunker]
+  - index: corpus_calculator
+    chunkers: [formula_chunker]
+  - index: corpus_session
+    chunkers: [session_turn_chunker]
+calculators: [pipe_count, pump_yield, quote, rod_depth, pump_hp, pe_hose]
+isolation:
+  layers: [product, organisation_tenant, stakeholder, accessory, project_site, subject]
+  national_min_cell_threshold: 5

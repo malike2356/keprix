@@ -1,0 +1,9 @@
+{
+  "terms": [
+    {"term": "BDAG", "definition": "Borehole Drillers Association of Ghana", "locale": "en"},
+    {"term": "overburden", "definition": "Loose ground above the aquifer that drives pipe count", "locale": "en"},
+    {"term": "DRF", "definition": "Drilling report form / daily report", "locale": "en"},
+    {"term": "pipe joint", "definition": "uPVC casing joint, typically 3 metres", "locale": "en"},
+    {"term": "LPM", "definition": "Litres per minute pump yield", "locale": "en"}
+  ]
+}

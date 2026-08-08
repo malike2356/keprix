@@ -1,0 +1,61 @@
+{
+  "playbooks": [
+    {
+      "id": "abbis.job_setup",
+      "title": "Job setup",
+      "nodes": ["job_brief", "read_project", "pipe_count_calculate"],
+      "channels": ["web", "whatsapp", "telegram"]
+    },
+    {
+      "id": "abbis.daily_field_report",
+      "title": "Daily field report",
+      "nodes": ["drilling_log_assist", "field_report_draft"],
+      "confirmation_required": true
+    },
+    {
+      "id": "abbis.depth_construction",
+      "title": "Depth and construction calculation",
+      "nodes": ["pipe_count_calculate", "rod_depth_calculate", "pump_hp_calculate"]
+    },
+    {
+      "id": "abbis.material_issue",
+      "title": "Material issue",
+      "nodes": ["stock_usage_propose"],
+      "confirmation_required": true
+    },
+    {
+      "id": "abbis.rpm_maintenance",
+      "title": "RPM maintenance",
+      "nodes": ["rpm_maintenance_assess"],
+      "confirmation_required": true
+    },
+    {
+      "id": "abbis.worker_pay_propose",
+      "title": "Worker pay record proposal",
+      "nodes": ["receipt_draft"],
+      "confirmation_required": true
+    },
+    {
+      "id": "abbis.quote_to_receipt",
+      "title": "Quote to receipt",
+      "nodes": ["quote_calculate", "receipt_draft"],
+      "confirmation_required": true
+    },
+    {
+      "id": "abbis.client_update",
+      "title": "Client update",
+      "nodes": ["job_brief", "read_project"]
+    },
+    {
+      "id": "abbis.compliance_followup",
+      "title": "Compliance follow-up",
+      "nodes": ["compliance_check"],
+      "confirmation_required": true
+    },
+    {
+      "id": "abbis.association_marketplace",
+      "title": "Association and marketplace assistance",
+      "nodes": ["association_digest", "supplier_match"]
+    }
+  ]
+}

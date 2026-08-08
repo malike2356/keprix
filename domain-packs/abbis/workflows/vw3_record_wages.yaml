@@ -1,0 +1,5 @@
+id: vw3
+name: record_wages
+channel_default: whatsapp
+confirmation_required: true
+nodes: [receipt_draft]

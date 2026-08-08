@@ -1,0 +1,15 @@
+base_url_env: ABBIS_PRODUCT_API_URL
+default_deny: true
+no_sql: true
+no_ui_scrape: true
+routes:
+  - {method: GET, path: /api/keprix/v1/health, purpose: liveness}
+  - {method: GET, path: /api/keprix/v1/capabilities, purpose: negotiate}
+  - {method: POST, path: /api/keprix/v1/token/exchange, purpose: identity}
+  - {method: GET, path: /api/keprix/v1/context, purpose: context_slice}
+  - {method: GET, path: /api/keprix/v1/context/{slice_key}, purpose: context_slice}
+  - {method: POST, path: /api/keprix/v1/events/ack, purpose: event_ack}
+  - {method: GET, path: /api/keprix/v1/localisation, purpose: localisation}
+  - {method: GET, path: /api/keprix/v1/reads/{resource}, purpose: cursor_read}
+  - {method: POST, path: /api/keprix/v1/actions/{action}/preview, purpose: action_preview, idempotency: true}
+  - {method: POST, path: /api/keprix/v1/actions/{action}/apply, purpose: action_apply, approval_required: true, idempotency: true}

@@ -1,0 +1,32 @@
+slices:
+  - key: dashboard.rig_owner
+    token_budget: 1200
+    priority: 80
+  - key: drf.detail
+    token_budget: 1200
+    priority: 90
+  - key: project.detail
+    token_budget: 1000
+    priority: 85
+  - key: quotation.builder
+    token_budget: 1400
+    priority: 90
+  - key: field.staff_home
+    token_budget: 800
+    priority: 70
+  - key: client.project
+    token_budget: 900
+    priority: 70
+  - key: marketplace.vendor
+    token_budget: 900
+    priority: 60
+  - key: association.exec
+    token_budget: 1000
+    priority: 75
+  - key: intelligence.explore
+    token_budget: 1100
+    priority: 50
+    aggregate_only: true
+  - key: calculator.run
+    token_budget: 600
+    priority: 95

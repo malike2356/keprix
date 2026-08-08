@@ -1,0 +1,12 @@
+stakeholders:
+  S01: {portal: regulator, accessories: [compliance.registry, national.intelligence]}
+  S07: {portal: rig_owner, accessories: [field.operations, quotes.location, drilling.projects, compliance.registry, calculators, fleet.maintenance]}
+  S08: {portal: vendor, accessories: [marketplace, inventory.pos, calculators]}
+  S09: {portal: contractor, accessories: [quotes.location, marketplace, contractor.crm, calculators]}
+  S14: {portal: association, accessories: [association.ams, workforce, national.intelligence], association: BDAG}
+  S15: {portal: staff, accessories: [field.operations]}
+  S16: {portal: staff, accessories: [field.operations]}
+  S17: {portal: staff, accessories: [field.operations]}
+  S18: {portal: staff, accessories: [field.operations]}
+  S19: {portal: client, accessories: [client.portal, calculators]}
+  platform: {portal: platform_admin, accessories: [core.auth, core.brain], operator: ghanaian_operating_company}

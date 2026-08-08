@@ -6,11 +6,11 @@ import hashlib
 import json
 import threading
 from copy import deepcopy
-from dataclasses import replace
 from typing import Any
 
 from keprix.product_sidecar.catalog import build_aiva_wrapper_nodes, build_carina_nodes
 from keprix.product_sidecar.fixtures import FIXTURE_PRODUCT_KEYS, build_all_fixture_packs
+from keprix.product_sidecar.packs.abbis import build_abbis_nodes
 from keprix.product_sidecar.types import ProductPackManifest
 
 STABLE_PRODUCT_KEYS = frozenset(
@@ -27,6 +27,80 @@ class PackValidationError(ValueError):
 def _checksum(payload: dict[str, Any]) -> str:
     raw = json.dumps(payload, sort_keys=True, default=str).encode("utf-8")
     return hashlib.sha256(raw).hexdigest()[:16]
+
+
+def _abbis_connector() -> dict[str, Any]:
+    return {
+        "base_url_env": "ABBIS_PRODUCT_API_URL",
+        "host_allowlist": ["127.0.0.1", "localhost", "abbis.local"],
+        "routes": [
+            {"method": "GET", "path": "/api/keprix/v1/health", "purpose": "liveness"},
+            {"method": "GET", "path": "/api/keprix/v1/capabilities", "purpose": "negotiate"},
+            {"method": "POST", "path": "/api/keprix/v1/token/exchange", "purpose": "identity"},
+            {"method": "GET", "path": "/api/keprix/v1/context", "purpose": "context_slice"},
+            {"method": "GET", "path": "/api/keprix/v1/context/{slice_key}", "purpose": "context_slice"},
+            {"method": "POST", "path": "/api/keprix/v1/events/ack", "purpose": "event_ack", "idempotency": True},
+            {"method": "GET", "path": "/api/keprix/v1/localisation", "purpose": "localisation"},
+            {"method": "GET", "path": "/api/keprix/v1/reads/{resource}", "purpose": "cursor_read"},
+            {
+                "method": "POST",
+                "path": "/api/keprix/v1/actions/{action}/preview",
+                "purpose": "action_preview",
+                "idempotency": True,
+            },
+            {
+                "method": "POST",
+                "path": "/api/keprix/v1/actions/{action}/apply",
+                "purpose": "action_apply",
+                "approval_required": True,
+                "idempotency": True,
+            },
+        ],
+        "default_deny": True,
+        "no_sql": True,
+        "no_ui_scrape": True,
+    }
+
+
+def build_abbis_pack() -> ProductPackManifest:
+    nodes = build_abbis_nodes()
+    payload = {"product": "abbis", "nodes": sorted(nodes.keys()), "version": "0.1.0"}
+    return ProductPackManifest(
+        product_key="abbis",
+        pack_id="abbis-borehole-sidecar",
+        version="0.1.0",
+        title="ABBIS borehole industry pack",
+        contract_version=_CONTRACT_VERSION,
+        nodes=nodes,
+        enabled=True,
+        checksum=_checksum(payload),
+        signature="abbis-dev",
+        connector=_abbis_connector(),
+        policies={
+            "soft_wall_bus": "product",
+            "cross_product": "deny",
+            "operator": "ghanaian_operating_company",
+            "association": "BDAG",
+            "national_min_cell_threshold": 5,
+        },
+        memory_namespace="product:abbis",
+        playbooks=(
+            "abbis.job_setup",
+            "abbis.daily_field_report",
+            "abbis.quote_to_receipt",
+            "abbis.association_marketplace",
+        ),
+        events=(
+            "project.created",
+            "drilling_log.submitted",
+            "quotation.created",
+            "payment.recorded",
+            "calculator.run",
+            "intelligence.fact_contributed",
+        ),
+        migrations=("001_abbis_ns",),
+        feature_flag="product.abbis.sidecar",
+    )
 
 
 def _carina_connector() -> dict[str, Any]:
@@ -166,12 +240,18 @@ class ProductPackRegistry:
     def _install_defaults(self) -> None:
         carina = build_carina_pack()
         aiva = build_aiva_pack(carina)
+        abbis = build_abbis_pack()
         self._packs["carina"] = carina
         self._packs["aiva"] = aiva
+        self._packs["abbis"] = abbis
         self._lkg["carina"] = deepcopy(carina)
         self._lkg["aiva"] = deepcopy(aiva)
+        self._lkg["abbis"] = deepcopy(abbis)
         if self._install_fixtures:
             for key, pack in build_all_fixture_packs().items():
+                if key == "abbis":
+                    # Real ABBIS pack replaces the foundation fixture.
+                    continue
                 self._packs[key] = pack
                 self._lkg[key] = deepcopy(pack)
 
