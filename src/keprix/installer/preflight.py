@@ -39,20 +39,28 @@ def _port_available(port: int, host: str = "127.0.0.1") -> bool:
         return sock.connect_ex((host, port)) != 0
 
 
-def run_preflight(*, ports: list[int] | None = None, min_disk_gb: float = 2.0) -> PreflightReport:
+def run_preflight(
+    *,
+    ports: list[int] | None = None,
+    min_disk_gb: float = 5.0,
+    require_docker: bool = False,
+) -> PreflightReport:
     ports = ports or [3000, 3333]
     report = PreflightReport()
 
     report.checks.append(
         PreflightCheck(
             name="python_version",
-            ok=platform.python_version_tuple() >= ("3", "10"),
+            ok=(3, 11) <= tuple(map(int, platform.python_version_tuple()[:2])) < (3, 13),
             message=f"Python {platform.python_version()}",
-            fix="Install Python 3.10 or newer",
+            fix="Install Python 3.11 or 3.12",
         )
     )
 
-    for binary in ("docker", "curl"):
+    binaries = ["curl"]
+    if require_docker:
+        binaries.append("docker")
+    for binary in binaries:
         found = shutil.which(binary) is not None
         report.checks.append(
             PreflightCheck(
@@ -80,7 +88,11 @@ def run_preflight(*, ports: list[int] | None = None, min_disk_gb: float = 2.0) -
                 name=f"port_{port}",
                 ok=available,
                 message=f"Port {port} {'available' if available else 'in use'}",
-                fix=None if available else f"Stop the process on port {port} or run: keprix configure --port {port + 1}",
+                fix=(
+                    None
+                    if available
+                    else f"Stop the process on port {port} or configure port {port + 1}"
+                ),
             )
         )
 

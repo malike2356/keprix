@@ -1,6 +1,6 @@
 # Prompts 605-607: Docker, supply chain, and releases
 
-**Status:** PENDING
+**Status:** IN PROGRESS (605 implementation prepared; public proof pending)
 **Depends on:** 600-602
 
 ## Prompt 605: public multi-architecture Docker delivery
@@ -17,6 +17,13 @@ plus a contributor overlay that builds locally. Generate secrets with safe file
 permissions, never ship default passwords, bind databases privately, and document
 reverse proxy and TLS. Add fresh install, restart, upgrade, backup, restore,
 rollback, arm64, amd64, volume ownership, health, and sidecar profile tests.
+
+**Prompt 605 status:** implementation prepared 2026-08-08. Release CI now fails
+closed on missing registry credentials or publication failure, builds amd64 and
+arm64 images with SBOM and maximum provenance, verifies public manifests, and
+provides a pull-only release Compose file with pinned infrastructure digests.
+Public registry and clean-host proofs remain pending until prompt 607 publishes a
+release.
 
 ## Prompt 606: artifact integrity and software supply chain
 

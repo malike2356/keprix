@@ -1,0 +1,96 @@
+name: keprix
+
+services:
+  keprix-backend:
+    image: carinaai/keprix-backend:${KEPRIX_VERSION:?set KEPRIX_VERSION to a release tag}
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${BACKEND_BIND:-127.0.0.1}:${BACKEND_PORT:-3333}:3333"
+    volumes:
+      - ${KEPRIX_HOST_DATA:-${HOME}/.keprix}:/home/keprix/.keprix
+    environment:
+      KEPRIX_HOME: /home/keprix/.keprix
+      KEPRIX_DATABASE_URL: postgresql+asyncpg://keprix:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/keprix
+      KEPRIX_REDIS_URL: redis://:${REDIS_PASSWORD:?set REDIS_PASSWORD}@redis:6379
+      KEPRIX_SEARXNG_URL: http://searxng:8080
+      KEPRIX_UID: ${KEPRIX_UID:-1000}
+      KEPRIX_GID: ${KEPRIX_GID:-1000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3333/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks: [keprix]
+
+  keprix-frontend:
+    image: carinaai/keprix-frontend:${KEPRIX_VERSION:?set KEPRIX_VERSION to a release tag}
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${FRONTEND_BIND:-127.0.0.1}:${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      keprix-backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks: [keprix]
+
+  postgres:
+    image: pgvector/pgvector@sha256:ad2e18408bf447f62092a8a5259e7df10505c5a0360bd1a1853ac8b8b0763da2
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keprix
+      POSTGRES_USER: keprix
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keprix -d keprix"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [keprix]
+
+  redis:
+    image: redis@sha256:8b81dd37ff027bec4e516d41acfbe9fe2460070dc6d4a4570a2ac5b9d59df065
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD}"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [keprix]
+
+  searxng:
+    image: searxng/searxng@sha256:5db870274800e0ed53ffe3c94806523f5313b00f5f7fc038f9e345e867c1f10b
+    restart: unless-stopped
+    volumes:
+      - ./searxng.example:/etc/searxng:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [keprix]
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  keprix:
+    driver: bridge

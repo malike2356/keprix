@@ -1,0 +1,4 @@
+prune src/keprix/node_modules
+prune src/keprix/apps/desktop
+prune 1st-plan
+global-exclude .env .env.* *.pyc __pycache__

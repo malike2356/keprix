@@ -1,6 +1,6 @@
 # Prompts 602-604: versioning, bare metal, and PyPI
 
-**Status:** IN PROGRESS (602 completed 2026-08-08; 603-604 pending)
+**Status:** IN PROGRESS (602 completed; 603-604 implementation prepared, public proofs pending)
 **Depends on:** 600-601
 
 ## Prompt 602: canonical version and manifest
@@ -37,6 +37,12 @@ existing installs, and least-privilege users in clean VMs.
 Do not use `curl | bash` as the only documented route. Offer download, inspect,
 verify, then run. If the one-liner remains, state its trust model.
 
+**Prompt 603 status:** implementation prepared 2026-08-08. The immutable installer
+supports stable or beta resolution, exact versions, custom prefix, doctor, repair,
+dry run, safe uninstall, data preservation, SHA-256, and required stable cosign
+verification. Public end-to-end proof remains blocked until prompt 607 publishes
+the first release manifest and wheel, followed by the declared clean-VM matrix.
+
 ## Prompt 604: PyPI and pipx trusted publishing
 
 Prepare and, only with explicit owner approval, publish the `keprix` distribution
@@ -50,3 +56,9 @@ After successful publication, update docs from pinned Git URLs to `pipx install
 'keprix[tui]'`, while retaining a version-pinned fallback. The public gate must
 query PyPI and verify that the documented version exists. If owner approval is not
 available, leave publication blocked and keep docs honest.
+
+**Prompt 604 status:** trusted-publishing implementation prepared 2026-08-08. CI
+builds and validates wheel plus sdist, smokes Python 3.11 and 3.12, uses protected
+TestPyPI and PyPI environments, OIDC, and attestations. Publication and anonymous
+index proof remain pending until the owner configures the trusted-publisher records
+and an immutable release tag exists.

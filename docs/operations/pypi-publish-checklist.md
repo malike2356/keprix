@@ -1,5 +1,11 @@
 # PyPI publish checklist (owner only)
 
+The prepared trusted-publishing workflow is
+`.github/workflows/publish-pypi.yml`. Configure GitHub environments named
+`testpypi` and `pypi`, require an owner reviewer for `pypi`, and register each as
+an OIDC trusted publisher in the corresponding package index. Do not enter a PyPI
+API token into Keprix, source files, workflow variables, or the application GUI.
+
 **Audience:** Owner only. Agents prepare honesty docs and metadata; they must
 **not** upload to PyPI unless the owner explicitly asks in-session.
 

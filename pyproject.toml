@@ -139,6 +139,12 @@ keprix = "keprix.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+exclude = [
+  "keprix.node_modules",
+  "keprix.node_modules.*",
+  "keprix.apps.desktop",
+  "keprix.apps.desktop.*",
+]
 
 [tool.setuptools.package-data]
 "keprix.upgrade" = ["CHANGELOG.yaml"]
