@@ -1,0 +1,63 @@
+# Read plus proposal.prepare with approval gate
+contract_version: "1.0.0"
+project_key: demo
+display_name: Demo Project (read + propose)
+deployment: local-dev
+environment: local
+base_url: http://127.0.0.1:8099
+auth:
+  profile: bearer
+  vault_ref: env:DEMO_TOKEN
+egress:
+  allow_loopback: true
+  allow_private_networks: false
+  allowed_hosts:
+    - 127.0.0.1
+capabilities:
+  - node: summarise
+    version: "1.0.0"
+    scopes:
+      - invoke:summarise
+  - node: proposal.prepare
+    version: "1.0.0"
+    scopes:
+      - invoke:proposal.prepare
+  - node: approval.request
+    version: "1.0.0"
+    scopes:
+      - approvals
+  - node: finish
+    version: "1.0.0"
+    scopes:
+      - invoke:finish
+memory:
+  mode: ephemeral
+  retention_days: 1
+approvals:
+  required_for_risk:
+    - propose
+    - mutate
+    - outbound
+    - destructive
+    - high_risk
+  ttl_seconds: 3600
+connectors:
+  - key: order.get
+    method: GET
+    path: /api/orders/{id}
+    purpose: Fetch one order by id
+    mode: read
+    sensitivity: pii_minimised
+    grants:
+      - connector:order.get
+  - key: order.propose_refund
+    method: POST
+    path: /api/orders/{id}/refund/propose
+    purpose: Prepare a refund proposal without applying
+    mode: propose
+    sensitivity: sensitive
+    approval_required: true
+    idempotency: true
+    grants:
+      - connector:order.propose_refund
+events: []

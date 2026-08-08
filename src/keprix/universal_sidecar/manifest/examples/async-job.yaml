@@ -1,0 +1,70 @@
+# Jobs-oriented: async capability with callbacks
+contract_version: "1.0.0"
+project_key: demo
+display_name: Demo Project (async jobs)
+deployment: local-dev
+environment: local
+base_url: http://127.0.0.1:8099
+callback_urls:
+  - http://127.0.0.1:8099/api/keprix/v1/events/ack
+auth:
+  profile: bearer
+  vault_ref: env:DEMO_TOKEN
+egress:
+  allow_loopback: true
+  allow_private_networks: false
+  allowed_hosts:
+    - 127.0.0.1
+capabilities:
+  - node: summarise
+    version: "1.0.0"
+    scopes:
+      - invoke:summarise
+      - jobs
+    timeout_seconds: 300
+    budget_units: 10
+  - node: wait
+    version: "1.0.0"
+    scopes:
+      - jobs
+  - node: finish
+    version: "1.0.0"
+    scopes:
+      - invoke:finish
+memory:
+  mode: project_facts
+  retention_days: 7
+budgets:
+  jobs_concurrent: 2
+  requests_per_minute: 30
+  callback_per_hour: 120
+connectors:
+  - key: order.get
+    method: GET
+    path: /api/orders/{id}
+    purpose: Fetch order for long-running summarise job
+    mode: read
+    sensitivity: pii_minimised
+    grants:
+      - connector:order.get
+webhooks:
+  signature: hmac-sha256
+  max_attempts: 5
+  vault_ref: env:DEMO_WEBHOOK_SECRET
+events:
+  - type: keprix.job.completed
+    direction: outbound
+    schema: job.completed.v1
+    sensitivity: internal
+    dedupe: true
+    delivery: at_least_once
+    callback: http://127.0.0.1:8099/api/keprix/v1/events/ack
+    retention_days: 7
+  - type: keprix.job.failed
+    direction: outbound
+    schema: job.failed.v1
+    sensitivity: internal
+    dedupe: true
+    delivery: at_least_once
+    callback: http://127.0.0.1:8099/api/keprix/v1/events/ack
+    retention_days: 14

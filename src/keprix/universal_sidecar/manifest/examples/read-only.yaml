@@ -1,0 +1,55 @@
+# Read-only: minimal plus a single GET connector
+contract_version: "1.0.0"
+project_key: demo
+display_name: Demo Project (read-only)
+deployment: local-dev
+environment: local
+base_url: http://127.0.0.1:8099
+auth:
+  profile: bearer
+  vault_ref: env:DEMO_TOKEN
+egress:
+  allow_loopback: true
+  allow_private_networks: false
+  allowed_hosts:
+    - 127.0.0.1
+capabilities:
+  - node: summarise
+    version: "1.0.0"
+    scopes:
+      - invoke:summarise
+    context_sources:
+      - order.summary
+  - node: finish
+    version: "1.0.0"
+    scopes:
+      - invoke:finish
+memory:
+  mode: ephemeral
+  retention_days: 0
+connectors:
+  - key: order.get
+    method: GET
+    path: /api/orders/{id}
+    purpose: Fetch one order by id for summarisation
+    mode: read
+    sensitivity: pii_minimised
+    grants:
+      - connector:order.get
+    timeout_seconds: 15
+    rate_per_minute: 60
+    projection:
+      - id
+      - status
+      - total
+      - currency
+      - created_at
+events: []
+context_slices:
+  - key: order.summary
+    purpose: Projected order fields for summarise
+    operation: order.get
+    sensitivity: pii_minimised
+    max_records: 1
+    allowed_nodes:
+      - summarise

@@ -1,0 +1,28 @@
+# Minimal Universal Sidecar project manifest (contract 1.0.0)
+contract_version: "1.0.0"
+project_key: demo
+display_name: Demo Project
+deployment: local-dev
+environment: local
+base_url: http://127.0.0.1:8099
+auth:
+  profile: bearer
+  vault_ref: env:DEMO_TOKEN
+egress:
+  allow_loopback: true
+  allow_private_networks: false
+  allowed_hosts: []
+capabilities:
+  - node: summarise
+    version: "1.0.0"
+    scopes:
+      - invoke:summarise
+  - node: finish
+    version: "1.0.0"
+    scopes:
+      - invoke:finish
+memory:
+  mode: ephemeral
+  retention_days: 0
+connectors: []
+events: []
