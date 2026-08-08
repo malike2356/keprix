@@ -1,6 +1,6 @@
 # Prompt KSF-00: Product-pack registry and runtime boundary
 
-**Status:** PENDING
+**Status: COMPLETED 2026-08-08**
 **Depends on:** shared product-sidecar contract
 **Blocks:** KSF-01 through KSF-04 and all product queues
 
@@ -29,3 +29,13 @@
 - [ ] Failed pack activation rolls back atomically
 - [ ] Disable/kill switch removes invocation immediately
 - [ ] Cross-product composition fails closed
+
+## What was built
+
+- Shared product sidecar foundation under `src/keprix/product_sidecar/`
+- Fixture packs + registry install/validate/upgrade/rollback/kill
+- Northbound `/v1/products/{product_key}` including events/stream and durable jobs
+- Southbound ProductConnector with SSRF/default-deny and FakeProductConnector
+- CLI: `keprix product provision|plan|status|upgrade|rollback|disable|remove|conformance`
+- Conformance gate + release runbook `docs/architecture/product-sidecar-foundation-release.md`
+- Tests: `tests/product_sidecar/test_sidecar_foundation.py` (plus existing Carina/Aiva suite)

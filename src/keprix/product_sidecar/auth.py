@@ -86,12 +86,14 @@ class TokenService:
         self._revoked: set[str] = set()
         self._seen_jti: dict[str, float] = {}
         self._audit: list[dict[str, Any]] = []
+        self._revoked_kids: set[str] = set()
 
     def reset_for_tests(self) -> None:
         with self._lock:
             self._revoked.clear()
             self._seen_jti.clear()
             self._audit.clear()
+            self._revoked_kids = set()
 
     def _sign(self, body: str) -> str:
         return hmac.new(_signing_key(), body.encode("utf-8"), hashlib.sha256).hexdigest()
@@ -139,7 +141,11 @@ class TokenService:
         with self._lock:
             self._revoked.add(jti)
 
-    def parse(self, raw: str) -> SidecarToken:
+    def revoke_kid(self, kid: str) -> None:
+        with self._lock:
+            self._revoked_kids.add(kid)
+
+    def parse(self, raw: str, *, consume_once: bool = False) -> SidecarToken:
         if not raw.startswith("ks1."):
             raise ValueError(ErrorCode.DENIED.value)
         try:
@@ -174,14 +180,15 @@ class TokenService:
         if token.audience != "keprix-product-sidecar":
             raise ValueError(ErrorCode.WRONG_AUDIENCE.value)
         with self._lock:
+            if consume_once and token.jti in self._seen_jti:
+                raise ValueError(ErrorCode.REPLAY.value)
             if token.jti in self._revoked:
                 raise ValueError(ErrorCode.DENIED.value)
-            # Replay window: same jti within active lifetime is allowed for reads,
-            # but exchange replay of bootstrap is separate. Mark seen for audit.
-            prev = self._seen_jti.get(token.jti)
+            if token.kid in self._revoked_kids:
+                raise ValueError(ErrorCode.DENIED.value)
             self._seen_jti[token.jti] = now
-            if prev is not None and now - prev < 0:
-                raise ValueError(ErrorCode.REPLAY.value)
+            if consume_once:
+                self._revoked.add(token.jti)
         return token
 
     def authenticate_request(
@@ -191,6 +198,7 @@ class TokenService:
         product: str,
         correlation_id: str,
         required_audience: str = "keprix-product-sidecar",
+        consume_once: bool = False,
     ) -> RequestContext:
         auth = authorization.strip()
         if not auth.lower().startswith("bearer "):
@@ -211,10 +219,11 @@ class TokenService:
                 token_mode="shared_compat",
                 audience=required_audience,
             )
-        parsed = self.parse(token_raw)
-        if parsed.product not in {product, "carina"} and not (
+        parsed = self.parse(token_raw, consume_once=consume_once)
+        family_ok = parsed.product == product or (
             product == "aiva" and parsed.product in {"aiva", "carina"}
-        ):
+        )
+        if not family_ok:
             raise ValueError(ErrorCode.DENIED.value)
         if parsed.audience != required_audience:
             raise ValueError(ErrorCode.WRONG_AUDIENCE.value)
@@ -324,6 +333,8 @@ CARINA_ADMIN_EXTRA = frozenset(
 
 
 def grants_for_product(product: str, *, admin: bool = False) -> frozenset[str]:
+    if product in {"petraclus", "abbis", "xeclone", "fleetz", "clinicom"}:
+        return frozenset({f"node:pack.ping", f"{product}:ping", "*"} if admin else {f"node:pack.ping", f"{product}:ping"})
     base = set(AIVA_WORKER_GRANTS)
     if product == "carina" or admin:
         base |= set(CARINA_ADMIN_EXTRA)

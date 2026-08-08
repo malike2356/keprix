@@ -10,11 +10,11 @@ ready to build next.
 0. ~~**Keprix Universal Sidecar public integration API**~~ COMPLETED 2026-08-08.
    Archived at `../prompts-archive/keprix-universal-sidecar/`. Docs:
    `docs/universal-sidecar/`. Contract `/sidecar/v1` (mounted :3333 / sidecar-only :3360).
-1. **Keprix product sidecar readiness** PENDING. Shared contract:
-   `ref-keprix-product-sidecar-contract.md`. Shared foundation queue:
-   `keprix-sidecar-foundation/` (pack registry, HTTP/node API, product connectors,
-   identity/grants, provisioning, events/jobs, isolation and conformance). Separate
-   product build queues:
+1. ~~**Keprix product sidecar foundation (KSF-00..04)**~~ COMPLETED 2026-08-08 and
+   archived under `../prompts-archive/keprix-sidecar-foundation/`. Release runbook:
+   `docs/architecture/product-sidecar-foundation-release.md`. Evidence:
+   `pytest tests/product_sidecar/` (34 passed) and foundation conformance READY.
+   Shared contract: `ref-keprix-product-sidecar-contract.md`. Product queues:
    - `keprix-sidecar-carina-aiva/` (**516-531 / CAS**): COMPLETED 2026-08-08.
      Archived at `../prompts-archive/keprix-sidecar-carina-aiva/`. Sign-off
      `docs/architecture/carina-aiva-keprix-sidecar-signoff.md`.
@@ -22,7 +22,6 @@ ready to build next.
      `../prompts-archive/keprix-sidecar-petraclus/`. Sign-off
      `docs/architecture/petraclus-keprix-sidecar-signoff.md`.
    - ~~`keprix-sidecar-abbis/`~~ COMPLETED 2026-08-08 (archived under `../prompts-archive/keprix-sidecar-abbis/`). Pack: `domain-packs/abbis/`. Sign-off: `docs/architecture/abbis-sidecar.md`.
-     isolation, Ghana localisation, field channels and offline resilience.
    - ~~`keprix-sidecar-xeclone/`~~ COMPLETED 2026-08-08 (archived under
      `../prompts-archive/keprix-sidecar-xeclone/`). Pack: `domain-packs/xeclone/`.
      Sign-off: `docs/architecture/xeclone-keprix-sidecar-signoff.md`.
@@ -32,10 +31,7 @@ ready to build next.
    - `keprix-sidecar-clinicom/`: CLS-00..04 COMPLETED 2026-08-08 (archived under
      `../prompts-archive/keprix-sidecar-clinicom/`). CLS-05 remains pending for
      owner-approved Contabo shadow/cutover. Contabo remains on Carina.
-   The product packs may build in parallel after shared runtime primitives are
-   accepted. Each product remains its domain data and entitlement authority.
-   Carina/Aiva CAS depends on foundation (KSF) and should lead when the goal is
-   platform engine replacement; Xeclone/Clinicom remain separate product cuts.
+   Each product remains its domain data and entitlement authority.
 2. ~~**Operator GUI gap closeout (467-505 Must)**~~ COMPLETED 2026-08-08 and archived under `../prompts-archive/keprix-operator-gui-gap-closeout/`. Sign-off: `docs/architecture/operator-gui-gap-signoff.md`.
 3. ~~**Visual agentic CRM (429-465 + 466 + 506-515)**~~ COMPLETED 2026-08-08; entire set archived under `../prompts-archive/keprix-agentic-crm-lead-gen/` (including refs). Sign-offs: `docs/architecture/agentic-crm-signoff.md`, `docs/architecture/visual-crm-signoff.md`, `docs/architecture/agentic-crm-nice-signoff.md` (all **READY**). Operator config: `/crm/settings#connections`.
 4. *(prior queue clear)* DATA ops and Public GTM archived 2026-08-07.

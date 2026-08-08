@@ -8,15 +8,29 @@ import time
 import uuid
 from typing import Any
 
+from keprix.product_sidecar.persistence import DurableJsonStore
+
 
 class JobStore:
-    def __init__(self) -> None:
+    def __init__(self, *, durable: bool = True) -> None:
         self._lock = threading.RLock()
         self._jobs: dict[str, dict[str, Any]] = {}
+        self._durable = DurableJsonStore("jobs") if durable else None
+        if self._durable:
+            for row in self._durable.items():
+                job_id = str(row.get("job_id") or "")
+                if job_id:
+                    self._jobs[job_id] = row
 
     def reset_for_tests(self) -> None:
         with self._lock:
             self._jobs.clear()
+            if self._durable:
+                self._durable.reset_for_tests()
+
+    def _persist(self, row: dict[str, Any]) -> None:
+        if self._durable:
+            self._durable.put(str(row["job_id"]), row)
 
     def create(
         self,
@@ -26,6 +40,8 @@ class JobStore:
         node_key: str,
         input_payload: dict[str, Any],
         idempotency_key: str = "",
+        checkpoint: dict[str, Any] | None = None,
+        budget_units: int = 1,
     ) -> dict[str, Any]:
         with self._lock:
             if idempotency_key:
@@ -34,6 +50,7 @@ class JobStore:
                         job["workspace_id"] == workspace_id
                         and job.get("idempotency_key") == idempotency_key
                         and job["node_key"] == node_key
+                        and job.get("product") == product
                     ):
                         return dict(job)
             job_id = f"job_{uuid.uuid4().hex[:16]}"
@@ -49,9 +66,15 @@ class JobStore:
                 "created_at": time.time(),
                 "updated_at": time.time(),
                 "result": None,
+                "result_ref": None,
                 "cancel_requested": False,
+                "attempts": 0,
+                "checkpoint": checkpoint or {},
+                "budget_units": budget_units,
+                "dead_letter_reason": None,
             }
             self._jobs[job_id] = row
+            self._persist(row)
             return dict(row)
 
     def get(self, job_id: str, *, workspace_id: str) -> dict[str, Any] | None:
@@ -60,6 +83,10 @@ class JobStore:
             if not job or job["workspace_id"] != workspace_id:
                 return None
             return dict(job)
+
+    def list_for_product(self, product: str) -> list[dict[str, Any]]:
+        with self._lock:
+            return [dict(j) for j in self._jobs.values() if j.get("product") == product]
 
     def cancel(self, job_id: str, *, workspace_id: str) -> dict[str, Any] | None:
         with self._lock:
@@ -71,6 +98,7 @@ class JobStore:
             job["status"] = "cancelled"
             job["cancel_requested"] = True
             job["updated_at"] = time.time()
+            self._persist(job)
             return dict(job)
 
     def mark_running(self, job_id: str) -> None:
@@ -79,7 +107,20 @@ class JobStore:
             if job and job["status"] == "queued":
                 job["status"] = "running"
                 job["progress"] = 10
+                job["attempts"] = int(job.get("attempts") or 0) + 1
                 job["updated_at"] = time.time()
+                self._persist(job)
+
+    def checkpoint(self, job_id: str, checkpoint: dict[str, Any], *, progress: int | None = None) -> None:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if not job:
+                return
+            job["checkpoint"] = dict(checkpoint)
+            if progress is not None:
+                job["progress"] = progress
+            job["updated_at"] = time.time()
+            self._persist(job)
 
     def complete(self, job_id: str, result: dict[str, Any]) -> None:
         with self._lock:
@@ -91,19 +132,45 @@ class JobStore:
             job["status"] = "completed"
             job["progress"] = 100
             job["result"] = result
+            job["result_ref"] = f"job://{job_id}/result"
             job["updated_at"] = time.time()
+            self._persist(job)
+
+    def dead_letter(self, job_id: str, reason: str) -> None:
+        with self._lock:
+            job = self._jobs.get(job_id)
+            if not job:
+                return
+            job["status"] = "failed"
+            job["dead_letter_reason"] = reason
+            job["updated_at"] = time.time()
+            self._persist(job)
 
 
 class EventStore:
-    def __init__(self) -> None:
+    def __init__(self, *, durable: bool = True) -> None:
         self._lock = threading.RLock()
         self._seen: set[tuple[str, str, str]] = set()  # product, deployment, event_id
         self._events: list[dict[str, Any]] = []
+        self._cursor = 0
+        self._durable = DurableJsonStore("events") if durable else None
+        if self._durable:
+            for row in self._durable.items():
+                self._events.append(row)
+                product = str(row.get("source") or row.get("product") or "")
+                deployment = str(row.get("deployment") or "local")
+                event_id = str(row.get("id") or "")
+                if event_id:
+                    self._seen.add((product, deployment, event_id))
+            self._cursor = int(self._durable.get_meta("cursor") or len(self._events))
 
     def reset_for_tests(self) -> None:
         with self._lock:
             self._seen.clear()
             self._events.clear()
+            self._cursor = 0
+            if self._durable:
+                self._durable.reset_for_tests()
 
     def ingest(self, envelope: dict[str, Any]) -> dict[str, Any]:
         product = str(envelope.get("source") or envelope.get("product") or "")
@@ -116,8 +183,38 @@ class EventStore:
             if key in self._seen:
                 return {"accepted": True, "deduped": True, "id": event_id}
             self._seen.add(key)
-            self._events.append(dict(envelope))
-            return {"accepted": True, "deduped": False, "id": event_id}
+            row = dict(envelope)
+            row.setdefault("seq", self._cursor + 1)
+            row.setdefault("ingested_at", time.time())
+            self._events.append(row)
+            self._cursor += 1
+            if self._durable:
+                self._durable.put(event_id, row)
+                self._durable.set_meta("cursor", self._cursor)
+            return {"accepted": True, "deduped": False, "id": event_id, "seq": row["seq"]}
+
+    def list_for_product(self, product: str) -> list[dict[str, Any]]:
+        with self._lock:
+            return [
+                dict(e)
+                for e in self._events
+                if e.get("product") == product or e.get("source") == product
+            ]
+
+    def stream_since(self, product: str, *, cursor: int = 0, limit: int = 100) -> dict[str, Any]:
+        with self._lock:
+            rows = []
+            for event in self._events:
+                seq = int(event.get("seq") or 0)
+                if seq <= cursor:
+                    continue
+                if event.get("product") != product and event.get("source") != product:
+                    continue
+                rows.append(dict(event))
+                if len(rows) >= limit:
+                    break
+            next_cursor = rows[-1]["seq"] if rows else cursor
+            return {"events": rows, "cursor": next_cursor, "product": product}
 
 
 class ApprovalStore:
@@ -364,6 +461,22 @@ class EphemeralMemory:
                     removed += 1
             return removed
 
+    def delete_product(self, product: str) -> int:
+        with self._lock:
+            removed = 0
+            for store in (self._durable, self._ephemeral):
+                keys = [k for k in store if k[0] == product]
+                for k in keys:
+                    del store[k]
+                    removed += 1
+            return removed
+
+    def get_cross_product(self, *, product: str, other_product: str, workspace_id: str, key: str) -> None:
+        """Cross-product memory reads are impossible by construction."""
+        if product != other_product:
+            raise PermissionError("cross_product_memory")
+        return None
+
 
 def input_hash(payload: dict[str, Any]) -> str:
     import json
@@ -410,10 +523,17 @@ def get_memory_store() -> EphemeralMemory:
 
 
 def reset_all_sidecar_state_for_tests() -> None:
+    global _JOBS, _EVENTS, _APPROVALS, _SHADOW, _CIRCUIT, _KILLS, _MEMORY
     _JOBS.reset_for_tests()
     _EVENTS.reset_for_tests()
-    _APPROVALS.reset_for_tests()
-    _SHADOW.reset_for_tests()
-    _CIRCUIT.reset_for_tests()
-    _KILLS.reset_for_tests()
-    _MEMORY.reset_for_tests()
+    # Recreate durable-backed stores so KEPRIX_DATA_DIR changes take effect
+    _JOBS = JobStore(durable=True)
+    _EVENTS = EventStore(durable=True)
+    _APPROVALS = ApprovalStore()
+    _SHADOW = ShadowStore()
+    _CIRCUIT = CircuitBreaker()
+    _KILLS = KillSwitchBoard()
+    _MEMORY = EphemeralMemory()
+    from keprix.product_sidecar.persistence import get_provision_store
+
+    get_provision_store().reset_for_tests()

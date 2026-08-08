@@ -19,14 +19,14 @@ from keprix.product_sidecar.registry import (
 from keprix.product_sidecar.state import get_event_store, get_job_store, get_kill_switches, get_memory_store
 
 
-_LOCKS: dict[str, threading.Lock] = {}
+_LOCKS: dict[str, threading.RLock] = {}
 _LOCKS_GUARD = threading.Lock()
 
 
-def _product_lock(product_key: str) -> threading.Lock:
+def _product_lock(product_key: str) -> threading.RLock:
     with _LOCKS_GUARD:
         if product_key not in _LOCKS:
-            _LOCKS[product_key] = threading.Lock()
+            _LOCKS[product_key] = threading.RLock()
         return _LOCKS[product_key]
 
 
@@ -192,7 +192,22 @@ def upgrade_product(product_key: str, *, version: str) -> dict[str, Any]:
             upgraded = deepcopy(current)
             upgraded.version = version
             registry.upgrade(upgraded)
-        return provision_product(product_key, activate=True, version=version)
+        pack = registry.require(product_key)
+        receipt = {
+            "status": "provisioned",
+            "product_key": product_key,
+            "version": pack.version,
+            "checksum": pack.checksum,
+            "contract_version": pack.contract_version,
+            "enabled": pack.enabled,
+            "checks": [{"name": "upgrade", "status": "ok", "version": version}],
+            "rollback": {"action": "keprix product rollback", "product": product_key},
+            "at": time.time(),
+            "duplicate": False,
+        }
+        path = get_provision_store().write(product_key, receipt)
+        receipt["receipt_path"] = str(path)
+        return receipt
 
 
 def rollback_product(product_key: str) -> dict[str, Any]:

@@ -1,7 +1,6 @@
-"""Product sidecar foundation for Carina/Aiva (and future product packs).
+"""Product sidecar foundation for multi-product Keprix packs.
 
 Northbound contract: ``/v1/products/{product_key}``.
-Shell stays Carina/Aiva; Keprix is the brain via advertised capability nodes only.
 """
 
 from __future__ import annotations

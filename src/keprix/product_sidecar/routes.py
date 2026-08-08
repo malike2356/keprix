@@ -25,7 +25,10 @@ from keprix.product_sidecar.types import RequestContext
 
 router = APIRouter(prefix="/v1/products", tags=["product-sidecar"])
 
-SUPPORTED = frozenset({"carina", "aiva"})
+CONTRACT_HEADERS = {
+    "X-Keprix-Contract-Version": "1.0.0",
+    "X-Keprix-API-Deprecated": "shared-token-compat",
+}
 
 
 class SessionCreate(BaseModel):
@@ -58,6 +61,7 @@ class EventEnvelope(BaseModel):
     workspace_id: str | None = None
     deployment: str = "local"
     data: dict[str, Any] = Field(default_factory=dict)
+    sensitivity: str = "internal"
 
 
 class ApprovalDecision(BaseModel):
@@ -78,7 +82,8 @@ class TokenExchangeBody(BaseModel):
 
 
 def _product_or_404(product_key: str) -> None:
-    if product_key not in SUPPORTED:
+    registry = get_product_pack_registry()
+    if product_key not in registry.known_products():
         raise HTTPException(status_code=404, detail="unknown product_key")
 
 
@@ -262,7 +267,7 @@ async def invoke(
         raise HTTPException(status_code=exc.http_status, detail=exc.as_dict()) from exc
 
 
-@router.post("/{product_key}/jobs")
+@router.post("/{product_key}/jobs", status_code=202)
 async def create_job(
     product_key: str,
     body: JobCreate,
@@ -274,9 +279,32 @@ async def create_job(
     corr = _correlation(request, x_correlation_id)
     ctx = _auth_ctx(request, product_key, authorization, corr)
     ctx.workspace_id = body.workspace_id
-    result = await invoke_node(ctx, node_key=body.node, input_payload={**body.input, "idempotency_key": body.idempotency_key})
-    return result
-
+    # Async path: persist job then optionally run sync short nodes via jobs.create handler
+    job = get_job_store().create(
+        product=product_key,
+        workspace_id=body.workspace_id,
+        node_key=body.node,
+        input_payload=body.input,
+        idempotency_key=body.idempotency_key,
+    )
+    get_job_store().mark_running(job["job_id"])
+    try:
+        result = await invoke_node(
+            ctx,
+            node_key=body.node,
+            input_payload={**body.input, "idempotency_key": body.idempotency_key},
+        )
+        get_job_store().complete(job["job_id"], result if isinstance(result, dict) else {"result": result})
+    except InvokeError as exc:
+        get_job_store().dead_letter(job["job_id"], exc.code)
+        raise HTTPException(status_code=exc.http_status, detail=exc.as_dict()) from exc
+    fresh = get_job_store().get(job["job_id"], workspace_id=body.workspace_id)
+    return {
+        "accepted": True,
+        "job": fresh,
+        "location": f"/v1/products/{product_key}/jobs/{job['job_id']}?workspace_id={body.workspace_id}",
+        "correlation_id": corr,
+    }
 
 @router.get("/{product_key}/jobs/{job_id}")
 async def get_job(
@@ -325,7 +353,29 @@ async def ingest_event(
     _auth_ctx(request, product_key, authorization, _correlation(request, None))
     envelope = body.model_dump()
     envelope["product"] = product_key
+    # Strip sensitive payloads from durable store copy
+    if body.sensitivity in {"secret", "clinical", "biometric"}:
+        envelope["data"] = {"redacted": True, "sensitivity": body.sensitivity}
     return get_event_store().ingest(envelope)
+
+
+@router.get("/{product_key}/events/stream")
+async def events_stream(
+    product_key: str,
+    request: Request,
+    cursor: int = 0,
+    workspace_id: str | None = None,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Cursor-based event stream (SSE-compatible JSON batch for local/dev)."""
+    _product_or_404(product_key)
+    ctx = _auth_ctx(request, product_key, authorization, _correlation(request, None))
+    if workspace_id and ctx.workspace_id and ctx.workspace_id != workspace_id and "*" not in ctx.grants:
+        raise HTTPException(status_code=403, detail={"code": "denied"})
+    batch = get_event_store().stream_since(product_key, cursor=cursor)
+    if workspace_id:
+        batch["events"] = [e for e in batch["events"] if e.get("workspace_id") in {None, workspace_id}]
+    return batch
 
 
 @router.post("/{product_key}/approvals/{approval_id}/decision")

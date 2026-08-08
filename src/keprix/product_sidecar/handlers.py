@@ -443,3 +443,18 @@ HANDLERS: dict[str, Handler] = {
     "social.oauth.publish": handle_not_configured,
     "ops.engine.probe": handle_ops_probe,
 }
+
+
+async def handle_pack_ping(ctx: RequestContext, payload: dict[str, Any]) -> dict[str, Any]:
+    """Fixture-only node used by foundation isolation packs."""
+    return {
+        "ok": True,
+        "product": ctx.product,
+        "workspace_id": ctx.workspace_id,
+        "message": str(payload.get("message") or "pong"),
+        "correlation_id": ctx.correlation_id,
+    }
+
+
+HANDLERS["pack.ping"] = handle_pack_ping
+

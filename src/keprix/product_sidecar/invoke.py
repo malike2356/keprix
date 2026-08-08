@@ -42,6 +42,17 @@ async def invoke_node(
     if not circuit.allow():
         raise InvokeError(ErrorCode.CIRCUIT_OPEN.value, "circuit open; use product fallback", http_status=503)
 
+    # Hard deny free-form executors
+    lowered = node_key.lower()
+    if any(
+        x in lowered
+        for x in ("shell", "exec", "eval", "python:", "file://", "http://", "https://", "..", "/")
+    ):
+        raise InvokeError(ErrorCode.UNKNOWN_NODE.value, f"unknown node {node_key}", http_status=404)
+
+    if len(str(payload)) > 200_000:
+        raise InvokeError(ErrorCode.VALIDATION.value, "payload too large", http_status=413)
+
     try:
         pack = registry.require(ctx.product)
     except KeyError as exc:
@@ -57,9 +68,16 @@ async def invoke_node(
     if node is None:
         raise InvokeError(ErrorCode.UNKNOWN_NODE.value, f"unknown node {node_key}", http_status=404)
 
-    # Cross-product: never compose Clinicom/Petraclus from carina pack
-    if node.product not in {ctx.product, "carina"} and pack.wrapper_of != "carina":
+    # Cross-product: node must belong to calling product family only
+    allowed_products = {ctx.product}
+    if pack.wrapper_of:
+        allowed_products.add(pack.wrapper_of)
+    if node.product not in allowed_products:
         raise InvokeError(ErrorCode.CROSS_PRODUCT.value, "cross-product composition denied")
+
+    # Sessions cannot widen grants: ignore payload grant overrides
+    if "grants" in payload or "roles" in payload:
+        payload = {k: v for k, v in payload.items() if k not in {"grants", "roles"}}
 
     if node.status == NodeStatus.NOT_CONFIGURED:
         return {
