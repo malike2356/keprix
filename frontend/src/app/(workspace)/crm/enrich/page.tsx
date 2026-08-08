@@ -6,7 +6,9 @@ import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
+import Divider from "@mui/material/Divider";
 import FormControl from "@mui/material/FormControl";
+import Grid from "@mui/material/Grid2";
 import InputLabel from "@mui/material/InputLabel";
 import Link from "@mui/material/Link";
 import MenuItem from "@mui/material/MenuItem";
@@ -15,6 +17,7 @@ import Stack from "@mui/material/Stack";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
@@ -34,6 +37,7 @@ import {
 } from "@/lib/crm-api";
 import { CRM_WORKSPACE, type CrmApproval } from "@/components/crm/types";
 import CrmLicensedEnrichPanel from "@/components/crm/CrmLicensedEnrichPanel";
+import PageHeader from "@/components/ui/PageHeader";
 
 const COLUMN_ROLES = [
   "identity",
@@ -76,6 +80,39 @@ function fillsFromJob(job: SheetEnrichJob | null): Array<Record<string, unknown>
   return Array.isArray(fills) ? (fills as Array<Record<string, unknown>>) : [];
 }
 
+function jobStep(job: SheetEnrichJob | null, uploadId: string | null, pending: boolean): number {
+  if (!job && !uploadId) return 0;
+  if (!job && uploadId) return 1;
+  const status = String(job?.status || "").toLowerCase();
+  if (status === "applied") return 4;
+  if (pending || status.includes("pending") || status.includes("approval")) return 3;
+  if (Object.keys(columnsFromJob(job)).length > 0 || fillsFromJob(job).length > 0) return 2;
+  return 1;
+}
+
+const STEPS = [
+  { id: 0, label: "Upload" },
+  { id: 1, label: "Propose" },
+  { id: 2, label: "Map & review" },
+  { id: 3, label: "Soft Wall" },
+  { id: 4, label: "Applied" },
+] as const;
+
+function MetricTile({ label, value }: { label: string; value: string | number }) {
+  return (
+    <Card variant="outlined" sx={{ height: "100%" }}>
+      <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
+        <Typography variant="caption" color="text.secondary">
+          {label}
+        </Typography>
+        <Typography variant="h5" sx={{ mt: 0.5, fontVariantNumeric: "tabular-nums" }}>
+          {value}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function CrmEnrichPage() {
   const search = useSearchParams();
   const workspaceId = CRM_WORKSPACE;
@@ -110,7 +147,7 @@ export default function CrmEnrichPage() {
     void (async () => {
       try {
         const listed = await listCrmSheetJobs(workspaceId);
-        setRecent(listed.items.slice(0, 8));
+        setRecent(listed.items.slice(0, 12));
       } catch {
         /* ignore list errors on mount */
       }
@@ -133,6 +170,7 @@ export default function CrmEnrichPage() {
   };
   const fills = fillsFromJob(job);
   const warnings = (proposalInner(job)?.warnings as string[] | undefined) || [];
+  const activeStep = jobStep(job, uploadId, Boolean(pendingApproval || approvalFromUrl));
 
   const onUpload = async () => {
     if (!file) {
@@ -181,7 +219,7 @@ export default function CrmEnrichPage() {
       setColumnMap(columnsFromJob(res.enrichment_job));
       setMessage(`Proposal ready (${res.enrichment_job.id})`);
       const listed = await listCrmSheetJobs(workspaceId);
-      setRecent(listed.items.slice(0, 8));
+      setRecent(listed.items.slice(0, 12));
       if (typeof window !== "undefined" && res.enrichment_job.id) {
         const url = new URL(window.location.href);
         url.searchParams.set("job", String(res.enrichment_job.id));
@@ -272,17 +310,59 @@ export default function CrmEnrichPage() {
   };
 
   return (
-    <Stack spacing={2.5}>
-      <CrmLicensedEnrichPanel />
-      <Box>
-        <Typography variant="h5" component="h1" gutterBottom>
-          Enrich
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Upload a spreadsheet, map columns, review blank-cell proposals, Soft Wall approve, then apply
-          fills and optional CRM upsert. Empty cells only; never overwrites existing values by default.
-        </Typography>
-      </Box>
+    <Stack spacing={3}>
+      <PageHeader
+        title="Enrich"
+        description="Fill blank spreadsheet cells and licensed lead fields. Soft Wall gates every write. Existing values are never overwritten by default."
+        breadcrumbs={[
+          { label: "CRM", href: "/crm" },
+          { label: "Enrich" },
+        ]}
+        actions={
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <Button component={NextLink} href="/crm/settings" size="small" variant="outlined">
+              Provider keys
+            </Button>
+            <Button component={NextLink} href="/crm/jobs" size="small" variant="outlined">
+              Jobs
+            </Button>
+            <Button component={NextLink} href="/crm/lists" size="small" variant="outlined">
+              Lists
+            </Button>
+          </Stack>
+        }
+      />
+
+      <Card variant="outlined">
+        <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            flexWrap="wrap"
+            useFlexGap
+            alignItems="center"
+            sx={{ rowGap: 1 }}
+          >
+            {STEPS.map((step, index) => {
+              const done = activeStep > step.id;
+              const current = activeStep === step.id;
+              return (
+                <React.Fragment key={step.id}>
+                  {index > 0 ? (
+                    <Box sx={{ width: 18, height: 2, bgcolor: done || current ? "primary.main" : "divider", display: { xs: "none", sm: "block" } }} />
+                  ) : null}
+                  <Chip
+                    size="small"
+                    label={`${step.id + 1}. ${step.label}`}
+                    color={current ? "primary" : done ? "success" : "default"}
+                    variant={current || done ? "filled" : "outlined"}
+                  />
+                </React.Fragment>
+              );
+            })}
+          </Stack>
+        </CardContent>
+      </Card>
 
       {error ? (
         <Alert severity="error" onClose={() => setError(null)}>
@@ -295,262 +375,355 @@ export default function CrmEnrichPage() {
         </Alert>
       ) : null}
 
-      <Card variant="outlined">
-        <CardContent>
-          <Typography variant="subtitle1" gutterBottom>
-            1. Upload
-          </Typography>
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems="flex-start">
-            <Button variant="outlined" component="label" disabled={busy}>
-              Choose file
-              <input
-                hidden
-                type="file"
-                accept=".csv,.tsv,.xlsx"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
-              />
-            </Button>
-            <Typography variant="body2" color="text.secondary" sx={{ pt: 0.75 }}>
-              {file ? file.name : "CSV, TSV, or XLSX"}
-            </Typography>
-            <Button variant="contained" disabled={busy || !file} onClick={() => void onUpload()}>
-              Upload
-            </Button>
-            <Button
-              variant="contained"
-              color="secondary"
-              disabled={busy || (!uploadId && !job)}
-              onClick={() => void onPropose()}
-            >
-              Propose
-            </Button>
-          </Stack>
-          {uploadId ? (
-            <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
-              upload_id: {uploadId}
-            </Typography>
-          ) : null}
-        </CardContent>
-      </Card>
+      <Box>
+        <Typography variant="overline" color="text.secondary">
+          Sheet preprocess
+        </Typography>
+        <Typography variant="h6" component="h2" sx={{ mt: 0.25, mb: 1.5 }}>
+          Spreadsheet enrich
+        </Typography>
 
-      {job ? (
-        <>
+        <Card
+          variant="outlined"
+          sx={{
+            mb: 2,
+            borderStyle: "dashed",
+            bgcolor: "action.hover",
+          }}
+        >
+          <CardContent>
+            <Stack spacing={1.5}>
+              <Typography variant="subtitle1">1. Upload spreadsheet</Typography>
+              <Typography variant="body2" color="text.secondary">
+                CSV, TSV, or XLSX. After upload, run Propose to survey blank cells and draft a CRM upsert plan.
+              </Typography>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems={{ sm: "center" }}>
+                <Button variant="outlined" component="label" disabled={busy}>
+                  Choose file
+                  <input
+                    hidden
+                    type="file"
+                    accept=".csv,.tsv,.xlsx"
+                    onChange={(e) => setFile(e.target.files?.[0] || null)}
+                  />
+                </Button>
+                <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+                  {file ? file.name : "No file selected"}
+                </Typography>
+                <Button variant="contained" disabled={busy || !file} onClick={() => void onUpload()}>
+                  Upload
+                </Button>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  disabled={busy || (!uploadId && !job)}
+                  onClick={() => void onPropose()}
+                >
+                  Propose
+                </Button>
+              </Stack>
+              {uploadId ? (
+                <Chip size="small" variant="outlined" label={`Upload ready · ${uploadId}`} sx={{ alignSelf: "flex-start" }} />
+              ) : null}
+            </Stack>
+          </CardContent>
+        </Card>
+
+        {!job ? (
           <Card variant="outlined">
             <CardContent>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 1.5 }}>
-                <Chip label={`status: ${job.status || "unknown"}`} size="small" />
-                <Chip label={`type: ${job.sheet_type || "generic"}`} size="small" variant="outlined" />
-                <Chip label={`job: ${job.id}`} size="small" variant="outlined" />
-              </Stack>
-              <Typography variant="subtitle1" gutterBottom>
-                Metrics
-              </Typography>
-              <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
-                <Typography variant="body2">Blank cells: {metrics.blank_cells ?? 0}</Typography>
-                <Typography variant="body2">Proposed fills: {metrics.proposed_fills ?? 0}</Typography>
-                <Typography variant="body2">Filled: {metrics.cells_filled ?? 0}</Typography>
-                <Typography variant="body2">Rows: {metrics.row_count ?? 0}</Typography>
-                <Typography variant="body2">
-                  Cost estimate: {metrics.cost_estimate ?? job.cost_estimate ?? 0}
+              <Stack spacing={1.25} alignItems="flex-start">
+                <Typography variant="subtitle1">No active sheet job</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Upload a file and click Propose to open column mapping, blank-cell review, and Soft Wall apply.
+                  Or reopen a recent job from the table below.
                 </Typography>
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                  <Chip size="small" label="Empty cells only" variant="outlined" />
+                  <Chip size="small" label="Soft Wall required" variant="outlined" />
+                  <Chip size="small" label="Optional CRM upsert" variant="outlined" />
+                </Stack>
               </Stack>
-              {warnings.length > 0 ? (
-                <Box sx={{ mt: 1.5 }}>
-                  {warnings.map((w) => (
-                    <Typography key={w} variant="caption" color="warning.main" display="block">
-                      {w}
-                    </Typography>
-                  ))}
-                </Box>
-              ) : null}
             </CardContent>
           </Card>
+        ) : (
+          <Stack spacing={2}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <Chip label={String(job.status || "unknown")} color="primary" size="small" />
+              <Chip label={String(job.sheet_type || "generic")} size="small" variant="outlined" />
+              <Chip label={`Job ${job.id}`} size="small" variant="outlined" />
+            </Stack>
 
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="subtitle1" gutterBottom>
-                2. Column mapper
+            <Grid container spacing={1.5}>
+              <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+                <MetricTile label="Blank cells" value={metrics.blank_cells ?? 0} />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+                <MetricTile label="Proposed fills" value={metrics.proposed_fills ?? 0} />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+                <MetricTile label="Filled" value={metrics.cells_filled ?? 0} />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+                <MetricTile label="Rows" value={metrics.row_count ?? 0} />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+                <MetricTile label="Cost estimate" value={metrics.cost_estimate ?? job.cost_estimate ?? 0} />
+              </Grid>
+            </Grid>
+
+            {warnings.length > 0 ? (
+              <Alert severity="warning">
+                {warnings.map((w) => (
+                  <Typography key={w} variant="body2">
+                    {w}
+                  </Typography>
+                ))}
+              </Alert>
+            ) : null}
+
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="subtitle1" gutterBottom>
+                  2. Column mapper
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                  Adjust roles, then re-run Propose to lock the schema. Soft Wall apply is still required.
+                </Typography>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Column</TableCell>
+                        <TableCell sx={{ width: { xs: "50%", sm: 280 } }}>Role</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {Object.keys(columnMap).length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={2}>
+                            <Typography color="text.secondary">No columns yet. Run Propose after upload.</Typography>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        Object.entries(columnMap).map(([name, role]) => (
+                          <TableRow key={name} hover>
+                            <TableCell>
+                              <Typography variant="body2" fontWeight={600}>
+                                {name}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <FormControl size="small" fullWidth>
+                                <InputLabel id={`role-${name}`}>Role</InputLabel>
+                                <Select
+                                  labelId={`role-${name}`}
+                                  label="Role"
+                                  value={role}
+                                  onChange={(e) =>
+                                    setColumnMap((prev) => ({ ...prev, [name]: String(e.target.value) }))
+                                  }
+                                >
+                                  {COLUMN_ROLES.map((r) => (
+                                    <MenuItem key={r} value={r}>
+                                      {r}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+                <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
+                  <Button size="small" variant="outlined" disabled={busy || (!uploadId && !job)} onClick={() => void onPropose()}>
+                    Re-propose with map
+                  </Button>
+                </Stack>
+              </CardContent>
+            </Card>
+
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="subtitle1" gutterBottom>
+                  3. Blank report and proposed fills
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                  Blank cells surveyed: {metrics.blank_cells ?? 0}. Values below are review-only until Soft Wall approve.
+                </Typography>
+                {fills.length === 0 ? (
+                  <Alert severity="info" variant="outlined">
+                    No model fills proposed (schema-only analyser). CRM upsert may still create leads from identity
+                    columns when you apply.
+                  </Alert>
+                ) : (
+                  <TableContainer sx={{ maxHeight: 360 }}>
+                    <Table size="small" stickyHeader>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Row</TableCell>
+                          <TableCell>Column</TableCell>
+                          <TableCell>Proposed value</TableCell>
+                          <TableCell>Confidence</TableCell>
+                          <TableCell>Evidence</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {fills.slice(0, 80).map((fill, idx) => (
+                          <TableRow key={`${fill.row_index}-${fill.column}-${idx}`} hover>
+                            <TableCell>{String(fill.row_index)}</TableCell>
+                            <TableCell>{String(fill.column)}</TableCell>
+                            <TableCell>{String(fill.value ?? "")}</TableCell>
+                            <TableCell>
+                              {fill.confidence === undefined || fill.confidence === null
+                                ? "-"
+                                : String(fill.confidence)}
+                            </TableCell>
+                            <TableCell>{String(fill.evidence || "")}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="subtitle1" gutterBottom>
+                  4. Soft Wall apply
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                  Request apply opens Soft Wall. Approve to write fills and optional CRM upsert, or reject to leave
+                  the sheet unchanged.
+                </Typography>
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 1.5 }}>
+                  <Button
+                    variant="contained"
+                    disabled={busy || job.status === "applied"}
+                    onClick={() => void onRequestApply()}
+                  >
+                    Request apply
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    disabled={busy || (!pendingApproval && !approvalFromUrl)}
+                    onClick={() => void onApproveThenApply()}
+                  >
+                    Approve and apply
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="inherit"
+                    disabled={busy || (!pendingApproval && !approvalFromUrl)}
+                    onClick={() => void onReject()}
+                  >
+                    Reject
+                  </Button>
+                  {job.status === "applied" && job.output_path ? (
+                    <Button
+                      component="a"
+                      href={crmSheetDownloadUrl(String(job.id), workspaceId)}
+                      variant="outlined"
+                    >
+                      Download enriched file
+                    </Button>
+                  ) : null}
+                </Stack>
+                {pendingApproval ? (
+                  <Alert severity="warning" sx={{ mb: 1 }}>
+                    Soft Wall pending: {pendingApproval.subject || pendingApproval.id}
+                  </Alert>
+                ) : null}
+                {listLink ? (
+                  <Typography variant="body2">
+                    Resulting list:{" "}
+                    <Link component={NextLink} href={listLink}>
+                      {listLink}
+                    </Link>
+                    {" · "}
+                    <Link component={NextLink} href="/crm/leads">
+                      View leads
+                    </Link>
+                  </Typography>
+                ) : job.status === "applied" ? (
+                  <Typography variant="body2">
+                    <Link component={NextLink} href="/crm/leads">
+                      View leads
+                    </Link>
+                  </Typography>
+                ) : null}
+              </CardContent>
+            </Card>
+          </Stack>
+        )}
+      </Box>
+
+      <Divider />
+
+      <Box>
+        <Typography variant="overline" color="text.secondary">
+          Lead enrichment
+        </Typography>
+        <Typography variant="h6" component="h2" sx={{ mt: 0.25, mb: 1.5 }}>
+          Licensed providers
+        </Typography>
+        <CrmLicensedEnrichPanel />
+      </Box>
+
+      <Card variant="outlined">
+        <CardContent>
+          <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1} sx={{ mb: 1.5 }}>
+            <Box>
+              <Typography variant="subtitle1">Recent sheet jobs</Typography>
+              <Typography variant="body2" color="text.secondary">
+                Reopen a job to continue mapping, Soft Wall, or download.
               </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                Adjust roles then re-run Propose to lock a user schema. Soft Wall apply still required.
-              </Typography>
+            </Box>
+            <Button size="small" component={NextLink} href="/crm/jobs" variant="text">
+              All CRM jobs
+            </Button>
+          </Stack>
+          {recent.length === 0 ? (
+            <Typography color="text.secondary">No enrichment jobs yet. Upload a sheet to start.</Typography>
+          ) : (
+            <TableContainer>
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Column</TableCell>
-                    <TableCell>Role</TableCell>
+                    <TableCell>Job</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell align="right">Open</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {Object.keys(columnMap).length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={2}>
-                        <Typography color="text.secondary">No columns yet.</Typography>
+                  {recent.map((item) => (
+                    <TableRow key={String(item.id)} hover>
+                      <TableCell>
+                        <Typography variant="body2" fontFamily="monospace">
+                          {String(item.id)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip size="small" label={String(item.status || "unknown")} variant="outlined" />
+                      </TableCell>
+                      <TableCell>{String(item.sheet_type || "generic")}</TableCell>
+                      <TableCell align="right">
+                        <Link component={NextLink} href={`/crm/enrich?job=${item.id}`} underline="hover">
+                          Open
+                        </Link>
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    Object.entries(columnMap).map(([name, role]) => (
-                      <TableRow key={name}>
-                        <TableCell>{name}</TableCell>
-                        <TableCell>
-                          <FormControl size="small" fullWidth>
-                            <InputLabel id={`role-${name}`}>Role</InputLabel>
-                            <Select
-                              labelId={`role-${name}`}
-                              label="Role"
-                              value={role}
-                              onChange={(e) =>
-                                setColumnMap((prev) => ({ ...prev, [name]: String(e.target.value) }))
-                              }
-                            >
-                              {COLUMN_ROLES.map((r) => (
-                                <MenuItem key={r} value={r}>
-                                  {r}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
+                  ))}
                 </TableBody>
               </Table>
-            </CardContent>
-          </Card>
-
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="subtitle1" gutterBottom>
-                3. Blank report and proposed fills
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Blank cells surveyed: {metrics.blank_cells ?? 0}. Proposed fills below are review-only until Soft
-                Wall approve.
-              </Typography>
-              {fills.length === 0 ? (
-                <Typography color="text.secondary">
-                  No model fills proposed (schema-only analyser). CRM upsert plan may still create leads from
-                  existing identity columns on apply.
-                </Typography>
-              ) : (
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Row</TableCell>
-                      <TableCell>Column</TableCell>
-                      <TableCell>Proposed value</TableCell>
-                      <TableCell>Confidence</TableCell>
-                      <TableCell>Evidence</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {fills.slice(0, 50).map((fill, idx) => (
-                      <TableRow key={`${fill.row_index}-${fill.column}-${idx}`}>
-                        <TableCell>{String(fill.row_index)}</TableCell>
-                        <TableCell>{String(fill.column)}</TableCell>
-                        <TableCell>{String(fill.value ?? "")}</TableCell>
-                        <TableCell>
-                          {fill.confidence === undefined || fill.confidence === null
-                            ? "-"
-                            : String(fill.confidence)}
-                        </TableCell>
-                        <TableCell>{String(fill.evidence || "")}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="subtitle1" gutterBottom>
-                4. Soft Wall apply
-              </Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 1.5 }}>
-                <Button
-                  variant="contained"
-                  disabled={busy || job.status === "applied"}
-                  onClick={() => void onRequestApply()}
-                >
-                  Request apply
-                </Button>
-                <Button
-                  variant="contained"
-                  color="success"
-                  disabled={busy || (!pendingApproval && !approvalFromUrl)}
-                  onClick={() => void onApproveThenApply()}
-                >
-                  Approve and apply
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="inherit"
-                  disabled={busy || (!pendingApproval && !approvalFromUrl)}
-                  onClick={() => void onReject()}
-                >
-                  Reject
-                </Button>
-                {job.status === "applied" && job.output_path ? (
-                  <Button
-                    component="a"
-                    href={crmSheetDownloadUrl(String(job.id), workspaceId)}
-                    variant="outlined"
-                  >
-                    Download enriched file
-                  </Button>
-                ) : null}
-              </Stack>
-              {pendingApproval ? (
-                <Alert severity="warning" sx={{ mb: 1 }}>
-                  Soft Wall pending: {pendingApproval.subject || pendingApproval.id}
-                </Alert>
-              ) : null}
-              {listLink ? (
-                <Typography variant="body2">
-                  Resulting list:{" "}
-                  <Link component={NextLink} href={listLink}>
-                    {listLink}
-                  </Link>
-                  {" · "}
-                  <Link component={NextLink} href="/crm/leads">
-                    View leads
-                  </Link>
-                </Typography>
-              ) : job.status === "applied" ? (
-                <Typography variant="body2">
-                  <Link component={NextLink} href="/crm/leads">
-                    View leads
-                  </Link>
-                </Typography>
-              ) : null}
-            </CardContent>
-          </Card>
-        </>
-      ) : null}
-
-      <Card variant="outlined">
-        <CardContent>
-          <Typography variant="subtitle1" gutterBottom>
-            Recent sheet jobs
-          </Typography>
-          {recent.length === 0 ? (
-            <Typography color="text.secondary">No enrichment jobs yet.</Typography>
-          ) : (
-            <Stack spacing={0.75}>
-              {recent.map((item) => (
-                <Link
-                  key={String(item.id)}
-                  component={NextLink}
-                  href={`/crm/enrich?job=${item.id}`}
-                  underline="hover"
-                >
-                  {item.id} · {item.status} · {item.sheet_type || "generic"}
-                </Link>
-              ))}
-            </Stack>
+            </TableContainer>
           )}
         </CardContent>
       </Card>

@@ -8,7 +8,9 @@ import os
 import time
 import uuid
 from typing import Any, AsyncIterator
+from urllib.parse import urljoin
 
+import httpx
 from fastapi import APIRouter, Header, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
@@ -26,7 +28,7 @@ from keprix.universal_sidecar.events import (
     get_event_service,
     get_job_service,
 )
-from keprix.universal_sidecar.manifest.validate import export_redacted
+from keprix.universal_sidecar.manifest.validate import diff_manifests, export_redacted, validate_manifest
 from keprix.universal_sidecar.memory import FileIngest, get_memory_service
 from keprix.universal_sidecar.nodes import NodeError, catalog_for_project, invoke_safe_node
 from keprix.universal_sidecar.pairing import WorkloadToken, get_pairing_store
@@ -203,6 +205,14 @@ class OperatorKillSwitchBody(BaseModel):
     engaged: bool
 
 
+class OperatorPairApproveBody(BaseModel):
+    pairing_code: str
+
+
+class TokenRevokeBody(BaseModel):
+    jti: str
+
+
 class PairApproveBody(BaseModel):
     code: str
     admin_actor: str = "admin"
@@ -361,6 +371,50 @@ async def create_operator_pairing_code(
         "scopes": result["requested_scopes"],
         "correlation_id": corr,
     }
+
+
+@router.post("/pair/approve")
+async def approve_operator_pairing_code(
+    body: OperatorPairApproveBody,
+    request: Request,
+    authorization: str | None = Header(default=None),
+    x_correlation_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Approve a one-time code and reveal its workload token once."""
+    corr = _correlation(request, x_correlation_id)
+    user = await _auth_platform_or_sidecar_admin(request, authorization, correlation_id=corr)
+    actor = user.get("id") if isinstance(user, dict) else "sidecar-admin"
+    try:
+        result = get_pairing_store().approve_code(body.pairing_code, admin_actor=str(actor))
+    except KeyError:
+        _raise_error(404, error="unknown pairing code", code="not_found", correlation_id=corr)
+    except ValueError as exc:
+        _raise_error(409, error=str(exc), code=str(exc), correlation_id=corr)
+    return {**result, "correlation_id": corr}
+
+
+@router.post("/tokens/revoke")
+async def revoke_operator_token(
+    body: TokenRevokeBody,
+    request: Request,
+    authorization: str | None = Header(default=None),
+    x_correlation_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    corr = _correlation(request, x_correlation_id)
+    await _auth_platform_or_sidecar_admin(request, authorization, correlation_id=corr)
+    get_pairing_store().revoke(body.jti)
+    return {"ok": True, "jti": body.jti, "correlation_id": corr}
+
+
+@router.get("/pairings/audit")
+async def pairing_audit(
+    request: Request,
+    authorization: str | None = Header(default=None),
+    x_correlation_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    corr = _correlation(request, x_correlation_id)
+    await _auth_platform_or_sidecar_admin(request, authorization, correlation_id=corr)
+    return {"events": get_pairing_store().audit_log()[-100:], "correlation_id": corr}
 
 
 @router.get("/architecture")
@@ -953,8 +1007,7 @@ async def admin_apply_manifest(
 ) -> dict[str, Any]:
     """Apply a validated project manifest into the running registry."""
     corr = _correlation(request, x_correlation_id)
-    if not _dev_open():
-        _auth_admin(authorization, correlation_id=corr)
+    await _auth_platform_or_sidecar_admin(request, authorization, correlation_id=corr)
     manifest = dict(body.manifest or {})
     key = str(manifest.get("project_key") or "")
     if not key:
@@ -974,6 +1027,89 @@ async def admin_apply_manifest(
     except ValueError as exc:
         _raise_error(422, error=str(exc)[:500], code="validation", correlation_id=corr)
     return {**result, "correlation_id": corr}
+
+
+@router.post("/admin/manifests/validate")
+async def validate_operator_manifest(
+    body: ApplyManifestBody,
+    request: Request,
+    authorization: str | None = Header(default=None),
+    x_correlation_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    corr = _correlation(request, x_correlation_id)
+    await _auth_platform_or_sidecar_admin(request, authorization, correlation_id=corr)
+    result = validate_manifest(body.manifest)
+    previous = get_project_registry().get(str(body.manifest.get("project_key") or ""))
+    diff = diff_manifests(previous["manifest"], body.manifest) if previous else None
+    return {**result.as_dict(), "diff": diff, "correlation_id": corr}
+
+
+@router.get("/admin/projects/{project_key}/manifest")
+async def get_operator_manifest(
+    project_key: str,
+    request: Request,
+    authorization: str | None = Header(default=None),
+    x_correlation_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    corr = _correlation(request, x_correlation_id)
+    await _auth_platform_or_sidecar_admin(request, authorization, correlation_id=corr)
+    row = _require_project(project_key, correlation_id=corr)
+    return {
+        "manifest": row["manifest"],
+        "digest": row["digest"],
+        "correlation_id": corr,
+    }
+
+
+@router.delete("/admin/projects/{project_key}")
+async def delete_operator_project(
+    project_key: str,
+    request: Request,
+    authorization: str | None = Header(default=None),
+    x_correlation_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    corr = _correlation(request, x_correlation_id)
+    await _auth_platform_or_sidecar_admin(request, authorization, correlation_id=corr)
+    if not get_project_registry().delete(project_key):
+        _raise_error(404, error="unknown project_key", code="not_found", correlation_id=corr)
+    return {"ok": True, "project_key": project_key, "correlation_id": corr}
+
+
+@router.post("/admin/projects/{project_key}/connectivity-check")
+async def check_operator_project_connectivity(
+    project_key: str,
+    request: Request,
+    authorization: str | None = Header(default=None),
+    x_correlation_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    corr = _correlation(request, x_correlation_id)
+    await _auth_platform_or_sidecar_admin(request, authorization, correlation_id=corr)
+    row = _require_project(project_key, correlation_id=corr)
+    base_url = str(row["manifest"].get("base_url") or "").strip()
+    if not base_url:
+        return {"ok": False, "status": "not_configured", "correlation_id": corr}
+    target = urljoin(base_url.rstrip("/") + "/", "health")
+    started = time.perf_counter()
+    try:
+        async with httpx.AsyncClient(timeout=5.0, follow_redirects=False) as client:
+            response = await client.get(target)
+        latency_ms = round((time.perf_counter() - started) * 1000, 1)
+        return {
+            "ok": response.is_success,
+            "status": "reachable" if response.is_success else "unhealthy",
+            "http_status": response.status_code,
+            "latency_ms": latency_ms,
+            "target": target,
+            "correlation_id": corr,
+        }
+    except httpx.HTTPError as exc:
+        return {
+            "ok": False,
+            "status": "unreachable",
+            "error": type(exc).__name__,
+            "target": target,
+            "correlation_id": corr,
+        }
 
 
 @router.get("/projects/{project_key}/memory/search")

@@ -182,6 +182,7 @@ class PairingStore:
             )
             return {
                 "access_token": token,
+                "jti": claims.jti,
                 "expires_at": claims.exp,
                 "receipt_hash": receipt_hash,
                 "grants": sorted(claims.grants),

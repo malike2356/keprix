@@ -12,7 +12,7 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
-import { ceApi } from "@/lib/ce-api";
+import { ceApi, parseApiErrorMessage } from "@/lib/ce-api";
 
 type SidecarProject = {
   project_key?: string;
@@ -37,7 +37,28 @@ type PairResponse = {
   expiresAt?: string;
   project_key?: string;
   scopes?: string[];
+  jti?: string;
+  access_token?: string;
 };
+
+const STARTER_MANIFEST = JSON.stringify(
+  {
+    contract_version: "1.0.0",
+    project_key: "my-project",
+    display_name: "My Project",
+    deployment: "local-dev",
+    environment: "local",
+    base_url: "http://127.0.0.1:8080",
+    auth: { profile: "bearer", vault_ref: "env:MY_PROJECT_TOKEN" },
+    egress: { allow_loopback: true, allow_private_networks: false, allowed_hosts: [] },
+    capabilities: [{ node: "summarise", version: "1.0.0", scopes: ["invoke:summarise"] }],
+    memory: { mode: "ephemeral", retention_days: 0 },
+    connectors: [],
+    events: [],
+  },
+  null,
+  2,
+);
 
 function projectKeyOf(p: SidecarProject): string {
   return p.project_key || p.projectKey || "";
@@ -70,6 +91,9 @@ export default function SidecarsSettingsPage() {
   const [pairResult, setPairResult] = React.useState<PairResponse | null>(null);
   const [healthByKey, setHealthByKey] = React.useState<Record<string, string>>({});
   const [busyKey, setBusyKey] = React.useState<string | null>(null);
+  const [manifestText, setManifestText] = React.useState(STARTER_MANIFEST);
+  const [manifestReport, setManifestReport] = React.useState<Record<string, unknown> | null>(null);
+  const [approvedToken, setApprovedToken] = React.useState<PairResponse | null>(null);
 
   const projects = data || [];
 
@@ -109,6 +133,110 @@ export default function SidecarsSettingsPage() {
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Pairing failed");
     }
+  }
+
+  function parseManifest(): Record<string, unknown> | null {
+    try {
+      return JSON.parse(manifestText) as Record<string, unknown>;
+    } catch (err) {
+      setActionError(err instanceof Error ? `Invalid JSON: ${err.message}` : "Invalid manifest JSON");
+      return null;
+    }
+  }
+
+  async function validateOrApplyManifest(apply: boolean) {
+    setActionError(null);
+    setMessage(null);
+    const manifest = parseManifest();
+    if (!manifest) return;
+    const path = apply ? "/sidecar/v1/admin/apply" : "/sidecar/v1/admin/manifests/validate";
+    const response = await ceApi(path, {
+      method: "POST",
+      body: JSON.stringify({ manifest, confirm_risky: false }),
+    });
+    const body = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+    setManifestReport(body);
+    if (!response.ok) {
+      setActionError(parseApiErrorMessage(body, `${apply ? "Apply" : "Validation"} failed`));
+      return;
+    }
+    if (apply) {
+      setMessage(`Project ${String(body.project_key || "")} saved and applied.`);
+      await mutate();
+    } else {
+      setMessage(body.ok ? "Manifest is valid." : "Manifest has validation issues.");
+    }
+  }
+
+  async function editProject(key: string) {
+    const response = await ceApi(`/sidecar/v1/admin/projects/${encodeURIComponent(key)}/manifest`);
+    const body = (await response.json().catch(() => ({}))) as { manifest?: Record<string, unknown> };
+    if (!response.ok || !body.manifest) {
+      setActionError(parseApiErrorMessage(body, `Could not load ${key}`));
+      return;
+    }
+    setManifestText(JSON.stringify(body.manifest, null, 2));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function deleteProject(key: string) {
+    if (!window.confirm(`Delete sidecar project ${key}? This does not delete the external application.`)) return;
+    const response = await ceApi(`/sidecar/v1/admin/projects/${encodeURIComponent(key)}`, { method: "DELETE" });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setActionError(parseApiErrorMessage(body, `Could not delete ${key}`));
+      return;
+    }
+    setMessage(`Deleted sidecar project ${key}.`);
+    await mutate();
+  }
+
+  async function checkConnectivity(key: string) {
+    setBusyKey(key);
+    const response = await ceApi(
+      `/sidecar/v1/admin/projects/${encodeURIComponent(key)}/connectivity-check`,
+      { method: "POST" },
+    );
+    const body = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+    setBusyKey(null);
+    if (!response.ok) {
+      setActionError(parseApiErrorMessage(body, `Connectivity check failed for ${key}`));
+      return;
+    }
+    setHealthByKey((previous) => ({ ...previous, [key]: String(body.status || "unknown") }));
+    setMessage(
+      `${key}: ${String(body.status || "unknown")}${body.http_status ? ` (HTTP ${body.http_status})` : ""}`,
+    );
+  }
+
+  async function approvePairing() {
+    const code = pairResult?.pairing_code || pairResult?.pairingCode;
+    if (!code) return;
+    const response = await ceApi("/sidecar/v1/pair/approve", {
+      method: "POST",
+      body: JSON.stringify({ pairing_code: code }),
+    });
+    const body = (await response.json().catch(() => ({}))) as PairResponse;
+    if (!response.ok) {
+      setActionError(parseApiErrorMessage(body, "Pairing approval failed"));
+      return;
+    }
+    setApprovedToken(body);
+    setMessage("Pairing approved. Copy the token now; Keprix will not display it again.");
+  }
+
+  async function revokeApprovedToken() {
+    if (!approvedToken?.jti) return;
+    const response = await ceApi("/sidecar/v1/tokens/revoke", {
+      method: "POST",
+      body: JSON.stringify({ jti: approvedToken.jti }),
+    });
+    if (!response.ok) {
+      setActionError("Token revocation failed.");
+      return;
+    }
+    setApprovedToken(null);
+    setMessage("Workload token revoked.");
   }
 
   async function refreshHealth(key: string) {
@@ -194,6 +322,34 @@ export default function SidecarsSettingsPage() {
 
       <Card variant="outlined" sx={{ mb: 3 }}>
         <CardContent>
+          <Typography variant="h6" gutterBottom>Project manifest</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Create or update a persistent sidecar project. Secret values are rejected; use an env, vault, or secret reference.
+          </Typography>
+          <TextField
+            label="keprix.sidecar.json"
+            value={manifestText}
+            onChange={(event) => setManifestText(event.target.value)}
+            multiline
+            minRows={14}
+            fullWidth
+            sx={{ fontFamily: "monospace" }}
+          />
+          <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap" useFlexGap>
+            <Button variant="outlined" onClick={() => validateOrApplyManifest(false)}>Validate and preview</Button>
+            <Button variant="contained" onClick={() => validateOrApplyManifest(true)}>Save and apply</Button>
+            <Button variant="text" onClick={() => { setManifestText(STARTER_MANIFEST); setManifestReport(null); }}>New manifest</Button>
+          </Stack>
+          {manifestReport ? (
+            <Box component="pre" sx={{ mt: 2, p: 2, bgcolor: "action.hover", overflow: "auto", fontSize: 12 }}>
+              {JSON.stringify(manifestReport, null, 2)}
+            </Box>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      <Card variant="outlined" sx={{ mb: 3 }}>
+        <CardContent>
           <Typography variant="h6" gutterBottom>
             Pairing
           </Typography>
@@ -232,7 +388,19 @@ export default function SidecarsSettingsPage() {
                   Expires: {pairResult.expires_at || pairResult.expiresAt}
                 </Typography>
               ) : null}
+              <Button size="small" variant="contained" sx={{ mt: 1 }} onClick={approvePairing}>
+                Approve and issue token
+              </Button>
             </Box>
+          ) : null}
+          {approvedToken?.access_token ? (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              <Typography variant="body2">Copy this token now. It is shown once.</Typography>
+              <Box component="code" sx={{ display: "block", overflowWrap: "anywhere", my: 1 }}>
+                {approvedToken.access_token}
+              </Box>
+              <Button size="small" color="error" onClick={revokeApprovedToken}>Revoke token</Button>
+            </Alert>
           ) : null}
         </CardContent>
       </Card>
@@ -292,6 +460,10 @@ export default function SidecarsSettingsPage() {
                     >
                       Refresh health
                     </Button>
+                    <Button size="small" variant="outlined" disabled={busy} onClick={() => checkConnectivity(key)}>
+                      Test connection
+                    </Button>
+                    <Button size="small" variant="outlined" onClick={() => editProject(key)}>Edit manifest</Button>
                     <Button
                       size="small"
                       color="error"
@@ -309,6 +481,7 @@ export default function SidecarsSettingsPage() {
                     >
                       Clear kill switch
                     </Button>
+                    <Button size="small" color="error" onClick={() => deleteProject(key)}>Delete</Button>
                   </Stack>
                 </Stack>
               </CardContent>

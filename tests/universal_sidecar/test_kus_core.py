@@ -193,6 +193,62 @@ def test_project_list_accepts_real_keprix_session_when_sidecar_dev_open_is_off(m
     assert response.json()["projects"][0]["project_key"] == "demo"
 
 
+def test_registry_persists_manifests_and_kill_state(tmp_path):
+    from keprix.universal_sidecar.registry import ProjectRegistry
+
+    path = tmp_path / "projects.json"
+    first = ProjectRegistry(path=path)
+    first.apply(minimal_manifest())
+    first.kill("demo", switch="project", value=True)
+
+    restored = ProjectRegistry(path=path)
+    assert restored.get("demo") is not None
+    assert restored.is_killed("demo") is True
+    assert restored.delete("demo") is True
+    assert ProjectRegistry(path=path).get("demo") is None
+
+
+def test_operator_manifest_and_pairing_lifecycle_routes():
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+    manifest = minimal_manifest("lifecycle")
+
+    validated = client.post(
+        "/sidecar/v1/admin/manifests/validate",
+        json={"manifest": manifest},
+    )
+    assert validated.status_code == 200
+    assert validated.json()["ok"] is True
+
+    applied = client.post("/sidecar/v1/admin/apply", json={"manifest": manifest})
+    assert applied.status_code == 200
+    loaded = client.get("/sidecar/v1/admin/projects/lifecycle/manifest")
+    assert loaded.status_code == 200
+    assert loaded.json()["manifest"]["project_key"] == "lifecycle"
+
+    paired = client.post(
+        "/sidecar/v1/pair/codes",
+        json={"project_key": "lifecycle", "requested_scopes": ["discover"]},
+    )
+    approved = client.post(
+        "/sidecar/v1/pair/approve",
+        json={"pairing_code": paired.json()["pairing_code"]},
+    )
+    assert approved.status_code == 200
+    assert approved.json()["access_token"].startswith("kus1.")
+    revoked = client.post(
+        "/sidecar/v1/tokens/revoke",
+        json={"jti": approved.json()["jti"]},
+    )
+    assert revoked.status_code == 200
+    with pytest.raises(ValueError, match="revoked"):
+        get_pairing_store().parse(approved.json()["access_token"])
+
+    deleted = client.delete("/sidecar/v1/admin/projects/lifecycle")
+    assert deleted.status_code == 200
+
+
 def test_public_bind_refuses_without_secure_config(monkeypatch):
     from keprix.universal_sidecar import app as sidecar_app
 
