@@ -1,3 +1,20 @@
 {
-  "schemas": []
+  "contract_version": "2.0",
+  "common": {
+    "provenance": ["source", "confidence", "human_review_required", "clinical_decision_authority"],
+    "safety": ["warnings", "preserved_numbers", "unknown_terms", "glossary"]
+  },
+  "schemas": {
+    "transcribe": {"input": ["audio", "mime_type", "language_hint"], "output": ["text", "detected_language", "confidence", "source"]},
+    "translate": {"input": ["text", "source_language", "target_language"], "output": ["translated_text", "source_language", "target_language", "source"]},
+    "simplify": {"input": ["text", "target_reading_level"], "output": ["simplified_text", "readability_scores", "source"]},
+    "speak": {"input": ["text", "language", "voice", "speed"], "output": ["audio_base64", "format", "duration_seconds", "source"]},
+    "cultural_adapt": {"input": ["text", "source_language", "target_language", "session_context"], "output": ["cultural_notes", "candidate_phrases", "source"]},
+    "teachback_score": {"input": ["patient_response", "key_points"], "output": ["score", "gaps", "follow_up_question", "source"]},
+    "safety_triage_assist": {"input": ["text", "safety_terms"], "output": ["category", "evidence", "assistive_only", "human_review_required", "source"]},
+    "session_digest": {"input": ["context", "session_context"], "output": ["digest", "summary_points", "source"]},
+    "specialty_simplify": {"input": ["text", "specialty_pack_id", "target_reading_level"], "output": ["simplified_text", "medical_terms_preserved", "source"]},
+    "confidence_explain": {"input": ["score", "provider_sources", "pipeline_timing"], "output": ["explanation", "factors", "source"]},
+    "product_help": {"input": ["question", "grounding_corpus", "capabilities_summary"], "output": ["answer", "grounded", "mode", "source"]}
+  }
 }

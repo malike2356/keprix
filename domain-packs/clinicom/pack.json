@@ -1,6 +1,6 @@
 {
   "domain_name": "clinicom",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "jurisdictions": ["GB"],
   "common_tasks": [
     "Transcribe interpreter audio",
@@ -37,6 +37,10 @@
     "low_resource_fallback": "en",
     "voice_friendly": true
   },
-  "data_schemas": [],
-  "tests": ["domain-packs/clinicom/tests/test_clinicom_sidecar.py"]
+  "data_schemas": ["schemas.json"],
+  "tests": [
+    "domain-packs/clinicom/tests/test_clinicom_sidecar.py",
+    "domain-packs/clinicom/tests/test_clinical_safety.py",
+    "domain-packs/clinicom/tests/test_product_v1.py"
+  ]
 }

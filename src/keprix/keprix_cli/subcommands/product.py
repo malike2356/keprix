@@ -25,3 +25,10 @@ def build_product_parser(subparsers: _SubParsersAction, *, cmd_product: Callable
     listing = sub.add_parser("list", help="List registered products")
     listing.add_argument("--json", action="store_true")
     listing.set_defaults(func=cmd_product)
+
+    provision = sub.add_parser("provision", help="Validate and prepare a product integration")
+    provision.add_argument("product_id", choices=("clinicom",))
+    provision.add_argument("--plan", action="store_true", help="Show checks without writing a receipt")
+    provision.add_argument("--status", action="store_true", help="Show the latest provision receipt")
+    provision.add_argument("--json", action="store_true")
+    provision.set_defaults(func=cmd_product)

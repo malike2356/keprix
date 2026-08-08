@@ -1,7 +1,7 @@
 {
   "pack_id": "clinicom",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "title": "Clinicom interpreter sidecar",
-  "summary": "Keprix domain pack with Clinicom /clinicom/tools HTTP contract.",
+  "summary": "Keprix domain pack with Clinicom contract 2.0, safety controls, and product v1 routes.",
   "hub_visibility": "private"
 }

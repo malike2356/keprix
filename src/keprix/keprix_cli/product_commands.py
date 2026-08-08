@@ -40,5 +40,25 @@ def cmd_product(args) -> int:
                 )
         return 0
 
+    if args.product_command == "provision":
+        if args.product_id != "clinicom":
+            print(json.dumps({"error": f"unsupported product: {args.product_id}"}))
+            return 2
+        from keprix.integrations.clinicom_provision import (
+            provision_clinicom,
+            provision_status,
+        )
+
+        receipt = provision_status() if args.status else provision_clinicom(write_receipt=not args.plan)
+        if args.json:
+            print(json.dumps(receipt, indent=2))
+        else:
+            print(f"Clinicom provision status: {receipt['status']}")
+            for check in receipt["checks"]:
+                print(f"- {check['name']}: {check['status']}")
+            if receipt.get("receipt_path"):
+                print(f"Receipt: {receipt['receipt_path']}")
+        return 0 if receipt["status"] in {"ready_for_owner_review", "not_provisioned"} else 1
+
     print(json.dumps({"error": f"unknown product command: {args.product_command}"}))
     return 2

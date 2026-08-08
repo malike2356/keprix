@@ -1,9 +1,14 @@
 {
   "terms": [
-    {
-      "term": "sidecar",
-      "definition": "HTTP service exposing Clinicom AI tool routes outside the main Clinicom app.",
-      "locale": "en"
-    }
+    {"term": "sidecar", "definition": "HTTP service exposing Clinicom AI tool routes outside the main Clinicom app.", "locale": "en"},
+    {"term": "paracetamol", "definition": "Approved medication term; preserve exactly and do not add dosing advice.", "locale": "en", "type": "medication"},
+    {"term": "ibuprofen", "definition": "Approved medication term; preserve exactly and do not add dosing advice.", "locale": "en", "type": "medication"},
+    {"term": "amoxicillin", "definition": "Approved medication term; preserve exactly and do not add dosing advice.", "locale": "en", "type": "medication"},
+    {"term": "salbutamol", "definition": "Approved medication term; albuterol is an approved alias.", "locale": "en", "type": "medication"},
+    {"term": "metformin", "definition": "Approved medication term; preserve exactly and do not add dosing advice.", "locale": "en", "type": "medication"},
+    {"term": "insulin", "definition": "Approved medication term; preserve exactly and do not add dosing advice.", "locale": "en", "type": "medication"},
+    {"term": "negation", "definition": "Words such as no, not, without, denies, and negative for must be preserved.", "locale": "en", "type": "safety"},
+    {"term": "teach-back", "definition": "Communication-quality prompt; it does not determine clinical understanding or capacity.", "locale": "en", "type": "clinical_workflow"},
+    {"term": "human review", "definition": "A clinician or authorised human accepts or rejects a proposal before any durable workflow action.", "locale": "en", "type": "safety"}
   ]
 }

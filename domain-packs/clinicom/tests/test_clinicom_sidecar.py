@@ -30,8 +30,9 @@ def test_health_endpoint() -> None:
     response = client.get("/health")
     assert response.status_code == 200
     body = response.json()
-    assert body["status"] == "ok"
+    assert body["status"] in {"ok", "degraded"}
     assert body["sidecar"] == "keprix-clinicom"
+    assert body["contract_version"] == "2.0"
 
 
 def test_capabilities_endpoint() -> None:
@@ -43,6 +44,9 @@ def test_capabilities_endpoint() -> None:
     tool_names = {tool["name"] for tool in body["tools"]}
     assert "clinicom_session_digest" in tool_names
     assert "clinicom_confidence_explain" in tool_names
+    assert body["profile"] == "keprix"
+    assert body["nodes"]
+    assert all("safety_class" in tool for tool in body["tools"])
 
 
 def test_translate_same_language() -> None:

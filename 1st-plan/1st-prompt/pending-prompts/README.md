@@ -31,9 +31,9 @@ ready to build next.
      Carina bridge, dual-run, biometric assets, publishing and Scout governance.
    - `keprix-sidecar-fleetz/`: bounded telemetry and fuel intelligence with a
      strict product-owned vehicle-control boundary.
-   - `keprix-sidecar-clinicom/`: contract 2.0 parity, clinical safety, shadow
-     validation and owner-approved cutover. Contabo remains on Carina until its
-     final switch prompt passes.
+   - `keprix-sidecar-clinicom/`: CLS-00..04 COMPLETED 2026-08-08 (archived under
+     `../prompts-archive/keprix-sidecar-clinicom/`). CLS-05 remains pending for
+     owner-approved Contabo shadow/cutover. Contabo remains on Carina.
    The product packs may build in parallel after shared runtime primitives are
    accepted. Each product remains its domain data and entitlement authority.
    Carina/Aiva CAS depends on foundation (KSF) and should lead when the goal is

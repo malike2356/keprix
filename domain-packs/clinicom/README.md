@@ -1,6 +1,6 @@
 # Keprix Clinicom sidecar
 
-Interim Keprix-compatible HTTP sidecar for [Clinicom AI](https://clinicomai.com). Exposes the `/clinicom/tools/*` contract Clinicom uses for speech, translation, simplification, and TTS.
+Keprix-compatible HTTP sidecar for [Clinicom AI](https://clinicomai.com). It exposes contract 2.0 `/clinicom/tools/*` routes and additive `/v1/products/clinicom/*` product routes for bounded, proposal-only assistance.
 
 Clinicom is a product surface; this pack implements the sidecar contract without duplicating Clinicom app code.
 
@@ -60,7 +60,7 @@ From Clinicom:
 bash /opt/lampp/htdocs/verlox/clinicom-ai/scripts/start-keprix-clinicom-sidecar.sh
 ```
 
-That script starts this pack on port 3353 and loads the Hermes/Keprix Gemini key from `.access/.gemini-keys-31JUL2026.md` when present.
+That script starts this pack on port 3353. Credentials must stay in environment or approved secret storage and must never be logged.
 
 ## Agent tools
 
@@ -91,13 +91,19 @@ Do not hide unavailable tools behind vague wording. Surface the actual state so 
 
 These mirror the Clinicom sidecar clone contract documented in `clinicom-ai/docs/sidecar-production.md`.
 
+## Safety and ownership
+
+Clinicom owns patient and session truth, consent, roles, EHR, workflow, and durable acceptance. Keprix only returns bounded communication proposals and never diagnoses, prescribes, writes an EHR, or changes the Contabo profile.
+
+See `docs/clinical-safety-hazard-log.md`, `docs/threat-model.md`, and `docs/responsibility-boundary.md`.
+
 ## Tests
 
 From the Keprix repo root:
 
 ```bash
 cd /opt/lampp/htdocs/verlox/keprix
-pytest domain-packs/clinicom/tests/test_clinicom_sidecar.py -q
+pytest domain-packs/clinicom/tests -q
 ```
 
 ## Mounting into the main Keprix API
