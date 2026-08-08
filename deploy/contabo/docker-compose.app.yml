@@ -8,9 +8,12 @@
 #   https://app.keprixai.com/api/  -> keprix-backend:3333 (nginx)
 #
 # Usage (on Contabo, from the Keprix product checkout):
-#   # Ensure .env has POSTGRES_PASSWORD, REDIS_PASSWORD, AUTH_ENABLED, admin creds
-#   docker compose -f deploy/contabo/docker-compose.app.yml up -d --build
+#   docker compose --project-directory /home/malike/apps/keprix \
+#     --env-file /home/malike/apps/keprix/.env \
+#     -f deploy/contabo/docker-compose.app.yml up -d --build
 #
+# Build context and .env paths are relative to --project-directory (repo root).
+
 # Nginx: sync app.keprixai.com.conf + updated keprixai.com.conf into
 #   /home/malike/apps/core.carinaai.uk/docker/nginx/
 # then nginx -t && nginx -s reload on the shared nginx container.
@@ -27,7 +30,7 @@ name: keprix-app
 services:
   keprix-backend:
     build:
-      context: ../..
+      context: .
       dockerfile: docker/Dockerfile.backend
     image: keprix-backend:${KEPRIX_IMAGE_TAG:-latest}
     container_name: keprix-backend
@@ -51,7 +54,7 @@ services:
       - KEPRIX_TRUSTED_PROXIES=${KEPRIX_TRUSTED_PROXIES:-127.0.0.1,::1}
       - KEPRIX_PUBLIC_BASE_URL=${KEPRIX_PUBLIC_BASE_URL:-https://app.keprixai.com}
     env_file:
-      - path: ../../.env
+      - path: .env
         required: false
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -72,7 +75,7 @@ services:
 
   keprix-frontend:
     build:
-      context: ../..
+      context: .
       dockerfile: docker/Dockerfile.frontend
       args:
         BACKEND_REWRITE_URL: http://keprix-backend:3333
@@ -87,7 +90,7 @@ services:
       - HOSTNAME=0.0.0.0
       - PORT=3000
     env_file:
-      - path: ../../.env
+      - path: .env
         required: false
     depends_on:
       keprix-backend:

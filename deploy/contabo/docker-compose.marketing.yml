@@ -7,8 +7,12 @@
 # promoting to the full Contabo app stack, or run app compose alone.
 #
 # Usage (on Contabo, from a Keprix product checkout):
-#   docker compose -f deploy/contabo/docker-compose.marketing.yml up -d --build
+#   docker compose --project-directory /home/malike/apps/keprix \
+#     --env-file /home/malike/apps/keprix/.env \
+#     -f deploy/contabo/docker-compose.marketing.yml up -d --build
 #
+# Build context and .env paths are relative to --project-directory (repo root).
+
 # Then install/reload:
 #   carina/02-backends/core.carinaai.uk/docker/nginx/keprixai.com.conf
 #   carina/02-backends/core.carinaai.uk/docker/nginx/app.keprixai.com.conf
@@ -21,7 +25,7 @@
 services:
   keprix-frontend:
     build:
-      context: ../..
+      context: .
       dockerfile: docker/Dockerfile.frontend
     image: keprix-frontend:${KEPRIX_IMAGE_TAG:-latest}
     container_name: keprix-frontend
@@ -35,7 +39,7 @@ services:
       - HOSTNAME=0.0.0.0
       - PORT=3000
     env_file:
-      - path: ../../.env
+      - path: .env
         required: false
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/"]
