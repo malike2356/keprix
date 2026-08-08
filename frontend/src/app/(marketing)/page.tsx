@@ -5,11 +5,11 @@ import { DeferredMarketingSections } from "@/components/marketing/DeferredMarket
 export const metadata: Metadata = {
   title: "Keprix - The self-mutating agent OS",
   description:
-    "Keprix is the self-hosted, self-mutating agent OS that creates the tools it lacks, tests changes, shows risk, and waits for approval.",
+    "Self-hosted agent OS with Agent OS, Channel Shield, Agentic CRM, Universal Sidecar, Soft Wall, memory, and reviewable self-coding. MIT licensed.",
   openGraph: {
     title: "Keprix - The self-mutating agent OS",
     description:
-      "Keprix evolves by proposing tools, workflows, and code changes, then waiting for operator approval before upgrading itself.",
+      "Create tools on demand, protect inbound channels, run CRM with Soft Wall, and embed via Universal Sidecar. Always with operator approval.",
   },
 };
 

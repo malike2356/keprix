@@ -37,6 +37,18 @@ const ROWS = [
     carina: "Platform-level channel protection patterns for customer-facing agent products",
   },
   {
+    job: "Run CRM and outreach with agents",
+    diy: "Separate CRM, enrichment scripts, and approval spreadsheets",
+    keprix: "Agentic CRM, Soft Wall, Companies House, and outreach in one workspace",
+    carina: "Product CRM surfaces and packs on the shared Carina/Aiva platform",
+  },
+  {
+    job: "Embed the agent beside another product",
+    diy: "Custom microservice and auth glue per product",
+    keprix: "Universal Sidecar contract: health, pairing, jobs, events, kill switch",
+    carina: "Native product surfaces and sidecars across the Carina ecosystem",
+  },
+  {
     job: "Need a tool that does not exist",
     diy: "Write, test, and ship a plugin yourself",
     keprix: "Mutation Engine synthesises; you approve",

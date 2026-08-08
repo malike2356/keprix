@@ -18,11 +18,11 @@ import { ScrollReveal } from "@/components/marketing/ScrollReveal";
 const FAQS = [
   {
     q: "How is Keprix different from n8n or Dify?",
-    a: "n8n and Dify are workflow builders. Keprix is a self-hosted agent OS with a web workspace, Command Center TUI, long-term memory, playbooks, Channel Shield, governance, and reviewable self-coding.",
+    a: "n8n and Dify are workflow builders. Keprix is a self-hosted agent OS with a web workspace, Command Center TUI, Agentic CRM, Universal Sidecar, long-term memory, playbooks, Channel Shield, Soft Wall approvals, governance, and reviewable self-coding.",
   },
   {
     q: "What channels can I connect?",
-    a: "Telegram, Discord, Slack, WhatsApp (via Twilio), email (IMAP/SMTP), webhooks, and the Keprix REST API. Each channel gets its own persona and tool configuration.",
+    a: "Telegram, Discord, Slack, WhatsApp (via Twilio), email (IMAP/SMTP), webhooks, and the Keprix REST API. Each channel gets its own persona and tool configuration. Inbound mail and messaging can sit behind Channel Shield.",
   },
   {
     q: "Is Keprix really free?",
@@ -35,6 +35,14 @@ const FAQS = [
   {
     q: "What does Channel Shield do?",
     a: "Channel Shield routes inbound email and messaging through scanning, policy checks, sandboxing, and quarantine before unsafe content reaches agents or people.",
+  },
+  {
+    q: "What is Agentic CRM?",
+    a: "In-product CRM for pipeline, discovery, enrichment, outreach, Companies House research, Soft Wall approvals, and data-quality tools. Agents assist; high-risk writes stay approve-then-retry.",
+  },
+  {
+    q: "What is the Universal Sidecar?",
+    a: "A public contract so other products (for example Clinicom, Fleetz, or AbbiS packs) can embed Keprix with health, capabilities, pairing, jobs, events, and kill switch without forking the core.",
   },
   {
     q: "What does the Mutation Engine mean?",
@@ -59,6 +67,10 @@ const FAQS = [
   {
     q: "Is there a hosted or cloud version of Keprix?",
     a: "No. Core Keprix is intentionally self-hosted. Vendors may offer managed hosting as a separate product built on the platform.",
+  },
+  {
+    q: "Where can I see every feature?",
+    a: "Open the All capabilities page from the footer, or go to /features for the full catalog by name, description, and use.",
   },
   {
     q: "How do I contribute?",

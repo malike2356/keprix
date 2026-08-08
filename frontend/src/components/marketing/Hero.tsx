@@ -468,7 +468,7 @@ export function Hero() {
                   mb: 1.5,
                 }}
               >
-                Self-hosted. Mutation engine. User approve.
+                Self-hosted. Soft Wall. User approve.
               </Typography>
               <Typography
                 component="h1"
@@ -499,9 +499,8 @@ export function Hero() {
                   maxWidth: 560,
                 }}
               >
-                Keprix evolves by creating new tools, workflows, and code changes, then
-                testing them and waiting for your approval before upgrading itself.
-                Built for people who need more than another AI chat box.
+                Propose tools, protect channels, run CRM, and embed via sidecar; Keprix tests
+                changes and waits for your approval before anything goes live.
               </Typography>
               <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                 <Button

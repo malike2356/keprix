@@ -75,10 +75,10 @@ site/
 frontend/public/guide/
 
 # ---- Planning / UI references (not part of the shipped product) ----
-planning/
-product/
-marketing/
-landing/
+/planning/
+/product/
+/marketing/
+/landing/
 src/keprix/AGENTS.md
 src/keprix/REUSE-NOTICE.md
 scripts/port-openclaw-mobile.py

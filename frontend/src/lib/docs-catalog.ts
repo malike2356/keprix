@@ -60,6 +60,9 @@ export const DOCS_SECTIONS: DocsSection[] = [
       { title: "Compare models", description: "Blind A/B evaluation.", href: doc("features/compare-models") },
       { title: "Opportunity engine", description: "Market research and launch playbooks.", href: doc("opportunity-engine") },
       { title: "Local models", description: "Hardware scan and Ollama.", href: doc("features/local-models") },
+      { title: "Agentic CRM", description: "Pipeline, discovery, outreach, Soft Wall.", href: doc("features/agentic-crm") },
+      { title: "Companies House", description: "UK company lookup and enrichment.", href: doc("features/companies-house") },
+      { title: "Vical booking", description: "Public booking with Soft Wall enroll.", href: doc("features/vical") },
     ],
   },
   {
@@ -75,6 +78,9 @@ export const DOCS_SECTIONS: DocsSection[] = [
       { title: "Agent Apps", description: "Install, run, and schedule manifest-driven apps.", href: doc("features/agent-apps") },
       { title: "MCP servers", description: "External tool connectors.", href: doc("integrations/mcp") },
       { title: "n8n sidecar", description: "Run n8n alongside Keprix via MCP bridge.", href: doc("integrations/n8n-sidecar") },
+      { title: "Universal Sidecar", description: "Product sidecar health, pairing, jobs, kill switch.", href: doc("universal-sidecar") },
+      { title: "Channel Shield", description: "Inbound email and messaging protection.", href: doc("features/channel-shield") },
+      { title: "Soft Wall", description: "Approve-then-retry for high-risk actions.", href: doc("features/soft-wall-safety") },
     ],
   },
   {

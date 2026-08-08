@@ -25,14 +25,17 @@ import { useThemeMode } from "@/components/providers/ThemeRegistry";
 import { fetchBillingStatus } from "@/lib/billing-api";
 
 const FREE_FEATURES = [
-  "Full agent runtime - every feature",
-  "Unlimited conversations",
-  "Unlimited tool synthesis (Mutation engine)",
-  "All 23 LLM provider integrations",
+  "Full agent runtime - every Community feature",
+  "Web workspace, Command Center TUI, CLI, and API",
+  "Agentic CRM, Soft Wall, and Companies House research",
+  "Channel Shield inbound protection",
+  "Universal Sidecar contract for product packs",
+  "Unlimited conversations and tool synthesis (Mutation engine)",
+  "LLM provider routing including Ollama",
   "Telegram, Discord, web UI, and REST API",
-  "Conversation memory and vector search",
-  "Multi-agent teams and playbooks",
-  "Browser automation",
+  "Memory, Brain graph, and RAG pipelines",
+  "Playbooks, Agent Apps, skills, and cron",
+  "Vault, ACLs, and optional governance connectors",
   "Self-hosted on your own hardware",
   "MIT license - commercial use allowed",
 ] as const;

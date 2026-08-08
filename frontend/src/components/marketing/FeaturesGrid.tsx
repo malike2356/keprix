@@ -3,27 +3,44 @@
 import dynamic from "next/dynamic";
 import * as React from "react";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
 import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
-import CodeIcon from "@mui/icons-material/Code";
 import HubIcon from "@mui/icons-material/Hub";
 import MemoryIcon from "@mui/icons-material/Memory";
-import ListAltIcon from "@mui/icons-material/ListAlt";
 import ShieldIcon from "@mui/icons-material/Shield";
+import CodeIcon from "@mui/icons-material/Code";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import ExtensionIcon from "@mui/icons-material/Extension";
+import LockIcon from "@mui/icons-material/Lock";
+import Link from "next/link";
 import {
   MARKETING_EYEBROW_SX,
   MARKETING_HEADING_SX,
   useMarketingColors,
 } from "@/components/marketing/MarketingSection";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
+import { MARKETING_FEATURE_HIGHLIGHTS } from "@/lib/marketing-features-catalog";
 import { useThemeMode } from "@/components/providers/ThemeRegistry";
 
 const DottedSurfaceBackground = dynamic(
   () => import("@/components/ui/dotted-surface-background").then((mod) => mod.DottedSurfaceBackground),
   { ssr: false },
 );
+
+const HIGHLIGHT_ICONS = {
+  tui: CodeIcon,
+  "agent-os": HubIcon,
+  "channel-shield": ShieldIcon,
+  crm: StorefrontIcon,
+  memory: MemoryIcon,
+  mutation: AutoFixHighIcon,
+  sidecar: ExtensionIcon,
+  vault: LockIcon,
+} as const;
+
 
 function GlowCard({
   children,
@@ -126,50 +143,10 @@ export function FeaturesGrid() {
   const { mode } = useThemeMode();
   const isDark = mode === "dark";
 
-  const features = [
-    {
-      icon: CodeIcon,
-      title: "Command Center TUI",
-      body:
-        "Run Keprix from a keyboard-first terminal with live sessions, slash commands, tool cards, review mode, and full diagnostics.",
-      color: "#7c3aed",
-    },
-    {
-      icon: HubIcon,
-      title: "Agent OS runtime",
-      body:
-        "Operate action boards, run ledgers, agent apps, skills, plugins, playbooks, and workflows inside one shared secure self-hosted runtime.",
-      color: "#06b6d4",
-    },
-    {
-      icon: ShieldIcon,
-      title: "Channel Shield layer",
-      body:
-        "Route inbound email and messaging through scanning, policies, sandboxing, quarantine, and safe summaries before anyone acts on them.",
-      color: "#10b981",
-    },
-    {
-      icon: MemoryIcon,
-      title: "Long-term memory store",
-      body:
-        "Agents recall key facts across sessions in a structured store namespaced by workspace with full semantic search available.",
-      color: "#f59e0b",
-    },
-    {
-      icon: ListAltIcon,
-      title: "Playbooks and triggers",
-      body:
-        "Compose visual or YAML workflows, schedule with cron, trigger from webhooks, and review each run through human approvals.",
-      color: "#ef4444",
-    },
-    {
-      icon: AutoFixHighIcon,
-      title: "Reviewable self coding",
-      body:
-        "The agent proposes tools and repo changes; you inspect diffs, tests, and risk before anything ever lands live.",
-      color: "#8b5cf6",
-    },
-  ] as const;
+  const features = MARKETING_FEATURE_HIGHLIGHTS.map((item) => ({
+    ...item,
+    icon: HIGHLIGHT_ICONS[item.id],
+  }));
 
   return (
     <Box
@@ -245,9 +222,10 @@ export function FeaturesGrid() {
               in one runtime.
             </Typography>
             <Typography
-              sx={{ color: c.textSecondary, maxWidth: 480, mx: "auto", fontSize: "1rem", lineHeight: 1.7 }}
+              sx={{ color: c.textSecondary, maxWidth: 520, mx: "auto", fontSize: "1rem", lineHeight: 1.7 }}
             >
-              Self-hosted. MIT licensed. No vendor lock-in.
+              Self-hosted agent OS with CRM, sidecars, Soft Wall approvals, and reviewable self-coding.
+              MIT licensed. No vendor lock-in.
             </Typography>
           </Box>
         </ScrollReveal>
@@ -255,7 +233,7 @@ export function FeaturesGrid() {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr 1fr" },
+            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr 1fr 1fr" },
             gap: 2.5,
           }}
         >
@@ -316,6 +294,23 @@ export function FeaturesGrid() {
             );
           })}
         </Box>
+
+        <ScrollReveal delay={0.2}>
+          <Box sx={{ mt: 6, textAlign: "center" }}>
+            <Button
+              component={Link}
+              href="/features"
+              variant="outlined"
+              size="large"
+              sx={{ textTransform: "none", fontWeight: 600, px: 3 }}
+            >
+              See full capabilities list
+            </Button>
+            <Typography sx={{ mt: 1.5, fontSize: "0.85rem", color: c.textSecondary }}>
+              Every module by name, description, and what it is used for.
+            </Typography>
+          </Box>
+        </ScrollReveal>
       </Container>
     </Box>
   );

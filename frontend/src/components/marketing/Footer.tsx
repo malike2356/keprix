@@ -20,6 +20,7 @@ const FOOTER_COLS = [
     heading: "Product",
     links: [
       { label: "Features", href: "/#features" },
+      { label: "All capabilities", href: "/features" },
       { label: "Integrations", href: "/#integrations" },
       { label: "Pricing", href: "/pricing" },
       { label: "Changelog", href: "/changelog" },
@@ -256,9 +257,10 @@ export function Footer() {
                 <KeprixLogo variant="full" size="sm" onDark />
               </Box>
               <Typography
-                sx={{ fontSize: "0.875rem", color: alpha("#fff", 0.45), lineHeight: 1.75, mb: 2, maxWidth: 260 }}
+                sx={{ fontSize: "0.875rem", color: alpha("#fff", 0.45), lineHeight: 1.75, mb: 2, maxWidth: 280 }}
               >
-                Self-hosted, MIT-licensed AI agent OS. Synthesises new tools on demand and installs them live.
+                Self-hosted, MIT-licensed AI agent OS. Agent OS, Channel Shield, Agentic CRM, Universal
+                Sidecar, Soft Wall, and reviewable self-coding on your infrastructure.
               </Typography>
               <Typography sx={{ fontSize: "0.75rem", color: alpha("#fff", 0.32), lineHeight: 1.6, maxWidth: 280 }}>
                 {DEVELOPER_ECOSYSTEM_LABEL}:{" "}
