@@ -50,7 +50,7 @@ export const zh: Translations = {
       loadingSettings: '正在加载 Hermes 设置',
       loadingSessions: '正在加载最近会话',
       startingDesktopConnection: '正在启动桌面连接',
-      startingHermesDesktop: '正在启动 Hermes 桌面版…'
+      startingHermesDesktop: '正在启动 Keprix 桌面版...'
     },
     errors: {
       backgroundExited: 'Hermes 后台进程已退出。',

@@ -50,7 +50,7 @@ export const ja = defineLocale({
       loadingSettings: 'Hermes の設定を読み込み中',
       loadingSessions: '最近のセッションを読み込み中',
       startingDesktopConnection: 'デスクトップ接続を開始中',
-      startingHermesDesktop: 'Hermes Desktop を起動中…'
+      startingHermesDesktop: 'Keprix Desktop を起動中...'
     },
     errors: {
       backgroundExited: 'Hermes バックグラウンドプロセスが終了しました。',

@@ -50,7 +50,7 @@ export const zhHant = defineLocale({
       loadingSettings: '正在載入 Hermes 設定',
       loadingSessions: '正在載入最近工作階段',
       startingDesktopConnection: '正在啟動桌面連線',
-      startingHermesDesktop: '正在啟動 Hermes Desktop…'
+      startingHermesDesktop: '正在啟動 Keprix Desktop...'
     },
     errors: {
       backgroundExited: 'Hermes 背景程序已結束。',
