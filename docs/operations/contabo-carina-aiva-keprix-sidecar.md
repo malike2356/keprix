@@ -53,6 +53,14 @@ Live Contabo check (2026-08-08): OPS `/api/ops/agent-engine/health` returns
 `engine=keprix`, `status=healthy`, `keprix_primary_invoke_ok=true`. Public `/v1`
 for carina and aiva returns 200. Clinicom stays on Carina.
 
+## Chat primary path (2026-08-08)
+
+Gateway `runAgentTurn` reads Ops workspace/global engine. When engine is `keprix`,
+chat calls `POST /v1/products/{carina|aiva}/invoke` (`agent.run`) first, then falls
+back to native Carina on failure. Break-glass: `CARINA_FORCE_CARINA_ENGINE=true` or
+Ops emergency rollback / Global engine `carina`. Disable primary without rollback:
+`CARINA_KEPRIX_CHAT_PRIMARY=false`.
+
 ## Rollback (Carina/Aiva only)
 
 OPS emergency rollback, or set Global engine to `carina`. Do not run Clinicom
