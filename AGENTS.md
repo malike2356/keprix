@@ -2,6 +2,31 @@
 
 Follow `/opt/lampp/htdocs/verlox/AGENTS.md` for writing style and shared Verlox rules.
 
+## CRITICAL: 3-way deploy (local → git → Contabo)
+
+When you finish building and have deployed or verified locally, complete all three legs in the same session unless the owner says local-only:
+
+1. **Local** - Docker Compose smoke on the workstation.
+2. **Git** - commit in `keprix/` (no secrets) and `git push origin HEAD`.
+3. **Server** - rsync to Contabo `/home/malike/apps/keprix` (preserve remote `.env`), then rebuild:
+
+```bash
+rsync -az --delete \
+  --exclude '.git/' --exclude '.env' --exclude '.env.*' --exclude '!.env.example' \
+  --exclude '.keprix/' --exclude '.keprix-data/' --exclude 'keprix-data/' \
+  --exclude 'node_modules/' --exclude 'frontend/node_modules/' --exclude 'frontend/.next/' \
+  --exclude '.venv/' --exclude 'venv/' --exclude '__pycache__/' \
+  /opt/lampp/htdocs/verlox/keprix/ \
+  malike@80.190.81.208:/home/malike/apps/keprix/
+
+ssh malike@80.190.81.208 'cd /home/malike/apps/keprix && docker compose \
+  --project-directory /home/malike/apps/keprix \
+  --env-file /home/malike/apps/keprix/.env \
+  -f deploy/contabo/docker-compose.app.yml up -d --build'
+```
+
+Verify `https://app.keprixai.com/`, `/api/health`, `https://keprixai.com/`, and `https://carinaai.uk/` return HTTP 200. Contabo checkout is an rsync mirror, not a git pull. Full note: `shared/workspace-governance/THREE-WAY-DEPLOY.md` and `docs/operations/keprixai-com-origin.md`.
+
 ## Clinicom Contabo note
 
 Contabo Clinicom (`clinicomai.com`) does **not** run on Keprix yet. Live path is Carina. When Keprix is uploaded, operators flip with `clinicom-ai/deploy/contabo-temp/switch-sidecar.sh keprix` (compose profile `keprix`). Do not treat Contabo Clinicom as Keprix-backed until that switch is done. See `shared/workspace-governance/CLINICOM-CONTABO-SIDECAR.md`.

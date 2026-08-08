@@ -110,6 +110,10 @@ Expect apex/app/carina `200`, api health `200`.
 | Full | Shared `carinaai.uk` origin cert (current Clinicom-style) is enough |
 | Full (strict) | Need a cert whose SAN includes `keprixai.com` / `app.keprixai.com` |
 
+## 3-way deploy reminder
+
+Coding agents: after local build/smoke, commit + push `keprix/` then rsync + Contabo app compose rebuild. Do not leave changes local-only. Canonical: `shared/workspace-governance/THREE-WAY-DEPLOY.md`.
+
 ## Owner checklist
 
 - [x] Marketing apex `https://keprixai.com/` -> 200
