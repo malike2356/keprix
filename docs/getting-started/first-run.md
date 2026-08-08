@@ -1,51 +1,77 @@
 # First run
 
-After [Quickstart](quickstart.md), the web UI guides first-time setup.
+After [Install](install.md) (CLI / TUI) or [Quickstart Option B](quickstart.md) (Docker).
 
-## Wizard steps
+## 1. LLM key
 
-1. **Instance name** and public URL (used in emails and Scout enrollment)
-2. **Admin account** with password (shown once; store securely)
-3. **LLM provider** selection and API key
-4. **Optional channels** (Telegram, Discord) if configured in `.env`
+Set at least one of `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY`:
 
-CLI alternative:
+- **Docker:** put the key in `.env` (copy from `.env.example`) before or after `docker compose ... up`
+- **CLI:** enter a provider key during `keprix setup`, or set the same variables in the environment used by the API process
 
-```bash
-python3 -m keprix.keprix_cli.main setup
-```
+Leave unused provider keys empty. Do not paste real secrets into docs or tickets.
 
-API endpoint (when enabled): `POST /api/setup/wizard`
+## 2. Admin / setup
 
-## Developer identity
-
-If you are the machine owner, run:
+**CLI (preferred):**
 
 ```bash
-keprix init
+keprix setup
 ```
 
-This enables developer mode locally. See [Developer identity](../configuration/developer-identity.md).
+That wizard creates the admin account, confirms the LLM provider, and can configure optional channels. Fallback if the console entry is unavailable: `python3 -m keprix.keprix_cli.main setup`, or `python3 scripts/wizard.py` from a full checkout.
+
+**Docker UI:** open `http://localhost:3000` and complete the wizard (instance name, admin password, provider, optional Telegram / Discord). After **Finish setup**, use **Chat** in the sidebar.
+
+API endpoint when enabled: `POST /api/setup/wizard`. Status: `GET /api/setup/status` (shared with the web onboarding checklist).
+
+## 3. Open the product
+
+**TUI:**
+
+```bash
+keprix tui
+```
+
+If the API is not already running:
+
+```bash
+keprix start --host 127.0.0.1 --port 3333
+keprix tui
+```
+
+Use `keprix tui --help` for session resume, model override, API URL, bearer token, and mouse capture. The TUI can show a minimal provider form when unconfigured; use `/setup` or `/setup model` for the full CLI wizard.
+
+**Web UI:** after Compose is up, open `http://localhost:3000`. After sign-in, the workspace is at `/workspace`.
+
+## 4. Optional Telegram / Discord
+
+Configure channels in `keprix setup`, the Docker wizard, or `.env` (see `.env.example`). Details: [Messaging](../features/messaging.md).
 
 ## Verify
 
 ```bash
 curl -s http://127.0.0.1:3333/api/health
+```
+
+Expect JSON with a status field when the API is up. From a checkout you can also run:
+
+```bash
 bash scripts/check-health.sh
 ```
 
-Open the workspace at `/workspace` after signing in.
+## Developer identity (optional)
 
-## TUI path (skipped CLI setup)
-
-If you launch chat before running the full wizard:
+If you are the machine owner and want local developer mode:
 
 ```bash
-keprix start
-keprix tui
-# or: keprix --tui   (opens Textual TUI in setup mode when unconfigured)
+keprix init
 ```
 
-The TUI shows a minimal provider form. Use `/setup` or `/setup model` for the full CLI wizard.
+This is secondary to normal setup. See [Developer identity](../configuration/developer-identity.md).
 
-Status API: `GET /api/setup/status` (shared with the web onboarding checklist).
+## Related
+
+- [Install](install.md)
+- [Quickstart](quickstart.md)
+- [Manual install (for developers)](manual-install.md)

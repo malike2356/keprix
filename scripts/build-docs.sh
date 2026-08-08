@@ -7,19 +7,22 @@ cd "$ROOT"
 
 if [[ -x "$ROOT/.venv/bin/python" ]]; then
   PYTHON="$ROOT/.venv/bin/python"
-  PIP="$ROOT/.venv/bin/pip"
 else
   PYTHON="python3"
-  PIP="pip"
 fi
 
 bash "$ROOT/scripts/generate-docs.sh"
 
-"$PIP" install -q \
+"$PYTHON" -m pip install -q \
   mkdocs \
   mkdocs-material \
   mkdocs-minify-plugin \
   mkdocs-git-revision-date-localized-plugin
 
-"$PYTHON" -m mkdocs build -f "$ROOT/mkdocs.yml"
+# Prefer non-strict for CI friendliness; set KEPRIX_MKDOCS_STRICT=1 to fail on warnings.
+MKDOCS_ARGS=(-f "$ROOT/mkdocs.yml")
+if [[ "${KEPRIX_MKDOCS_STRICT:-0}" == "1" ]]; then
+  MKDOCS_ARGS+=(--strict)
+fi
+"$PYTHON" -m mkdocs build "${MKDOCS_ARGS[@]}"
 echo "Built frontend/public/guide/"

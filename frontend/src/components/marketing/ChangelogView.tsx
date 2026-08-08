@@ -20,7 +20,7 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { alpha } from "@mui/material/styles";
 import type { ChangelogRelease } from "@/lib/changelog";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
-import { getMarketingColors } from "@/components/marketing/marketing-section";
+import { getMarketingColors, MARKETING_MONO_FONT } from "@/components/marketing/marketing-section";
 import { useThemeMode } from "@/components/providers/ThemeRegistry";
 
 const DottedSurfaceBackground = dynamic(
@@ -284,7 +284,7 @@ export function ChangelogView({ releases }: ChangelogViewProps) {
                                   fontWeight: 800,
                                   letterSpacing: "-0.02em",
                                   color: c.textPrimary,
-                                  fontFamily: "monospace",
+                                  fontFamily: MARKETING_MONO_FONT,
                                   mb: 0.5,
                                 }}
                               >

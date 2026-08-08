@@ -15,9 +15,10 @@ type CalendarDayViewProps = {
   anchor: Date;
   events: CalendarEvent[];
   onSelectEvent?: (event: CalendarEvent) => void;
+  onSelectSlot?: (day: Date, hour: number) => void;
 };
 
-export default function CalendarDayView({ anchor, events, onSelectEvent }: CalendarDayViewProps) {
+export default function CalendarDayView({ anchor, events, onSelectEvent, onSelectSlot }: CalendarDayViewProps) {
   const dayEvents = eventsForDay(events, anchor);
   const timedEvents = dayEvents.filter((event) => !event.all_day);
   const allDayEvents = dayEvents.filter((event) => event.all_day);
@@ -85,7 +86,17 @@ export default function CalendarDayView({ anchor, events, onSelectEvent }: Calen
 
         <Box sx={{ position: "relative", borderLeft: 1, borderColor: "divider" }}>
           {HOURS.map((hour) => (
-            <Box key={hour} sx={{ height: 48, borderBottom: 1, borderColor: "action.hover" }} />
+            <Box
+              key={hour}
+              onClick={() => onSelectSlot?.(anchor, hour)}
+              sx={{
+                height: 48,
+                borderBottom: 1,
+                borderColor: "action.hover",
+                cursor: onSelectSlot ? "pointer" : "default",
+                "&:hover": onSelectSlot ? { bgcolor: "action.hover" } : undefined,
+              }}
+            />
           ))}
 
           {timedEvents.map((event) => {

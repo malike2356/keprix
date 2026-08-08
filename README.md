@@ -1,124 +1,114 @@
 # Keprix
 
-Path: `/opt/lampp/htdocs/verlox/keprix` (own git).
-Parent workspace map: [../README.md](../README.md).
-
 [![CI](https://github.com/malike2356/keprix/actions/workflows/ci.yml/badge.svg)](https://github.com/malike2356/keprix/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/malike2356/keprix)](https://github.com/malike2356/keprix/releases)
 
-**Keprix** is a self-hosted AI agent OS. Run agents, playbooks, tools, memory, Channel Shield, and workflows on your own infrastructure with a full web workspace, terminal Command Center, REST API, and optional mobile client.
+CI and Release badges resolve for anonymous users after the GitHub repository is public.
 
-## What you get
+**Keprix** is a self-hosted AI agent OS. Community Edition is MIT-licensed. Run agents, tools, memory, a Command Center TUI, and a web workspace on your own infrastructure. A mutation engine can propose tool and skill changes with human approval. Channel Shield and a vault/credential layer protect inbound channels and secrets.
 
-| Component | Description |
-| --- | --- |
-| **Workspace UI** | Next.js app: chat, documents, tasks, playbooks, agent apps, settings |
-| **Command Center TUI** | Textual terminal UI with chat, sessions, slash commands, runtime timeline, tool cards, debug overlay, and review mode |
-| **Agent runtime** | Python backend (FastAPI): LLM routing, tools, memory, MCP, cron |
-| **Mutation engine** | Keprix-only self-improvement loop for tools and skills |
-| **Playbooks** | Visual and YAML workflows with runs, approvals, and schedules |
-| **Agent Apps** | Manifest-driven apps from the marketplace (webhooks, billing hooks) |
-| **Channel Shield** | Inbound email and messaging protection with scanning, quarantine, and policy hooks |
-| **Security layer** | Vault, credential proxy, review gateway, ACLs, governance, audit logs, and Scout integration |
-| **Deploy** | Docker Compose stack (Postgres, Redis, ChromaDB) |
+## Quick Install
 
-## Quick start (Docker)
+Primary path (Linux, macOS, WSL2):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
+```
+
+Identical to `scripts/install-curl.sh`. Requires a **public** GitHub repo; until then clone and run `bash scripts/install.sh` from the checkout. See [docs/operations/public-github-checklist.md](docs/operations/public-github-checklist.md).
+
+Then:
+
+```bash
+hash -r   # or open a new shell so ~/.local/bin is on PATH
+keprix --version
+keprix setup
+keprix tui
+```
+
+Default home: `~/.keprix` (code at `~/.keprix/keprix`). Guide: [docs/getting-started/install.md](docs/getting-started/install.md).
+
+Alternatives: pipx from git (see install.md); from a checkout, `pipx install '.[tui]' --force`.
+
+## Full stack (Docker)
+
+Secondary path for web UI + API + databases:
 
 ```bash
 git clone https://github.com/malike2356/keprix.git
 cd keprix
 cp .env.example .env
-# Set at least one LLM key in .env (ANTHROPIC_API_KEY, OPENAI_API_KEY, or GEMINI_API_KEY)
+# Set at least one LLM key
 docker compose -f docker/docker-compose.yml up -d --build
 ```
 
-Open **http://localhost:3000** for the UI. API health: `curl -s http://127.0.0.1:3333/api/health`
+UI: http://localhost:3000; health: `curl -s http://127.0.0.1:3333/api/health`
 
-Full install guide: [docs/getting-started/quickstart.md](docs/getting-started/quickstart.md)
+More: [docs/getting-started/quickstart.md](docs/getting-started/quickstart.md)
 
-## Local CLI install
+## What you get
 
-For a workstation install with the packaged command:
-
-```bash
-pipx install '.[tui]' --force
-keprix --version
-keprix tui --help
-```
-
-See [docs/getting-started/install.md](docs/getting-started/install.md).
-
-## Manual install (development)
-
-```bash
-bash scripts/install.sh
-source .venv/bin/activate
-```
-
-See [docs/community/contributing.md](docs/community/contributing.md) for backend, frontend, and test commands.
+| Component | Description |
+| --- | --- |
+| Workspace UI | Next.js: chat, documents, tasks, playbooks, agent apps, settings |
+| Command Center TUI | Textual terminal UI: chat, sessions, slash commands, tool cards, review |
+| Agent runtime | FastAPI backend: LLM routing, tools, memory, MCP, cron |
+| Mutation engine | Self-improvement loop for tools and skills (human approval) |
+| Playbooks | Visual and YAML workflows with runs, approvals, schedules |
+| Channel Shield | Inbound email/messaging protection, quarantine, policy hooks |
+| Security | Vault, credential proxy, review gateway, ACLs, audit, Scout hooks |
+| Deploy | Docker Compose (Postgres, Redis, ChromaDB) |
 
 ## Repository layout
 
 | Path | Purpose |
 | --- | --- |
-| `src/keprix/` | Python backend, CLI, agent runtime, API |
+| `src/` | Python backend, CLI, agent runtime, API |
 | `frontend/` | Next.js workspace and marketing shell |
-| `docker/` | Production Docker images and Compose |
-| `config/` | Runtime YAML (agent apps, billing, legal text) |
-| `migrations/` | Alembic database migrations |
-| `docs/` | Operator and developer documentation (MkDocs) |
+| `docker/` | Images and Compose stack |
+| `docs/` | Operator and developer docs (MkDocs) |
 | `tests/` | Pytest suite |
-| `evals/` | Eval suites and benchmark fixtures |
+| `config/` | Runtime YAML samples |
+| `migrations/` | Alembic migrations |
 | `domain-packs/` | Bundled domain skill packs |
-| `mobile/` | Android client (optional) |
-| `ui/design-system/` | Design tokens consumed by the frontend |
-| `keprix-data/` | Local runtime data (SQLite/JSON; do not commit secrets). In this workspace it resolves to the top-level `../keprix-data` store via symlink |
-| `apps-on-keprix/` | Small Keprix-built app notes / retired surfaces |
-| `1st-plan/` | Active prompts and light planning only |
+| `scripts/` | Installers and ops helpers |
+| `examples/` | Sample usage |
+| `evals/` | Eval suites and fixtures |
+| `mobile/` | Optional Android client |
+| `sdk/`, `keprix_sdk/` | SDK surfaces |
+| `packages/`, `apps/` | Workspace packages and app services |
+| `apps-on-keprix/` | On-Keprix app notes / marketplace surfaces |
+| `keprix-proxy/` | Credential proxy |
+| `deploy/` | Deploy helpers |
 
-Large competitor research clones and UI/pitch dumps were moved out of this tree to `../archive/keprix-wip-bakups/` (see `1st-plan/MOVED-TO-BACKUP.txt`).
-
-## Architecture boundary
-
-Keprix keeps a stable core engine and extends it with product modules. Core runtime areas such as the agent loop, TUI, tools, memory, provider routing, sessions, and CLI dispatch should stay generic. Product areas such as Agent OS, Channel Shield, billing, Scout, agent apps, workflows, and admin dashboards extend core through registries, adapters, config, feature flags, and hooks.
-
-See [Core and product boundary](docs/architecture/core-product-boundary.md).
+`keprix-data/` is local runtime data (gitignored); do not commit secrets.
 
 ## Documentation
 
 | Topic | Link |
 | --- | --- |
-| Full product map | [docs/features/full-product-map.md](docs/features/full-product-map.md) |
+| Install | [docs/getting-started/install.md](docs/getting-started/install.md) |
 | Quickstart | [docs/getting-started/quickstart.md](docs/getting-started/quickstart.md) |
-| Features | [docs/index.md](docs/index.md) |
+| Docs index | [docs/index.md](docs/index.md) |
 | Terminal UI | [docs/features/tui.md](docs/features/tui.md) |
 | REST API | [docs/reference/api.md](docs/reference/api.md) |
 | Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Security | [SECURITY.md](SECURITY.md) |
+| Licence | [LICENSE](LICENSE) |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |
 
-Browse locally: `bash scripts/serve-docs.sh` then open http://127.0.0.1:8000
+Local MkDocs: `bash scripts/serve-docs.sh` then open http://127.0.0.1:8000
 
-## Related projects
+Related products (separate sites and licences): [docs/community/related-projects.md](docs/community/related-projects.md)
 
-Keprix CE is maintained alongside other products by the same developer. They are separate products with their own sites and licences:
+## Contributing
 
-| Product | Site |
-| --- | --- |
-| Keprix (this repo) | [GitHub](https://github.com/malike2356/keprix) |
-| Carina (AI agent platform) | [carinaai.uk](https://carinaai.uk) |
-| Aiva (managed AI workers) | [hireaiva.co.uk](https://hireaiva.co.uk) |
-| Scout (governance console) | [labyrinthscout.com](https://labyrinthscout.com) |
-| Propreneur (property investor OS) | [propreneur.uk](https://propreneur.uk) |
-| TuinApp (workforce SaaS) | [tuinapp.uk](https://tuinapp.uk) |
-| PropCalc (property calculators) | [propcalc.uk](https://propcalc.uk) |
-
-Details: [docs/community/related-projects.md](docs/community/related-projects.md)
+See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/community/contributing.md](docs/community/contributing.md).
 
 ## Licence
 
-MIT. See [LICENSE](LICENSE). Third-party notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+MIT Community Edition. See [LICENSE](LICENSE). Third-party notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Self-host on your own infrastructure.
 
 ## Contact
 

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { ceApi } from "@/lib/ce-api";
 
 type PlanRow = {
@@ -54,9 +55,9 @@ export default function SdkPlansPage() {
                 {plan.status} · {plan.created_at || "unknown time"}
                 {plan.requires_confirmation ? " · confirmation required" : ""}
               </div>
-              <pre className="mt-2 overflow-x-auto rounded bg-muted p-2 text-xs">
-                {JSON.stringify(plan.plan?.steps || [], null, 2)}
-              </pre>
+              <div className="mt-2">
+                <StructuredDataView value={plan.plan?.steps || []} />
+              </div>
             </li>
           ))}
           {!plans.length ? <li>No plans yet.</li> : null}

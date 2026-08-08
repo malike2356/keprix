@@ -9,7 +9,20 @@ permissions:
   packages: write
 
 jobs:
+  public-gtm-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Public GTM gate (required for published releases)
+        env:
+          # Release must not claim public GTM without public GitHub.
+          # Private quality gates stay a pre-release local/CI obligation (see readiness.md).
+          KEPRIX_PUBLIC_GTM_SKIP_PRIVATE: "1"
+          KEPRIX_SKIP_DOMAIN_CHECK: "1"
+        run: bash scripts/check-public-gtm-gate.sh
+
   test:
+    needs: public-gtm-gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

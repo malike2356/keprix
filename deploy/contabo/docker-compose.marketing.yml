@@ -1,0 +1,52 @@
+# Contabo marketing-only frontend for keprixai.com (apex).
+# Joins external `proxy` network so shared Carina nginx can reach keprix-frontend.
+# Does NOT bind host 80/443. Does NOT require keprix-backend.
+#
+# Product workspace/API: use docker-compose.app.yml (app.keprixai.com).
+# That compose reuses container name keprix-frontend; stop this file first when
+# promoting to the full Contabo app stack, or run app compose alone.
+#
+# Usage (on Contabo, from a Keprix product checkout):
+#   docker compose -f deploy/contabo/docker-compose.marketing.yml up -d --build
+#
+# Then install/reload:
+#   carina/02-backends/core.carinaai.uk/docker/nginx/keprixai.com.conf
+#   carina/02-backends/core.carinaai.uk/docker/nginx/app.keprixai.com.conf
+# Verify:
+#   curl -fsS -o /dev/null -w '%{http_code}\n' https://keprixai.com/
+#   curl -fsS -o /dev/null -w '%{http_code}\n' https://carinaai.uk/
+#
+# Full runbook: docs/operations/keprixai-com-origin.md
+
+services:
+  keprix-frontend:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile.frontend
+    image: keprix-frontend:${KEPRIX_IMAGE_TAG:-latest}
+    container_name: keprix-frontend
+    restart: unless-stopped
+    # Localhost-only host publish for debug; nginx uses Docker DNS on `proxy`.
+    ports:
+      - "127.0.0.1:13000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=
+      - NEXT_PUBLIC_CE_API_URL=
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+    env_file:
+      - path: ../../.env
+        required: false
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
+    name: ${KEPRIX_CONTABO_PROXY_NETWORK:-proxy}

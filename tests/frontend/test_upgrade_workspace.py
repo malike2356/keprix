@@ -53,3 +53,13 @@ def test_settings_hub_links_upgrade() -> None:
     settings = (ROOT / "frontend/src/app/(workspace)/settings/page.tsx").read_text(encoding="utf-8")
     assert "Keprix upgrades" in settings
     assert 'href: "/settings/upgrade"' in settings
+
+
+def test_upgrade_settings_page_is_not_stub() -> None:
+    page = (ROOT / "frontend/src/app/(workspace)/settings/upgrade/page.tsx").read_text(encoding="utf-8")
+    assert "This page is being rebuilt" not in page
+    assert "Notification preferences" in page
+    assert "fetchUpgradeStatus" in page
+    assert "saveUpgradePreferences" in page
+    assert "UpgradeWizardDialog" in page
+    assert "Check for updates" in page

@@ -18,7 +18,6 @@ const nextConfig: NextConfig = {
       { source: "/rag-pipeline", destination: "/data?tab=rag", permanent: false },
       { source: "/playbook", destination: "/data?tab=models", permanent: false },
       { source: "/ingest/video", destination: "/data?tab=video", permanent: false },
-      { source: "/analytics", destination: "/data?tab=analytics", permanent: false },
       { source: "/usage", destination: "/data?tab=usage", permanent: false },
       { source: "/observability", destination: "/data?tab=observability", permanent: false },
     ];
@@ -33,6 +32,14 @@ const nextConfig: NextConfig = {
       {
         source: "/api/:path*",
         destination: `${base}/api/:path*`,
+      },
+      {
+        source: "/sidecar/:path*",
+        destination: `${base}/sidecar/:path*`,
+      },
+      {
+        source: "/carina/:path*",
+        destination: `${base}/carina/:path*`,
       },
       { source: "/admin", destination: "/dashboard" },
       { source: "/admin/dashboard", destination: "/dashboard" },

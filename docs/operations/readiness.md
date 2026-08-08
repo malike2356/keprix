@@ -58,10 +58,30 @@ bash scripts/check-private-ship-gate.sh
 
 That script is the private ship gate (architecture, auth/billing focus, TUI parity, frontend typecheck, and related smoke). It may be added or updated by a sibling prompt; when present, run it before declaring a private cut ready.
 
-Package version for the current private ship target is **0.16.0** (`pyproject.toml`). See [CHANGELOG](../../CHANGELOG.md).
+## Public GTM gate
+
+Before calling Keprix **public GTM ready**, run:
+
+```bash
+bash scripts/check-public-gtm-gate.sh
+```
+
+This gate fail-closes until anonymous GitHub is reachable, forbids workspace abs paths and historical wrong-domain marketing placeholders on the ship face, checks installer syntax and PyPI honesty, reuses the private ship gate, and verifies marketing install snippets. Soft skips:
+
+| Env | Effect |
+| --- | --- |
+| `KEPRIX_SKIP_DOMAIN_CHECK=1` | Skip `https://keprixai.com/` only while Contabo origin is intentionally deferred |
+| `KEPRIX_PUBLIC_GTM_SKIP_PRIVATE=1` | Surface-only preview (CI); do not use for sign-off |
+| `KEPRIX_PYPI_PUBLISHED=1` | After owner PyPI upload (honesty script) |
+
+CI runs a surface preview; after publicize, keep the job hard-failing on regressions (drop `continue-on-error` when green). Release / public sign-off should run the full gate (no `KEPRIX_PUBLIC_GTM_SKIP_PRIVATE`) when claiming READY. Sign-off: [Public GTM sign-off](../architecture/public-gtm-signoff.md).
+
+Package version for the current private ship target is **0.16.0** (`pyproject.toml`). See [Changelog](../reference/changelog.md).
 
 ## Related
 
+- [keprixai.com Contabo origin](keprixai-com-origin.md)
+- [Public GitHub checklist](public-github-checklist.md)
 - [VPS deploy](vps-deploy.md)
 - [Hardening](../security/hardening.md)
 - [Backup](backup.md)

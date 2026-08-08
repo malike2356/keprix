@@ -41,8 +41,13 @@ Require clinical sign-off before new domain pack versions activate (DCB0160 / IE
 - Approver reviews pending installs at `/packs/{pack_id}/gate`
 - Notifications sent to workspace inbox
 
+## Tool ACL
+
+Day-2 product and resource ACL: workspace **Admin > Tool ACL** (`/admin/tool-acl`).
+See [Tool ACL](../features/tool-acl.md).
+
 ## Related
 
 - [Scout integration](../integrations/scout.md)
 - [Hub and domain packs](../features/hub-and-packs.md)
-- [Security architecture](../security/architecture.md)
+- [Security architecture](architecture.md)

@@ -166,6 +166,17 @@ export async function fetchUpgradePreferences(): Promise<UpgradeAlertPreferences
   return payload.preferences;
 }
 
+export async function fetchUpgradeHistory(): Promise<Record<string, unknown>> {
+  const response = await ceApi("/api/keprix/upgrade/history");
+  return parseJson(response, "Failed to load upgrade history");
+}
+
+export async function fetchUpgradeChangelog(target?: string): Promise<Record<string, unknown>> {
+  const query = target ? `?target=${encodeURIComponent(target)}` : "";
+  const response = await ceApi(`/api/keprix/upgrade/changelog${query}`);
+  return parseJson(response, "Failed to load upgrade changelog");
+}
+
 export async function saveUpgradePreferences(
   preferences: UpgradeAlertPreferences,
 ): Promise<UpgradeAlertPreferences> {

@@ -8,15 +8,24 @@ This site is the complete operator and developer reference for every workspace s
 
 | I want to... | Read |
 | --- | --- |
+| Install CLI / TUI (curl primary) | [Install Keprix](getting-started/install.md) |
+| Run the full Docker stack | [Quickstart](getting-started/quickstart.md) |
+| Complete setup after install | [First run](getting-started/first-run.md) |
 | Understand the full product | [Full product map](features/full-product-map.md) |
-| Install in five minutes | [Quickstart](getting-started/quickstart.md) |
-| Complete the setup wizard | [First run](getting-started/first-run.md) |
 | Configure `.env` and providers | [Environment variables](configuration/environment-variables.md), [LLM providers](configuration/llm-providers.md) |
 | Use chat, tools, and the terminal Command Center | [Chat](features/chat.md), [Terminal UI](features/tui.md), [TUI slash commands](reference/tui-slash.md) |
 | Configure the instance | [Settings](features/settings.md), [Admin dashboard](operations/admin-dashboard.md) |
 | Protect inbound channels | [Channel Shield](features/channel-shield.md) |
 | Call the REST API | [API reference](reference/api.md), [Developer platform](features/developer-platform.md) |
 | Harden production | [Hardening](security/hardening.md) |
+
+Marketing site: [https://keprixai.com](https://keprixai.com) (origin may still be provisioning; see public GTM notes).
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
+```
+
+Requires a public GitHub repository. Until then, clone via SSH and run `bash scripts/install.sh` from the checkout.
 
 ## Product map
 

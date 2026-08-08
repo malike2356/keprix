@@ -14,6 +14,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
 import useSWR from "swr";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { createDocumentIndex, fetchDocumentIndexes, queryDocuments } from "@/lib/documents-api";
 
 export default function DocumentAgentPanel() {
@@ -93,9 +94,9 @@ export default function DocumentAgentPanel() {
                 {answer}
               </Typography>
               {citations.length ? (
-                <Typography variant="caption" component="pre" sx={{ whiteSpace: "pre-wrap", mt: 1 }}>
-                  {JSON.stringify(citations, null, 2)}
-                </Typography>
+                <Box sx={{ mt: 1 }}>
+                  <StructuredDataView value={citations} emptyLabel="No citations" />
+                </Box>
               ) : null}
             </Box>
           ) : null}

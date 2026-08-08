@@ -47,6 +47,10 @@ class ApproveBody(BaseModel):
     create_eval_case: bool = True
 
 
+class ProposalIdBody(BaseModel):
+    proposal_id: str
+
+
 @router.post("/runs")
 async def record_run(body: RunBody, _session: str = Depends(require_developer_session)) -> dict[str, Any]:
     analyzer = RunAnalyzer()
@@ -136,6 +140,30 @@ async def approve_proposal(body: ApproveBody, _session: str = Depends(require_de
         "proposal": proposal.to_dict(),
         "eval_case": eval_case.to_dict() if eval_case else None,
     }
+
+
+@router.post("/proposals/reject")
+async def reject_proposal(body: ProposalIdBody, _session: str = Depends(require_developer_session)) -> dict[str, Any]:
+    proposal = RunAnalyzer().reject_proposal(body.proposal_id)
+    if proposal is None:
+        raise HTTPException(status_code=404, detail="proposal not found")
+    return {"proposal": proposal.to_dict()}
+
+
+@router.post("/proposals/apply")
+async def apply_proposal(body: ProposalIdBody, _session: str = Depends(require_developer_session)) -> dict[str, Any]:
+    proposal = RunAnalyzer().apply_proposal(body.proposal_id)
+    if proposal is None:
+        raise HTTPException(status_code=409, detail="proposal not applicable")
+    return {"proposal": proposal.to_dict()}
+
+
+@router.post("/proposals/defer")
+async def defer_proposal(body: ProposalIdBody, _session: str = Depends(require_developer_session)) -> dict[str, Any]:
+    proposal = RunAnalyzer().defer_proposal(body.proposal_id)
+    if proposal is None:
+        raise HTTPException(status_code=404, detail="proposal not found")
+    return {"proposal": proposal.to_dict()}
 
 
 @router.get("/eval-cases")

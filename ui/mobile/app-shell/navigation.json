@@ -2,12 +2,15 @@
   "product": "Keprix",
   "navigation_groups": [
     "workspace",
-    "apps",
+    "pipeline",
+    "knowledge",
     "data",
     "research",
+    "apps",
+    "installed_apps",
     "automations",
-    "commerce",
     "security",
+    "commerce",
     "admin"
   ],
   "layout": "bottom-tabs-with-drawer",

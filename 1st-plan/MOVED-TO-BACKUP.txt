@@ -16,3 +16,19 @@ Paths:
 /opt/lampp/htdocs/verlox/archive/keprix-wip-bakups/1st-plan/pitch-and-sell/
 /opt/lampp/htdocs/verlox/archive/keprix-wip-bakups/apps-on-keprix/retired-project-compasslab/
 /opt/lampp/htdocs/verlox/archive/keprix-wip-bakups/graphify-out/
+
+---
+
+2026-08-07 (prompt 417 quarantine):
+
+Moved:
+- 1st-plan/1st-prompt/pending-prompts/gmail-inbox-reader.py
+  -> /opt/lampp/htdocs/verlox/archive/keprix-wip-bakups/pending-prompts-noise/gmail-inbox-reader.py
+
+Decisions:
+- marketing/ is an empty stub (dirs only, already in .gitignore); live marketing is
+  frontend/src/app/(marketing)/. Leave empty dirs; do not treat as product.
+- site/ is MkDocs build output (already gitignored).
+- keprix-data/ remains gitignored local runtime data; not advertised in README.
+- 1st-plan/ stays workspace-local for Verlox agents; never publish to strangers.
+  export-ignore lands in prompt 418. Do not delete active pending prompts.

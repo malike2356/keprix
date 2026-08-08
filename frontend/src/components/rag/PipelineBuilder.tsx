@@ -28,6 +28,7 @@ type Props = {
   onIngested?: () => void;
   initialSourceType?: SourceType;
   defaultPipelineId?: string;
+  knownPipelines?: string[];
 };
 
 function parseIdList(raw: string): string[] {
@@ -43,6 +44,7 @@ export default function PipelineBuilder({
   onIngested,
   initialSourceType = "manual",
   defaultPipelineId = "production-default",
+  knownPipelines = [],
 }: Props) {
   const [sourceType, setSourceType] = React.useState<SourceType>(initialSourceType);
   const [sourceId, setSourceId] = React.useState("handbook");
@@ -159,6 +161,9 @@ export default function PipelineBuilder({
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Default pipeline id is <strong>{defaultPipelineId}</strong> (env KEPRIX_RAG_DEFAULT_PIPELINE_ID).
+          {knownPipelines.length
+            ? ` Known pipelines: ${knownPipelines.join(", ")}.`
+            : " Create a pipeline id below to get started."}
         </Typography>
         <Box sx={{ display: "grid", gap: 2 }}>
           <StackFields

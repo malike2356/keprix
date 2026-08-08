@@ -16,6 +16,7 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { ceApi, parseApiErrorMessage } from "@/lib/ce-api";
 
 type StatusPayload = {
@@ -63,7 +64,7 @@ export default function GraphitiPage() {
   const [sourceRef, setSourceRef] = React.useState("manual-note");
   const [content, setContent] = React.useState("");
   const [query, setQuery] = React.useState("");
-  const [queryResult, setQueryResult] = React.useState<string | null>(null);
+  const [queryResult, setQueryResult] = React.useState<unknown | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
 
@@ -111,7 +112,7 @@ export default function GraphitiPage() {
       });
       const text = await response.text();
       try {
-        setQueryResult(JSON.stringify(JSON.parse(text), null, 2));
+        setQueryResult(JSON.parse(text));
       } catch {
         setQueryResult(text);
       }
@@ -205,10 +206,14 @@ export default function GraphitiPage() {
             Query
           </Button>
         </Box>
-        {queryResult ? (
-          <Typography component="pre" sx={{ whiteSpace: "pre-wrap", m: 0, fontFamily: "monospace", fontSize: 13 }}>
-            {queryResult}
-          </Typography>
+        {queryResult != null ? (
+          typeof queryResult === "string" ? (
+            <Typography component="pre" sx={{ whiteSpace: "pre-wrap", m: 0, fontFamily: "monospace", fontSize: 13 }}>
+              {queryResult}
+            </Typography>
+          ) : (
+            <StructuredDataView value={queryResult} />
+          )
         ) : null}
       </Paper>
 

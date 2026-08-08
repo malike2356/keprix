@@ -28,6 +28,7 @@ import * as React from "react";
 import BrainSectionTabs from "@/components/memory/BrainSectionTabs";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { SkeletonTable } from "@/components/ui/loading";
 import { ceApi } from "@/lib/ce-api";
 import { formatTimeAgo } from "@/lib/time-ago";
@@ -369,8 +370,14 @@ export default function MemoryPage() {
           )}
         </>
       ) : tab === 1 ? (
-        <Box component="pre" sx={{ p: 2, bgcolor: "action.hover", borderRadius: 1, whiteSpace: "pre-wrap", fontSize: "0.85rem" }}>
-          {recall ? JSON.stringify(recall, null, 2) : "Run a recall query to inspect budgeted hits and provenance."}
+        <Box sx={{ p: 2, bgcolor: "action.hover", borderRadius: 1 }}>
+          {recall ? (
+            <StructuredDataView value={recall} />
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Run a recall query to inspect budgeted hits and provenance.
+            </Typography>
+          )}
         </Box>
       ) : tab === 2 ? (
         <Stack spacing={2}>
@@ -405,7 +412,9 @@ export default function MemoryPage() {
             <TableBody>
               {(overview?.graph?.relations || []).map((rel) => (
                 <TableRow key={String(rel.id)}>
-                  <TableCell>{String(rel.subject_name)} -[{String(rel.predicate)}]-> {String(rel.object_name)}</TableCell>
+                  <TableCell>
+                    {String(rel.subject_name)} -[{String(rel.predicate)}]{"->"} {String(rel.object_name)}
+                  </TableCell>
                   <TableCell>{String(rel.confidence)}</TableCell>
                 </TableRow>
               ))}

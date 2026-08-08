@@ -5,6 +5,10 @@ import Tabs from "@mui/material/Tabs";
 import Box from "@mui/material/Box";
 
 export type DataSectionTab =
+  | "datasets"
+  | "jobs"
+  | "ml"
+  | "export"
   | "rag"
   | "models"
   | "video"
@@ -20,6 +24,30 @@ export type DataSectionMeta = {
 };
 
 export const DATA_SECTIONS: DataSectionMeta[] = [
+  {
+    value: "datasets",
+    label: "Datasets",
+    title: "Data plane datasets",
+    description: "Import tabular datasets, browse catalog versions, and run constrained SQL.",
+  },
+  {
+    value: "jobs",
+    label: "Jobs",
+    title: "Background jobs",
+    description: "Local job queue status, cancel, and dead-letter retry.",
+  },
+  {
+    value: "ml",
+    label: "ML",
+    title: "ML workspace",
+    description: "Experiments, runs, metrics, and model registry entries.",
+  },
+  {
+    value: "export",
+    label: "Export",
+    title: "Document export",
+    description: "Cover page, classification, and signatory exports via /api/export.",
+  },
   {
     value: "rag",
     label: "RAG",
@@ -40,7 +68,7 @@ export const DATA_SECTIONS: DataSectionMeta[] = [
   },
   {
     value: "analytics",
-    label: "Analytics",
+    label: "Data analysis",
     title: "Analyze your data",
     description: "Upload a file or paste data, ask a question, and get an instant answer with a chart.",
   },
@@ -63,7 +91,7 @@ export function parseDataTab(raw: string | null | undefined): DataSectionTab {
   if (DATA_SECTIONS.some((section) => section.value === value)) {
     return value as DataSectionTab;
   }
-  return "usage";
+  return "datasets";
 }
 
 export function dataHref(tab: DataSectionTab, extra?: URLSearchParams | Record<string, string | null | undefined>): string {

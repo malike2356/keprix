@@ -127,6 +127,84 @@ async def test_stream_emits_approval_for_mutating_action(mutation_store) -> None
     assert mutation_store.get_generated_tool(record.id).status == "staged"
 
 
+@pytest.mark.asyncio
+async def test_copilot_answers_modules_question(mutation_store) -> None:
+    context = await build_operator_context("default", detail="full", page_path="/settings/users")
+    reply, events = await compose_operator_reply(
+        "What modules are available?",
+        context,
+        page_path="/settings/users",
+        page_label="Users",
+    )
+    assert "Modules catalog" in reply or "available GUI" in reply
+    assert any(event.get("name") == "get_modules_catalog_summary" for event in events)
+
+
+@pytest.mark.asyncio
+async def test_copilot_describes_current_page(mutation_store) -> None:
+    context = await build_operator_context("default", detail="full", page_path="/settings/users", page_label="Users")
+    reply, _events = await compose_operator_reply(
+        "What page am I on?",
+        context,
+        page_path="/settings/users",
+        page_label="Users",
+    )
+    assert "Users" in reply
+    assert "/settings/users" in reply
+
+
+@pytest.mark.asyncio
+async def test_copilot_falls_back_to_platform_map_when_rag_empty(monkeypatch, mutation_store) -> None:
+    async def _empty_search(query: str, *, limit: int = 6):
+        return {"query": query, "hit_count": 0, "markdown": "", "sources": []}
+
+    monkeypatch.setattr("keprix.operator.copilot_tools.search_keprix_knowledge", _empty_search)
+    context = await build_operator_context("default", detail="full")
+    assert "Keprix platform map" in context.platform_map_markdown
+    reply, events = await compose_operator_reply("Tell me about the Keprix platform", context)
+    assert "platform map" in reply.lower() or "navigation" in reply.lower() or "Live ops:" in reply
+    assert any(event.get("name") == "search_keprix_knowledge" for event in events)
+
+
+@pytest.mark.asyncio
+async def test_copilot_answers_version_from_live_registry(monkeypatch, mutation_store) -> None:
+    async def _search(query: str, *, limit: int = 6):
+        return {
+            "query": query,
+            "hit_count": 1,
+            "markdown": "An old document says version 0.1.0.",
+            "sources": ["keprix_self:old"],
+            "live": {
+                "installed_version": "9.9.9",
+                "version_requested": True,
+                "module_matches": [],
+            },
+        }
+
+    monkeypatch.setattr("keprix.operator.copilot_tools.search_keprix_knowledge", _search)
+    context = await build_operator_context("default", detail="full")
+    reply, _events = await compose_operator_reply("Which version is installed?", context)
+    assert "9.9.9" in reply
+    assert "0.1.0" not in reply
+    assert "live runtime" in reply
+
+
+def test_self_knowledge_documents_do_not_contain_credentials_or_identity_defaults() -> None:
+    from keprix.self_knowledge.documents import generate_all_documents
+
+    corpus = "\n".join(document.content for document in generate_all_documents())
+    assert "tvly-dev-" not in corpus
+    assert "postgresql+asyncpg://keprix:changeme" not in corpus
+    assert "Default admin:" not in corpus
+
+
+def test_live_platform_facts_do_not_treat_generic_platform_query_as_module_request() -> None:
+    from keprix.operator.platform_knowledge import live_platform_facts
+
+    facts = live_platform_facts("Tell me about the Keprix platform")
+    assert facts["module_requested"] is False
+
+
 def test_copilot_message_route_streams_ndjson(auth_client, mutation_store) -> None:
     mutation_store.save_generated_tool(
         workspace_id="default",

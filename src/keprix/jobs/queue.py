@@ -176,6 +176,66 @@ class JobQueue:
             for row in rows
         ]
 
+    def cancel(self, job_id: str) -> dict[str, Any] | None:
+        job = self.get(job_id)
+        if job is None:
+            return None
+        status = str(job.get("status") or "")
+        if status not in {JobStatus.PENDING, JobStatus.CLAIMED, JobStatus.RUNNING}:
+            return None
+        now = _utcnow()
+        with self.plane.connect(write=True) as conn:
+            updated = conn.execute(
+                """
+                UPDATE local_jobs
+                SET status = ?, claim_token = NULL, claimed_by = NULL, updated_at = ?,
+                    dead_letter_reason = NULL
+                WHERE job_id = ? AND status IN (?, ?, ?)
+                """,
+                (
+                    JobStatus.CANCELLED,
+                    now,
+                    job_id,
+                    JobStatus.PENDING,
+                    JobStatus.CLAIMED,
+                    JobStatus.RUNNING,
+                ),
+            ).rowcount
+        if updated != 1:
+            return None
+        append_job_event(job_id, "cancelled", plane=self.plane)
+        return self.get(job_id)
+
+    def retry(self, job_id: str) -> dict[str, Any] | None:
+        """Requeue a dead-letter (or failed) job for another attempt."""
+        job = self.get(job_id)
+        if job is None:
+            return None
+        status = str(job.get("status") or "")
+        if status not in {JobStatus.DEAD_LETTER, JobStatus.FAILED}:
+            return None
+        now = _utcnow()
+        with self.plane.connect(write=True) as conn:
+            updated = conn.execute(
+                """
+                UPDATE local_jobs
+                SET status = ?, claim_token = NULL, claimed_by = NULL, updated_at = ?,
+                    dead_letter_reason = NULL, consecutive_failures = 0
+                WHERE job_id = ? AND status IN (?, ?)
+                """,
+                (
+                    JobStatus.PENDING,
+                    now,
+                    job_id,
+                    JobStatus.DEAD_LETTER,
+                    JobStatus.FAILED,
+                ),
+            ).rowcount
+        if updated != 1:
+            return None
+        append_job_event(job_id, "operator_retry", plane=self.plane)
+        return self.get(job_id)
+
     def reclaim_stale(self, *, lease_seconds: int = 120) -> list[str]:
         reclaimed: list[str] = []
         with self.plane.connect(write=True) as conn:

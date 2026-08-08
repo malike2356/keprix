@@ -61,6 +61,29 @@ async def report_health(
     return {"instance": row}
 
 
+@router.post("/instances/{instance_id}/probe")
+async def probe_instance(
+    instance_id: str,
+    _feature: None = Depends(enterprise_feature("fleet_deploy")),
+    _admin: dict = Depends(require_admin),
+) -> dict[str, Any]:
+    row = get_fleet_manager().probe_health(instance_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Instance not found")
+    return {"instance": row}
+
+
+@router.delete("/instances/{instance_id}")
+async def remove_instance(
+    instance_id: str,
+    _feature: None = Depends(enterprise_feature("fleet_deploy")),
+    _admin: dict = Depends(require_admin),
+) -> dict[str, Any]:
+    if not get_fleet_manager().remove(instance_id):
+        raise HTTPException(status_code=404, detail="Instance not found")
+    return {"removed": True, "instance_id": instance_id}
+
+
 @router.get("/audit")
 async def fleet_audit(
     limit: int = 100,

@@ -5,6 +5,7 @@ import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import type { AgentAppDetail } from "@/lib/agent-apps-api";
 
 type RunResult = {
@@ -53,12 +54,17 @@ export default function AgentAppOutput({ app, result }: Props) {
 
   const outputType = primaryOutputType(app);
   const artifacts = extractArtifacts(result);
-  const outputText =
-    typeof result.output === "string"
-      ? result.output
-      : outputType === "json"
-        ? JSON.stringify(result, null, 2)
-        : JSON.stringify(result, null, 2);
+  const stringOutput = typeof result.output === "string" ? result.output : null;
+  let structuredValue: unknown = result;
+  if (stringOutput != null && outputType === "json") {
+    try {
+      structuredValue = JSON.parse(stringOutput);
+    } catch {
+      structuredValue = stringOutput;
+    }
+  } else if (stringOutput == null) {
+    structuredValue = result.output !== undefined ? result.output : result;
+  }
 
   return (
     <Box sx={{ bgcolor: "action.hover", borderRadius: 1, p: 2 }}>
@@ -66,18 +72,16 @@ export default function AgentAppOutput({ app, result }: Props) {
         Output
       </Typography>
 
-      {outputType === "markdown" ? (
+      {stringOutput != null && outputType === "markdown" ? (
         <Box className="markdown-body" sx={{ "& p": { mt: 0, mb: 1 } }}>
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{outputText}</ReactMarkdown>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{stringOutput}</ReactMarkdown>
         </Box>
-      ) : outputType === "json" ? (
-        <Typography component="pre" variant="body2" sx={{ whiteSpace: "pre-wrap", m: 0 }}>
-          {outputText}
+      ) : stringOutput != null && outputType !== "json" ? (
+        <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+          {stringOutput}
         </Typography>
       ) : (
-        <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
-          {outputText}
-        </Typography>
+        <StructuredDataView value={structuredValue} />
       )}
 
       {outputType === "file" || artifacts.length ? (

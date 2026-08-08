@@ -11,6 +11,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import {
   downloadResearchDatasetExport,
   fetchPsppStatus,
@@ -178,9 +179,7 @@ export default function ResearchStatsPanel({ datasetId, onComplete }: Props) {
             Output ({result.status})
           </Typography>
           {result.parsed_tables && result.parsed_tables.length > 0 ? (
-            <Box component="pre" sx={{ fontSize: 12, m: 0, overflow: "auto", maxHeight: 200 }}>
-              {JSON.stringify(result.parsed_tables, null, 2)}
-            </Box>
+            <StructuredDataView value={result.parsed_tables} />
           ) : (
             <Box component="pre" sx={{ fontSize: 12, m: 0, overflow: "auto", maxHeight: 200, whiteSpace: "pre-wrap" }}>
               {result.stdout || result.stderr || status?.setup_instructions || "No text output."}

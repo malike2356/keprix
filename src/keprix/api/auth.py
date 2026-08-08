@@ -32,7 +32,34 @@ PUBLIC_PATHS = frozenset(
 def _token_from_request(request: Request, credentials: HTTPAuthorizationCredentials | None) -> str | None:
     if credentials and credentials.credentials:
         return credentials.credentials
-    return request.headers.get("x-api-key") or request.headers.get("X-API-Key")
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.lower().startswith("bearer "):
+        return auth_header.split(" ", 1)[1].strip() or None
+    api_key = request.headers.get("x-api-key") or request.headers.get("X-API-Key")
+    if api_key:
+        return api_key
+    cookie = request.cookies.get("keprix_session")
+    return cookie or None
+
+
+def _session_principal(token: str) -> str | None:
+    """Map a UI login session token to an API auth principal."""
+    if not token or token.startswith("kp_"):
+        return None
+    try:
+        from keprix.auth.session import auth_manager
+
+        user = auth_manager.validate_token(token)
+    except Exception:
+        return None
+    if not user:
+        return None
+    role = str(user.get("role") or "user").strip().lower()
+    if role == "developer":
+        return "developer"
+    if role in {"admin", "owner"}:
+        return "admin"
+    return str(user.get("id") or user.get("username") or "user")
 
 
 async def optional_user(
@@ -51,6 +78,9 @@ async def optional_user(
     admin_token = os.environ.get("KEPRIX_API_ADMIN_TOKEN", "")
     if admin_token and token == admin_token:
         return "admin"
+    session_user = _session_principal(token)
+    if session_user:
+        return session_user
     if effective_access_level() == "developer":
         return "developer"
     return None

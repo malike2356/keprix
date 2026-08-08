@@ -13,12 +13,15 @@
   ],
   "navigation_groups": [
     "workspace",
-    "apps",
+    "pipeline",
+    "knowledge",
     "data",
     "research",
+    "apps",
+    "installed_apps",
     "automations",
-    "commerce",
     "security",
+    "commerce",
     "admin"
   ],
   "contract_endpoint": "/api/ui/contract",

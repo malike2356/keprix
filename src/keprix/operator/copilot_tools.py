@@ -10,6 +10,14 @@ from keprix.operator.context_bundle import (
     _recent_failed_playbook_runs,
     _staged_mutation_count_sync,
 )
+from keprix.operator.platform_knowledge import (
+    live_platform_facts,
+    list_navigation_items,
+    modules_summary,
+    readiness_summary,
+    resolve_navigation_item,
+    search_platform_knowledge,
+)
 
 
 class CopilotToolError(ValueError):
@@ -117,3 +125,31 @@ def staged_mutation_count(workspace_id: str = "default") -> int:
 
 def recent_failed_runs(workspace_id: str = "default", *, limit: int = 3) -> list[dict[str, str]]:
     return _recent_failed_playbook_runs(workspace_id, limit=limit)
+
+
+def get_navigation_map() -> list[dict[str, str]]:
+    return list_navigation_items()
+
+
+def resolve_route(page_path: str | None) -> dict[str, str] | None:
+    return resolve_navigation_item(page_path)
+
+
+def get_modules_catalog_summary() -> dict[str, Any]:
+    return modules_summary()
+
+
+def get_instance_readiness_summary() -> dict[str, Any]:
+    return readiness_summary()
+
+
+async def search_keprix_knowledge(query: str, *, limit: int = 6) -> dict[str, Any]:
+    markdown, hits = await search_platform_knowledge(query, limit=limit)
+    live = live_platform_facts(query)
+    return {
+        "query": query,
+        "hit_count": len(hits),
+        "markdown": markdown,
+        "sources": [str(item.get("source") or "unknown") for item in hits[:limit]],
+        "live": live,
+    }

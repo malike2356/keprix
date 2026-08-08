@@ -9,4 +9,5 @@ class JobStatus(StrEnum):
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
+    CANCELLED = "cancelled"
     DEAD_LETTER = "dead_letter"

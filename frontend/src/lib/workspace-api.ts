@@ -104,6 +104,7 @@ export type CalendarEvent = {
   all_day: boolean;
   caldav_source_id?: string | null;
   external_readonly?: boolean;
+  metadata?: Record<string, unknown> | null;
 };
 
 export type CalendarProviderPreset = {
@@ -416,6 +417,28 @@ export async function fetchCalendarEvents(start: string, end: string): Promise<C
     "Failed to load calendar events",
   );
   return data.items;
+}
+
+export async function fetchCalendarEvent(eventId: string): Promise<CalendarEvent> {
+  return parseJson(
+    await ceApi(`/api/workspace/calendar/events/${encodeURIComponent(eventId)}`),
+    "Failed to load calendar event",
+  );
+}
+
+/** Booking id bridged onto a calendar event by viCal confirm. */
+export function vicalBookingIdFromEvent(event: CalendarEvent): string | null {
+  const meta = event.metadata;
+  if (!meta || typeof meta !== "object") return null;
+  const raw = meta.vical_booking_id ?? meta.booking_id;
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
+}
+
+export function contactIdFromEvent(event: CalendarEvent): string | null {
+  const meta = event.metadata;
+  if (!meta || typeof meta !== "object") return null;
+  const raw = meta.contact_id;
+  return typeof raw === "string" && raw.trim() ? raw.trim() : null;
 }
 
 export async function createCalendarEvent(body: {

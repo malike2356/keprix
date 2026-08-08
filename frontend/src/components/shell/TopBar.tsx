@@ -27,7 +27,6 @@ import {
   IconUsers,
   IconCode,
 } from "@tabler/icons-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 import useSWR from "swr";
@@ -119,7 +118,7 @@ export default function TopBar({
           <AppSwitcher />
           {isAdmin ? (
             <Button
-              component={Link}
+              component="a"
               href="/dashboard"
               size="small"
               color="inherit"
@@ -151,9 +150,11 @@ export default function TopBar({
             color="inherit"
             size="small"
             aria-label="Notifications"
-            component={Link}
+            component="a"
             href="/notifications"
-            onClick={() => void mutateUnread()}
+            onClick={() => {
+              void mutateUnread();
+            }}
             sx={{ position: "relative" }}
           >
             <IconBell size={18} stroke={1.75} />
@@ -204,14 +205,22 @@ export default function TopBar({
               {role}
             </Typography>
           </Box>
-          <MenuItem component={Link} href="/settings/account" onClick={() => setAnchorEl(null)}>
+          <MenuItem
+            component="a"
+            href="/settings/account"
+            onClick={() => setAnchorEl(null)}
+          >
             <ListItemIcon sx={{ minWidth: 32 }}>
               <IconUser size={18} stroke={1.75} />
             </ListItemIcon>
             Account
           </MenuItem>
           {isAdmin ? (
-            <MenuItem component={Link} href="/dashboard" onClick={() => setAnchorEl(null)}>
+            <MenuItem
+              component="a"
+              href="/dashboard"
+              onClick={() => setAnchorEl(null)}
+            >
               <ListItemIcon sx={{ minWidth: 32 }}>
                 <IconLayoutDashboard size={18} stroke={1.75} />
               </ListItemIcon>
@@ -224,7 +233,7 @@ export default function TopBar({
             return (
               <MenuItem
                 key={item.href}
-                component={Link}
+                component="a"
                 href={item.href}
                 onClick={() => setAnchorEl(null)}
               >
@@ -271,7 +280,7 @@ export default function TopBar({
               label={item.label}
               icon={<NavIcon name={item.icon} size={16} />}
               iconPosition="start"
-              component={Link}
+              component="a"
               href={item.href}
             />
           ))}

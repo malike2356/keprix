@@ -14,3 +14,11 @@ def test_register_and_health(tmp_path: Path) -> None:
     assert updated
     assert updated["status"] == "degraded"
     assert manager.list_audit()
+
+
+def test_remove_instance(tmp_path: Path) -> None:
+    manager = FleetManager(base_dir=tmp_path)
+    row = manager.register(name="prod-2", base_url="https://keprix.example.test")
+    assert manager.remove(row["id"]) is True
+    assert manager.get_instance(row["id"]) is None
+    assert manager.remove("missing") is False

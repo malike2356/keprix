@@ -1,0 +1,4 @@
+lead_id,company_name,contact_email,contact_phone,stage,lead_score,website
+L-001,Acme Ltd,,+441111111111,discovered,,
+L-002,Beta Corp,known@example.com,,qualified,80,https://beta.example
+L-003,,,+442222222222,,,

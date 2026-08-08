@@ -49,3 +49,9 @@ async def refresh_hot_cache(workspace_id: str, body: RefreshBody, user: dict = D
         summary=body.summary,
         force=body.force,
     )
+
+
+@router.post("/flush")
+async def flush_hot_cache(workspace_id: str, body: RefreshBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    _ = user
+    return HotCacheService().flush(workspace_id, workspace_path=body.workspace_path)

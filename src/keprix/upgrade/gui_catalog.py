@@ -16,7 +16,7 @@ class GuiModule:
     module: str
     version: str
     gui_href: str | None
-    gui_status: str  # available | partial | cli_api
+    gui_status: str  # available | partial | cli_api | missing_gui | integration
     category: str
 
     def to_dict(self) -> dict[str, object]:
@@ -135,6 +135,106 @@ _EXTRA_MODULES: tuple[GuiModule, ...] = (
         gui_status="available",
         category="research",
     ),
+    GuiModule(
+        id="tool_acl",
+        name="Tool ACL",
+        description="Product and resource ACL admin console.",
+        module="keprix.security.acl",
+        version="0.16.0",
+        gui_href="/admin/tool-acl",
+        gui_status="available",
+        category="security",
+    ),
+    GuiModule(
+        id="fleet_admin",
+        name="Fleet admin",
+        description="Enterprise fleet instance register and health.",
+        module="keprix.fleet",
+        version="0.16.0",
+        gui_href="/admin/fleet",
+        gui_status="available",
+        category="admin",
+    ),
+    GuiModule(
+        id="companion_pairing",
+        name="Companion pairing",
+        description="Mobile companion QR pairing.",
+        module="keprix.mobile.companion",
+        version="0.16.0",
+        gui_href="/admin/companion",
+        gui_status="available",
+        category="admin",
+    ),
+    GuiModule(
+        id="data_plane_datasets",
+        name="Data plane datasets",
+        description="Catalog import query for /api/data.",
+        module="keprix.data_plane",
+        version="0.16.0",
+        gui_href="/data?tab=datasets",
+        gui_status="available",
+        category="data",
+    ),
+    GuiModule(
+        id="jobs_queue",
+        name="Jobs queue",
+        description="Local background job ops.",
+        module="keprix.jobs",
+        version="0.16.0",
+        gui_href="/data?tab=jobs",
+        gui_status="available",
+        category="data",
+    ),
+    GuiModule(
+        id="ml_workspace",
+        name="ML workspace",
+        description="Experiments and model registry.",
+        module="keprix.ml_workspace",
+        version="0.16.0",
+        gui_href="/data?tab=ml",
+        gui_status="available",
+        category="data",
+    ),
+    GuiModule(
+        id="document_export",
+        name="Document export",
+        description="Cover and signatory exports.",
+        module="keprix.export",
+        version="0.16.0",
+        gui_href="/data?tab=export",
+        gui_status="available",
+        category="data",
+    ),
+    GuiModule(
+        id="improvement_loop",
+        name="Improvement proposals",
+        description="Auto-improvement Soft Wall review.",
+        module="keprix.improvement",
+        version="0.16.0",
+        gui_href="/agent-os/improvements",
+        gui_status="available",
+        category="automations",
+    ),
+    GuiModule(
+        id="public_v1_api",
+        name="Public /v1 API",
+        description="Integration API intentionally without workspace GUI.",
+        module="keprix.public_api",
+        version="0.16.0",
+        gui_href=None,
+        gui_status="integration",
+        category="integration",
+    ),
+    GuiModule(
+        id="slash_tui",
+        name="Slash / TUI",
+        description="CLI and TUI operator surfaces; intentional non-GUI.",
+        module="keprix.keprix_cli",
+        version="0.16.0",
+        gui_href=None,
+        gui_status="cli_api",
+        category="cli",
+    ),
 )
 
 _FEATURE_GUI: dict[str, tuple[str | None, str, str]] = {
@@ -189,7 +289,7 @@ def list_gui_modules(*, installed_version: str | None = None) -> list[GuiModule]
 def modules_payload(*, installed_version: str | None = None) -> dict[str, object]:
     version = installed_version or installed_keprix_version()
     modules = list_gui_modules(installed_version=version)
-    missing_gui = [m.to_dict() for m in modules if m.gui_status != "available"]
+    missing_gui = [m.to_dict() for m in modules if m.gui_status in {"missing_gui", "cli_api", "partial", "integration"}]
     return {
         "installed_version": version,
         "modules": [m.to_dict() for m in modules],
@@ -199,6 +299,8 @@ def modules_payload(*, installed_version: str | None = None) -> dict[str, object
             "available": sum(1 for m in modules if m.gui_status == "available"),
             "partial": sum(1 for m in modules if m.gui_status == "partial"),
             "cli_api": sum(1 for m in modules if m.gui_status == "cli_api"),
+            "missing_gui": sum(1 for m in modules if m.gui_status == "missing_gui"),
+            "integration": sum(1 for m in modules if m.gui_status == "integration"),
         },
         "registry_versions": sorted(FEATURE_REGISTRY.keys()),
     }

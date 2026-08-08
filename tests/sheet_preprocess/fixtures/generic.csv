@@ -1,0 +1,4 @@
+Experiment ID,Temperature,Outcome,Notes
+1,,pass,
+2,21.5,fail,=SUM(A1:A2)
+3,0,pass,baseline

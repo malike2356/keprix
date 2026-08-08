@@ -9,6 +9,7 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { fetchScoutWardenStatus, requestScoutScan } from "@/lib/parity-api";
 
 export default function ScoutWardenPage() {
@@ -34,7 +35,7 @@ export default function ScoutWardenPage() {
     <Box>
       <PageHeader
         title="Scout Warden"
-        subtitle="Optional scan bridge. Disabled by default for Community Edition."
+        description="Optional scan bridge. Disabled by default for Community Edition."
       />
       {error ? <Alert severity="warning" sx={{ mb: 2 }}>Admin access required for status.</Alert> : null}
       {actionError ? <Alert severity="error" sx={{ mb: 2 }}>{actionError}</Alert> : null}
@@ -54,8 +55,8 @@ export default function ScoutWardenPage() {
         </Button>
       </Stack>
       {result ? (
-        <Box component="pre" sx={{ mt: 2, p: 2, bgcolor: "action.hover", overflow: "auto" }}>
-          {JSON.stringify(result, null, 2)}
+        <Box sx={{ mt: 2 }}>
+          <StructuredDataView value={result} />
         </Box>
       ) : null}
     </Box>

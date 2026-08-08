@@ -98,7 +98,7 @@ export default function SidebarNavGroup({
         </Typography>
         {expanded ? <IconChevronDown size={16} stroke={1.75} /> : <IconChevronRight size={16} stroke={1.75} />}
       </Box>
-      <Collapse id={contentId} in={expanded} timeout="auto" unmountOnExit onEntered={handleEntered}>
+      <Collapse id={contentId} in={expanded} timeout="auto" onEntered={handleEntered}>
         {children}
       </Collapse>
     </Box>

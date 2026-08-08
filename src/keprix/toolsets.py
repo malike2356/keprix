@@ -70,6 +70,10 @@ _KEPRIX_CORE_TOOLS = [
     # Conversational provider BYOK + Scout pairing (Wave 2)
     "provider_config",
     "scout_config",
+    "scout_filter_prompt",
+    "scout_log_event",
+    "scout_check_kill",
+    "scout_heartbeat",
     # Conversational integrations, workspace prefs, companion pairing
     "integration_config",
     "workspace_config",
@@ -234,8 +238,14 @@ TOOLSETS = {
     },
 
     "scout": {
-        "description": "Conversational Labyrinth Scout pair / unpair and status.",
-        "tools": ["scout_config"],
+        "description": "Conversational Labyrinth Scout pair / unpair and Aiva agent Scout hooks.",
+        "tools": [
+            "scout_config",
+            "scout_filter_prompt",
+            "scout_log_event",
+            "scout_check_kill",
+            "scout_heartbeat",
+        ],
         "includes": []
     },
 
@@ -531,6 +541,10 @@ TOOLSETS = {
             # Conversational provider BYOK + Scout
             "provider_config",
             "scout_config",
+            "scout_filter_prompt",
+            "scout_log_event",
+            "scout_check_kill",
+            "scout_heartbeat",
             # Integrations / workspace / companion
             "integration_config",
             "workspace_config",

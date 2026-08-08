@@ -11,9 +11,11 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { useSearchParams } from "next/navigation";
 import * as React from "react";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import MeshRelatedLinks, { buildVicalRelatedLinks } from "@/components/vical/MeshRelatedLinks";
 import {
   approveBooking,
@@ -45,6 +47,9 @@ function statusColor(status: string): "success" | "warning" | "default" | "error
 }
 
 export default function VicalHubPage() {
+  const searchParams = useSearchParams();
+  const bookingParam = searchParams.get("booking");
+
   const [tab, setTab] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -60,6 +65,7 @@ export default function VicalHubPage() {
   const [newTypeName, setNewTypeName] = React.useState("");
   const [newTypeSlug, setNewTypeSlug] = React.useState("");
   const [busy, setBusy] = React.useState(false);
+  const focusedBookingRef = React.useRef<string | null>(null);
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -83,18 +89,40 @@ export default function VicalHubPage() {
       setRules(ruleRows);
       setBlackouts(blackoutRows);
       setPools(poolRows);
-      if (!selected && bookingRows.length) setSelected(bookingRows[0]);
+      if (bookingParam) {
+        const match = bookingRows.find((row) => row.id === bookingParam);
+        if (match) {
+          setSelected(match);
+          setTab(1);
+          focusedBookingRef.current = bookingParam;
+        } else if (!selected && bookingRows.length) {
+          setSelected(bookingRows[0]);
+        }
+      } else if (!selected && bookingRows.length) {
+        setSelected(bookingRows[0]);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load viCal");
     } finally {
       setLoading(false);
     }
-  }, [selected]);
+  }, [bookingParam, selected]);
 
   React.useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  React.useEffect(() => {
+    if (!bookingParam || !bookings.length) return;
+    if (focusedBookingRef.current === bookingParam && selected?.id === bookingParam) return;
+    const match = bookings.find((row) => row.id === bookingParam);
+    if (match) {
+      focusedBookingRef.current = bookingParam;
+      setSelected(match);
+      setTab(1);
+    }
+  }, [bookingParam, bookings, selected?.id]);
 
   async function saveProfile() {
     setBusy(true);
@@ -336,9 +364,7 @@ export default function VicalHubPage() {
                         <Typography variant="caption" color="text.secondary">
                           Intake
                         </Typography>
-                        <Typography variant="body2" component="pre" sx={{ m: 0, whiteSpace: "pre-wrap" }}>
-                          {JSON.stringify(selected.intake_answers, null, 2)}
-                        </Typography>
+                        <StructuredDataView value={selected.intake_answers} />
                       </Box>
                     ) : null}
                     <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -363,7 +389,6 @@ export default function VicalHubPage() {
                     </Typography>
                     <MeshRelatedLinks
                       links={buildVicalRelatedLinks({
-                        bookingId: selected.id,
                         workspaceEventId: selected.workspace_event_id,
                         contactId: selected.contact_id,
                         publicBookPath: publicPath,

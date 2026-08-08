@@ -56,12 +56,14 @@ export default function AgentOsSubnav() {
 export const AGENT_OS_HUB_HOME = "/agent-os/glass";
 
 export const AGENT_OS_MORE_LINKS = [
+  { label: "Self-improvement settings", href: "/settings/agent/self-improvement" },
   { label: "Activation checklist", href: "/agent-os/onboarding" },
   { label: "Onboard interview", href: "/agent-os/onboard" },
   { label: "Workflow audit", href: "/agent-os/audit" },
   { label: "OS maturity", href: "/agent-os/maturity" },
   { label: "Connections", href: "/agent-os/connections" },
   { label: "Skill proposals", href: "/agent-os/skill-proposals" },
+  { label: "Improvement proposals", href: "/agent-os/improvements" },
   { label: "Skill review", href: "/agent-os/skill-review" },
   { label: "Promote skill", href: "/agent-os/promote" },
   { label: "Run ledger", href: "/agent-os/runs" },

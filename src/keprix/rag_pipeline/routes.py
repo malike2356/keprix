@@ -102,11 +102,36 @@ async def list_store_kinds(_user: str = Depends(require_api_auth)) -> dict[str, 
         kind = str(payload.get("store_kind") or "memory")
         counts[kind] = counts.get(kind, 0) + 1
     stores = [
-        {"kind": "memory", "description": "In-memory test store", "run_count": counts.get("memory", 0)},
-        {"kind": "sqlite", "description": "Local SQLite chunk store", "run_count": counts.get("sqlite", 0)},
-        {"kind": "postgres", "description": "Postgres document store", "run_count": counts.get("postgres", 0)},
-        {"kind": "pgvector", "description": "Postgres with pgvector embeddings", "run_count": counts.get("pgvector", 0)},
-        {"kind": "external", "description": "Optional external vector adapter", "run_count": counts.get("external", 0)},
+        {
+            "kind": "memory",
+            "description": "In-memory test store",
+            "run_count": counts.get("memory", 0),
+            "count_label": "runs",
+        },
+        {
+            "kind": "sqlite",
+            "description": "Local SQLite chunk store",
+            "run_count": counts.get("sqlite", 0),
+            "count_label": "runs",
+        },
+        {
+            "kind": "postgres",
+            "description": "Postgres document store",
+            "run_count": counts.get("postgres", 0),
+            "count_label": "runs",
+        },
+        {
+            "kind": "pgvector",
+            "description": "Postgres with pgvector embeddings",
+            "run_count": counts.get("pgvector", 0),
+            "count_label": "runs",
+        },
+        {
+            "kind": "external",
+            "description": "Optional external vector adapter",
+            "run_count": counts.get("external", 0),
+            "count_label": "runs",
+        },
     ]
     return {"stores": stores}
 

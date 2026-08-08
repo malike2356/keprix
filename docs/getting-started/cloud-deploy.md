@@ -2,6 +2,11 @@
 
 **Primary path:** [VPS deploy](../operations/vps-deploy.md) with Docker Compose + Caddy via `scripts/deploy-keprix-production.sh`.
 
+Contabo shared-nginx / marketing-origin patterns differ from this Caddy-only VPS path.
+See [keprixai.com origin (Cloudflare + Contabo)](../operations/keprixai-com-origin.md).
+Do not treat Contabo as identical to the Caddy deploy below. Do not install Keprix
+Caddy on Contabo 80/443.
+
 ## Recommended
 
 ```bash
@@ -33,7 +38,7 @@ bash scripts/deploy-managed.sh fly
 
 ## Verified install
 
-See [Release signing](../security/release-signing.md). `install-curl.sh` blocks raw curl|bash by default.
+See [Release signing](../security/release-signing.md). The curl installer is the public CLI path for workstations; production VPS uses the deploy scripts above and does not require piping `install.sh` on the server.
 
 ## Canary
 

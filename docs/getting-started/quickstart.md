@@ -1,117 +1,105 @@
-# Quickstart (Docker)
+# Quickstart
 
-Install Keprix on your machine or VPS using Docker Compose. Expect the web interface at `http://localhost:3000` when all services are healthy. Total time: under 5 minutes on a modern machine.
+See also [Install](install.md) and [First run](first-run.md).
 
-## Prerequisites
+Keprix has two install paths. The **CLI / TUI** path (Option A) is primary for day-to-day agent use. **Docker Compose** (Option B) is the full web stack path (UI + API + Postgres + Redis and related services).
 
-| Requirement | Minimum version | Notes |
+## Option A: curl installer (CLI / TUI)
+
+See [Install](install.md) for the full guide.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
+```
+
+This one-liner needs a **public** GitHub repository. Until the repo is anonymously readable, that URL 404s. Clone via SSH (or an allowed remote) and run `bash scripts/install.sh` from the checkout instead. Owner checklist: [public-github-checklist.md](../operations/public-github-checklist.md).
+
+Next steps after install:
+
+```bash
+keprix --version
+keprix setup
+keprix tui
+```
+
+## Option B: Docker Compose (full web stack)
+
+Use this when you want the browser workspace plus the API and databases on one machine.
+
+### Prerequisites
+
+| Requirement | Minimum | Notes |
 | --- | --- | --- |
 | Docker Engine | 24+ | [Install Docker](https://docs.docker.com/get-docker/) |
-| Docker Compose | v2 (plugin) | Comes with Docker Desktop; on Linux: `apt install docker-compose-plugin` |
-| Git | Any | For cloning; or download the ZIP from GitHub |
-| RAM | 2 GB free | 4 GB recommended if running a local LLM via Ollama |
-| Disk | 5 GB free | For Docker images, database, and generated files |
+| Docker Compose | v2 plugin | Docker Desktop includes it; on Linux: `apt install docker-compose-plugin` |
+| Git | Any | For cloning |
+| RAM | 2 GB free | 4 GB recommended if you also run a local LLM |
+| Disk | 5 GB free | Images, database, and generated files |
 
-You do **not** need Python, Node.js, or any other runtime installed locally. Everything runs inside containers.
+You do not need Python or Node.js on the host. Everything runs in containers.
 
-## Step 1: Clone and configure
+### Start the stack
 
 ```bash
 git clone https://github.com/malike2356/keprix.git
 cd keprix
 cp .env.example .env
-```
-
-Open `.env` in a text editor. The only field you must fill in before first run is at least one LLM provider key:
-
-```bash
-# Add at least one of these
-ANTHROPIC_API_KEY=sk-ant-...
-OPENAI_API_KEY=sk-...
-GEMINI_API_KEY=AIza...
-```
-
-Everything else has safe defaults for local development. See [Environment variables](../configuration/environment-variables.md) for the full reference.
-
-## Step 2: Start the stack
-
-```bash
+# Set at least one of ANTHROPIC_API_KEY, OPENAI_API_KEY, or GEMINI_API_KEY
 docker compose -f docker/docker-compose.yml up -d --build
 ```
 
-This builds the frontend and backend images, then starts:
+Copy values from `.env.example`. Leave unused keys empty; set at least one provider key before first run (for example `ANTHROPIC_API_KEY=` or `OPENAI_API_KEY=your-key-here`). Do not paste real secrets into docs or tickets.
 
-| Container | Purpose | Port |
-| --- | --- | --- |
-| `frontend` | Next.js web UI | 3000 |
-| `backend` | FastAPI agent server | 3333 |
-| `postgres` | Primary database | 5432 (internal) |
-| `redis` | Session cache and queues | 6379 (internal) |
-| `chromadb` | Vector store for memory | 8000 (internal) |
-| `searxng` | Web search for research | 8080 (internal) |
+| Surface | URL / check |
+| --- | --- |
+| Web UI | `http://localhost:3000` |
+| API health | `curl -s http://127.0.0.1:3333/api/health` |
 
-The `--build` flag rebuilds images. On subsequent starts you can omit it: `docker compose -f docker/docker-compose.yml up -d`.
+Compose `depends_on` (default full stack): the **frontend** waits until the **backend** healthcheck passes; the **backend** waits until **postgres** and **redis** are healthy. That is the default `docker/docker-compose.yml` behavior.
 
-## Step 3: Wait for healthy
+Marketing-only frontend on Contabo/Cloudflare is optional and not the default Compose stack. See [Cloud deploy](cloud-deploy.md) and [VPS deploy](../operations/vps-deploy.md). Public origin notes may expand later.
+
+### Wait until healthy
 
 ```bash
 docker compose -f docker/docker-compose.yml ps
 ```
 
-All containers should show `healthy` or `running`. The backend runs database migrations on startup; wait for it before opening the browser.
-
-Check the API is up:
+Containers should show `healthy` or `running`. The backend runs migrations on startup; wait for health before opening the UI.
 
 ```bash
-curl http://localhost:3333/api/health
-# {"status":"ok","version":"..."}
+curl -s http://127.0.0.1:3333/api/health
+# Expect JSON with a status field when the API is up
 ```
 
-## Step 4: Complete the setup wizard
+### Setup wizard
 
-Open `http://localhost:3000` in your browser.
+Open `http://localhost:3000`. The first-run wizard covers instance name, admin account, LLM provider confirmation, and optional channels. After **Finish setup**, use **Chat** in the sidebar to talk to the agent.
 
-The first-run wizard walks you through:
-
-1. **Instance name** - displayed in the header and emails.
-2. **Admin account** - sets the admin username and password.
-3. **LLM provider** - confirm or change the provider from `.env`. You can add more providers later in the admin dashboard.
-4. **Optional services** - enable Telegram bot, Discord bot, or other channels now or later.
-
-Click **Finish setup**. You are taken to the workspace.
-
-## Step 5: Start a conversation
-
-Click **Chat** in the sidebar or launcher. Type a message. The agent responds using the provider you configured.
-
-Try asking it to list your tasks, write a note, or search the web. If it encounters a task it cannot complete with its built-in tools, it will propose a [Mutation](../features/agent.md): a new tool synthesised on the spot and waiting for your approval.
-
-## Stopping the stack
+### Stop and update
 
 ```bash
 docker compose -f docker/docker-compose.yml down
 ```
 
-Data is persisted in Docker volumes. It is safe to stop and restart; nothing is lost.
-
-To also delete all data (full reset):
+Data lives in Docker volumes; stop/restart keeps it. Full reset (deletes volumes):
 
 ```bash
 docker compose -f docker/docker-compose.yml down -v
 ```
 
-## Updating
+Update:
 
 ```bash
 git pull
 docker compose -f docker/docker-compose.yml up -d --build
 ```
 
-The backend applies any new database migrations automatically on startup.
+Migrations apply on backend startup.
 
-## Port conflicts
+### Port conflicts
 
-Edit `.env` and override the port variables:
+In `.env`:
 
 ```bash
 FRONTEND_PORT=3001
@@ -120,49 +108,52 @@ BACKEND_PORT=3334
 
 Then restart the stack.
 
-## Running without Docker
+### Production VPS
 
-If you want to run Keprix without Docker, see [Manual install](manual-install.md).
+For Compose behind Caddy on a VPS, see [VPS deploy](../operations/vps-deploy.md). Compose service reference: [Docker Compose reference](../configuration/docker-compose.md).
 
-## Next steps
+### Troubleshooting
 
-| What | Where |
-| --- | --- |
-| Connect a Telegram or Discord bot | [Messaging channels](../features/messaging.md) |
-| Add more LLM providers | [LLM providers](../configuration/llm-providers.md) |
-| Set up long-term memory | [Memory and RAG](../features/memory.md) |
-| Create automated workflows | [Playbooks](../features/playbooks.md) |
-| Invite more users | [Admin dashboard](../operations/admin-dashboard.md) |
-| Expose Keprix to the internet safely | [Hardening](../security/hardening.md) |
-| Build apps on the API | [SDK](../integrations/sdk.md) |
-
-## Troubleshooting
-
-### Containers not starting
+**Logs**
 
 ```bash
 docker compose -f docker/docker-compose.yml logs backend
 docker compose -f docker/docker-compose.yml logs frontend
 ```
 
-### Database connection errors
+**Database connection errors**
 
-The backend waits for Postgres but there is a race condition on very slow machines. Restart the backend container:
+On very slow hosts, restart the backend after Postgres is healthy:
 
 ```bash
 docker compose -f docker/docker-compose.yml restart backend
 ```
 
-### No LLM responses
+**No LLM responses**
 
-1. Check `.env` has a valid provider key.
-2. Restart the backend: `docker compose -f docker/docker-compose.yml restart backend`.
-3. In the admin wizard, confirm the default provider is the one whose key you added.
+1. Confirm `.env` has at least one provider key set.
+2. `docker compose -f docker/docker-compose.yml restart backend`
+3. In the wizard or admin UI, confirm the default provider matches that key.
 
-### Port 3000 already in use
+**Port 3000 in use**
 
-Set `FRONTEND_PORT=3001` in `.env` and restart. Open `http://localhost:3001` instead.
+Set `FRONTEND_PORT=3001` and open `http://localhost:3001`.
 
-### Slow first build
+**Slow first build**
 
-The first `--build` downloads base images (~2 GB) and compiles the frontend. Subsequent starts are fast.
+The first `--build` downloads base images and compiles the frontend. Later starts are much faster.
+
+### Without Docker
+
+CLI/TUI without Compose: [Install](install.md). Manual contributor setup: [Manual install](manual-install.md).
+
+### Next steps
+
+| What | Where |
+| --- | --- |
+| Messaging channels | [Messaging](../features/messaging.md) |
+| More LLM providers | [LLM providers](../configuration/llm-providers.md) |
+| Memory / RAG | [Memory](../features/memory.md) |
+| Playbooks | [Playbooks](../features/playbooks.md) |
+| Hardening | [Hardening](../security/hardening.md) |
+| SDK | [SDK](../integrations/sdk.md) |

@@ -11,6 +11,7 @@ import TerminalIcon from "@mui/icons-material/Terminal";
 import {
   MARKETING_EYEBROW_SX,
   MARKETING_HEADING_SX,
+  MARKETING_MONO_FONT,
   useMarketingColors,
 } from "@/components/marketing/MarketingSection";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
@@ -21,13 +22,13 @@ const STEPS = [
     number: "01",
     icon: RocketLaunchIcon,
     title: "Deploy",
-    body: "Three commands on your machine or VPS. No cloud account required.",
+    body: "Install with the curl one-liner for CLI/TUI, or Docker Compose for the full web stack. No cloud account is required.",
     detail: {
       type: "code" as const,
       lines: [
-        { prefix: "$", text: "git clone github.com/malike2356/keprix" },
-        { prefix: "$", text: "cd keprix && cp .env.example .env" },
-        { prefix: "$", text: "docker compose -f docker/docker-compose.yml up" },
+        { prefix: "$", text: "curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash" },
+        { prefix: "$", text: "keprix setup && keprix tui" },
+        { prefix: "$", text: "# Full stack: docker compose -f docker/docker-compose.yml up -d --build" },
       ],
     },
   },
@@ -35,7 +36,7 @@ const STEPS = [
     number: "02",
     icon: LinkIcon,
     title: "Configure",
-    body: "Add providers, channels, credentials, policies, and workspace settings under your control.",
+    body: "Wire up model providers, channels, credentials, policies, memory backends, and workspace settings so everything stays under your own direct control.",
     detail: {
       type: "channels" as const,
       items: ["Models", "Memory", "Channel Shield", "MCP"],
@@ -45,7 +46,7 @@ const STEPS = [
     number: "03",
     icon: TerminalIcon,
     title: "Operate",
-    body: "Use the web workspace or Command Center TUI to run agents, inspect tools, approve changes, and monitor runtime health.",
+    body: "Use the web workspace or Command Center TUI to run agents, inspect tools, approve changes, and monitor overall runtime health.",
     detail: {
       type: "conversation" as const,
       lines: [
@@ -89,7 +90,7 @@ function StepDetail({
           bgcolor: isDark ? "rgba(6,6,14,0.8)" : alpha(c.bgCard, 0.95),
           border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : c.divider}`,
           borderRadius: 1.5,
-          fontFamily: "monospace",
+          fontFamily: MARKETING_MONO_FONT,
           fontSize: "0.62rem",
           lineHeight: 1.6,
         }}
@@ -147,7 +148,7 @@ function StepDetail({
           bgcolor: isDark ? "rgba(6,6,14,0.8)" : alpha(c.bgCard, 0.95),
           border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : c.divider}`,
           borderRadius: 1.5,
-          fontFamily: "monospace",
+          fontFamily: MARKETING_MONO_FONT,
           fontSize: "0.6rem",
           lineHeight: 1.55,
         }}
@@ -287,7 +288,7 @@ export function HowItWorks() {
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
                     <Typography
                       sx={{
-                        fontFamily: "monospace",
+                        fontFamily: MARKETING_MONO_FONT,
                         fontSize: "0.62rem",
                         fontWeight: 800,
                         color: alpha(c.primary, 0.65),

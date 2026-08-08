@@ -17,8 +17,8 @@ html[data-skin="amber-minimal"] {
   --primary: #f59e0b;
   --sidebar: #f9fafb;
   --spacing: 0.25rem;
-  --font-mono: JetBrains Mono, monospace;
-  --font-sans: Inter, sans-serif;
+  --font-mono: "Google Sans Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: "Google Sans Flex", "Google Sans Text", "Inter Tight", "Inter", system-ui, sans-serif;
   --secondary: #f3f4f6;
   --background: #ffffff;
   --font-serif: Source Serif 4, serif;
@@ -724,8 +724,8 @@ html[data-skin="clean-slate"] {
   --popover: #ffffff;
   --primary: #6366f1;
   --sidebar: #f3f4f6;
-  --font-mono: JetBrains Mono, monospace;
-  --font-sans: Inter, sans-serif;
+  --font-mono: "Google Sans Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: "Google Sans Flex", "Google Sans Text", "Inter Tight", "Inter", system-ui, sans-serif;
   --secondary: #e5e7eb;
   --background: #f8fafc;
   --font-serif: Merriweather, serif;
@@ -805,8 +805,8 @@ html[data-skin="cosmic-night"] {
   --popover: #ffffff;
   --primary: #6e56cf;
   --sidebar: #f0f0fa;
-  --font-mono: JetBrains Mono, monospace;
-  --font-sans: Inter, sans-serif;
+  --font-mono: "Google Sans Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: "Google Sans Flex", "Google Sans Text", "Inter Tight", "Inter", system-ui, sans-serif;
   --secondary: #e4dfff;
   --background: #f5f5ff;
   --font-serif: Georgia, serif;
@@ -887,8 +887,8 @@ html[data-skin="default"] {
   --primary: #171717;
   --sidebar: #fafafa;
   --spacing: 0.25rem;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mono: "Google Sans Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: "Google Sans Flex", "Google Sans Text", "Inter Tight", "Inter", system-ui, sans-serif;
   --secondary: #f5f5f5;
   --background: #ffffff;
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
@@ -1181,7 +1181,7 @@ html.dark[data-skin="graphite"] {
   --primary: #a0a0a0;
   --sidebar: #1f1f1f;
   --font-mono: Fira Code, monospace;
-  --font-sans: Inter, sans-serif;
+  --font-sans: "Google Sans Flex", "Google Sans Text", "Inter Tight", "Inter", system-ui, sans-serif;
   --secondary: #303030;
   --background: #1a1a1a;
   --font-serif: Georgia, serif;
@@ -1219,7 +1219,7 @@ html[data-skin="kodama-grove"] {
   --popover: #f3ead2;
   --primary: #8d9d4f;
   --sidebar: #e2d1a2;
-  --font-mono: JetBrains Mono, monospace;
+  --font-mono: "Google Sans Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-sans: Merriweather, serif;
   --secondary: #decea0;
   --background: #e4d7b0;
@@ -1555,8 +1555,8 @@ html[data-skin="modern-minimal"] {
   --popover: #ffffff;
   --primary: #3b82f6;
   --sidebar: #f9fafb;
-  --font-mono: JetBrains Mono, monospace;
-  --font-sans: Inter, sans-serif;
+  --font-mono: "Google Sans Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: "Google Sans Flex", "Google Sans Text", "Inter Tight", "Inter", system-ui, sans-serif;
   --secondary: #f3f4f6;
   --background: #ffffff;
   --font-serif: Source Serif 4, serif;
@@ -2939,8 +2939,8 @@ html[data-skin="tangerine"] {
   --popover: #ffffff;
   --primary: #e05d38;
   --sidebar: #dddfe2;
-  --font-mono: JetBrains Mono, monospace;
-  --font-sans: Inter, sans-serif;
+  --font-mono: "Google Sans Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: "Google Sans Flex", "Google Sans Text", "Inter Tight", "Inter", system-ui, sans-serif;
   --secondary: #f3f4f6;
   --background: #e8ebed;
   --font-serif: Source Serif 4, serif;

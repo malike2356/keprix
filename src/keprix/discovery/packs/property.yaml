@@ -1,0 +1,57 @@
+id: property
+title: Property vertical pack
+description: Sheet types, metrics, and discovery adapters for UK property operators.
+jurisdiction: UK
+adapters:
+  - property_csv
+  - companies_house
+  - web_directory
+  - rightmove_http
+  - zoopla_http
+portal_adapters_default: disabled
+portal_flag: KEPRIX_PROPERTY_PORTAL_ADAPTERS
+legal_checklist: docs/security/property-portal-legal-checklist.md
+ui_copy:
+  scrape_claim: false
+  note: Prefer CSV, Companies House, and web directory. Portal HTTP adapters stay off unless flagged.
+stage_labels:
+  discovered: New listing / lead
+  enriched: Enriched property record
+  listed: On list for review
+  enrolled: In nurture
+  customer: Instructed / retained
+sheet_types:
+  - id: property_data
+    description: Property stock / comparables sheet
+    markers: [property, address, bedroom, beds, epc, yield, valuation, postcode]
+    columns:
+      - {name: address, role: identity}
+      - {name: postcode, role: geo}
+      - {name: beds, role: metric}
+      - {name: rent, role: metric}
+      - {name: yield, role: metric}
+      - {name: epc, role: metric}
+      - {name: company_name, role: company_name}
+      - {name: contact_email, role: contact_email}
+      - {name: url, role: url}
+    metrics: [beds, rent, yield, epc, price, sqft]
+  - id: tenant_list
+    description: Tenant / occupancy list
+    markers: [tenant, lease, rent, landlord]
+    columns:
+      - {name: tenant_name, role: identity}
+      - {name: property_address, role: identity}
+      - {name: rent, role: metric}
+      - {name: contact_email, role: contact_email}
+      - {name: contact_phone, role: contact_phone}
+    metrics: [rent, arrears, deposit]
+  - id: landlord_pipeline
+    description: Landlord / vendor pipeline
+    markers: [landlord, vendor, pipeline, instruction]
+    columns:
+      - {name: landlord_name, role: company_name}
+      - {name: contact_email, role: contact_email}
+      - {name: contact_phone, role: contact_phone}
+      - {name: stage, role: stage}
+      - {name: portfolio_size, role: metric}
+    metrics: [portfolio_size, estimated_fees]

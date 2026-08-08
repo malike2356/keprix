@@ -19,7 +19,13 @@ export function useMarketingColors() {
   return React.useContext(MarketingSectionContext);
 }
 
-export { MARKETING_DISPLAY_FONT, MARKETING_EYEBROW_SX, MARKETING_HEADING_SX } from "@/components/marketing/marketing-section";
+export {
+  MARKETING_DISPLAY_FONT,
+  MARKETING_BODY_FONT,
+  MARKETING_MONO_FONT,
+  MARKETING_EYEBROW_SX,
+  MARKETING_HEADING_SX,
+} from "@/components/marketing/marketing-section";
 
 type MarketingSectionProps = {
   /** Section stripe within the active theme. Legacy "light"|"dark" still accepted. */

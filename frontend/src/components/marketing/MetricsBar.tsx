@@ -10,7 +10,7 @@ const METRICS = [
   {
     value: "1",
     label: "runtime, many surfaces",
-    detail: "Web workspace, TUI, CLI, REST API, and mobile client.",
+    detail: "Web workspace, TUI, CLI, API, and mobile.",
     color: "#6c5ce7",
   },
   {
@@ -21,14 +21,14 @@ const METRICS = [
   },
   {
     value: "MIT",
-    label: "open-source license",
-    detail: "Use commercially. Modify. Self-host.",
+    label: "open source license",
+    detail: "Use commercially, modify freely, and then self-host.",
     color: "#6495ed",
   },
   {
-    value: "100/100",
-    label: "TUI parity target",
-    detail: "Hermes behavior parity with Keprix look and extensions.",
+    value: "2m",
+    label: "minutes to deploy",
+    detail: "Curl install, local setup, then start running.",
     color: "#F59E0B",
   },
 ] as const;

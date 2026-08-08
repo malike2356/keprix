@@ -501,6 +501,36 @@ def register_builtin_commands(registry: SlashRegistry) -> None:
         SlashCommand("approve", description="Approve a pending command", usage="/approve <token>", category="safety", min_role="viewer", handler=_approve),
         SlashCommand("cancel", description="Cancel a pending command", usage="/cancel <token>", category="safety", min_role="viewer", handler=_cancel),
         SlashCommand("diagnostics", description="Show diagnostics", usage="/diagnostics", category="diagnostics", min_role="admin", handler=_diagnostics),
+        SlashCommand(
+            "leads",
+            aliases=["leads.find", "leads.approve", "leads.digest"],
+            description="CRM funnel: find / approve Soft Wall / digest",
+            usage="/leads find <query> [in place] | /leads approve [id] | /leads digest",
+            category="crm",
+            min_role="operator",
+            handler=_crm_leads,
+        ),
+        SlashCommand(
+            "crm",
+            aliases=["crm.ask"],
+            description="Ask CRM questions from channel",
+            usage='/crm ask "who is engaged?"',
+            category="crm",
+            min_role="viewer",
+            handler=_crm_ask,
+        ),
     ]
     for entry in entries:
         registry.register(entry)
+
+
+async def _crm_leads(ctx: SlashContext) -> SlashResult:
+    from keprix.crm.telegram_funnel import handle_leads_command
+
+    return await handle_leads_command(ctx)
+
+
+async def _crm_ask(ctx: SlashContext) -> SlashResult:
+    from keprix.crm.telegram_funnel import handle_crm_command
+
+    return await handle_crm_command(ctx)

@@ -18,9 +18,10 @@ type CalendarWeekViewProps = {
   anchor: Date;
   events: CalendarEvent[];
   onSelectEvent?: (event: CalendarEvent) => void;
+  onSelectSlot?: (day: Date, hour: number) => void;
 };
 
-export default function CalendarWeekView({ anchor, events, onSelectEvent }: CalendarWeekViewProps) {
+export default function CalendarWeekView({ anchor, events, onSelectEvent, onSelectSlot }: CalendarWeekViewProps) {
   const days = getWeekDays(anchor);
 
   return (
@@ -112,10 +113,13 @@ export default function CalendarWeekView({ anchor, events, onSelectEvent }: Cale
                 {HOURS.map((hour) => (
                   <Box
                     key={hour}
+                    onClick={() => onSelectSlot?.(day, hour)}
                     sx={{
                       height: 48,
                       borderBottom: 1,
                       borderColor: hour === HOUR_END ? "divider" : "action.hover",
+                      cursor: onSelectSlot ? "pointer" : "default",
+                      "&:hover": onSelectSlot ? { bgcolor: "action.hover" } : undefined,
                     }}
                   />
                 ))}

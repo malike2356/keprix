@@ -6,6 +6,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
 import * as React from "react";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { importResearchDataset, previewResearchDataset } from "@/lib/research-workspace-api";
 
 type Props = {
@@ -121,9 +122,9 @@ export default function DatasetManager({ projectId, onImported }: Props) {
         </Typography>
       ) : null}
       {preview ? (
-        <Box component="pre" sx={{ fontSize: 12, bgcolor: "action.hover", p: 1, borderRadius: 1, overflow: "auto" }}>
-          {JSON.stringify({ columns: preview.columns, sample_rows: preview.rows.slice(0, 3) }, null, 2)}
-        </Box>
+        <StructuredDataView
+          value={{ columns: preview.columns, sample_rows: preview.rows.slice(0, 3) }}
+        />
       ) : null}
       {message ? (
         <Typography variant="body2" color="text.secondary">

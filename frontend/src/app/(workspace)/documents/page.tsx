@@ -24,9 +24,11 @@ import Typography from "@mui/material/Typography";
 import FolderIcon from "@mui/icons-material/Folder";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
+import NextLink from "next/link";
 import * as React from "react";
 import DocumentAgentPanel from "@/components/documents/DocumentAgentPanel";
 import IndexManagerPanel from "@/components/documents/IndexManagerPanel";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
 import { SkeletonDetailPanel, SkeletonList } from "@/components/ui/loading";
@@ -83,7 +85,7 @@ export default function DocumentsPage() {
   const [versions, setVersions] = React.useState<
     Array<{ id: string; title: string; content: string; created_at: string }>
   >([]);
-  const [extractResult, setExtractResult] = React.useState<string | null>(null);
+  const [extractResult, setExtractResult] = React.useState<Record<string, unknown> | null>(null);
   const autosaveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const selected = documents.find((doc) => doc.id === selectedId) ?? null;
@@ -336,7 +338,7 @@ export default function DocumentsPage() {
     if (!selected) return;
     try {
       const result = await extractDocumentStructure(selected.content);
-      setExtractResult(JSON.stringify(result, null, 2));
+      setExtractResult(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Extract failed");
     }
@@ -602,6 +604,9 @@ export default function DocumentsPage() {
                     <Button variant="outlined" onClick={() => void handleExport("pdf")}>
                       Export PDF
                     </Button>
+                    <Button variant="outlined" component={NextLink} href="/data?tab=export">
+                      Cover / signatory export
+                    </Button>
                     <Button variant="outlined" onClick={() => void handleShare()}>
                       Share link
                     </Button>
@@ -649,11 +654,7 @@ export default function DocumentsPage() {
                           ))}
                         </Box>
                       ) : null}
-                      {extractResult ? (
-                        <Typography variant="caption" component="pre" sx={{ whiteSpace: "pre-wrap" }}>
-                          {extractResult}
-                        </Typography>
-                      ) : null}
+                      {extractResult ? <StructuredDataView value={extractResult} /> : null}
                       {versions.length ? (
                         <Box>
                           <Typography variant="subtitle2" sx={{ mb: 1 }}>

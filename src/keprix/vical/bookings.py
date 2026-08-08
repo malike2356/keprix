@@ -201,6 +201,17 @@ class BookingLifecycle:
                 execute_booking_confirmed_workflow(booking.to_dict())
             except Exception:
                 pass
+            try:
+                from keprix.crm.booking import on_vical_booking_confirmed_crm
+
+                on_vical_booking_confirmed_crm(booking)
+            except Exception:
+                try:
+                    from keprix.outreach.vical_handoff import soft_wall_handoff_on_vical_confirmed
+
+                    soft_wall_handoff_on_vical_confirmed(booking)
+                except Exception:
+                    pass
 
     def _bridge_create_calendar(self, user_id: str, booking: VcalBooking, title_prefix: str) -> None:
         from keprix.capability_mesh.ids import calendar_event_metadata_for_booking

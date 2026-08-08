@@ -8,6 +8,7 @@ import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import * as React from "react";
 import { SkeletonList } from "@/components/ui/loading";
 import StatusPill from "@/components/ui/StatusPill";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import type { StatusKey } from "@/theme/tokens/status";
 
 export type ToolRunStep = {
@@ -23,6 +24,18 @@ type ToolRunTraceProps = {
   loading?: boolean;
 };
 
+function parseMaybeJson(raw: string): { kind: "json"; value: unknown } | { kind: "text"; value: string } {
+  const trimmed = raw.trim();
+  if (!trimmed || (trimmed[0] !== "{" && trimmed[0] !== "[")) {
+    return { kind: "text", value: raw };
+  }
+  try {
+    return { kind: "json", value: JSON.parse(trimmed) };
+  } catch {
+    return { kind: "text", value: raw };
+  }
+}
+
 export default function ToolRunTrace({ steps, loading = false }: ToolRunTraceProps) {
   const [openId, setOpenId] = React.useState<string | null>(null);
 
@@ -37,6 +50,7 @@ export default function ToolRunTrace({ steps, loading = false }: ToolRunTracePro
     <Box sx={{ display: "grid", gap: 1 }}>
       {steps.map((step) => {
         const open = openId === step.id;
+        const parsed = step.output ? parseMaybeJson(step.output) : null;
         return (
           <Box key={step.id} sx={{ border: 1, borderColor: "divider", borderRadius: 1, p: 1.25 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -52,13 +66,19 @@ export default function ToolRunTrace({ steps, loading = false }: ToolRunTracePro
               ) : null}
             </Box>
             <Collapse in={open}>
-              <Typography
-                component="pre"
-                variant="caption"
-                sx={{ mt: 1, p: 1, bgcolor: "action.hover", borderRadius: 1, overflow: "auto" }}
-              >
-                {step.output}
-              </Typography>
+              {parsed?.kind === "json" ? (
+                <Box sx={{ mt: 1, p: 1, bgcolor: "action.hover", borderRadius: 1, overflow: "auto" }}>
+                  <StructuredDataView value={parsed.value} />
+                </Box>
+              ) : (
+                <Typography
+                  component="pre"
+                  variant="caption"
+                  sx={{ mt: 1, p: 1, bgcolor: "action.hover", borderRadius: 1, overflow: "auto" }}
+                >
+                  {parsed?.value}
+                </Typography>
+              )}
             </Collapse>
           </Box>
         );

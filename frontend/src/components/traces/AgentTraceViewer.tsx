@@ -6,6 +6,7 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import type { TraceEvent, TraceView } from "@/lib/agents-runtime-api";
 
 const eventColor: Record<string, "default" | "primary" | "secondary" | "warning" | "error" | "success" | "info"> = {
@@ -52,11 +53,7 @@ export default function AgentTraceViewer({ trace }: Props) {
                   <Typography variant="body2">{event.agent}</Typography>
                 </Box>
               }
-              secondary={
-                <Typography component="pre" variant="caption" sx={{ whiteSpace: "pre-wrap", mt: 0.5 }}>
-                  {JSON.stringify(event.payload, null, 2)}
-                </Typography>
-              }
+              secondary={<StructuredDataView value={event.payload} emptyLabel="-" />}
             />
           </ListItem>
         ))}

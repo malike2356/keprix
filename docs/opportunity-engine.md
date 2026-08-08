@@ -106,4 +106,4 @@ Scout governance and external data connectors can enrich research playbooks when
 - [Approval policy](opportunity-engine-approval-policy.md)
 - [Integrations](opportunity-engine-integrations.md)
 - [Examples](opportunity-engine-examples.md)
-- [Release checklist](opportunity-engine-release-checklist.md)
+- [Changelog automation](operations/changelog-automation.md)

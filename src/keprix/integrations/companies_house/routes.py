@@ -80,15 +80,39 @@ async def companies_house_settings(
 
 @router.get("/search")
 async def search_companies(
-    q: str = Query(..., min_length=1, description="Company name or number"),
+    q: str = Query(..., min_length=1, description="Company name, number, or person name"),
+    mode: str = Query("companies", description="companies | officers"),
     items_per_page: int = Query(20, ge=1, le=100),
     start_index: int = Query(0, ge=0),
     _user: dict = Depends(get_current_user),
 ) -> dict[str, Any]:
     query = _safe_string(q, "q", 200)
+    mode_norm = (mode or "companies").strip().lower()
+    officers = mode_norm in {"officers", "people", "person", "officer"}
     client = CompaniesHouseClient()
     try:
-        return await client.search_companies(query, items_per_page=items_per_page, start_index=start_index)
+        if officers:
+            return await client.search_officers(
+                query, items_per_page=items_per_page, start_index=start_index
+            )
+        return await client.search_companies(
+            query, items_per_page=items_per_page, start_index=start_index
+        )
+    except (CompaniesHouseConfigError, CompaniesHouseApiError) as exc:
+        _raise_ch(exc)
+        raise  # pragma: no cover
+
+
+@router.get("/officers/{officer_id}/appointments")
+async def officer_appointments(
+    officer_id: str,
+    max_items: int = Query(50, ge=1, le=200),
+    _user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    oid = _safe_string(officer_id, "officer_id", 200)
+    client = CompaniesHouseClient()
+    try:
+        return await client.list_officer_appointments(oid, max_items=max_items)
     except (CompaniesHouseConfigError, CompaniesHouseApiError) as exc:
         _raise_ch(exc)
         raise  # pragma: no cover

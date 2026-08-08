@@ -1,5 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
+/* Google AI Studio typefaces (aistudio.google.com): Flex + Text + Code (+ Inter fallbacks via next/font). */
 
 /*
   MUI AppRouterCacheProvider uses enableCssLayer, so component styles land in
@@ -19,6 +18,16 @@
   --kp-border: var(--border, rgba(0, 0, 0, 0.12));
   --kp-radius-card: var(--radius, 12px);
   --kp-radius-chip: 9999px;
+  --font-ai-studio-sans: "Google Sans Flex", "Google Sans Text", var(--font-inter-tight), "Inter Tight", var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-ai-studio-mono: "Google Sans Code", "Google Sans Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: var(--font-ai-studio-sans);
+  --font-mono: var(--font-ai-studio-mono);
+}
+
+/* Default skin: force AI Studio fonts even when skins.css sets system stacks. */
+html[data-skin="default"] {
+  --font-sans: var(--font-ai-studio-sans);
+  --font-mono: var(--font-ai-studio-mono);
 }
 
 html.dark {
@@ -37,10 +46,35 @@ html.dark {
   MUI InputBase assumes content-box on the inner input (height: 1.4375em + padding).
   With enableCssLayer, a global border-box reset can still win depending on stylesheet
   order, which crushes TextField / Select to a ~33px strip and breaks menus.
-  Keep this rule unlayered so it reliably restores MUI's sizing model.
+  Keep these rules unlayered so they reliably restore MUI's sizing model.
 */
 .MuiInputBase-input {
   box-sizing: content-box;
+}
+
+/*
+  Outlined TextField notches use a <legend> gap. Border-box on legend shrinks that
+  gap and drops the floating label into the field (labels look "bumped" into the
+  input). Autofill paints an opaque fill that makes the overlap worse.
+*/
+.MuiOutlinedInput-notchedOutline legend {
+  box-sizing: content-box !important;
+}
+
+.MuiInputLabel-outlined.MuiInputLabel-shrink {
+  background-color: var(--kp-bg-paper, var(--card, #121212));
+  padding-inline: 4px;
+  margin-inline: -4px;
+}
+
+.MuiOutlinedInput-input:-webkit-autofill,
+.MuiOutlinedInput-input:-webkit-autofill:hover,
+.MuiOutlinedInput-input:-webkit-autofill:focus,
+.MuiOutlinedInput-input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--kp-text-primary, inherit) !important;
+  caret-color: var(--kp-text-primary, inherit);
+  transition: background-color 99999s ease-out 0s;
+  box-shadow: 0 0 0 1000px var(--kp-bg-paper, var(--card, #121212)) inset !important;
 }
 
 html {
@@ -54,7 +88,7 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  font-family: var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
   background-color: var(--kp-bg);
   color: var(--kp-text-primary);
   transition:

@@ -52,6 +52,7 @@ export default function ForgotPasswordForm() {
         required
         autoComplete="username"
         fullWidth
+        InputLabelProps={{ shrink: true }}
       />
       <Button type="submit" variant="contained" size="large" disabled={submitting}>
         {submitting ? "Sending..." : "Send reset link"}

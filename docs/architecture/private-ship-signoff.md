@@ -52,7 +52,7 @@ Docs: `docs/operations/vps-deploy.md`, `docs/operations/readiness.md`,
 
 1. Working tree may still be dirty relative to `origin/main`. Tag from a curated clean commit, not an accidental `tar` of the WIP cwd.
 2. Hosted SaaS legal text and company entity fields are still incomplete for public paid launch.
-3. Public domain `keprixai.uk` was not verified live in this pass.
+3. Public marketing domain (now `keprixai.com`; see public GTM 424/427) was not verified live in this private-ship pass.
 4. Full-suite beyond the private gate (every optional integration) was not claimed green.
 5. Do not publish `.env`, `config/billing.yaml`, or Stripe credential files.
 

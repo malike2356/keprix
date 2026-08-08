@@ -60,11 +60,11 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting started:
-      - Quickstart: getting-started/quickstart.md
       - Install Keprix: getting-started/install.md
-      - Manual install: getting-started/manual-install.md
-      - Cloud deploy: getting-started/cloud-deploy.md
       - First run: getting-started/first-run.md
+      - Quickstart: getting-started/quickstart.md
+      - Manual install (developers): getting-started/manual-install.md
+      - Cloud deploy: getting-started/cloud-deploy.md
       - Credentials: getting-started/credentials.md
       - Authentication: getting-started/authentication.md
       - Developer mode: getting-started/developer-mode.md
@@ -127,6 +127,8 @@ nav:
       - Upstream adoption policy: architecture/upstream-adoption-policy.md
       - Keprix solidness report: architecture/keprix-solidness-report.md
       - Keprix agent parity report: architecture/keprix-agent-parity-report.md
+      - Public GTM sign-off: architecture/public-gtm-signoff.md
+      - Public GTM gap map: architecture/public-gtm-gap-map.md
   - Automations:
       - Agent and Mutation Engine: features/agent.md
       - Agent runtime internals: features/agent-runtime.md
@@ -156,6 +158,10 @@ nav:
   - Security:
       - Architecture: security/architecture.md
       - Channel Shield: features/channel-shield.md
+      - Soft Wall safety: features/soft-wall-safety.md
+      - Soft Wall enroll + viCal SoT: features/soft-wall-enroll-vical.md
+      - Tool ACL: features/tool-acl.md
+      - Resource-scoped tool ACL: features/resource-tool-acl.md
       - Privacy and data handling: security/privacy.md
       - Vault: security/vault.md
       - Credential proxy: security/credential-proxy.md

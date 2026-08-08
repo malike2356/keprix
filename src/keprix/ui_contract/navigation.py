@@ -1,14 +1,17 @@
 """Navigation groups and items for the Keprix app shell.
 
-Order follows a common workspace UX flow:
-1. Daily work (Workspace)
-2. Knowledge and content systems (Data)
-3. Discovery (Research)
-4. Extensions and channels (Apps / Installed apps)
-5. Agent systems and schedules (Automations)
-6. Trust and governance (Security)
-7. Commercial (Commerce)
-8. Instance operations (Admin), with Developer last
+Order follows natural operator workflows (accordion sidebar; one group open):
+1. Daily work (chat, schedule, inbox)
+2. Pipeline (people, CRM, outreach, discovery)
+3. Knowledge (docs, files, memory)
+4. Data and insights (RAG, analytics, models)
+5. Research (deep research, model compare)
+6. Apps and channels
+7. Installed apps
+8. Automations (agents, playbooks, schedules)
+9. Security and trust
+10. Billing
+11. Admin (Developer last)
 """
 
 from __future__ import annotations
@@ -16,19 +19,23 @@ from __future__ import annotations
 from typing import Any
 
 NAV_GROUP_LABELS: dict[str, str] = {
-    "workspace": "Workspace",
+    "workspace": "Daily work",
+    "pipeline": "Pipeline",
+    "knowledge": "Knowledge",
     "data": "Data",
     "research": "Research",
     "apps": "Apps",
     "installed_apps": "Installed apps",
     "automations": "Automations",
     "security": "Security",
-    "commerce": "Commerce",
+    "commerce": "Billing",
     "admin": "Admin",
 }
 
 NAV_GROUPS_ORDER: list[str] = [
     "workspace",
+    "pipeline",
+    "knowledge",
     "data",
     "research",
     "apps",
@@ -42,7 +49,7 @@ NAV_GROUPS_ORDER: list[str] = [
 # Curated nav. Admins/owners always get the full list.
 # Users/operators get this minus admin group, minus items gated by off feature flags.
 NAV_ITEMS: list[dict[str, Any]] = [
-    # --- Workspace: start work, organize, communicate, capture ---
+    # --- Daily work: start the day, talk, schedule, communicate ---
     {"id": "home", "label": "Home", "href": "/home", "group": "workspace", "icon": "home"},
     {"id": "chat", "label": "Chat", "href": "/chat", "group": "workspace", "icon": "chat"},
     {"id": "sessions", "label": "Sessions", "href": "/sessions", "group": "workspace", "icon": "chat"},
@@ -53,25 +60,29 @@ NAV_ITEMS: list[dict[str, Any]] = [
     {"id": "notes", "label": "Notes", "href": "/notes", "group": "workspace", "icon": "notes"},
     {"id": "email", "label": "Email", "href": "/email", "group": "workspace", "icon": "email"},
     {"id": "notifications", "label": "Notifications", "href": "/notifications", "group": "workspace", "icon": "email"},
-    {"id": "contacts", "label": "Contacts", "href": "/contacts", "group": "workspace", "icon": "contacts"},
-    {"id": "leads", "label": "Product signups", "href": "/leads", "group": "workspace", "icon": "contacts"},
-    {"id": "crm", "label": "CRM", "href": "/crm", "group": "workspace", "icon": "contacts"},
-    {"id": "crm-enrich", "label": "Sheet enrich", "href": "/crm/enrich", "group": "workspace", "icon": "science"},
-    {"id": "crm-discover", "label": "Discover", "href": "/crm/discover", "group": "workspace", "icon": "search"},
-    {"id": "crm-jobs", "label": "CRM jobs", "href": "/crm/jobs", "group": "workspace", "icon": "monitoring"},
-    {"id": "escalations", "label": "Escalations", "href": "/escalations", "group": "workspace", "icon": "shield"},
-    {"id": "worker-kb", "label": "Worker KB", "href": "/workers/kb", "group": "workspace", "icon": "memory"},
-    {"id": "tenants", "label": "Tenants", "href": "/tenants", "group": "admin", "icon": "users"},
-    {"id": "document-agents", "label": "Document agents", "href": "/document-agents", "group": "workspace", "icon": "folder"},
-    {"id": "documents", "label": "Documents", "href": "/documents", "group": "workspace", "icon": "folder"},
-    {"id": "files", "label": "Files", "href": "/files", "group": "workspace", "icon": "folder"},
-    {"id": "gallery", "label": "Gallery", "href": "/gallery", "group": "workspace", "icon": "image"},
-    {"id": "memory", "label": "Memory", "href": "/memory", "group": "workspace", "icon": "memory"},
-    {"id": "memory-galaxy", "label": "Memory Galaxy", "href": "/memory/galaxy", "group": "workspace", "icon": "memory"},
-    {"id": "brain", "label": "Brain", "href": "/brain/graph", "group": "workspace", "icon": "memory"},
-    {"id": "tools", "label": "Tools", "href": "/admin/tools", "group": "workspace", "icon": "tool"},
-    {"id": "workspace-new", "label": "New workspace", "href": "/workspace/new", "group": "workspace", "icon": "folder"},
-    # --- Data: knowledge graph, pipelines, models, telemetry ---
+    # --- Pipeline: people, CRM, Soft Wall outreach, discovery ---
+    {"id": "contacts", "label": "Contacts", "href": "/contacts", "group": "pipeline", "icon": "contacts"},
+    {"id": "crm", "label": "CRM", "href": "/crm", "group": "pipeline", "icon": "contacts"},
+    {"id": "crm-enrich", "label": "Sheet enrich", "href": "/crm/enrich", "group": "pipeline", "icon": "science"},
+    {"id": "crm-discover", "label": "Discover", "href": "/crm/discover", "group": "pipeline", "icon": "search"},
+    {"id": "crm-jobs", "label": "CRM jobs", "href": "/crm/jobs", "group": "pipeline", "icon": "monitoring"},
+    {"id": "outreach", "label": "Outreach", "href": "/outreach", "group": "pipeline", "icon": "email"},
+    {"id": "companies-house", "label": "Companies House", "href": "/companies-house", "group": "pipeline", "icon": "business"},
+    {"id": "leads", "label": "Product signups", "href": "/leads", "group": "pipeline", "icon": "contacts"},
+    {"id": "opportunities", "label": "Research opportunities", "href": "/opportunities", "group": "pipeline", "icon": "science"},
+    {"id": "escalations", "label": "Escalations", "href": "/escalations", "group": "pipeline", "icon": "shield"},
+    {"id": "worker-kb", "label": "Worker KB", "href": "/workers/kb", "group": "pipeline", "icon": "memory"},
+    # --- Knowledge: documents, files, durable memory ---
+    {"id": "documents", "label": "Documents", "href": "/documents", "group": "knowledge", "icon": "folder"},
+    {"id": "document-agents", "label": "Document agents", "href": "/document-agents", "group": "knowledge", "icon": "folder"},
+    {"id": "files", "label": "Files", "href": "/files", "group": "knowledge", "icon": "folder"},
+    {"id": "gallery", "label": "Gallery", "href": "/gallery", "group": "knowledge", "icon": "image"},
+    {"id": "memory", "label": "Memory", "href": "/memory", "group": "knowledge", "icon": "memory"},
+    {"id": "memory-galaxy", "label": "Memory Galaxy", "href": "/memory/galaxy", "group": "knowledge", "icon": "memory"},
+    {"id": "brain", "label": "Brain", "href": "/brain/graph", "group": "knowledge", "icon": "memory"},
+    {"id": "tools", "label": "Tools", "href": "/admin/tools", "group": "knowledge", "icon": "tool"},
+    {"id": "workspace-new", "label": "New workspace", "href": "/workspace/new", "group": "knowledge", "icon": "folder"},
+    # --- Data: knowledge graph ops, pipelines, models, telemetry ---
     {"id": "brain-graph", "label": "Brain graph", "href": "/brain/graph", "group": "data", "icon": "memory"},
     {"id": "brain-health", "label": "Brain health", "href": "/brain/health", "group": "data", "icon": "monitoring"},
     {"id": "graphiti", "label": "Graphiti", "href": "/brain/graphiti", "group": "data", "icon": "memory"},
@@ -82,11 +93,8 @@ NAV_ITEMS: list[dict[str, Any]] = [
     {"id": "analytics", "label": "Data analysis", "href": "/data?tab=analytics", "group": "data", "icon": "compare"},
     {"id": "usage", "label": "LLM usage", "href": "/data?tab=usage", "group": "data", "icon": "monitoring"},
     {"id": "observability", "label": "Observability", "href": "/data?tab=observability", "group": "data", "icon": "activity"},
-    # --- Research: discover and evaluate ---
+    # --- Research: deep research and evaluation ---
     {"id": "research", "label": "Deep Research", "href": "/research", "group": "research", "icon": "science"},
-    {"id": "companies-house", "label": "Companies House", "href": "/companies-house", "group": "research", "icon": "business"},
-    {"id": "outreach", "label": "Outreach", "href": "/outreach", "group": "research", "icon": "email"},
-    {"id": "opportunities", "label": "Research opportunities", "href": "/opportunities", "group": "research", "icon": "science"},
     {"id": "compare", "label": "Compare Models", "href": "/compare", "group": "research", "icon": "compare"},
     # --- Apps: installable surfaces, channels, builders ---
     {"id": "hub", "label": "Hub", "href": "/hub", "group": "apps", "icon": "apps"},
@@ -130,14 +138,16 @@ NAV_ITEMS: list[dict[str, Any]] = [
     {"id": "dsar", "label": "DSAR", "href": "/admin/dsar", "group": "security", "icon": "shield"},
     {"id": "operator-copilot", "label": "Operator copilot", "href": "/control-center", "group": "security", "icon": "extension"},
     {"id": "support", "label": "Support", "href": "/support", "group": "security", "icon": "help"},
-    # --- Admin: overview → people → product → governance → reliability → platform ---
+    # --- Billing ---
+    {"id": "billing", "label": "Billing", "href": "/settings/billing", "group": "commerce", "icon": "payments"},
+    {"id": "upgrade", "label": "Keprix upgrades", "href": "/settings/upgrade", "group": "commerce", "icon": "backup"},
+    # --- Admin: overview -> people -> product -> governance -> reliability -> platform ---
     {"id": "settings", "label": "Settings", "href": "/settings", "group": "admin", "icon": "settings"},
     {"id": "dashboard", "label": "Dashboard", "href": "/dashboard", "group": "admin", "icon": "monitoring"},
     {"id": "admin", "label": "Admin", "href": "/dashboard", "group": "admin", "icon": "shield"},
     {"id": "users", "label": "Users", "href": "/settings/users", "group": "admin", "icon": "users"},
+    {"id": "tenants", "label": "Tenants", "href": "/tenants", "group": "admin", "icon": "users"},
     {"id": "modules", "label": "Modules", "href": "/settings/modules", "group": "admin", "icon": "apps"},
-    {"id": "billing", "label": "Billing", "href": "/settings/billing", "group": "commerce", "icon": "payments"},
-    {"id": "upgrade", "label": "Keprix upgrades", "href": "/settings/upgrade", "group": "commerce", "icon": "backup"},
     {"id": "feature-flags", "label": "Feature Flags", "href": "/admin/feature-flags", "group": "admin", "icon": "apps"},
     {"id": "admin-quotas", "label": "Quotas", "href": "/admin/quotas", "group": "admin", "icon": "monitoring"},
     {"id": "admin-tool-acl", "label": "Tool ACL", "href": "/admin/tool-acl", "group": "admin", "icon": "shield"},
@@ -168,11 +178,11 @@ FLAG_NAV_GATES: dict[str, set[str]] = {
     "data_workspace": {"rag-pipeline", "analytics", "aiva-analytics", "video-ingest", "observability"},
     "opportunity_engine": {"opportunities", "contacts"},
     "playbooks": {"playbooks", "playbook-triggers"},
-    "research": {"research", "compare", "companies-house", "outreach"},
+    "research": {"research", "compare"},
     "calendar": {"calendar", "vical"},
     "email": {"email", "messaging-settings"},
     "contacts": {"contacts"},
-    "crm_funnel": {"crm", "crm-enrich", "crm-discover", "crm-jobs"},
+    "crm_funnel": {"crm", "crm-enrich", "crm-discover", "crm-jobs", "outreach", "companies-house"},
     "agent_apps": {"agent-apps", "hub"},
     "builder": {"builder"},
     "browser": {"browser-adoption"},
@@ -239,6 +249,10 @@ def navigation_for_role(
         except Exception:
             pass
         items = _filter_by_feature_flags(items, feature_flags)
+
+    # Drop empty groups so the accordion only shows groups with items.
+    present = {str(item["group"]) for item in items}
+    visible_groups = [group for group in visible_groups if group in present or group == "installed_apps"]
 
     return {
         "groups": [{"id": group, "label": NAV_GROUP_LABELS[group]} for group in visible_groups],

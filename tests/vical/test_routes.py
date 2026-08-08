@@ -66,3 +66,20 @@ def test_create_booking_via_api(client: TestClient) -> None:
     payload = res.json()
     assert payload["status"] == "confirmed"
     assert payload["workspace_event_id"]
+
+
+def test_create_booking_skip_slot_check(client: TestClient) -> None:
+    """Host calendar free-slot create may land outside offer windows."""
+    ensure_default_consultation("api-user")
+    start = datetime.now(timezone.utc).replace(hour=3, minute=0, second=0, microsecond=0) + timedelta(days=3)
+    body = {
+        "guest_name": "Slot Guest",
+        "guest_email": "slot@example.com",
+        "starts_at": start.isoformat(),
+        "slug": "consultation",
+        "source": "api",
+        "skip_slot_check": True,
+    }
+    res = client.post("/api/vical/bookings", json=body)
+    assert res.status_code == 201, res.text
+    assert res.json()["guest_email"] == "slot@example.com"

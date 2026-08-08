@@ -10,10 +10,8 @@ import { ceApi } from "@/lib/ce-api";
 type QuotaUsagePayload = {
   usages?: Array<{
     product_id: string;
-    usage: {
-      usage?: Record<string, number>;
-      limits?: Record<string, number>;
-    };
+    usage?: Record<string, number>;
+    limits?: Record<string, number>;
   }>;
 };
 
@@ -26,8 +24,8 @@ async function fetchQuotaUsage() {
 function highestTokenUsage(payload: QuotaUsagePayload | null | undefined) {
   let best: { productId: string; pct: number; used: number; limit: number } | null = null;
   for (const item of payload?.usages ?? []) {
-    const used = item.usage.usage?.llm_tokens_in ?? 0;
-    const limit = item.usage.limits?.llm_tokens_in ?? 0;
+    const used = item.usage?.llm_tokens_in ?? 0;
+    const limit = item.limits?.llm_tokens_in ?? 0;
     if (limit <= 0) continue;
     const pct = used / limit;
     if (!best || pct > best.pct) best = { productId: item.product_id, pct, used, limit };

@@ -11,7 +11,7 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
-import CodeBlock from "@/components/workspace/blocks/CodeBlock";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import {
   groupPlaybookEventsByNode,
   redactStateForDisplay,
@@ -40,9 +40,9 @@ function formatDuration(durationMs?: number): string | null {
   return `${(durationMs / 1000).toFixed(2)} s`;
 }
 
-function JsonPanel({ value }: { value: Record<string, unknown> | undefined }) {
+function StatePanel({ value }: { value: Record<string, unknown> | undefined }) {
   const display = redactStateForDisplay(value) ?? {};
-  return <CodeBlock language="json" content={JSON.stringify(display, null, 2)} />;
+  return <StructuredDataView value={display} />;
 }
 
 function StepRow({ row }: { row: StepRunRow }) {
@@ -82,28 +82,29 @@ function StepRow({ row }: { row: StepRunRow }) {
         <Box sx={{ mt: 1.5 }}>
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <Tabs value={tab} onChange={(_, value) => setTab(value)}>
-              <Tab label="Input JSON" />
-              <Tab label="Output JSON" />
-              <Tab label="Raw events" />
+              <Tab label="Input" />
+              <Tab label="Output" />
+              <Tab label="Events" />
             </Tabs>
             <IconButton
               size="small"
-              aria-label="Copy JSON"
+              aria-label="Copy data"
               onClick={() =>
                 void copyJson(
-                  tab === 0 ? row.input_state : tab === 1 ? row.output_state : undefined,
+                  tab === 0
+                    ? row.input_state
+                    : tab === 1
+                      ? row.output_state
+                      : ({ events: row.rawEvents } as Record<string, unknown>),
                 )
               }
-              disabled={tab === 2}
             >
               <ContentCopyIcon fontSize="small" />
             </IconButton>
           </Box>
-          {tab === 0 ? <JsonPanel value={row.input_state} /> : null}
-          {tab === 1 ? <JsonPanel value={row.output_state} /> : null}
-          {tab === 2 ? (
-            <CodeBlock language="json" content={JSON.stringify(row.rawEvents, null, 2)} />
-          ) : null}
+          {tab === 0 ? <StatePanel value={row.input_state} /> : null}
+          {tab === 1 ? <StatePanel value={row.output_state} /> : null}
+          {tab === 2 ? <StructuredDataView value={row.rawEvents} /> : null}
         </Box>
       ) : null}
     </Box>

@@ -9,7 +9,11 @@ import { alpha, keyframes } from "@mui/material/styles";
 import Link from "next/link";
 import * as React from "react";
 import { KeprixLogo } from "@/components/shared/KeprixLogo";
-import { getMarketingColors } from "@/components/marketing/marketing-section";
+import {
+  getMarketingColors,
+  MARKETING_DISPLAY_FONT,
+  MARKETING_MONO_FONT,
+} from "@/components/marketing/marketing-section";
 import { useThemeMode } from "@/components/providers/ThemeRegistry";
 
 const blink = keyframes`
@@ -132,7 +136,7 @@ function TerminalWindow() {
         <Box key={`${line.prefix}-${line.text}`} sx={{ mb: 0.75 }}>
           <Typography
             component="div"
-            sx={{ color, fontFamily: "monospace", fontSize: "inherit", lineHeight: 1.6 }}
+            sx={{ color, fontFamily: MARKETING_MONO_FONT, fontSize: "inherit", lineHeight: 1.6 }}
           >
             {line.prefix}
           </Typography>
@@ -140,7 +144,7 @@ function TerminalWindow() {
             component="div"
             sx={{
               color: colors.textPrimary,
-              fontFamily: "monospace",
+              fontFamily: MARKETING_MONO_FONT,
               fontSize: "inherit",
               lineHeight: 1.6,
               pl: 0.5,
@@ -157,11 +161,11 @@ function TerminalWindow() {
       <Box key={`${line.prefix}-${line.text}`} sx={{ display: "flex", gap: 1, mb: 0.5, alignItems: "baseline" }}>
         <Typography
           component="span"
-          sx={{ color, fontFamily: "monospace", whiteSpace: "nowrap", fontSize: "inherit" }}
+          sx={{ color, fontFamily: MARKETING_MONO_FONT, whiteSpace: "nowrap", fontSize: "inherit" }}
         >
           {line.prefix}
         </Typography>
-        <Typography component="span" sx={{ color: colors.textPrimary, fontFamily: "monospace", fontSize: "inherit" }}>
+        <Typography component="span" sx={{ color: colors.textPrimary, fontFamily: MARKETING_MONO_FONT, fontSize: "inherit" }}>
           {visibleText}
           {showCursor ? <TerminalCursor color={colors.textPrimary} /> : null}
         </Typography>
@@ -184,7 +188,7 @@ function TerminalWindow() {
         border: `1px solid ${alpha(colors.primary, 0.3)}`,
         borderRadius: 3,
         overflow: "hidden",
-        fontFamily: "monospace",
+        fontFamily: MARKETING_MONO_FONT,
         fontSize: { xs: "0.75rem", sm: "0.85rem" },
         lineHeight: 1.7,
         backdropFilter: "blur(12px)",
@@ -206,7 +210,7 @@ function TerminalWindow() {
           <Box key={c} sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: c }} />
         ))}
         <Typography
-          sx={{ ml: 1, fontSize: "0.7rem", color: colors.textSecondary, fontFamily: "monospace" }}
+          sx={{ ml: 1, fontSize: "0.7rem", color: colors.textSecondary, fontFamily: MARKETING_MONO_FONT }}
         >
           keprix - command center
         </Typography>
@@ -469,7 +473,7 @@ export function Hero() {
               <Typography
                 component="h1"
                 sx={{
-                  fontFamily: '"Cormorant Garamond", Georgia, serif',
+                  fontFamily: MARKETING_DISPLAY_FONT,
                   fontSize: { xs: "3rem", sm: "3.85rem", md: "4.4rem", lg: "4.9rem" },
                   fontWeight: 700,
                   lineHeight: 0.98,

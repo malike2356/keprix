@@ -11,6 +11,14 @@ requires-python = ">=3.11,<3.13"
 authors = [{ name = "Verlox Ltd" }]
 license = "MIT"
 license-files = ["LICENSE"]
+keywords = ["ai", "agent", "self-hosted", "tui"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
   # Web framework
   "fastapi==0.115.6",
@@ -91,6 +99,13 @@ dependencies = [
   "urllib3>=2.7.0,<3",
   "tzdata==2025.3; sys_platform == 'win32'",
 ]
+
+
+[project.urls]
+Homepage = "https://keprixai.com"
+Documentation = "https://github.com/malike2356/keprix#readme"
+Repository = "https://github.com/malike2356/keprix"
+Issues = "https://github.com/malike2356/keprix/issues"
 
 [project.optional-dependencies]
 dev = [

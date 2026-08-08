@@ -7,6 +7,7 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 
 type ComponentInspectorProps = {
   selector?: string | null;
@@ -35,13 +36,12 @@ export default function ComponentInspector({
       <Typography variant="subtitle1">Inspector</Typography>
       {message ? <Alert severity="info" onClose={() => setMessage(null)}>{message}</Alert> : null}
       <TextField label="Selector" value={selector || ""} size="small" InputProps={{ readOnly: true }} />
-      <TextField
-        label="Metadata"
-        value={meta ? JSON.stringify(meta, null, 2) : ""}
-        multiline
-        minRows={4}
-        InputProps={{ readOnly: true }}
-      />
+      <Box>
+        <Typography variant="caption" color="text.secondary">
+          Metadata
+        </Typography>
+        <StructuredDataView value={meta || {}} emptyLabel="No metadata" />
+      </Box>
       <TextField
         label="HTML snippet"
         value={snippet || ""}

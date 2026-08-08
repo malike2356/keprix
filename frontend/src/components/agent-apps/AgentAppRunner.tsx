@@ -9,6 +9,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
 import useSWR from "swr";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { fetchAgentTraces, runAgentApp } from "@/lib/agent-apps-api";
 
 type Props = {
@@ -18,6 +19,7 @@ type Props = {
 export default function AgentAppRunner({ appName }: Props) {
   const [input, setInput] = React.useState("world");
   const [output, setOutput] = React.useState<string | null>(null);
+  const [outputData, setOutputData] = React.useState<unknown | null>(null);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const { data: traces, mutate } = useSWR(["agent-traces", appName], () => fetchAgentTraces(appName));
@@ -27,7 +29,14 @@ export default function AgentAppRunner({ appName }: Props) {
     setError(null);
     try {
       const result = await runAgentApp(appName, { input });
-      setOutput(result.result.output ?? JSON.stringify(result.result));
+      const raw = result.result.output;
+      if (typeof raw === "string") {
+        setOutput(raw);
+        setOutputData(null);
+      } else {
+        setOutput(null);
+        setOutputData(raw ?? result.result);
+      }
       await mutate();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Run failed");
@@ -58,12 +67,15 @@ export default function AgentAppRunner({ appName }: Props) {
             {output}
           </Typography>
         ) : null}
+        {outputData != null ? (
+          <Box sx={{ mt: 2 }}>
+            <StructuredDataView value={outputData} />
+          </Box>
+        ) : null}
         {traces?.traces?.length ? (
           <Box sx={{ mt: 2 }}>
             <Typography variant="subtitle2">Lifecycle traces</Typography>
-            <Typography variant="caption" component="pre" sx={{ whiteSpace: "pre-wrap" }}>
-              {JSON.stringify(traces.traces, null, 2)}
-            </Typography>
+            <StructuredDataView value={traces.traces} />
           </Box>
         ) : null}
       </CardContent>

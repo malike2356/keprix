@@ -1,9 +1,20 @@
 # DATA ops surfaces: full upgrade prompt
 
-Status: pending (P0-P2 + P4 Analytics Must shipped 2026-08-02; Data surfaces unified on `/data?tab=`; P3 RAG + Nice/Ultimate open)  
+**Status: COMPLETED 2026-08-07** (Must P0-P4 + `/data` tabs shipped; P5 Nice / P6 Ultimate deferred: not in this close; follow-up only with owner ask)  
 Owner prompt for agents: upgrade these six keprix DATA nav items end-to-end.  
 Nav source: `frontend/src/lib/navigation.ts` Data group.  
 Do not ask clarifying questions unless blocked by missing credentials or destructive ops. Prefer defaults: keprix theme, real APIs, Docker deploy when UI ships, writing style (ASCII only: no em/en dashes, no emoji).
+
+
+## What was built
+
+- P0 Observability Must + Usage export/filters + nav icons (2026-08-02)
+- P1 Local models Must (2026-08-02)
+- P2 Video ingest Must (2026-08-02)
+- P4 Analytics Must (2026-08-02)
+- Data chrome unified on `/data?tab=` (2026-08-02)
+- P3 RAG Must MUI shell, step timeline, file/vault sources (2026-08-07)
+- Deferred: P5 Nice / P6 Ultimate (owner ask only)
 
 ## Surfaces in scope
 
@@ -293,6 +304,8 @@ Dashboard cards + meter keys + recent traces linking to Agent Runtime. Thin, ove
 
 ## Done log
 
+- **P3 shipped 2026-08-07**: RAG Must (MUI `RagPipelinePanel` on `/data?tab=rag` with Known pipelines list + Run/History split, `PipelineBuilder` sources manual/Notion/file/vault/URL without silent `production-default` hardcode, stores list with run count labels, `PipelineRunViewer` step timeline + citation preview + filter/replay). Backend: file upload + vault/path ingest, store `count_label` runs. Tests: `tests/frontend/test_data_ops_p3.py` (5 passed).
+- **Close note 2026-08-07**: P5 Nice-to-haves and P6 Ultimate are deferred (not in this close). Follow-up only with explicit owner ask.
 - **P0 shipped 2026-08-02**: Observability Must (runtime health cards, filtered traces, span waterfall drawer, refresh 5s/15s/off, Data breadcrumbs, activity nav icon) + Usage Must (workspace CSV/JSON export with scoped auth, provider/model/channel/user filters, chart-click day filter, budget panel/banner, metering-disabled empty state, canonical Settings → `/usage`) + shared `DataSectionTabs` + `video` nav icon. Tests: `tests/frontend/test_data_ops_p0.py`, `tests/api/test_observability_dashboard.py`, extended usage export tests.
 - **P1 shipped 2026-08-02**: Local models Must (rename + Playbooks banner, auto-scan cache, pull SSE progress jobs, serve/stop, health ping + copyable `/v1` URL, Use in chat via `keprix_selected_model`, failure hints, serving inventory always visible, Data tabs). Backend: `/api/playbook/serving/health`, JWT-aware user id.
 - **P2 shipped 2026-08-02**: Video ingest Must (poll while active, job detail drawer, upload/drag-drop, frame strip via authenticated blob URLs, transcript panel, Open in chat with job id, mode help). Backend: `POST /api/ingest/video/upload`, `GET /api/ingest/video/{id}/frames/{index}`. Retry/cancel hidden (no API).

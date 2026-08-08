@@ -91,10 +91,12 @@ Press **Ctrl+G** (or the configured `display.compose_key`) to suspend the TUI an
 
 Press **Ctrl+B** to toggle recording when voice is enabled (`/voice on`). Audio is sent to `POST /api/audio/transcribe`; the transcript is inserted into the composer without auto-send.
 
-Optional capture backends:
+Optional capture backends (git or checkout; PyPI bare install not published yet):
 
 ```bash
-pipx install 'keprix[tui-voice]'
+pipx install 'keprix[tui-voice] @ git+https://github.com/malike2356/keprix.git'
+# or from a local checkout:
+pipx install '.[tui-voice]' --force
 ```
 
 Without the extra, the TUI falls back to `arecord` or `ffmpeg` when present.
@@ -160,7 +162,14 @@ cards, session map, and the Command Center proof contracts.
 
 ## Optional dependencies
 
+Install from GitHub or a local checkout (PyPI package `keprix` is not published yet):
+
 ```bash
-pipx install 'keprix[tui]'          # Textual UI
-pipx install 'keprix[tui-voice]'    # sounddevice + numpy capture
+pipx install 'keprix[tui] @ git+https://github.com/malike2356/keprix.git'          # Textual UI
+pipx install 'keprix[tui-voice] @ git+https://github.com/malike2356/keprix.git'    # sounddevice + numpy capture
+# or from a checkout:
+# pipx install '.[tui]' --force
+# pipx install '.[tui-voice]' --force
 ```
+
+See [install.md](../getting-started/install.md) and [pypi-publish-checklist.md](../operations/pypi-publish-checklist.md).

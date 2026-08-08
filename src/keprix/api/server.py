@@ -733,45 +733,47 @@ def create_app() -> FastAPI:
         app.include_router(aiva_analytics_ui_router)
     except Exception:
         pass
+    try:
+        from keprix.outreach.ui_routes import router as outreach_ui_router
+
+        app.include_router(outreach_ui_router)
+    except Exception:
+        pass
+    try:
+        from keprix.crm.routes import router as crm_router
+
+        app.include_router(crm_router)
+        from keprix.discovery.routes import router as crm_discovery_router
+
+        app.include_router(crm_discovery_router)
+        from keprix.crm.icp_routes import router as crm_icp_router
+
+        app.include_router(crm_icp_router)
+        from keprix.crm.nice_routes import router as crm_nice_router
+
+        app.include_router(crm_nice_router)
+        from keprix.discovery import bootstrap_discovery
+
         try:
-            from keprix.outreach.ui_routes import router as outreach_ui_router
-
-            app.include_router(outreach_ui_router)
+            bootstrap_discovery()
         except Exception:
-            pass
-        try:
-            from keprix.crm.routes import router as crm_router
+            import logging as _logging
 
-            app.include_router(crm_router)
-            from keprix.discovery.routes import router as crm_discovery_router
+            _logging.getLogger(__name__).exception("discovery bootstrap failed")
+    except Exception:
+        import logging as _logging
 
-            app.include_router(crm_discovery_router)
-            from keprix.crm.icp_routes import router as crm_icp_router
+        _logging.getLogger(__name__).exception("CRM / discovery routers failed to load")
+    try:
+        from keprix.sheet_preprocess.routes import (
+            alias_router as sheet_preprocess_alias_router,
+        )
+        from keprix.sheet_preprocess.routes import router as sheet_preprocess_router
 
-            app.include_router(crm_icp_router)
-            from keprix.crm.nice_routes import router as crm_nice_router
-
-            app.include_router(crm_nice_router)
-            from keprix.discovery import bootstrap_discovery
-
-            try:
-                bootstrap_discovery()
-            except Exception:
-                import logging as _logging
-
-                _logging.getLogger(__name__).exception("discovery bootstrap failed")
-        except Exception:
-            pass
-        try:
-            from keprix.sheet_preprocess.routes import (
-                alias_router as sheet_preprocess_alias_router,
-            )
-            from keprix.sheet_preprocess.routes import router as sheet_preprocess_router
-
-            app.include_router(sheet_preprocess_router)
-            app.include_router(sheet_preprocess_alias_router)
-        except Exception:
-            pass
+        app.include_router(sheet_preprocess_router)
+        app.include_router(sheet_preprocess_alias_router)
+    except Exception:
+        pass
     try:
         from keprix.worker_kb.ui_routes import router as worker_kb_ui_router
 

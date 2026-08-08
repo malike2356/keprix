@@ -28,7 +28,7 @@ NEWSLETTER_TEMPLATE = """# Keprix community update
 - 
 
 ## Get help
-- Docs: https://keprix.io/docs
+- Docs: https://keprixai.com/docs
 - GitHub issues: https://github.com/malike2356/keprix/issues
 
 _Note: Keprix is MIT-licensed self-host software. Paid commercial support is not included._
@@ -58,7 +58,7 @@ SETUP_RESCUE_STEPS = [
 ]
 
 COMMUNITY_LINKS = [
-    {"label": "Documentation", "url": "https://keprix.io/docs"},
+    {"label": "Documentation", "url": "https://keprixai.com/docs"},
     {"label": "GitHub issues", "url": "https://github.com/malike2356/keprix/issues"},
     {"label": "Contributing guide", "url": "https://github.com/malike2356/keprix/blob/main/CONTRIBUTING.md"},
     {"label": "Security disclosures", "url": "https://github.com/malike2356/keprix/blob/main/SECURITY.md"},

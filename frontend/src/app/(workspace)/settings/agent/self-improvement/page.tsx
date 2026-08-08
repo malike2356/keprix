@@ -8,6 +8,8 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Slider from "@mui/material/Slider";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import Alert from "@mui/material/Alert";
+import NextLink from "next/link";
 import * as React from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import { ceApi } from "@/lib/ce-api";
@@ -64,13 +66,22 @@ export default function SelfImprovementSettingsPage() {
     <Box sx={{ display: "grid", gap: 3, maxWidth: 840 }}>
       <PageHeader
         title="Self-improvement"
-        description="Control session pattern detection and skill improvement proposals."
+        description="Control session pattern detection and skill improvement proposals. Soft Wall still wins for production apply; review proposals in Agent OS Improvements."
         breadcrumbs={[
           { label: "Settings", href: "/settings" },
           { label: "Agent" },
           { label: "Self-improvement" },
         ]}
+        actions={
+          <Button component={NextLink} href="/agent-os/improvements" variant="outlined" size="small">
+            Review improvement proposals
+          </Button>
+        }
       />
+      <Alert severity="info">
+        Auto-apply settings never bypass Soft Wall review at `/agent-os/improvements` for production
+        workspaces.
+      </Alert>
       <FormControlLabel
         control={<Checkbox checked={settings.watch_sessions} onChange={(event) => setSettings({ ...settings, watch_sessions: event.target.checked })} />}
         label="Watch sessions for repeated task patterns"

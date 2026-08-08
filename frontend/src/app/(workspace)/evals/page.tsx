@@ -13,6 +13,7 @@ import * as React from "react";
 import useSWR from "swr";
 import EvalCaseResultDrawer from "@/components/evals/EvalCaseResultDrawer";
 import PageHeader from "@/components/ui/PageHeader";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import {
   fetchEvalSuites,
   runAllEvals,
@@ -22,6 +23,12 @@ import {
   type EvalTaskResult,
   type ReleaseGate,
 } from "@/lib/evals-harness-api";
+import {
+  fetchBenchmarkSuites,
+  runBenchmarkAll,
+  runBenchmarkRegression,
+  runBenchmarkSuite,
+} from "@/lib/evals-benchmarks-api";
 
 const relatedSurfaces = [
   {
@@ -49,6 +56,7 @@ const relatedSurfaces = [
 export default function EvalsPage() {
   const searchParams = useSearchParams();
   const { data } = useSWR("eval-suites", fetchEvalSuites);
+  const benchmarks = useSWR("eval-benchmark-suites", fetchBenchmarkSuites);
   const [results, setResults] = React.useState<EvalSuiteResult[]>([]);
   const [gate, setGate] = React.useState<ReleaseGate | null>(null);
   const [message, setMessage] = React.useState<string | null>(null);
@@ -57,6 +65,7 @@ export default function EvalsPage() {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [selectedTask, setSelectedTask] = React.useState<EvalTaskResult | null>(null);
   const [selectedSuite, setSelectedSuite] = React.useState<string | undefined>();
+  const [benchResult, setBenchResult] = React.useState<unknown>(null);
 
   const suites = data?.suites ?? [];
 
@@ -193,6 +202,85 @@ export default function EvalsPage() {
         suiteName={selectedSuite}
         onClose={() => setDrawerOpen(false)}
       />
+      <Typography variant="h6" sx={{ mb: 1 }}>
+        Benchmark suites ({(benchmarks.data?.suites || []).length})
+      </Typography>
+      <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 2 }}>
+        <Button
+          variant="outlined"
+          disabled={running}
+          onClick={() => {
+            void (async () => {
+              setRunning(true);
+              setError(null);
+              try {
+                setBenchResult(await runBenchmarkAll());
+                setMessage("Benchmark run finished");
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "Benchmark run failed");
+              } finally {
+                setRunning(false);
+              }
+            })();
+          }}
+        >
+          Run all benchmarks
+        </Button>
+        <Button
+          variant="outlined"
+          disabled={running}
+          onClick={() => {
+            void (async () => {
+              setRunning(true);
+              setError(null);
+              try {
+                setBenchResult(await runBenchmarkRegression());
+                setMessage("Regression check finished");
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "Regression failed");
+              } finally {
+                setRunning(false);
+              }
+            })();
+          }}
+        >
+          Regression vs baseline
+        </Button>
+      </Box>
+      <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { md: "1fr 1fr" }, mb: 4 }}>
+        {(benchmarks.data?.suites || []).map((suite) => (
+          <Card key={suite} variant="outlined">
+            <CardContent>
+              <Typography variant="h6">{suite}</Typography>
+              <Button
+                size="small"
+                disabled={running}
+                onClick={() => {
+                  void (async () => {
+                    setRunning(true);
+                    setError(null);
+                    try {
+                      setBenchResult(await runBenchmarkSuite(suite));
+                      setMessage(`Benchmark suite ${suite} finished`);
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : "Suite failed");
+                    } finally {
+                      setRunning(false);
+                    }
+                  })();
+                }}
+              >
+                Run benchmark
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </Box>
+      {benchResult ? (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <StructuredDataView value={benchResult} />
+        </Alert>
+      ) : null}
       <Typography variant="h6" sx={{ mb: 1 }}>
         Related eval surfaces
       </Typography>

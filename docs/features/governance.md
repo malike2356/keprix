@@ -14,6 +14,12 @@
 
 Enforcement: FastAPI `require_admin` for operator mutations; nav/ui_contract filters labels.
 
+## Tool ACL
+
+Operator UI: `/admin/tool-acl` (nav label **Tool ACL**; not Generated tools).
+
+See [Tool ACL](../features/tool-acl.md) and [Resource-scoped tool ACL](../features/resource-tool-acl.md).
+
 ## DSAR
 
 Operator UI: `/admin/dsar`

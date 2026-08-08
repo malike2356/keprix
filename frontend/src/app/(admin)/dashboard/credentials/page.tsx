@@ -15,6 +15,7 @@ import useSWR from "swr";
 import PageContainer from "@/components/shared/PageContainer";
 import { ceApi } from "@/lib/ce-api";
 import { useRequireAdmin } from "@/lib/ce-auth";
+import ProxyOpsPanel from "@/components/admin/ProxyOpsPanel";
 
 type CredentialAudit = {
   id: string;
@@ -46,6 +47,7 @@ export default function AdminCredentialsPage() {
   return (
     <PageContainer title="Credential isolation" description="Tool credential routes, proxy validation, and external API audit trail." padded={false}>
       <Box sx={{ display: "grid", gap: 2 }}>
+        <ProxyOpsPanel />
         {error ? <Alert severity="error">Failed to load credential audit trail.</Alert> : null}
         <Paper variant="outlined" sx={{ p: 2, display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
           <Typography variant="subtitle2">Startup validation</Typography>

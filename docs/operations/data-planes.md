@@ -35,6 +35,15 @@ Hosted vector memory uses Postgres pgvector when configured. Local retrieval def
 - `POST /api/stats/import`, `/analyze`, `/export`
 - `GET/POST /api/ml/*`
 
+## Operator GUI
+
+Use the Data workspace tabs (not curl) for day-2 ops:
+
+- `/data?tab=datasets` : catalog, import, version history, constrained SQL, delete confirm
+- `/data?tab=jobs` : local `/api/jobs` queue, cancel, dead-letter retry
+- `/data?tab=ml` : experiments, runs, model registry
+- `/data?tab=export` : signed/cover document export via `/api/export`
+
 ## Job concurrency
 
 Local jobs use SQLite `BEGIN IMMEDIATE` compare-and-swap claims, worker heartbeats, stale reclaim, retries, and dead-letter state.

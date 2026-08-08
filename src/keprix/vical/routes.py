@@ -101,6 +101,8 @@ class BookingCreate(BaseModel):
     source: Literal["public", "api", "agent", "echo", "voice"] = "api"
     holder_token: str | None = None
     lock_id: str | None = None
+    # Host calendar / inbox create may pick a free grid slot outside public offer windows.
+    skip_slot_check: bool = False
 
 
 class BookingReschedule(BaseModel):
@@ -331,6 +333,7 @@ async def create_booking(body: BookingCreate, user: dict = Depends(get_current_u
             intake_answers=body.intake_answers,
             holder_token=body.holder_token,
             lock_id=body.lock_id,
+            skip_slot_check=body.skip_slot_check,
         )
     except IntakeDisqualified as exc:
         raise HTTPException(status_code=422, detail={"code": "intake_disqualified", "message": str(exc)}) from exc

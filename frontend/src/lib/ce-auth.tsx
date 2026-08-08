@@ -137,8 +137,19 @@ export function useRequireSession(): SessionContextValue & { user: CEUser } {
   const router = useRouter();
 
   React.useEffect(() => {
-    if (!session.isLoading && !session.user && !getCEToken()) {
-      router.replace("/login");
+    if (session.isLoading) return;
+    if (!session.user && !getCEToken()) {
+      const returnTo =
+        typeof window !== "undefined"
+          ? `${window.location.pathname}${window.location.search}`
+          : "/home";
+      const loginUrl = `/login?returnTo=${encodeURIComponent(returnTo)}`;
+      // Hard navigation: soft router.replace can stick and freeze all in-app links.
+      if (typeof window !== "undefined") {
+        window.location.replace(loginUrl);
+        return;
+      }
+      router.replace(loginUrl);
     }
   }, [session.isLoading, session.user, router]);
 

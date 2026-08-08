@@ -1,10 +1,15 @@
 # ---- secrets ----
 .env
+.env.*
+!.env.example
 .env.local
 .env.*.local
 *.pem
 *.key
 .keprix/
+**/credentials.json
+**/*stripe*secret*
+docker/.graphiti.env
 
 # ---- Python ----
 __pycache__/
@@ -45,6 +50,10 @@ src/keprix/skills/generated/*.yaml
 # ---- Keprix runtime data ----
 /data/
 keprix-data/
+.keprix-data/
+
+# ---- Local scratch (never commit) ----
+*.local.md
 
 # ---- IDE ----
 .vscode/
@@ -87,5 +96,3 @@ config/billing.yaml
 1st-plan/competitor-research/
 apps-on-keprix/retired-project-compasslab/
 
-# Graphiti local secrets/runtime
-docker/.graphiti.env

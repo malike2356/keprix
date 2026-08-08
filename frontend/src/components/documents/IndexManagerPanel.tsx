@@ -15,6 +15,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import * as React from "react";
 import useSWR from "swr";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import {
   addDiskFolder,
   createDocumentIndex,
@@ -303,11 +304,7 @@ export default function IndexManagerPanel() {
           )}
         </Stack>
 
-        {coverage ? (
-          <Typography variant="caption" color="text.secondary" component="pre" sx={{ whiteSpace: "pre-wrap" }}>
-            {JSON.stringify(coverage.coverage, null, 2)}
-          </Typography>
-        ) : null}
+        {coverage ? <StructuredDataView value={coverage.coverage} emptyLabel="No coverage" /> : null}
       </CardContent>
     </Card>
   );

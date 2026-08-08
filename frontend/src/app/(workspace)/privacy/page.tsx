@@ -18,6 +18,7 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { ceApi } from "@/lib/ce-api";
 
 async function fetchConsents() {
@@ -58,7 +59,7 @@ export default function PrivacyPage() {
   const [purpose, setPurpose] = React.useState("analytics");
   const [granted, setGranted] = React.useState(true);
   const [eraseConfirm, setEraseConfirm] = React.useState(false);
-  const [dryRunResult, setDryRunResult] = React.useState<string | null>(null);
+  const [dryRunResult, setDryRunResult] = React.useState<unknown | null>(null);
   const [policyEdits, setPolicyEdits] = React.useState<Record<string, RetentionPolicy>>({});
 
   React.useEffect(() => {
@@ -96,7 +97,7 @@ export default function PrivacyPage() {
     });
     const payload = await response.json();
     if (dryRun) {
-      setDryRunResult(JSON.stringify(payload.would_remove || payload, null, 2));
+      setDryRunResult(payload.would_remove || payload);
       return;
     }
     setEraseConfirm(false);
@@ -263,11 +264,7 @@ export default function PrivacyPage() {
                 Erase my data
               </Button>
             </Box>
-            {dryRunResult ? (
-              <Typography variant="body2" component="pre" sx={{ whiteSpace: "pre-wrap", m: 0 }}>
-                {dryRunResult}
-              </Typography>
-            ) : null}
+            {dryRunResult ? <StructuredDataView value={dryRunResult} /> : null}
           </CardContent>
         </Card>
       </Box>

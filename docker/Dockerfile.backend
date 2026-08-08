@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -e .
 
 COPY migrations/ migrations/
+COPY alembic.ini ./
 
 RUN groupadd --system keprix && useradd --system --create-home --home-dir /home/keprix --gid keprix --shell /usr/sbin/nologin keprix
 RUN chown -R keprix:keprix /app

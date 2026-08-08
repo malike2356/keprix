@@ -1,4 +1,4 @@
-import { ceApi } from "@/lib/ce-api";
+import { ceApi, parseApiErrorMessage } from "@/lib/ce-api";
 
 export type BrowserProfile = {
   id: string;
@@ -48,8 +48,16 @@ export type HarnessSnapshot = {
 
 async function parseJson<T>(response: Response, fallback: string): Promise<T> {
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || fallback);
+    const payload = await response.json().catch(async () => {
+      const text = await response.text().catch(() => "");
+      return text ? { detail: text } : {};
+    });
+    if (response.status === 401) {
+      throw new Error(
+        parseApiErrorMessage(payload, "Sign in required to load browser sessions"),
+      );
+    }
+    throw new Error(parseApiErrorMessage(payload, fallback));
   }
   return response.json();
 }

@@ -23,7 +23,7 @@ export function buildVicalRelatedLinks(input: {
     links.push({ label: "Open contact", href: `/contacts?id=${encodeURIComponent(input.contactId)}` });
   }
   if (input.bookingId) {
-    links.push({ label: "Booking detail", href: `/vical?booking=${encodeURIComponent(input.bookingId)}` });
+    links.push({ label: "Open booking", href: `/vical?booking=${encodeURIComponent(input.bookingId)}` });
   }
   if (input.publicBookPath) {
     links.push({ label: "Public book link", href: input.publicBookPath });

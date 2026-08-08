@@ -35,7 +35,9 @@ const DottedSurfaceBackground = dynamic(
   { ssr: false },
 );
 
-const INSTALL_CMD = `git clone https://github.com/malike2356/keprix.git && cd keprix
+const INSTALL_CMD = `curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
+# Full web stack (optional):
+git clone https://github.com/malike2356/keprix.git && cd keprix
 cp .env.example .env
 docker compose -f docker/docker-compose.yml up -d --build`;
 

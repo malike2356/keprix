@@ -4,7 +4,7 @@ import { Navbar } from "@/components/marketing/Navbar";
 import { Footer } from "@/components/marketing/Footer";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://keprixai.uk"),
+  metadataBase: new URL("https://keprixai.com"),
   title: {
     template: "%s | Keprix",
     default: "Keprix - The self-mutating agent OS",

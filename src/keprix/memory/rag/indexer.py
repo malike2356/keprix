@@ -16,15 +16,10 @@ from keprix.memory.embeddings import EmbeddingService
 
 
 def resolve_rag_database_url(explicit: str | None = None) -> str:
-    if explicit is None:
-        raw = (os.getenv("DATABASE_URL") or os.getenv("KEPRIX_DATABASE_URL") or "").strip()
-    else:
-        raw = explicit.strip()
-    if raw.startswith("postgresql+asyncpg://"):
-        return "postgresql://" + raw.removeprefix("postgresql+asyncpg://")
-    if raw.startswith("postgres+asyncpg://"):
-        return "postgresql://" + raw.removeprefix("postgres+asyncpg://")
-    return raw
+    """Normalize DB URLs for asyncpg; quote passwords that contain +, @, :, etc."""
+    from keprix.memory.schema import resolve_database_url
+
+    return resolve_database_url(explicit)
 
 
 class _TextExtractor(HTMLParser):

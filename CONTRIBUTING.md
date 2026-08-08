@@ -1,7 +1,7 @@
 # Contributing to Keprix
 
-Thank you for helping improve Keprix. This file is the entry point for
-contributors. Extended guidance lives in [docs/community/contributing.md](docs/community/contributing.md).
+Thank you for helping improve Keprix. This file is the short entry point.
+Extended guidance: [docs/community/contributing.md](docs/community/contributing.md).
 
 ## Before you start
 
@@ -11,79 +11,65 @@ contributors. Extended guidance lives in [docs/community/contributing.md](docs/c
 
 ## Development environment
 
-### Bare metal (recommended for day-to-day work)
+Fork the repo, then:
 
 ```bash
-git clone https://github.com/malike2356/keprix.git
+git clone https://github.com/<your-fork>/keprix.git
 cd keprix
 bash scripts/install.sh
 source .venv/bin/activate
+# or use uv if you prefer; see docs/community/contributing.md
 cd frontend && pnpm install && cd ..
 ```
 
-Run backend tests:
+Backend tests:
 
 ```bash
 .venv/bin/python -m pytest tests/ -q
 ```
 
-Run frontend checks:
+Frontend checks:
 
 ```bash
 cd frontend && pnpm lint && pnpm type-check && pnpm build
 ```
 
-### Docker path
+Docker (isolated stack closer to production):
 
 ```bash
 docker compose -f docker/docker-compose.yml up --build
 ```
 
-Use Docker when you need an isolated environment close to production.
-
 ## Code standards
 
 - Python 3.11+ with type hints on new code.
 - No `shell=True` in `subprocess` calls.
-- Follow engineering pillars: no emojis, no em dashes, no en dashes in project prose.
-- Match existing module layout under `src/keprix/` and `frontend/src/`.
+- Plain ASCII in project prose: no emojis, no em dashes, no en dashes.
+- Match existing layout under `src/keprix/` and `frontend/src/`.
 - Prefer focused diffs; avoid unrelated refactors in the same pull request.
 
 ## Tests
 
-Every pull request that changes behavior must include or update tests in `tests/`
-or frontend checks where UI behavior changes.
-
-Workspace and admin pages must use skeleton primitives from
-`frontend/src/components/ui/loading/` for primary data regions (not `Loading...`
-text or page-level spinners). See `docs/frontend/loading-states.md` and
-`tests/ui/test_loading_contract.py`.
+PRs that change behavior must include or update tests in `tests/` or frontend
+checks where UI behavior changes. Workspace loading contracts:
+[docs/frontend/loading-states.md](docs/frontend/loading-states.md).
 
 ## Commit messages
 
-Use [Conventional Commits](https://www.conventionalcommits.org/). CI enforces commit
-messages and **PR titles** (required for squash merges).
+Use [Conventional Commits](https://www.conventionalcommits.org/). CI enforces
+commit messages and **PR titles** (required for squash merges).
 
 ```text
 type(scope): short description
 ```
 
-### Allowed types
+Allowed types: `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`,
+`build`, `ci`, `chore`, `revert`.
 
-`feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`
+Common scopes: `agent`, `mutation`, `billing`, `auth`, `frontend`, `api`,
+`cli`, `docker`, `docs`, `memory`, `vault`, `mcp`, `playbook`, `evals`, `deps`.
 
-### Common scopes
-
-`agent`, `mutation`, `billing`, `auth`, `frontend`, `api`, `cli`, `docker`, `docs`,
-`research`, `memory`, `vault`, `mcp`, `playbook`, `evals`, `deps`
-
-Unknown scopes produce a **warning** only; invalid types or malformed headers fail CI.
-
-Examples:
-
-- `fix(export): persist review artifact`
-- `feat(legal): add acceptance gate`
-- `chore(deps): bump axios`
+Examples: `fix(export): persist review artifact`, `feat(cli): improve setup wizard`.
 
 Optional local check (after `pnpm install` at repo root):
 
@@ -91,32 +77,28 @@ Optional local check (after `pnpm install` at repo root):
 echo "feat(frontend): my change" | pnpm exec commitlint
 ```
 
-See [docs/operations/changelog-automation.md](docs/operations/changelog-automation.md) for
-how commits feed the changelog pipeline. Preview unreleased entries from git:
-
-```bash
-bash scripts/changelog-preview.sh
-```
+Changelog preview: `bash scripts/changelog-preview.sh`. Details:
+[docs/operations/changelog-automation.md](docs/operations/changelog-automation.md).
 
 ## Pull request process
 
-1. Open a draft pull request early when work is exploratory.
+1. Open a draft PR early when work is exploratory.
 2. Link the related issue (`Closes #123`).
-3. Complete the PR checklist, including Conventional Commit PR title.
-4. Request review when CI is green and the diff is ready.
+3. Use a Conventional Commit PR title; keep the diff reviewable.
+4. Request review when CI is green.
 
-Changelog entries are aggregated by [release-please](https://github.com/googleapis/release-please)
-from your Conventional Commit messages. You do **not** need to edit `CHANGELOG.md` for routine
-PRs. Preview what will ship:
+Maintainers merge release-please PRs when cutting a version. Aim: review within
+**5 business days**.
 
-```bash
-bash scripts/changelog-preview.sh
-```
+## Public releases and archives
 
-Maintainers merge the release-please PR when cutting a version. See
-[docs/operations/changelog-automation.md](docs/operations/changelog-automation.md).
+Workspace planning under `1st-plan/` is maintainer-local. `.gitattributes`
+marks `1st-plan/`, `AGENTS.md`, and `CLAUDE.md` as `export-ignore` for source
+archives. Product paths `src/`, `frontend/`, `docker/`, and `docs/` ship
+normally.
 
-Maintainers aim to review within **5 business days**.
+Before making the GitHub repository public, follow
+[docs/operations/public-github-checklist.md](docs/operations/public-github-checklist.md).
 
 ## Security and conduct
 

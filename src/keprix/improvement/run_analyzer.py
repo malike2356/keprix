@@ -157,6 +157,36 @@ class RunAnalyzer:
         path.write_text(json.dumps(data, indent=2), encoding="utf-8")
         return ImprovementProposal(**data)
 
+    def reject_proposal(self, proposal_id: str) -> ImprovementProposal | None:
+        path = _proposals_dir() / f"{proposal_id}.json"
+        if not path.exists():
+            return None
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["status"] = "rejected"
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        return ImprovementProposal(**data)
+
+    def apply_proposal(self, proposal_id: str) -> ImprovementProposal | None:
+        """Mark an approved proposal as applied (Soft Wall apply step)."""
+        path = _proposals_dir() / f"{proposal_id}.json"
+        if not path.exists():
+            return None
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if data.get("status") not in {"approved", "pending_approval", "pending"}:
+            return None
+        data["status"] = "applied"
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        return ImprovementProposal(**data)
+
+    def defer_proposal(self, proposal_id: str) -> ImprovementProposal | None:
+        path = _proposals_dir() / f"{proposal_id}.json"
+        if not path.exists():
+            return None
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["status"] = "deferred"
+        path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        return ImprovementProposal(**data)
+
     def _proposal(self, record: RunRecord, category: str, title: str, detail: str, metadata: dict | None = None) -> ImprovementProposal:
         return ImprovementProposal(
             proposal_id=str(uuid.uuid4()),

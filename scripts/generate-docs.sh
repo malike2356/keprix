@@ -23,5 +23,10 @@ export PYTHONPATH="$ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
 export KEPRIX_DATABASE_URL="${KEPRIX_DATABASE_URL:-sqlite+aiosqlite:///:memory:}"
 export KEPRIX_JWT_SECRET="${KEPRIX_JWT_SECRET:-docs-build-placeholder-secret}"
 export KEPRIX_SESSION_SECRET="${KEPRIX_SESSION_SECRET:-docs-build-placeholder-session}"
+# Avoid PermissionError on /data/keprix when generating OpenAPI during docs build.
+DOCS_DATA="${TMPDIR:-/tmp}/keprix-docs-build-data"
+mkdir -p "$DOCS_DATA/home"
+export KEPRIX_DATA_DIR="${KEPRIX_DATA_DIR:-$DOCS_DATA}"
+export KEPRIX_HOME="${KEPRIX_HOME:-$DOCS_DATA/home}"
 
 "$PYTHON" "$ROOT/scripts/generate_doc_pages.py" --docs-dir "$ROOT/docs"

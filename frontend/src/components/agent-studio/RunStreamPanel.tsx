@@ -8,6 +8,7 @@ import CardContent from "@mui/material/CardContent";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { dryRunPlaybook } from "@/lib/multiagent-api";
 
 type RunStreamPanelProps = {
@@ -61,9 +62,18 @@ export default function RunStreamPanel({ playbookName }: RunStreamPanelProps) {
         ) : null}
         <Box sx={{ mt: 2 }}>
           {events.map((event, index) => (
-            <Typography key={`event-${index}`} variant="body2" sx={{ fontFamily: "monospace", mb: 0.5 }}>
-              [{event.event_type}] {String((event.payload as { message?: string }).message ?? JSON.stringify(event.payload))}
-            </Typography>
+            <Box key={`event-${index}`} sx={{ mb: 1.5 }}>
+              <Typography variant="caption" color="text.secondary">
+                {event.event_type}
+              </Typography>
+              <StructuredDataView
+                value={
+                  (event.payload as { message?: string }).message
+                    ? { message: (event.payload as { message?: string }).message, ...event.payload }
+                    : event.payload
+                }
+              />
+            </Box>
           ))}
           {messages.map((message, index) => (
             <Typography key={`msg-${index}`} variant="body2" sx={{ mb: 0.5 }}>

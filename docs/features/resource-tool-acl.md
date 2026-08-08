@@ -41,7 +41,11 @@ See `GET /api/security/acl/resources/catalog`. Includes GitHub repos, filesystem
 
 ## UI
 
-Admin **Tool Manager** (`/admin/tools`) includes a resource grant editor: choose actor type/ID, service, kind, and resource ID, then approve or revoke.
+Admin **Tool ACL** (`/admin/tool-acl`) is the operator console for product ACL
+snapshots, resource grants, check playground, and audit. Do not confuse it with
+**Generated tools** (`/admin/tools`), which only reviews mutation-engine tools.
+
+See [Tool ACL](tool-acl.md).
 
 ## Migration
 

@@ -11,7 +11,16 @@ The workspace calendar stores events per user and supports month, week, day, and
 | Day | Single-day timeline with all-day banner |
 | Schedule | Agenda list grouped by date (next 30 days) |
 
-Toolbar: **Today**, previous/next navigation, **New event**, **Sync calendars**, **Sync now**.
+Toolbar: **Today**, previous/next navigation, **New event**, **New booking**, **Sync calendars**, **Sync now**.
+
+Deep links:
+
+| Query | Behaviour |
+| --- | --- |
+| `/calendar?event={id}` | Opens day view on that event and shows the detail dialog |
+| Event with `metadata.vical_booking_id` | Detail dialog includes **Open booking** → `/vical?booking=...` |
+
+Click an empty hour on week or day view to create a viCal booking for that free slot (host `POST /api/vical/bookings` with `skip_slot_check`).
 
 ## Automated 2-way sync
 

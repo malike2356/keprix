@@ -131,42 +131,42 @@ export function FeaturesGrid() {
       icon: CodeIcon,
       title: "Command Center TUI",
       body:
-        "Run Keprix from a keyboard-first terminal workspace with sessions, slash commands, runtime timeline, tool cards, review mode, and diagnostics.",
+        "Run Keprix from a keyboard-first terminal with live sessions, slash commands, tool cards, review mode, and full diagnostics.",
       color: "#7c3aed",
     },
     {
       icon: HubIcon,
-      title: "Agent OS",
+      title: "Agent OS runtime",
       body:
-        "Operate action boards, run ledgers, agent apps, skills, plugins, playbooks, and reusable workflows from one self-hosted runtime.",
+        "Operate action boards, run ledgers, agent apps, skills, plugins, playbooks, and workflows inside one shared secure self-hosted runtime.",
       color: "#06b6d4",
     },
     {
       icon: ShieldIcon,
-      title: "Channel Shield",
+      title: "Channel Shield layer",
       body:
-        "Route inbound email and messaging through scanning, policy checks, sandboxing, quarantine, and safe summaries before agents or people act.",
+        "Route inbound email and messaging through scanning, policies, sandboxing, quarantine, and safe summaries before anyone acts on them.",
       color: "#10b981",
     },
     {
       icon: MemoryIcon,
-      title: "Long-term memory",
+      title: "Long-term memory store",
       body:
-        "Structured memory store backed by PostgreSQL or SQLite. Agents recall facts across sessions, namespaced by workspace. Semantic search via pgvector when available.",
+        "Agents recall key facts across sessions in a structured store namespaced by workspace with full semantic search available.",
       color: "#f59e0b",
     },
     {
       icon: ListAltIcon,
       title: "Playbooks and triggers",
       body:
-        "Compose visual or YAML workflows, schedule them with cron, trigger them from webhooks, and review runs through approvals and ledgers.",
+        "Compose visual or YAML workflows, schedule with cron, trigger from webhooks, and review each run through human approvals.",
       color: "#ef4444",
     },
     {
       icon: AutoFixHighIcon,
-      title: "Reviewable self-coding",
+      title: "Reviewable self coding",
       body:
-        "Let the agent propose tools, skills, and repo changes in a sandbox. You inspect diffs, tests, risk, and approval gates before anything lands.",
+        "The agent proposes tools and repo changes; you inspect diffs, tests, and risk before anything ever lands live.",
       color: "#8b5cf6",
     },
   ] as const;

@@ -12,6 +12,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
 import useSWR from "swr";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { ceApi } from "@/lib/ce-api";
 
 type PlaybookPayload = {
@@ -90,7 +91,11 @@ export default function ShipDefaultsPanel() {
       });
       const body = (await response.json()) as ErrorPasteResult;
       if (!response.ok) {
-        setPasteResult({ status: "error", error: JSON.stringify(body) });
+        const detail =
+          typeof (body as { error?: unknown }).error === "string"
+            ? String((body as { error?: string }).error)
+            : "Error paste failed";
+        setPasteResult({ status: "error", error: detail });
         return;
       }
       setPasteResult(body);
@@ -209,13 +214,25 @@ export default function ShipDefaultsPanel() {
                 ) : null}
                 {pasteResult.error ? <Alert severity="error">{pasteResult.error}</Alert> : null}
                 {pasteResult.output ? (
-                  <Typography
-                    component="pre"
-                    variant="caption"
-                    sx={{ whiteSpace: "pre-wrap", maxHeight: 220, overflow: "auto" }}
-                  >
-                    {pasteResult.output}
-                  </Typography>
+                  (() => {
+                    try {
+                      const parsed = JSON.parse(pasteResult.output) as unknown;
+                      if (parsed && typeof parsed === "object") {
+                        return <StructuredDataView value={parsed} />;
+                      }
+                    } catch {
+                      // plain text output
+                    }
+                    return (
+                      <Typography
+                        component="pre"
+                        variant="caption"
+                        sx={{ whiteSpace: "pre-wrap", maxHeight: 220, overflow: "auto" }}
+                      >
+                        {pasteResult.output}
+                      </Typography>
+                    );
+                  })()
                 ) : null}
               </Box>
             ) : null}

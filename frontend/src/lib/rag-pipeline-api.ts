@@ -38,6 +38,7 @@ export type PipelineRun = {
   run_id: string;
   pipeline_id: string;
   playbook_run_id?: string | null;
+  query?: string;
   answer?: string;
   citations?: Array<Record<string, unknown>>;
   route?: string;
@@ -86,21 +87,25 @@ export async function queryPipeline(payload: {
   question: string;
   pipeline_id?: string;
   source_types?: string[];
+  store_kind?: string;
   user_id?: string;
 }) {
   const user_id = await resolveUserId(payload.user_id);
+  const body: Record<string, unknown> = {
+    question: payload.question,
+    pipeline_id: payload.pipeline_id,
+    source_types: payload.source_types || [],
+    hybrid: true,
+    user_id,
+  };
+  if (payload.store_kind) {
+    body.store_kind = payload.store_kind;
+  }
   return parseJson<PipelineRun>(
     await ceApi("/api/rag-pipeline/query", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        pipeline_id: payload.pipeline_id || "production-default",
-        source_types: payload.source_types || [],
-        hybrid: true,
-        store_kind: "memory",
-        ...payload,
-        user_id,
-      }),
+      body: JSON.stringify(body),
     }),
     "rag-pipeline-query",
   );
@@ -206,14 +211,16 @@ export async function ingestPipelineUrl(payload: {
 
 export async function ingestPipelineUpload(payload: {
   file: File;
-  pipeline_id?: string;
+  pipeline_id: string;
   store_kind?: string;
 }) {
   const user_id = await resolveUserId();
   const form = new FormData();
   form.append("file", payload.file);
-  form.append("pipeline_id", payload.pipeline_id || "production-default");
-  form.append("store_kind", payload.store_kind || "memory");
+  form.append("pipeline_id", payload.pipeline_id);
+  if (payload.store_kind) {
+    form.append("store_kind", payload.store_kind);
+  }
   form.append("user_id", user_id);
   return parseJson<PipelineRun>(
     await ceApi("/api/rag-pipeline/ingest/file", { method: "POST", body: form }),

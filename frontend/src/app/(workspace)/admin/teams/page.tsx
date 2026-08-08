@@ -22,6 +22,7 @@ import DashboardCard from "@/components/cards/DashboardCard";
 import { SkeletonList } from "@/components/ui/loading";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import {
   fetchTeam,
   fetchTeams,
@@ -48,7 +49,7 @@ function AgentTeamsPageInner() {
   const [objective, setObjective] = useState("Ship the adoption smoke path");
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
-  const [runResult, setRunResult] = useState<string | null>(null);
+  const [runResult, setRunResult] = useState<unknown>(null);
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [crewEvents, setCrewEvents] = useState<TeamRunEvent[]>([]);
   const [importing, setImporting] = useState(false);
@@ -139,7 +140,7 @@ function AgentTeamsPageInner() {
     try {
       const result = await runTeam(selectedTeam, objective);
       setActiveRunId(result.run_id);
-      setRunResult(JSON.stringify(result.state, null, 2));
+      setRunResult(result.state);
       setActionMessage(`Team "${result.name}" finished with status: ${result.status}.`);
       const eventsPayload = await fetchTeamRunEvents(selectedTeam, result.run_id);
       setCrewEvents(eventsPayload.events || []);
@@ -396,25 +397,8 @@ function AgentTeamsPageInner() {
           {runResult ? (
             <Box sx={{ mt: 2 }}>
               <DashboardCard title="Run state" subtitle="Latest playbook execution state">
-              <Box
-                component="pre"
-                sx={{
-                  m: 0,
-                  p: 2,
-                  borderRadius: 1,
-                  bgcolor: "background.default",
-                  border: 1,
-                  borderColor: "divider",
-                  fontFamily: "monospace",
-                  fontSize: "0.75rem",
-                  lineHeight: 1.6,
-                  overflow: "auto",
-                  whiteSpace: "pre-wrap",
-                }}
-              >
-                {runResult}
-              </Box>
-            </DashboardCard>
+                <StructuredDataView value={runResult} />
+              </DashboardCard>
             </Box>
           ) : null}
         </Grid>

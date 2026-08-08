@@ -11,12 +11,20 @@ def get_repo_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
+def get_keprix_home() -> Path:
+    """User data/config/state home (KEPRIX_HOME or ~/.keprix)."""
+    raw = os.environ.get("KEPRIX_HOME", "").strip()
+    if raw:
+        return Path(raw).expanduser()
+    return Path.home() / ".keprix"
+
+
 def get_install_root() -> Path:
-    """User install directory (default ~/keprix)."""
+    """User install directory (KEPRIX_INSTALL_HOME, else get_keprix_home())."""
     raw = os.environ.get("KEPRIX_INSTALL_HOME", "").strip()
     if raw:
         return Path(raw).expanduser()
-    return Path.home() / "keprix"
+    return get_keprix_home()
 
 
 def get_env_file() -> Path:

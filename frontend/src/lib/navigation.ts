@@ -2,6 +2,8 @@ import type { UiContract, UiNavItem } from "@/lib/ui-contract";
 
 export type NavGroupId =
   | "workspace"
+  | "pipeline"
+  | "knowledge"
   | "apps"
   | "installed_apps"
   | "data"
@@ -21,19 +23,23 @@ export type NavItem = {
 };
 
 export const navGroupLabels: Record<NavGroupId, string> = {
-  workspace: "Workspace",
+  workspace: "Daily work",
+  pipeline: "Pipeline",
+  knowledge: "Knowledge",
   data: "Data",
   research: "Research",
   apps: "Apps",
   installed_apps: "Installed apps",
   automations: "Automations",
   security: "Security",
-  commerce: "Commerce",
+  commerce: "Billing",
   admin: "Admin",
 };
 
 export const navGroupsOrder: NavGroupId[] = [
   "workspace",
+  "pipeline",
+  "knowledge",
   "data",
   "research",
   "apps",
@@ -46,7 +52,6 @@ export const navGroupsOrder: NavGroupId[] = [
 
 /** Static fallback aligned with backend ui_contract.navigation.NAV_ITEMS */
 export const primaryNavigation: NavItem[] = [
-  // Workspace
   { id: "home", label: "Home", href: "/home", icon: "home", group: "workspace" },
   { id: "chat", label: "Chat", href: "/chat", icon: "chat", group: "workspace" },
   { id: "sessions", label: "Sessions", href: "/sessions", icon: "chat", group: "workspace" },
@@ -57,24 +62,26 @@ export const primaryNavigation: NavItem[] = [
   { id: "notes", label: "Notes", href: "/notes", icon: "notes", group: "workspace" },
   { id: "email", label: "Email", href: "/email", icon: "email", group: "workspace" },
   { id: "notifications", label: "Notifications", href: "/notifications", icon: "email", group: "workspace" },
-  { id: "contacts", label: "Contacts", href: "/contacts", icon: "contacts", group: "workspace" },
-  { id: "leads", label: "Product signups", href: "/leads", icon: "contacts", group: "workspace" },
-  { id: "crm", label: "CRM", href: "/crm", icon: "contacts", group: "workspace" },
-  { id: "crm-enrich", label: "Sheet enrich", href: "/crm/enrich", icon: "science", group: "workspace" },
-  { id: "crm-discover", label: "Discover", href: "/crm/discover", icon: "search", group: "workspace" },
-  { id: "crm-jobs", label: "CRM jobs", href: "/crm/jobs", icon: "monitoring", group: "workspace" },
-  { id: "escalations", label: "Escalations", href: "/escalations", icon: "shield", group: "workspace" },
-  { id: "worker-kb", label: "Worker KB", href: "/workers/kb", icon: "memory", group: "workspace" },
-  { id: "document-agents", label: "Document agents", href: "/document-agents", icon: "folder", group: "workspace" },
-  { id: "documents", label: "Documents", href: "/documents", icon: "folder", group: "workspace" },
-  { id: "files", label: "Files", href: "/files", icon: "folder", group: "workspace" },
-  { id: "gallery", label: "Gallery", href: "/gallery", icon: "image", group: "workspace" },
-  { id: "memory", label: "Memory", href: "/memory", icon: "memory", group: "workspace" },
-  { id: "memory-galaxy", label: "Memory Galaxy", href: "/memory/galaxy", icon: "memory", group: "workspace" },
-  { id: "brain", label: "Brain", href: "/brain/graph", icon: "memory", group: "workspace" },
-  { id: "tools", label: "Tools", href: "/admin/tools", icon: "tool", group: "workspace" },
-  { id: "workspace-new", label: "New workspace", href: "/workspace/new", icon: "folder", group: "workspace" },
-  // Data
+  { id: "contacts", label: "Contacts", href: "/contacts", icon: "contacts", group: "pipeline" },
+  { id: "crm", label: "CRM", href: "/crm", icon: "contacts", group: "pipeline" },
+  { id: "crm-enrich", label: "Sheet enrich", href: "/crm/enrich", icon: "science", group: "pipeline" },
+  { id: "crm-discover", label: "Discover", href: "/crm/discover", icon: "search", group: "pipeline" },
+  { id: "crm-jobs", label: "CRM jobs", href: "/crm/jobs", icon: "monitoring", group: "pipeline" },
+  { id: "outreach", label: "Outreach", href: "/outreach", icon: "email", group: "pipeline" },
+  { id: "companies-house", label: "Companies House", href: "/companies-house", icon: "business", group: "pipeline" },
+  { id: "leads", label: "Product signups", href: "/leads", icon: "contacts", group: "pipeline" },
+  { id: "opportunities", label: "Research opportunities", href: "/opportunities", icon: "science", group: "pipeline" },
+  { id: "escalations", label: "Escalations", href: "/escalations", icon: "shield", group: "pipeline" },
+  { id: "worker-kb", label: "Worker KB", href: "/workers/kb", icon: "memory", group: "pipeline" },
+  { id: "documents", label: "Documents", href: "/documents", icon: "folder", group: "knowledge" },
+  { id: "document-agents", label: "Document agents", href: "/document-agents", icon: "folder", group: "knowledge" },
+  { id: "files", label: "Files", href: "/files", icon: "folder", group: "knowledge" },
+  { id: "gallery", label: "Gallery", href: "/gallery", icon: "image", group: "knowledge" },
+  { id: "memory", label: "Memory", href: "/memory", icon: "memory", group: "knowledge" },
+  { id: "memory-galaxy", label: "Memory Galaxy", href: "/memory/galaxy", icon: "memory", group: "knowledge" },
+  { id: "brain", label: "Brain", href: "/brain/graph", icon: "memory", group: "knowledge" },
+  { id: "tools", label: "Tools", href: "/admin/tools", icon: "tool", group: "knowledge" },
+  { id: "workspace-new", label: "New workspace", href: "/workspace/new", icon: "folder", group: "knowledge" },
   { id: "brain-graph", label: "Brain graph", href: "/brain/graph", icon: "memory", group: "data" },
   { id: "brain-health", label: "Brain health", href: "/brain/health", icon: "monitoring", group: "data" },
   { id: "graphiti", label: "Graphiti", href: "/brain/graphiti", icon: "memory", group: "data" },
@@ -85,13 +92,8 @@ export const primaryNavigation: NavItem[] = [
   { id: "analytics", label: "Data analysis", href: "/data?tab=analytics", icon: "compare", group: "data" },
   { id: "usage", label: "LLM usage", href: "/data?tab=usage", icon: "monitoring", group: "data" },
   { id: "observability", label: "Observability", href: "/data?tab=observability", icon: "activity", group: "data" },
-  // Research
   { id: "research", label: "Deep Research", href: "/research", icon: "science", group: "research" },
-  { id: "companies-house", label: "Companies House", href: "/companies-house", icon: "business", group: "research" },
-  { id: "outreach", label: "Outreach", href: "/outreach", icon: "email", group: "research" },
-  { id: "opportunities", label: "Research opportunities", href: "/opportunities", icon: "science", group: "research" },
   { id: "compare", label: "Compare Models", href: "/compare", icon: "compare", group: "research" },
-  // Apps
   { id: "hub", label: "Hub", href: "/hub", icon: "apps", group: "apps" },
   { id: "agent-apps", label: "Agent Apps", href: "/agent-apps", icon: "apps", group: "apps" },
   { id: "skills", label: "Skills Hub", href: "/skills", icon: "skills", group: "apps" },
@@ -102,7 +104,6 @@ export const primaryNavigation: NavItem[] = [
   { id: "messaging-settings", label: "Messaging", href: "/settings/messaging", icon: "email", group: "apps" },
   { id: "voice-wake", label: "Wake words", href: "/settings/voice/wake-words", icon: "settings", group: "apps" },
   { id: "migrate", label: "Migrate", href: "/migrate", icon: "backup", group: "apps" },
-  // Automations
   { id: "control-center", label: "Control Center", href: "/control-center", icon: "hub", group: "automations" },
   { id: "agent-os-glass", label: "Agent OS", href: "/agent-os/glass", icon: "dashboard", group: "automations" },
   { id: "agent-studio", label: "Agent Studio", href: "/agent-studio", icon: "apps", group: "automations" },
@@ -122,7 +123,6 @@ export const primaryNavigation: NavItem[] = [
   { id: "tools-adoption", label: "Tool library", href: "/admin/tools", icon: "extension", group: "automations" },
   { id: "evals", label: "Evals", href: "/evals", icon: "science", group: "automations" },
   { id: "agent-os-improvements", label: "Improvements", href: "/agent-os/improvements", icon: "monitoring", group: "automations" },
-  // Security
   { id: "vault", label: "Vault", href: "/vault", icon: "lock", group: "security" },
   { id: "vault-setup", label: "Vault setup", href: "/vault/setup", icon: "folder", group: "security" },
   { id: "knowledge-vault-settings", label: "Knowledge vault", href: "/settings/vault", icon: "folder", group: "security" },
@@ -133,15 +133,14 @@ export const primaryNavigation: NavItem[] = [
   { id: "dsar", label: "DSAR", href: "/admin/dsar", icon: "shield", group: "security" },
   { id: "operator-copilot", label: "Operator copilot", href: "/control-center", icon: "extension", group: "security" },
   { id: "support", label: "Support", href: "/support", icon: "help", group: "security" },
-  // Admin (Developer last)
+  { id: "billing", label: "Billing", href: "/settings/billing", icon: "payments", group: "commerce" },
+  { id: "upgrade", label: "Keprix upgrades", href: "/settings/upgrade", icon: "backup", group: "commerce" },
   { id: "settings", label: "Settings", href: "/settings", icon: "settings", group: "admin" },
   { id: "dashboard", label: "Dashboard", href: "/dashboard", icon: "monitoring", group: "admin" },
   { id: "admin", label: "Admin", href: "/dashboard", icon: "shield", group: "admin" },
   { id: "users", label: "Users", href: "/settings/users", icon: "users", group: "admin" },
   { id: "tenants", label: "Tenants", href: "/tenants", icon: "users", group: "admin" },
   { id: "modules", label: "Modules", href: "/settings/modules", icon: "apps", group: "admin" },
-  { id: "billing", label: "Billing", href: "/settings/billing", icon: "payments", group: "commerce" },
-  { id: "upgrade", label: "Keprix upgrades", href: "/settings/upgrade", icon: "backup", group: "commerce" },
   { id: "feature-flags", label: "Feature Flags", href: "/admin/feature-flags", icon: "apps", group: "admin" },
   { id: "admin-quotas", label: "Quotas", href: "/admin/quotas", icon: "monitoring", group: "admin" },
   { id: "admin-tool-acl", label: "Tool ACL", href: "/admin/tool-acl", icon: "shield", group: "admin" },
@@ -246,12 +245,14 @@ export function navigationFromContract(contract: UiContract | null): {
     }
   }
 
-  const groupIds = Array.from(
-    new Set([
-      ...contract.navigation.groups.map((group) => group.id as NavGroupId),
-      ...items.map((item) => item.group),
-    ]),
-  );
+  const presentIds = new Set<NavGroupId>([
+    ...contract.navigation.groups.map((group) => group.id as NavGroupId),
+    ...items.map((item) => item.group),
+  ]);
+  const groupIds = [
+    ...navGroupsOrder.filter((id) => presentIds.has(id)),
+    ...Array.from(presentIds).filter((id) => !navGroupsOrder.includes(id)),
+  ];
   const installedAppItems: NavItem[] = (contract.installed_apps ?? []).map((app) => ({
     id: `built-app-${app.id}`,
     label: app.label,
@@ -260,12 +261,15 @@ export function navigationFromContract(contract: UiContract | null): {
     group: "installed_apps",
   }));
 
+  const mergedItems = [...items, ...installedAppItems];
   return {
-    groups: groupIds.map((id) => ({
-      id,
-      label: contract.navigation.groups.find((group) => group.id === id)?.label || navGroupLabels[id],
-    })),
-    items: [...items, ...installedAppItems],
+    groups: groupIds
+      .filter((id) => mergedItems.some((item) => item.group === id))
+      .map((id) => ({
+        id,
+        label: contract.navigation.groups.find((group) => group.id === id)?.label || navGroupLabels[id] || id,
+      })),
+    items: mergedItems,
   };
 }
 

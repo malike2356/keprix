@@ -36,11 +36,28 @@ export default function OpportunitiesPage() {
   return (
     <Box sx={{ p: { xs: 2, md: 3 }, maxWidth: 1200, mx: "auto" }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-        <Typography variant="h5">Opportunities</Typography>
-        <Button size="small" onClick={load}>
-          Refresh
-        </Button>
+        <Box>
+          <Typography variant="h5">Research opportunities</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Product research opportunities (not sales CRM deals or Soft Wall pipeline).
+          </Typography>
+        </Box>
+        <Stack direction="row" spacing={1}>
+          <Button component={NextLink} href="/crm/deals" size="small" variant="outlined">
+            Sales deals
+          </Button>
+          <Button size="small" onClick={load}>
+            Refresh
+          </Button>
+        </Stack>
       </Stack>
+      <Alert severity="info" sx={{ mb: 2 }}>
+        Looking for Soft Wall / CRM sales pipeline? Use{" "}
+        <Button component={NextLink} href="/crm/deals" size="small">
+          CRM deals
+        </Button>{" "}
+        or outreach sequences.
+      </Alert>
       {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
       <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { md: "1fr 320px" } }}>
         <Box>

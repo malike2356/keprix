@@ -12,6 +12,10 @@ Default stack: `docker/docker-compose.yml`
 | redis | 6379 | Cache and queues |
 | searxng | 8080 | Self-hosted web search |
 
+## Startup order
+
+Compose `depends_on` uses health conditions: the **frontend** waits for the **backend** to be healthy; the **backend** waits for **postgres** and **redis** to be healthy. That is the default full-stack path in `docker/docker-compose.yml`.
+
 ## Customize binds
 
 Set in `.env`:

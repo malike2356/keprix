@@ -21,6 +21,20 @@ type DottedSurfaceBackgroundProps = {
   mode?: "dark" | "light";
 };
 
+function webglAvailable(): boolean {
+  if (typeof document === "undefined") return false;
+  try {
+    const canvas = document.createElement("canvas");
+    const gl =
+      canvas.getContext("webgl2", { failIfMajorPerformanceCaveat: false }) ||
+      canvas.getContext("webgl", { failIfMajorPerformanceCaveat: false }) ||
+      canvas.getContext("experimental-webgl", { failIfMajorPerformanceCaveat: false });
+    return Boolean(gl);
+  } catch {
+    return false;
+  }
+}
+
 export function DottedSurfaceBackground({
   className,
   fixed = false,
@@ -40,6 +54,20 @@ export function DottedSurfaceBackground({
     if (!mount) return;
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!webglAvailable()) return;
+
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true,
+        powerPreference: "low-power",
+        failIfMajorPerformanceCaveat: false,
+      });
+    } catch {
+      // Sandboxed / GPU-disabled browsers must not crash the marketing page.
+      return;
+    }
 
     const mobile = window.innerWidth <= 768;
     const SEPARATION = mobile ? 120 : 150;
@@ -52,7 +80,6 @@ export function DottedSurfaceBackground({
     const camera = new THREE.PerspectiveCamera(60, 1, 1, 10000);
     camera.position.set(0, 355, 1220);
 
-    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setClearColor(resolvedFog, 0);
     mount.appendChild(renderer.domElement);
@@ -117,7 +144,13 @@ export function DottedSurfaceBackground({
       }
 
       positionAttribute.needsUpdate = true;
-      renderer.render(scene, camera);
+      try {
+        renderer.render(scene, camera);
+      } catch {
+        running = false;
+        window.cancelAnimationFrame(animationId);
+        return;
+      }
       count += 0.1;
     };
 

@@ -14,6 +14,7 @@ import Typography from "@mui/material/Typography";
 import NextLink from "next/link";
 import * as React from "react";
 import { SkeletonList } from "@/components/ui/loading";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import type { EvalTaskResult, EvalTrace } from "@/lib/evals-harness-api";
 import { fetchEvalTrace } from "@/lib/evals-harness-api";
 
@@ -140,9 +141,7 @@ export default function EvalCaseResultDrawer({ open, task, suiteName, onClose }:
                       <Chip size="small" label={span.event} />
                     </TableCell>
                     <TableCell>
-                      <Typography variant="caption" component="pre" sx={{ whiteSpace: "pre-wrap", m: 0 }}>
-                        {JSON.stringify(span.payload, null, 2)}
-                      </Typography>
+                      <StructuredDataView value={span.payload} emptyLabel="-" />
                     </TableCell>
                   </TableRow>
                 ))}

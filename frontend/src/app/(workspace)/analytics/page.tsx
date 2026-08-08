@@ -1,23 +1,12 @@
-import { redirect } from "next/navigation";
+"use client";
 
-type SearchParams = Record<string, string | string[] | undefined>;
+import Box from "@mui/material/Box";
+import AivaAnalyticsDashboard from "@/components/analytics/AivaAnalyticsDashboard";
 
-function first(value: string | string[] | undefined): string | undefined {
-  if (Array.isArray(value)) return value[0];
-  return value;
-}
-
-export default async function LegacyDataRedirect({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams> | SearchParams;
-}) {
-  const params = await Promise.resolve(searchParams);
-  const next = new URLSearchParams();
-  for (const [key, value] of Object.entries(params || {})) {
-    const item = first(value);
-    if (item) next.set(key, item);
-  }
-  next.set("tab", "analytics");
-  redirect(`/data?${next.toString()}`);
+export default function AnalyticsPage() {
+  return (
+    <Box>
+      <AivaAnalyticsDashboard />
+    </Box>
+  );
 }

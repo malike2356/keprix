@@ -1,4 +1,5 @@
 import type { ThemeMode } from "@/theme/tokens/colors";
+import { keprixTypography } from "@/theme/tokens/typography";
 
 export type MarketingTone = "default" | "alt";
 
@@ -16,20 +17,26 @@ export type MarketingColors = {
   divider: string;
 };
 
-export const MARKETING_DISPLAY_FONT = '"Cormorant Garamond", Georgia, serif';
+/** Same display stack as Google AI Studio / Keprix workspace. */
+export const MARKETING_DISPLAY_FONT = keprixTypography.fontFamilyDisplay;
+
+export const MARKETING_BODY_FONT = keprixTypography.fontFamily;
+
+export const MARKETING_MONO_FONT = keprixTypography.fontFamilyMono;
 
 export const MARKETING_EYEBROW_SX = {
+  fontFamily: MARKETING_BODY_FONT,
   fontSize: "0.78rem",
-  fontWeight: 800,
-  letterSpacing: "0.14em",
+  fontWeight: 600,
+  letterSpacing: "0.12em",
   textTransform: "uppercase",
 } as const;
 
 export const MARKETING_HEADING_SX = {
   fontFamily: MARKETING_DISPLAY_FONT,
-  fontWeight: 700,
+  fontWeight: 600,
   letterSpacing: "-0.02em",
-  lineHeight: 1.04,
+  lineHeight: 1.08,
 } as const;
 
 const DARK_DEFAULT: MarketingColors = {

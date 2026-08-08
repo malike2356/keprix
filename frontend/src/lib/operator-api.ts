@@ -11,6 +11,12 @@ export type OperatorContextBundle = {
     error?: string;
   }>;
   summary_markdown: string;
+  installed_version?: string;
+  navigation_count?: number;
+  modules_counts?: Record<string, number>;
+  readiness_overall?: string;
+  current_page?: { id?: string; label?: string; href?: string; group?: string; group_label?: string } | null;
+  platform_map_markdown?: string;
 };
 
 export type OperatorCopilotEvent = {
@@ -36,11 +42,14 @@ async function parseJson<T>(response: Response, fallback: string): Promise<T> {
 export async function fetchOperatorContext(
   workspaceId = "default",
   detail: "nav" | "full" = "nav",
+  options?: { pagePath?: string | null; pageLabel?: string | null },
 ): Promise<OperatorContextBundle> {
   const params = new URLSearchParams({
     workspace_id: workspaceId,
     detail,
   });
+  if (options?.pagePath) params.set("page_path", options.pagePath);
+  if (options?.pageLabel) params.set("page_label", options.pageLabel);
   const response = await ceApi(`/api/operator/context?${params.toString()}`);
   return parseJson(response, "Failed to load operator context");
 }

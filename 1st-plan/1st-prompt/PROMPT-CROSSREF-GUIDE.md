@@ -217,22 +217,46 @@ Two-layer workspace nav: collapsible platform sidebar + in-content app shell. Re
 
 Build order complete. Operator doc: `docs/features/built-apps-navigation.md`.
 
+## Public GTM + Hermes install parity series (416-428)
+
+Public launch face (not private soft-ship 365-370; not TUI behavior 341-349).
+Archived: `prompts-archive/416-428-*.md` (2026-08-07; public launch Verdict still NOT READY).
+Sign-off: `docs/architecture/public-gtm-signoff.md`.
+Build order: `prompts-archive/ref-416-keprix-public-gtm-hermes-install-build-order.md`.
+Programme index: `prompts-archive/416-428-README.md`.
+
+| Prompt | Role |
+| --- | --- |
+| 416 | Overview, inventory, Hermes install UX gap map |
+| 417 | Quarantine workspace noise from ship face |
+| 418 | Public git hygiene (ignore, export-ignore, GitHub checklist) |
+| 419 | Hermes-parity curl installer + first run |
+| 420 | Docker Compose full-stack as secondary path |
+| 421 | PyPI / pipx honesty and release package path |
+| 422 | README + CONTRIBUTING install-first rewrite |
+| 423 | Getting-started docs refresh |
+| 424 | Marketing + metadata domain flip to keprixai.com |
+| 425 | MkDocs links + env docs consistency pass |
+| 426 | Public GTM ship gate script + CI hook |
+| 427 | Public origin Cloudflare + Contabo nginx (marketing FE) |
+| 428 | Public GTM sign-off and launch checklist |
+
 ## Working Directory
 
-All implementation prompts target:
+All implementation prompts target the Keprix product root:
 
 ```text
-/opt/lampp/htdocs/verlox/keprix/keprix/
+/opt/lampp/htdocs/verlox/keprix/
 ```
 
-Marketing prompts target:
+Public marketing UI lives in the Next app:
 
 ```text
-/opt/lampp/htdocs/verlox/keprix/marketing/sites/keprix/
+/opt/lampp/htdocs/verlox/keprix/frontend/src/app/(marketing)/
 ```
 
-Reference agents live under:
+Workspace planning (not public ship face):
 
 ```text
-/opt/lampp/htdocs/verlox/keprix/planning/agents-to-adopt/
+/opt/lampp/htdocs/verlox/keprix/1st-plan/
 ```

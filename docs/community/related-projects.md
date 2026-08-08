@@ -4,7 +4,7 @@ Keprix Community Edition is open source and self-hosted. The maintainer also bui
 
 | Product | What it is | Website |
 | --- | --- | --- |
-| **Keprix** | Self-hosted, MIT-licensed AI agent OS | [GitHub](https://github.com/malike2356/keprix) |
+| **Keprix** | Self-hosted, MIT-licensed AI agent OS | [keprixai.com](https://keprixai.com) |
 | **Carina** | AI agent platform and operator stack | [carinaai.uk](https://carinaai.uk) |
 | **Aiva** | Managed AI workers for customer-facing automation | [hireaiva.co.uk](https://hireaiva.co.uk) |
 | **Scout** | Governance, audit, and policy console (optional Keprix connector) | [labyrinthscout.com](https://labyrinthscout.com) |

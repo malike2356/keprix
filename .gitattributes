@@ -1,0 +1,7 @@
+# Release / source archives: omit Verlox workspace planning and agent-only notes.
+# Note: export-ignore does NOT remove paths from a normal git clone. Anonymous
+# public GitHub still includes tracked 1st-plan/ unless the owner publishes a
+# mirror without it or untracks on a public branch (owner decision).
+1st-plan/ export-ignore
+AGENTS.md export-ignore
+CLAUDE.md export-ignore

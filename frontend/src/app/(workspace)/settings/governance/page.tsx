@@ -25,6 +25,7 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { SkeletonDetailPanel } from "@/components/ui/loading";
 import { connectGovernance, disconnectGovernance, fetchGovernanceStatus } from "@/lib/governance-api";
 import { formatTimeAgo } from "@/lib/time-ago";
@@ -131,11 +132,11 @@ export default function GovernancePage() {
           ) : (
             <List dense>
               {data.policies.map((policy) => (
-                <ListItem key={policy.id}>
-                  <ListItemText
-                    primary={policy.policy_type}
-                    secondary={JSON.stringify(policy.policy_value)}
-                  />
+                <ListItem key={policy.id} alignItems="flex-start" sx={{ flexDirection: "column", alignItems: "stretch" }}>
+                  <ListItemText primary={policy.policy_type} secondary={`Policy ${policy.id}`} />
+                  <Box sx={{ mt: 1, width: "100%" }}>
+                    <StructuredDataView value={policy.policy_value} />
+                  </Box>
                 </ListItem>
               ))}
             </List>

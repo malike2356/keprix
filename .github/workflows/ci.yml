@@ -89,3 +89,13 @@ jobs:
           fi
       - name: Sync docs/reference/changelog.md with CHANGELOG.md
         run: bash scripts/check-changelog-sync.sh
+
+  public-gtm-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Public GTM gate (surface)
+        env:
+          # Full private ship gate remains a local/release requirement.
+          KEPRIX_PUBLIC_GTM_SKIP_PRIVATE: "1"
+        run: bash scripts/check-public-gtm-gate.sh

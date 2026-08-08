@@ -24,7 +24,6 @@ def test_legacy_data_routes_redirect_to_data_tabs() -> None:
         "rag-pipeline/page.tsx": "rag",
         "playbook/page.tsx": "models",
         "ingest/video/page.tsx": "video",
-        "analytics/page.tsx": "analytics",
         "usage/page.tsx": "usage",
         "observability/page.tsx": "observability",
     }
@@ -32,6 +31,18 @@ def test_legacy_data_routes_redirect_to_data_tabs() -> None:
         text = (ROOT / "frontend/src/app/(workspace)" / rel).read_text(encoding="utf-8")
         assert "redirect(" in text
         assert f'tab", "{tab}"' in text or f"tab\", \"{tab}\"" in text
+
+
+def test_aiva_analytics_page_is_dashboard_not_redirect() -> None:
+    page = (ROOT / "frontend/src/app/(workspace)/analytics/page.tsx").read_text(encoding="utf-8")
+    assert "AivaAnalyticsDashboard" in page
+    assert "redirect(" not in page
+    nav = (ROOT / "frontend/src/lib/navigation.ts").read_text(encoding="utf-8")
+    assert 'href: "/analytics"' in nav
+    assert 'label: "Analytics"' in nav
+    assert 'label: "Data analysis"' in nav
+    assert "analytics-adoption" not in nav
+    assert 'href: "/data?tab=analytics"' in nav
 
 
 def test_nav_points_data_group_at_data_tabs() -> None:

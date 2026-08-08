@@ -3,13 +3,12 @@
 import BottomNavigation from "@mui/material/BottomNavigation";
 import BottomNavigationAction from "@mui/material/BottomNavigationAction";
 import Paper from "@mui/material/Paper";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import NavIcon from "@/components/ui/NavIcon";
 import { mobilePrimaryNavigation } from "@/lib/navigation";
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
-  const router = useRouter();
   const active = mobilePrimaryNavigation.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))?.href ?? false;
   return (
     <Paper
@@ -29,7 +28,7 @@ export default function MobileBottomNav() {
         showLabels
         value={active}
         onChange={(_, value) => {
-          router.push(value);
+          window.location.assign(String(value));
         }}
       >
         {mobilePrimaryNavigation.map((item) => (

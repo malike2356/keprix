@@ -94,6 +94,30 @@ KNOWN_FLAGS: list[FeatureFlagDef] = [
         category="workspace",
         default=True,
     ),
+    FeatureFlagDef(
+        id="crm_funnel",
+        name="CRM funnel",
+        description="Agentic CRM workspace: accounts, leads, contacts, deals, lists, Soft Wall gates (KEPRIX_CRM_FUNNEL).",
+        category="workspace",
+        default=True,
+        tags=["crm", "KEPRIX_CRM_FUNNEL"],
+    ),
+    FeatureFlagDef(
+        id="crm_whatsapp_sms",
+        name="CRM WhatsApp / SMS",
+        description="Official WhatsApp Business and SMS outbound after channel consent. Default off (KEPRIX_WHATSAPP_SMS).",
+        category="workspace",
+        default=False,
+        tags=["crm", "KEPRIX_WHATSAPP_SMS", "risky"],
+    ),
+    FeatureFlagDef(
+        id="crm_property_portals",
+        name="CRM property portals",
+        description="Experimental property portal adapters behind checklist + Soft Wall (KEPRIX_PROPERTY_PORTAL_ADAPTERS).",
+        category="workspace",
+        default=False,
+        tags=["crm", "KEPRIX_PROPERTY_PORTAL_ADAPTERS", "risky"],
+    ),
     # --- Apps and Automation ---
     FeatureFlagDef(
         id="agent_apps",

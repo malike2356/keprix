@@ -22,6 +22,15 @@ JSON under `{KEPRIX_DATA_DIR}/workspace/vical_store.json`, same pattern as `cale
 
 Confirmed bookings bridge into the workspace calendar so `/calendar` and CalDAV push stay the shared time surface.
 
+Deep links:
+
+| From | To |
+| --- | --- |
+| `/vical?booking={id}` | Selects that booking on the host hub (Bookings tab) |
+| `/calendar?event={id}` | Opens the bridged workspace event |
+| Calendar event with `metadata.vical_booking_id` | **Open booking** → `/vical?booking=...` |
+| Week/day empty hour on `/calendar` | Host create booking dialog (`POST /api/vical/bookings`, `skip_slot_check`) |
+
 ## Public guest routes
 
 | Method | Path |

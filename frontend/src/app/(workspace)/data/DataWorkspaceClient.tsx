@@ -37,6 +37,22 @@ const ObservabilityPanel = dynamic(() => import("@/components/data/panels/Observ
   loading: () => <PanelLoading />,
   ssr: false,
 });
+const DatasetsPanel = dynamic(() => import("@/components/data/panels/DatasetsPanel"), {
+  loading: () => <PanelLoading />,
+  ssr: false,
+});
+const JobsQueuePanel = dynamic(() => import("@/components/data/panels/JobsQueuePanel"), {
+  loading: () => <PanelLoading />,
+  ssr: false,
+});
+const MlWorkspacePanel = dynamic(() => import("@/components/data/panels/MlWorkspacePanel"), {
+  loading: () => <PanelLoading />,
+  ssr: false,
+});
+const DocumentExportPanel = dynamic(() => import("@/components/data/panels/DocumentExportPanel"), {
+  loading: () => <PanelLoading />,
+  ssr: false,
+});
 
 function PanelLoading() {
   return (
@@ -48,6 +64,14 @@ function PanelLoading() {
 
 function PanelForTab({ tab }: { tab: DataSectionTab }) {
   switch (tab) {
+    case "datasets":
+      return <DatasetsPanel />;
+    case "jobs":
+      return <JobsQueuePanel />;
+    case "ml":
+      return <MlWorkspacePanel />;
+    case "export":
+      return <DocumentExportPanel />;
     case "rag":
       return <RagPipelinePanel />;
     case "models":
@@ -61,15 +85,23 @@ function PanelForTab({ tab }: { tab: DataSectionTab }) {
     case "observability":
       return <ObservabilityPanel />;
     default:
-      return <UsagePanel />;
+      return <DatasetsPanel />;
   }
 }
 
 export default function DataWorkspaceClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tab = parseDataTab(searchParams.get("tab"));
-  const meta = DATA_SECTIONS.find((section) => section.value === tab) || DATA_SECTIONS[4];
+  const rawTab = searchParams.get("tab");
+
+  React.useEffect(() => {
+    if ((rawTab || "").trim().toLowerCase() === "sheets") {
+      router.replace("/crm/enrich");
+    }
+  }, [rawTab, router]);
+
+  const tab = parseDataTab(rawTab);
+  const meta = DATA_SECTIONS.find((section) => section.value === tab) || DATA_SECTIONS[0];
 
   const onTabChange = React.useCallback(
     (next: DataSectionTab) => {

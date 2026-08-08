@@ -54,6 +54,14 @@ class HotCacheService:
         path.write_text(content, encoding="utf-8")
         return {"enabled": config.enabled, "path": str(path), "written": True, "content": content}
 
+    def flush(self, workspace_id: str, *, workspace_path: str | None = None) -> dict[str, Any]:
+        root = _root(workspace_id, workspace_path)
+        path = root / "wiki" / "hot.md"
+        existed = path.is_file()
+        if existed:
+            path.unlink()
+        return {"enabled": self.get_config(workspace_id, workspace_path).enabled, "path": str(path), "flushed": existed}
+
     def _render(self, *, source_session_id: str | None, recent_text: str, summary: str | None) -> str:
         body = _cap_words(summary or self._heuristic_summary(recent_text))
         updated = datetime.now(timezone.utc).isoformat()

@@ -7,7 +7,11 @@ They connect to a self-hosted keprix backend, not a cloud service.
 
 1. Deploy or run your keprix backend (see installer docs).
 2. On first launch, enter your server URL (for example `https://my-keprix.example.com`).
-3. Pair the device via QR code from `POST /api/companion/pair` (admin) and confirm with the code.
+3. Pair the device from the workspace GUI at `/admin/companion` (Admin > Companion):
+   create a pairing session, scan the QR or enter the short code, then confirm on device.
+   Admins can also revoke paired devices from the same page.
+
+API fallback (automation): `POST /api/companion/pair` still works for scripts, but the GUI is the primary operator path.
 
 ## API
 

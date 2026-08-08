@@ -28,7 +28,24 @@ class TypedAgentRunBody(BaseModel):
 @router.get("")
 async def list_agents(_user: dict = Depends(get_current_user)) -> dict[str, Any]:
     bootstrap_typed_agents()
-    return {"agents": list_typed_agents()}
+    names = list_typed_agents()
+    inventory: list[dict[str, Any]] = []
+    for name in names:
+        agent = get_typed_agent(name)
+        if agent is None:
+            continue
+        tools = list(agent.tools.values())
+        inventory.append(
+            {
+                "name": name,
+                "tool_count": len(tools),
+                "tools": [tool.name for tool in tools],
+                "approval_gated_tools": sum(1 for tool in tools if tool.approval_action),
+                "output_schema": getattr(agent.output_type, "__name__", "output"),
+                "deps_schema": getattr(agent.deps_type, "__name__", "deps"),
+            }
+        )
+    return {"agents": names, "inventory": inventory, "count": len(names)}
 
 
 @router.get("/{name}/schemas")

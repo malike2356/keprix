@@ -53,6 +53,12 @@ type SettingsCard = {
 
 const cards: SettingsCard[] = [
   {
+    title: "Modules",
+    description: "Browse optional packages and open available module surfaces (A2A, Observability, and more).",
+    href: "/settings/modules",
+    icon: <GridViewIcon />,
+  },
+  {
     title: "Vault",
     description: "Store passwords, API keys, and tokens encrypted at rest.",
     href: "/vault",
@@ -88,6 +94,13 @@ const cards: SettingsCard[] = [
     description: "Export and restore workspace data and configuration.",
     href: "/admin/backup",
     icon: <BackupIcon />,
+  },
+  {
+    title: "Keprix upgrades",
+    description: "Check for updates, run the upgrade wizard, and manage upgrade notification preferences.",
+    href: "/settings/upgrade",
+    icon: <BackupIcon />,
+    adminOnly: true,
   },
   {
     title: "Developer platform",

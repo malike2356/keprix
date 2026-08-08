@@ -106,7 +106,7 @@ export default function LoginForm({ returnTo = "/home" }: { returnTo?: string })
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+    <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2.5, pt: 0.5 }}>
       {error ? <Alert severity="error">{error}</Alert> : null}
       {message ? <Alert severity="success">{message}</Alert> : null}
       {step === "credentials" && ssoProviders.length > 0 ? (
@@ -133,6 +133,7 @@ export default function LoginForm({ returnTo = "/home" }: { returnTo?: string })
             required
             autoComplete="username"
             fullWidth
+            InputLabelProps={{ shrink: true }}
           />
           <TextField
             label="Password"
@@ -142,6 +143,7 @@ export default function LoginForm({ returnTo = "/home" }: { returnTo?: string })
             required
             autoComplete="current-password"
             fullWidth
+            InputLabelProps={{ shrink: true }}
           />
           <FormControlLabel
             control={<Checkbox checked={remember} onChange={(e) => setRemember(e.target.checked)} />}

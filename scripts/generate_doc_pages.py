@@ -25,6 +25,43 @@ def _banner(title: str) -> str:
     )
 
 
+def _is_section_header(text: str) -> bool:
+    """True for titled section lines, not inline Optional: VAR= notes."""
+    if not text or text.startswith("Copy to"):
+        return False
+    if text.lower().startswith("optional:"):
+        return False
+    if text.lower().startswith("prefer "):
+        return False
+    if text.lower().startswith("generate:"):
+        return False
+    if text.lower().startswith("required:"):
+        return False
+    if text.lower().startswith("required for"):
+        return False
+    if text.lower().endswith("generate with:"):
+        return False
+    if text.lower().startswith("nvidia:") or text.lower().startswith("amd:"):
+        return False
+    if text.lower().startswith("public https"):
+        return False
+    if text.lower().startswith("bash ") or text.lower().startswith("start "):
+        return False
+    # Assignment-like comment lines are not section titles.
+    if re.match(r"^[A-Z][A-Z0-9_]*=", text):
+        return False
+    if "=" in text and not text.endswith(":"):
+        return False
+    # Short title-like headers (LLM Providers, Auth and Sessions, ...).
+    if len(text) <= 80 and (text.endswith(":") or " " in text or text.isalpha()):
+        if text.endswith(":"):
+            return True
+        # Title Case / short labels without trailing period clutter.
+        if not text.endswith(".") and len(text.split()) <= 8:
+            return True
+    return False
+
+
 def parse_env_example(path: Path) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
     section = "General"
@@ -35,14 +72,17 @@ def parse_env_example(path: Path) -> list[dict[str, str]]:
         if not line or line.startswith("# Copy to"):
             continue
         if line.startswith("# =="):
+            pending_comments.clear()
             continue
         if line.startswith("#"):
             text = line.lstrip("#").strip()
-            if text:
-                if "=" in text or text.endswith(":"):
-                    section = text.rstrip(":").strip()
-                else:
-                    pending_comments.append(text)
+            if not text:
+                continue
+            if _is_section_header(text):
+                section = text.rstrip(":").strip()
+                pending_comments.clear()
+                continue
+            pending_comments.append(text)
             continue
         if "=" not in line:
             pending_comments.clear()
@@ -50,16 +90,16 @@ def parse_env_example(path: Path) -> list[dict[str, str]]:
         name, _, value = line.partition("=")
         name = name.strip()
         value = value.strip()
-        description = " ".join(pending_comments) if pending_comments else ""
+        # Prefer the last comment immediately above the assignment.
+        description = pending_comments[-1] if pending_comments else section
         pending_comments.clear()
-        required = "yes" if not value else "no"
         default = value if value else "(empty)"
         rows.append(
             {
                 "name": name,
-                "description": description or section,
+                "description": description,
                 "default": default,
-                "required": required,
+                "required": "no",
                 "section": section,
             }
         )
@@ -70,11 +110,36 @@ def write_env_reference(path: Path) -> None:
     rows = parse_env_example(ENV_EXAMPLE)
     lines = [
         _banner("Environment variables"),
-        "Parsed from `.env.example` at build time.\n",
+        "Copy `.env.example` to `.env` (Docker Compose / checkout) or set the same",
+        "keys during `keprix setup` (CLI). Never commit `.env`.\n",
+        "## Install minimum (CLI and Docker)\n",
+        "Set **at least one** of `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or",
+        "`GEMINI_API_KEY` before first useful agent run.\n",
+        "| Variable | Purpose | Default / notes |",
+        "| --- | --- | --- |",
+        "| `KEPRIX_HOME` | CLI data/config/state home (curl installer) | `$HOME/.keprix` when unset |",
+        "| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `GEMINI_API_KEY` | LLM access (need one) | empty; set at least one |",
+        "| `AUTH_ENABLED` | Require login for the web UI / API | `true` |",
+        "| `KEPRIX_MULTI_USER` | Allow extra accounts beyond the bootstrap admin | `false` |",
+        "| `KEPRIX_ALLOWED_ORIGINS` | Browser CORS origins (comma-separated) | `http://localhost:3000` |",
+        "| `KEPRIX_INSTANCE_URL` | Public HTTPS origin (links, Stripe returns, CORS companion) | `http://localhost:3000` |",
+        "| `KEPRIX_JWT_SECRET` / `KEPRIX_SESSION_SECRET` | Session secrets (required on public hosts) | replace `GENERATE_RANDOM_*` via `scripts/generate-production-env.sh` |",
+        "",
+        "Docker also needs strong `POSTGRES_PASSWORD` / `REDIS_PASSWORD` (no",
+        "`changeme` / placeholder values on a public host). See [Quickstart](../getting-started/quickstart.md)",
+        "and [First run](../getting-started/first-run.md).\n",
+        "## Full reference (from `.env.example`)\n",
+        "Regenerated at docs build time. Empty defaults are optional unless noted",
+        "in **Install minimum** above.\n",
         "| Variable | Description | Default | Required |",
         "| --- | --- | --- | --- |",
+        "| `KEPRIX_HOME` | CLI data/config/state home (curl installer; see Install minimum) | `$HOME/.keprix` | no |",
     ]
+    seen = {"KEPRIX_HOME"}
     for row in rows:
+        if row["name"] in seen:
+            continue
+        seen.add(row["name"])
         desc = row["description"].replace("|", "\\|")
         default = row["default"].replace("|", "\\|")
         lines.append(f"| `{row['name']}` | {desc} | `{default}` | {row['required']} |")
@@ -83,6 +148,13 @@ def write_env_reference(path: Path) -> None:
 
 
 def _openapi_spec() -> dict:
+    import tempfile
+
+    docs_data = Path(tempfile.gettempdir()) / "keprix-docs-build-data"
+    docs_data.mkdir(parents=True, exist_ok=True)
+    os.environ.setdefault("KEPRIX_DATA_DIR", str(docs_data))
+    os.environ.setdefault("KEPRIX_HOME", str(docs_data / "home"))
+    Path(os.environ["KEPRIX_HOME"]).mkdir(parents=True, exist_ok=True)
     os.environ.setdefault("KEPRIX_DATABASE_URL", "sqlite+aiosqlite:///:memory:")
     os.environ.setdefault("KEPRIX_JWT_SECRET", "docs-build-placeholder-secret")
     os.environ.setdefault("KEPRIX_SESSION_SECRET", "docs-build-placeholder-session")

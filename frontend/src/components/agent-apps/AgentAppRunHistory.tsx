@@ -18,6 +18,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import {
   fetchAgentAppRun,
   fetchAgentAppRuns,
@@ -66,13 +67,7 @@ function EventTimeline({ events }: { events: AgentAppLifecycleEvent[] }) {
             {new Date(item.created_at).toLocaleString()}
           </Typography>
           <Typography variant="subtitle2">{item.event}</Typography>
-          <Typography
-            component="pre"
-            variant="body2"
-            sx={{ m: 0, whiteSpace: "pre-wrap", fontFamily: "monospace", fontSize: "0.75rem" }}
-          >
-            {JSON.stringify(item.payload, null, 2)}
-          </Typography>
+          <StructuredDataView value={item.payload} emptyLabel="-" />
         </Box>
       ))}
     </Stack>

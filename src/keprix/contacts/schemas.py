@@ -39,6 +39,10 @@ class ContactCreate(BaseModel):
     organisation: str | None = None
     job_title: str | None = None
     notes: str | None = None
+    tags: list[str] = Field(default_factory=list)
+    whatsapp: str | None = None
+    telegram: str | None = None
+    role: str | None = None
 
 
 class ContactUpdate(BaseModel):
@@ -51,6 +55,10 @@ class ContactUpdate(BaseModel):
     organisation: str | None = None
     job_title: str | None = None
     notes: str | None = None
+    tags: list[str] | None = None
+    whatsapp: str | None = None
+    telegram: str | None = None
+    role: str | None = None
 
 
 class ContactOut(BaseModel):
@@ -71,6 +79,17 @@ class ContactOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     editable: bool = True
+    tags: list[str] = Field(default_factory=list)
+    whatsapp: str | None = None
+    telegram: str | None = None
+    role: str | None = None
+
+
+class ContactEnrichmentUpdate(BaseModel):
+    tags: list[str] | None = None
+    whatsapp: str | None = None
+    telegram: str | None = None
+    role: str | None = None
 
 
 class ContactPreferencesOut(BaseModel):

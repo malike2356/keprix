@@ -28,9 +28,16 @@ class CopilotMessageBody(BaseModel):
 async def get_operator_context(
     workspace_id: str = "default",
     detail: str = "nav",
+    page_path: str | None = None,
+    page_label: str | None = None,
     _user: dict = Depends(get_current_user),
 ) -> dict[str, Any]:
-    bundle = await build_operator_context(workspace_id, detail=detail)
+    bundle = await build_operator_context(
+        workspace_id,
+        detail=detail,
+        page_path=page_path,
+        page_label=page_label,
+    )
     return bundle.to_dict()
 
 

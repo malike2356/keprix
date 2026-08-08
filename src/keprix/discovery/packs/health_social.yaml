@@ -1,0 +1,57 @@
+id: health_social
+title: Health and social care vertical pack
+description: >
+  Organisations and professional contacts for care providers and clinics.
+  Never store patient or service-user clinical data in CRM discovery lists.
+jurisdiction: UK
+high_risk_outreach: true
+soft_wall_enroll_always: true
+no_patient_data: true
+adapters:
+  - health_csv
+  - cqc_api
+  - directory_web
+  - companies_house
+  - web_directory
+compliance_doc: docs/features/health-social-care-pack.md
+stage_labels:
+  discovered: Provider identified
+  enriched: Directory enriched
+  listed: On review list
+  enrolled: Outreach approved (Soft Wall)
+  customer: Engaged organisation
+sheet_types:
+  - id: clinic_referrals
+    description: Clinic / practice referral partner organisations (not patients)
+    markers: [clinic, referral, practice, gp, surgery]
+    columns:
+      - {name: organisation, role: company_name}
+      - {name: services, role: metric}
+      - {name: region, role: geo}
+      - {name: contact_email, role: contact_email}
+      - {name: contact_phone, role: contact_phone}
+      - {name: contact_name, role: identity}
+    metrics: [services, capacity]
+  - id: care_providers
+    description: Care homes and domiciliary providers (CQC directory style)
+    markers: [care, cqc, provider, residential, nursing]
+    columns:
+      - {name: organisation, role: company_name}
+      - {name: cqc_id, role: identity}
+      - {name: services, role: metric}
+      - {name: region, role: geo}
+      - {name: contact_email, role: contact_email}
+      - {name: contact_phone, role: contact_phone}
+      - {name: capacity, role: metric}
+    metrics: [capacity, beds, services]
+  - id: practitioners
+    description: Professional contacts at organisations (never patients)
+    markers: [practitioner, clinician, manager, professional]
+    columns:
+      - {name: organisation, role: company_name}
+      - {name: professional_name, role: identity}
+      - {name: role_title, role: metric}
+      - {name: region, role: geo}
+      - {name: contact_email, role: contact_email}
+      - {name: contact_phone, role: contact_phone}
+    metrics: [role_title]

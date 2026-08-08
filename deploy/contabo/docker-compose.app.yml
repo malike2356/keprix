@@ -1,0 +1,148 @@
+# Contabo product stack for app.keprixai.com (Web UI + API).
+# Joins external `proxy` so shared Carina nginx can reach FE and backend.
+# Does NOT bind host 80/443. Postgres/Redis stay on the private compose network.
+#
+# Hostname map:
+#   https://keprixai.com/          -> marketing (keprix-frontend)
+#   https://app.keprixai.com/      -> workspace UI (keprix-frontend)
+#   https://app.keprixai.com/api/  -> keprix-backend:3333 (nginx)
+#
+# Usage (on Contabo, from the Keprix product checkout):
+#   # Ensure .env has POSTGRES_PASSWORD, REDIS_PASSWORD, AUTH_ENABLED, admin creds
+#   docker compose -f deploy/contabo/docker-compose.app.yml up -d --build
+#
+# Nginx: sync app.keprixai.com.conf + updated keprixai.com.conf into
+#   /home/malike/apps/core.carinaai.uk/docker/nginx/
+# then nginx -t && nginx -s reload on the shared nginx container.
+#
+# Verify:
+#   curl -fsS -o /dev/null -w '%{http_code}\n' https://keprixai.com/
+#   curl -fsS -o /dev/null -w '%{http_code}\n' https://app.keprixai.com/api/health
+#   curl -fsS -o /dev/null -w '%{http_code}\n' https://carinaai.uk/
+#
+# Full runbook: docs/operations/keprixai-com-origin.md
+
+name: keprix-app
+
+services:
+  keprix-backend:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile.backend
+    image: keprix-backend:${KEPRIX_IMAGE_TAG:-latest}
+    container_name: keprix-backend
+    restart: unless-stopped
+    # Debug only; public traffic is nginx -> Docker DNS.
+    ports:
+      - "127.0.0.1:13333:3333"
+    volumes:
+      - keprix_data:/data/keprix
+      - ${KEPRIX_HOST_DATA:-${HOME}/.keprix}:/home/keprix/.keprix:z
+    environment:
+      - KEPRIX_HOME=/home/keprix/.keprix
+      - KEPRIX_LOGS_DIR=/home/keprix/.keprix/logs
+      - KEPRIX_VAULT_ROOT=${KEPRIX_VAULT_ROOT:-/home/keprix/.keprix/vault}
+      - KEPRIX_UID=${KEPRIX_UID:-${PUID:-1000}}
+      - KEPRIX_GID=${KEPRIX_GID:-${PGID:-1000}}
+      - KEPRIX_DATABASE_URL=postgresql+asyncpg://keprix:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/keprix
+      - KEPRIX_REDIS_URL=redis://:${REDIS_PASSWORD:?set REDIS_PASSWORD}@redis:6379
+      - KEPRIX_SEARXNG_URL=${KEPRIX_SEARXNG_URL:-}
+      - SEARXNG_URL=${SEARXNG_URL:-}
+      - KEPRIX_TRUSTED_PROXIES=${KEPRIX_TRUSTED_PROXIES:-127.0.0.1,::1}
+      - KEPRIX_PUBLIC_BASE_URL=${KEPRIX_PUBLIC_BASE_URL:-https://app.keprixai.com}
+    env_file:
+      - path: ../../.env
+        required: false
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3333/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - keprix_network
+      - proxy
+
+  keprix-frontend:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile.frontend
+      args:
+        BACKEND_REWRITE_URL: http://keprix-backend:3333
+    image: keprix-frontend:${KEPRIX_IMAGE_TAG:-latest}
+    container_name: keprix-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:13000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=
+      - NEXT_PUBLIC_CE_API_URL=
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+    env_file:
+      - path: ../../.env
+        required: false
+    depends_on:
+      keprix-backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - keprix_network
+      - proxy
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: keprix-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keprix
+      POSTGRES_USER: keprix
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keprix -d keprix"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - keprix_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: keprix-redis
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:?set REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - keprix_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  keprix_data:
+
+networks:
+  keprix_network:
+    driver: bridge
+  proxy:
+    external: true
+    name: ${KEPRIX_CONTABO_PROXY_NETWORK:-proxy}

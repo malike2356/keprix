@@ -39,7 +39,18 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   });
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(text || res.statusText);
+    let detail = text || res.statusText || `HTTP ${res.status}`;
+    try {
+      const parsed = JSON.parse(text) as { detail?: unknown };
+      if (typeof parsed?.detail === "string" && parsed.detail.trim()) {
+        detail = parsed.detail;
+      } else if (parsed?.detail != null) {
+        detail = JSON.stringify(parsed.detail);
+      }
+    } catch {
+      // keep raw text
+    }
+    throw new Error(detail);
   }
   if (res.status === 204) {
     return undefined as T;

@@ -47,6 +47,10 @@ _SELF_DOC_PATHS: tuple[str, ...] = (
     "docs/features/skill-first-execution.md",
     "docs/features/mcp-connector-first.md",
     "docs/features/colleague-memory-continuity.md",
+    "docs/features/agentic-crm.md",
+    "docs/features/crm-compliance.md",
+    "docs/self-knowledge/parity/agentic-crm-tools.md",
+    "docs/self-knowledge/parity/agentic-crm-routes.md",
     "docs/getting-started/cloud-deploy.md",
     "src/keprix/skills/autonomous-ai-agents/keprix-agent/SKILL.md",
 )

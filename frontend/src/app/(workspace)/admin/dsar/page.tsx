@@ -9,6 +9,7 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { fetchDsarRequests, requestDsarDelete, requestDsarExport } from "@/lib/parity-api";
 
 export default function DsarAdminPage() {
@@ -33,7 +34,7 @@ export default function DsarAdminPage() {
 
   return (
     <Box>
-      <PageHeader title="DSAR" subtitle="Operator export and erasure requests backed by the privacy pipeline." />
+      <PageHeader title="DSAR" description="Operator export and erasure requests backed by the privacy pipeline." />
       {error ? <Alert severity="warning" sx={{ mb: 2 }}>Admin access required.</Alert> : null}
       {actionError ? <Alert severity="error" sx={{ mb: 2 }}>{actionError}</Alert> : null}
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ mb: 2 }}>
@@ -74,8 +75,8 @@ export default function DsarAdminPage() {
         {!data?.requests?.length ? <Typography color="text.secondary">No DSAR requests yet.</Typography> : null}
       </Stack>
       {last ? (
-        <Box component="pre" sx={{ mt: 2, p: 2, bgcolor: "action.hover", overflow: "auto" }}>
-          {JSON.stringify(last, null, 2)}
+        <Box sx={{ mt: 2 }}>
+          <StructuredDataView value={last} />
         </Box>
       ) : null}
     </Box>

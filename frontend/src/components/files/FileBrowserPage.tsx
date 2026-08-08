@@ -2,9 +2,8 @@
 
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
+import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -12,11 +11,11 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import Link from "@mui/material/Link";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
@@ -35,7 +34,6 @@ import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
 import NextLink from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
-import PageHeader from "@/components/ui/PageHeader";
 import { useRequireAdmin } from "@/lib/ce-auth";
 import {
   getFilesystemDefaultCwd,
@@ -624,271 +622,334 @@ export default function FileBrowserPage() {
     ],
   );
 
-  const selectedLabel = currentPath === "/" ? "/" : pathName(currentPath);
+  const pathCrumbs = cleanPath(currentPath).split("/").filter(Boolean);
 
   if (isLoading || booting) {
     return (
-      <Box sx={{ maxWidth: 1280, mx: "auto", px: { xs: 2, sm: 4 }, py: 4 }}>
+      <Box sx={{ width: "100%", py: 2 }}>
         <Typography variant="body2" color="text.secondary">
-          Loading filesystem browser...
+          Loading files...
         </Typography>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ maxWidth: 1400, mx: "auto", px: { xs: 2, sm: 4 }, py: 4, pb: 10 }}>
-      <PageHeader
-        title="Filesystem browser"
-        description="Browse workspace files, preview text and images, upload or create folders, and import into Documents."
-        breadcrumbs={[
-          { label: "Home", href: "/home" },
-          { label: "Files" },
-        ]}
-        actions={
-          <>
-            <Button component={NextLink} href="/home" variant="outlined">
-              Back to home
-            </Button>
+    <Box
+      sx={{
+        width: "100%",
+        maxWidth: "100%",
+        mx: { sm: -3 },
+        mt: { sm: -3 },
+        mb: { xs: 0, md: -3 },
+        display: "flex",
+        flexDirection: "column",
+        height: { md: "calc(100vh - 112px)" },
+        minHeight: { xs: "70vh", md: 0 },
+        bgcolor: "background.default",
+      }}
+    >
+      <Box
+        sx={{
+          px: { xs: 2, sm: 3 },
+          pt: { xs: 2, sm: 2.5 },
+          pb: 1.5,
+          borderBottom: 1,
+          borderColor: "divider",
+          bgcolor: "background.paper",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 1.5,
+            mb: 1.5,
+          }}
+        >
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="h5" component="h1" fontWeight={700}>
+              Files
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Browse, preview, upload, and open text into Documents.
+            </Typography>
+          </Box>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
             <Button
+              size="small"
               startIcon={<RefreshIcon />}
+              variant="outlined"
               onClick={() => {
                 setPreview(null);
                 setGlobalError(null);
                 void loadFolder(currentPath);
               }}
-              variant="outlined"
             >
               Refresh
             </Button>
-          </>
-        }
-      />
+            <Button size="small" component={NextLink} href="/documents" variant="text">
+              Documents
+            </Button>
+            <Button size="small" component={NextLink} href="/home" variant="text">
+              Home
+            </Button>
+          </Stack>
+        </Box>
 
-      {globalError && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setGlobalError(null)}>
-          {globalError}
-        </Alert>
+        <Stack direction={{ xs: "column", md: "row" }} spacing={1.5} alignItems={{ md: "center" }}>
+          <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+            {(
+              [
+                { id: "workspace" as const, label: "Workspace", icon: <StorageOutlinedIcon fontSize="small" /> },
+                { id: "git" as const, label: "Git", icon: <FolderOpenIcon fontSize="small" />, disabled: !gitRoot && !workspaceRoot },
+                {
+                  id: "system" as const,
+                  label: "System",
+                  icon: <ShieldOutlinedIcon fontSize="small" />,
+                  disabled: !systemUnlocked,
+                },
+              ] as const
+            ).map((root) => (
+              <Button
+                key={root.id}
+                size="small"
+                variant={rootMode === root.id ? "contained" : "outlined"}
+                startIcon={root.icon}
+                disabled={"disabled" in root ? Boolean(root.disabled) : false}
+                onClick={() => handleSelectRoot(root.id)}
+              >
+                {root.label}
+              </Button>
+            ))}
+            <Button size="small" variant="text" onClick={() => setUnlockDialogOpen(true)}>
+              {systemUnlocked ? "System unlocked" : "Unlock system"}
+            </Button>
+          </Stack>
+
+          <Box sx={{ flex: 1, minWidth: 220, display: "flex", gap: 1 }}>
+            <TextField
+              size="small"
+              fullWidth
+              label="Path"
+              value={pathInput}
+              onChange={(event) => setPathInput(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") commitPath(pathInput);
+              }}
+            />
+            <Button variant="contained" onClick={() => commitPath(pathInput)}>
+              Open
+            </Button>
+          </Box>
+        </Stack>
+
+        <Stack direction="row" spacing={0.75} sx={{ mt: 1.25 }} flexWrap="wrap" useFlexGap alignItems="center">
+          <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+            Jump:
+          </Typography>
+          {[
+            { label: "Data", path: shortcuts.data || "/data/keprix" },
+            { label: "Home", path: shortcuts.home || workspaceRoot },
+            { label: "Docs", path: shortcuts.docs || `${shortcuts.data || "/data/keprix"}/docs` },
+            { label: "Workspace root", path: workspaceRoot },
+          ].map((item) => (
+            <Chip
+              key={item.label}
+              size="small"
+              label={item.label}
+              variant="outlined"
+              onClick={() => {
+                setRootMode("workspace");
+                openPath(item.path);
+              }}
+              sx={{ cursor: "pointer" }}
+            />
+          ))}
+          <Chip size="small" color="default" label={selectedRootLabel} variant="outlined" />
+        </Stack>
+      </Box>
+
+      {(globalError || statusMessage) && (
+        <Box sx={{ px: { xs: 2, sm: 3 }, pt: 1.5 }}>
+          {globalError ? (
+            <Alert severity="error" onClose={() => setGlobalError(null)}>
+              {globalError}
+            </Alert>
+          ) : null}
+          {statusMessage ? (
+            <Alert severity="success" sx={{ mt: globalError ? 1 : 0 }} onClose={() => setStatusMessage(null)}>
+              {statusMessage}
+            </Alert>
+          ) : null}
+        </Box>
       )}
-
-      {statusMessage && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setStatusMessage(null)}>
-          {statusMessage}
-        </Alert>
-      )}
-
-      <Alert severity="info" sx={{ mb: 2 }}>
-        Admin-only. Prefer Workspace or Data shortcuts. System root stays locked until you unlock it.
-      </Alert>
 
       <Box
         sx={{
+          flex: 1,
+          minHeight: 0,
           display: "grid",
-          gridTemplateColumns: { xs: "1fr", lg: "280px 1fr 0.95fr" },
-          gap: 2,
-          alignItems: "start",
+          gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1.15fr) minmax(320px, 0.85fr)" },
+          borderTop: { xs: 1, lg: 0 },
+          borderColor: "divider",
         }}
       >
-        <Card variant="outlined">
-          <CardContent sx={{ display: "grid", gap: 1.5 }}>
-            <Typography variant="subtitle2" fontWeight={700}>
-              Access boundary
-            </Typography>
-            <Stack spacing={1}>
-              <Button
-                fullWidth
-                variant={rootMode === "workspace" ? "contained" : "outlined"}
-                onClick={() => handleSelectRoot("workspace")}
-                startIcon={<StorageOutlinedIcon />}
+        <Box
+          sx={{
+            minWidth: 0,
+            minHeight: { xs: 420, lg: 0 },
+            display: "flex",
+            flexDirection: "column",
+            borderRight: { lg: 1 },
+            borderColor: "divider",
+            bgcolor: "background.paper",
+          }}
+        >
+          <Box
+            sx={{
+              px: 2,
+              py: 1.25,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 1,
+              alignItems: "center",
+              justifyContent: "space-between",
+              borderBottom: 1,
+              borderColor: "divider",
+            }}
+          >
+            <Breadcrumbs
+              maxItems={5}
+              itemsBeforeCollapse={1}
+              itemsAfterCollapse={2}
+              sx={{ minWidth: 0, "& .MuiBreadcrumbs-ol": { flexWrap: "nowrap" } }}
+            >
+              <Link
+                component="button"
+                type="button"
+                underline="hover"
+                color="inherit"
+                onClick={() => commitPath(resolvedRoot)}
+                sx={{ border: 0, background: "none", cursor: "pointer", p: 0, font: "inherit" }}
               >
-                Workspace root
-              </Button>
-              <Button
-                fullWidth
-                variant={rootMode === "git" ? "contained" : "outlined"}
-                onClick={() => handleSelectRoot("git")}
-                startIcon={<FolderOpenIcon />}
-                disabled={!gitRoot && !workspaceRoot}
-              >
-                Git root
-              </Button>
-              <Button
-                fullWidth
-                variant={rootMode === "system" ? "contained" : "outlined"}
-                onClick={() => handleSelectRoot("system")}
-                startIcon={<ShieldOutlinedIcon />}
-                disabled={!systemUnlocked}
-              >
-                System root
-              </Button>
-            </Stack>
-
-            <Divider sx={{ my: 0.5 }} />
-
-            <Typography variant="subtitle2" fontWeight={700}>
-              Shortcuts
-            </Typography>
-            <Stack spacing={0.75}>
-              {[
-                { label: "Data", path: shortcuts.data || "/data/keprix" },
-                { label: "Home", path: shortcuts.home || workspaceRoot },
-                { label: "Docs", path: shortcuts.docs || `${shortcuts.data || "/data/keprix"}/docs` },
-              ].map((item) => (
-                <Button
-                  key={item.label}
-                  fullWidth
-                  size="small"
-                  variant="outlined"
-                  onClick={() => {
-                    setRootMode("workspace");
-                    openPath(item.path);
-                  }}
-                >
-                  {item.label}: {item.path}
-                </Button>
-              ))}
-            </Stack>
-
-            <Divider sx={{ my: 0.5 }} />
-
-            <Typography variant="caption" color="text.secondary">
-              {selectedRootLabel}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Current path: {currentPath}
-            </Typography>
-
-            <TextField
-              label="Open path"
-              size="small"
-              value={pathInput}
-              onChange={(event) => setPathInput(event.target.value)}
-              helperText={rootMode === "system" ? "Any absolute path is allowed while system root is unlocked." : `Must stay under ${resolvedRoot}.`}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  commitPath(pathInput);
+                {rootMode === "system" ? "/" : pathName(resolvedRoot) || "root"}
+              </Link>
+              {pathCrumbs.map((segment, index) => {
+                const crumbPath = `/${pathCrumbs.slice(0, index + 1).join("/")}`;
+                const isLast = index === pathCrumbs.length - 1;
+                if (isLast) {
+                  return (
+                    <Typography key={crumbPath} color="text.primary" variant="body2" fontWeight={600}>
+                      {segment}
+                    </Typography>
+                  );
                 }
-              }}
-            />
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Button fullWidth variant="contained" onClick={() => commitPath(pathInput)}>
-                Open
+                return (
+                  <Link
+                    key={crumbPath}
+                    component="button"
+                    type="button"
+                    underline="hover"
+                    color="inherit"
+                    onClick={() => commitPath(crumbPath)}
+                    sx={{ border: 0, background: "none", cursor: "pointer", p: 0, font: "inherit" }}
+                  >
+                    {segment}
+                  </Link>
+                );
+              })}
+            </Breadcrumbs>
+            <Stack direction="row" spacing={0.75} flexWrap="wrap" useFlexGap>
+              <Typography variant="caption" color="text.secondary" sx={{ alignSelf: "center", mr: 0.5 }}>
+                {entriesByPath[currentPath] ? `${entriesByPath[currentPath].length} items` : ""}
+              </Typography>
+              <Button
+                size="small"
+                startIcon={<UploadFileOutlinedIcon />}
+                disabled={busyAction}
+                onClick={() => uploadInputRef.current?.click()}
+              >
+                Upload
+              </Button>
+              <Button size="small" startIcon={<ContentCopyIcon />} onClick={() => void handleCopyPath(currentPath)}>
+                Copy path
               </Button>
               <Button
-                fullWidth
-                variant="outlined"
+                size="small"
+                startIcon={<FolderOpenIcon />}
                 onClick={() => {
-                  setPathInput(currentPath);
+                  if (currentPath !== resolvedRoot || rootMode === "system") {
+                    commitPath(parentPath(currentPath));
+                  }
                 }}
+                disabled={currentPath === resolvedRoot && rootMode !== "system"}
               >
-                Reset
+                Up
               </Button>
-            </Box>
+            </Stack>
+          </Box>
 
+          <input
+            ref={uploadInputRef}
+            type="file"
+            multiple
+            hidden
+            onChange={(event) => {
+              handleUploadFiles(event.target.files);
+              event.target.value = "";
+            }}
+          />
+
+          <Box sx={{ px: 2, py: 1, display: "flex", gap: 1, borderBottom: 1, borderColor: "divider" }}>
             <TextField
-              label="New folder name"
               size="small"
+              fullWidth
+              placeholder="New folder name"
               value={newFolderName}
               onChange={(event) => setNewFolderName(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  handleCreateFolder();
-                }
+                if (event.key === "Enter") handleCreateFolder();
               }}
             />
             <Button
-              fullWidth
+              size="small"
               variant="outlined"
               startIcon={<CreateNewFolderOutlinedIcon />}
               disabled={busyAction}
               onClick={handleCreateFolder}
+              sx={{ whiteSpace: "nowrap" }}
             >
-              Create folder here
+              New folder
             </Button>
+          </Box>
 
-            <Button
-              fullWidth
-              variant="text"
-              onClick={() => setUnlockDialogOpen(true)}
-              disabled={systemUnlocked}
-            >
-              {systemUnlocked ? "System root unlocked" : "Unlock system root"}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card variant="outlined" sx={{ minHeight: 640 }}>
-          <CardContent sx={{ p: 0, "&:last-child": { pb: 0 } }}>
-            <Box sx={{ px: 2, py: 1.5, display: "flex", flexWrap: "wrap", gap: 1, alignItems: "center", justifyContent: "space-between" }}>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography variant="subtitle2" fontWeight={700} noWrap>
-                  {selectedLabel}
-                </Typography>
-                <Typography variant="caption" color="text.secondary" noWrap>
-                  {currentPath}
-                  {entriesByPath[currentPath]
-                    ? ` · ${entriesByPath[currentPath].length} items`
-                    : ""}
+          <List dense disablePadding sx={{ flex: 1, overflow: "auto", minHeight: 0 }}>
+            {folderErrors[resolvedRoot] && !(entriesByPath[resolvedRoot]?.length) ? (
+              <Box sx={{ px: 2, py: 3 }}>
+                <Alert severity="warning">{folderErrors[resolvedRoot]}</Alert>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+                  Try Data, Docs, or Home above, or open a path under the workspace root.
                 </Typography>
               </Box>
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                <Chip size="small" label={rootMode.toUpperCase()} />
-                <Button
-                  size="small"
-                  startIcon={<UploadFileOutlinedIcon />}
-                  disabled={busyAction}
-                  onClick={() => uploadInputRef.current?.click()}
-                >
-                  Upload
-                </Button>
-                <Button
-                  size="small"
-                  startIcon={<ContentCopyIcon />}
-                  onClick={() => void handleCopyPath(currentPath)}
-                >
-                  Copy path
-                </Button>
-                <Button
-                  size="small"
-                  startIcon={<FolderOpenIcon />}
-                  onClick={() => {
-                    if (currentPath !== resolvedRoot || rootMode === "system") {
-                      commitPath(parentPath(currentPath));
-                    }
-                  }}
-                  disabled={currentPath === resolvedRoot && rootMode !== "system"}
-                >
-                  Up
-                </Button>
-              </Box>
-            </Box>
-            <input
-              ref={uploadInputRef}
-              type="file"
-              multiple
-              hidden
-              onChange={(event) => {
-                handleUploadFiles(event.target.files);
-                event.target.value = "";
-              }}
-            />
-            <Divider />
-            <List dense disablePadding sx={{ maxHeight: 560, overflow: "auto" }}>
-              {folderErrors[resolvedRoot] && !(entriesByPath[resolvedRoot]?.length) ? (
-                <Box sx={{ px: 2, py: 3 }}>
-                  <Alert severity="warning">{folderErrors[resolvedRoot]}</Alert>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
-                    Try a Data or Docs shortcut, or open a path under the workspace root.
-                  </Typography>
-                </Box>
-              ) : (
-                renderFolder(resolvedRoot, 0)
-              )}
-            </List>
-          </CardContent>
-        </Card>
+            ) : (
+              renderFolder(resolvedRoot, 0)
+            )}
+          </List>
+        </Box>
 
-        <Paper variant="outlined" sx={{ minHeight: 640, p: 2, display: "flex", flexDirection: "column" }}>
+        <Box
+          sx={{
+            minWidth: 0,
+            minHeight: { xs: 320, lg: 0 },
+            display: "flex",
+            flexDirection: "column",
+            bgcolor: "background.default",
+            p: 2,
+          }}
+        >
           <Typography variant="subtitle2" fontWeight={700} gutterBottom>
             Preview
           </Typography>
@@ -924,9 +985,6 @@ export default function FileBrowserPage() {
                 >
                   Open in Documents
                 </Button>
-                <Button size="small" component={NextLink} href="/documents" variant="text">
-                  Documents library
-                </Button>
               </Box>
 
               <Divider />
@@ -947,7 +1005,9 @@ export default function FileBrowserPage() {
                       fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
                       fontSize: "0.85rem",
                       lineHeight: 1.6,
-                      bgcolor: "action.hover",
+                      bgcolor: "background.paper",
+                      border: 1,
+                      borderColor: "divider",
                       borderRadius: 1,
                       p: 1.5,
                     }}
@@ -967,23 +1027,40 @@ export default function FileBrowserPage() {
               )}
             </Stack>
           ) : (
-            <Box sx={{ pt: 2 }}>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                Select a file to preview text or images. Use Upload to add files into the current folder, then Open in Documents to bring text into the Documents library.
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Hidden noise folders (node_modules, .git, venv, and similar) are filtered from listings.
-              </Typography>
+            <Box
+              sx={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: 1,
+                borderColor: "divider",
+                borderStyle: "dashed",
+                borderRadius: 1,
+                px: 3,
+                py: 4,
+                textAlign: "center",
+              }}
+            >
+              <Box>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  Select a file to preview text or images.
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Upload into the current folder, then Open in Documents to bring text into the library.
+                  Noise folders (node_modules, .git, venv) stay hidden.
+                </Typography>
+              </Box>
             </Box>
           )}
-        </Paper>
+        </Box>
       </Box>
 
       <Dialog open={unlockDialogOpen} onClose={() => setUnlockDialogOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Unlock system root browsing</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            This enables browsing the full host filesystem from the web UI. It is restricted to admin users and should only be enabled when you need host-level inspection.
+            Enables browsing the full host filesystem from the web UI. Admin only; use when you need host-level inspection.
           </Typography>
           <FormControlLabel
             control={

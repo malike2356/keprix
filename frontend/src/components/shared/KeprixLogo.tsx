@@ -2,6 +2,7 @@
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import { keprixTypography } from "@/theme/tokens/typography";
 
 type KeprixLogoProps = {
   variant?: "full" | "icon";
@@ -39,9 +40,9 @@ export function KeprixLogo({ variant = "full", size = "md", onDark = false }: Ke
         <Typography
           variant={size === "lg" ? "h4" : size === "md" ? "h6" : "body1"}
           sx={{
-            fontWeight: 700,
+            fontWeight: 600,
             letterSpacing: "-0.03em",
-            fontFamily: '"Cormorant Garamond", Georgia, serif',
+            fontFamily: keprixTypography.fontFamilyDisplay,
             color: onDark ? "#f5f7ff" : "text.primary",
           }}
         >

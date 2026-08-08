@@ -6,6 +6,7 @@ import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 
 export type HeadlessRun = {
   run_id: string;
@@ -34,8 +35,8 @@ export default function ActionResultPanel({ run, onRunAgain }: { run: HeadlessRu
       <Typography variant="body2" color="text.secondary">
         Duration: {run.duration_ms} ms {run.ledger_entry_id ? `| Ledger: ${run.ledger_entry_id}` : ""}
       </Typography>
-      <Box component="pre" sx={{ m: 0, p: 2, bgcolor: "action.hover", overflow: "auto", maxHeight: 240, fontSize: 12 }}>
-        {JSON.stringify(run.output, null, 2)}
+      <Box sx={{ p: 2, bgcolor: "action.hover", overflow: "auto", maxHeight: 240 }}>
+        <StructuredDataView value={run.output} emptyLabel="No output" />
       </Box>
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
         <Button size="small" variant="outlined" href={`/agent-os/runs?source_type=${run.source_type}&source_id=${encodeURIComponent(run.source_id)}&run_id=${encodeURIComponent(run.run_id)}`}>

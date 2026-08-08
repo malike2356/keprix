@@ -16,6 +16,7 @@ import * as React from "react";
 import useSWR from "swr";
 import PlaybookStepTimeline from "@/components/playbooks/PlaybookStepTimeline";
 import PageHeader from "@/components/ui/PageHeader";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { SkeletonBlock } from "@/components/ui/loading";
 import {
   approvalResumePatch,
@@ -245,26 +246,14 @@ export default function PlaybookRunDetailPage() {
       <Collapse in={stateOpen}>
         <Card variant="outlined">
           <CardContent>
-            <Typography
-              component="pre"
-              variant="body2"
-              sx={{ m: 0, whiteSpace: "pre-wrap", fontFamily: "monospace", fontSize: 12 }}
-            >
-              {JSON.stringify(run.state, null, 2)}
-            </Typography>
+            <StructuredDataView value={run.state} emptyLabel="No state" />
             {run.artifacts && run.artifacts.length > 0 ? (
               <>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>
                   Artifacts
                 </Typography>
-                <Typography
-                  component="pre"
-                  variant="body2"
-                  sx={{ m: 0, whiteSpace: "pre-wrap", fontFamily: "monospace", fontSize: 12 }}
-                >
-                  {JSON.stringify(run.artifacts, null, 2)}
-                </Typography>
+                <StructuredDataView value={run.artifacts} />
               </>
             ) : null}
           </CardContent>

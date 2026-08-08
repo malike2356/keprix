@@ -15,6 +15,7 @@ import { AGENT_OS_HUB_HOME } from "@/components/agent-os/AgentOsSubnav";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import PageHeader from "@/components/ui/PageHeader";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import { SkeletonBlock } from "@/components/ui/loading";
 import { ceApi, parseApiErrorMessage } from "@/lib/ce-api";
 
@@ -33,7 +34,7 @@ export default function MaturityPage() {
   const [workspacePath, setWorkspacePath] = React.useState("");
   const [audit, setAudit] = React.useState<Audit | null>(null);
   const [history, setHistory] = React.useState<Audit[]>([]);
-  const [exportJson, setExportJson] = React.useState<string | null>(null);
+  const [exportPayload, setExportPayload] = React.useState<Record<string, unknown> | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
 
@@ -60,7 +61,7 @@ export default function MaturityPage() {
   const run = async () => {
     setBusy(true);
     setError(null);
-    setExportJson(null);
+    setExportPayload(null);
     try {
       const payload = await parse<{ audit: Audit }>(
         await ceApi("/api/agent-os/maturity/run", {
@@ -84,7 +85,7 @@ export default function MaturityPage() {
       await ceApi(`/api/agent-os/maturity/${encodeURIComponent(audit.audit_id)}/export-to-level-up`, { method: "POST" }),
       "Export failed",
     );
-    setExportJson(JSON.stringify(payload, null, 2));
+    setExportPayload(payload);
   };
 
   const active = audit || history[0] || null;
@@ -170,10 +171,13 @@ export default function MaturityPage() {
             </CardContent>
           </Card>
           <LevelUpPanel auditId={active.audit_id} workspacePath={workspacePath.trim() || undefined} />
-          {exportJson ? (
+          {exportPayload ? (
             <Card variant="outlined">
               <CardContent>
-                <Box component="pre" sx={{ m: 0, whiteSpace: "pre-wrap", fontSize: "0.8rem" }}>{exportJson}</Box>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                  Level-up export
+                </Typography>
+                <StructuredDataView value={exportPayload} />
               </CardContent>
             </Card>
           ) : null}

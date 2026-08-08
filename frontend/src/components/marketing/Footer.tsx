@@ -10,6 +10,7 @@ import { motion } from "motion/react";
 import { IconBrandGithub, IconBrandX, IconBrandDiscord } from "@tabler/icons-react";
 import { KeprixLogo } from "@/components/shared/KeprixLogo";
 import { DEVELOPER_ECOSYSTEM, DEVELOPER_ECOSYSTEM_LABEL } from "@/lib/developer-ecosystem";
+import { MARKETING_DISPLAY_FONT } from "@/components/marketing/marketing-section";
 import { KEPRIX_COLORS } from "@/theme/keprix-theme";
 
 const CARD_BG = "#0d0d11";
@@ -29,7 +30,7 @@ const FOOTER_COLS = [
     heading: "Resources",
     links: [
       { label: "Documentation", href: "/docs" },
-      { label: "API Reference", href: "/docs/api" },
+      { label: "API Reference", href: "https://github.com/malike2356/keprix/blob/main/docs/reference/api.md" },
       { label: "Blog", href: "/blog" },
       { label: "Status", href: "/status" },
     ],
@@ -78,7 +79,7 @@ function TextHoverEffect({ text, duration = 0 }: { text: string; duration?: numb
   const textStyle: React.CSSProperties = {
     fontSize: "4.5rem",
     fontWeight: 700,
-    fontFamily: "helvetica, arial, sans-serif",
+    fontFamily: MARKETING_DISPLAY_FONT,
   };
 
   return (

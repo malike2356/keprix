@@ -82,3 +82,25 @@ async def fail_job(job_id: str, body: FailBody, _admin: dict = Depends(require_a
     if job is None:
         raise HTTPException(status_code=409, detail="Fail rejected")
     return {"job": job}
+
+
+@router.post("/{job_id}/cancel")
+async def cancel_job(job_id: str, _admin: dict = Depends(require_admin)) -> dict[str, Any]:
+    job = get_job_queue().cancel(job_id)
+    if job is None:
+        existing = get_job_queue().get(job_id)
+        if existing is None:
+            raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(status_code=409, detail="Job is not cancellable")
+    return {"job": job}
+
+
+@router.post("/{job_id}/retry")
+async def retry_job(job_id: str, _admin: dict = Depends(require_admin)) -> dict[str, Any]:
+    job = get_job_queue().retry(job_id)
+    if job is None:
+        existing = get_job_queue().get(job_id)
+        if existing is None:
+            raise HTTPException(status_code=404, detail="Job not found")
+        raise HTTPException(status_code=409, detail="Job is not retryable")
+    return {"job": job}

@@ -11,7 +11,6 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { IconSearch } from "@tabler/icons-react";
 import Fuse from "fuse.js";
-import { useRouter } from "next/navigation";
 import * as React from "react";
 import NavIcon from "@/components/ui/NavIcon";
 import { ceApi } from "@/lib/ce-api";
@@ -33,7 +32,6 @@ type CommandItem = {
 };
 
 export default function CommandPalette({ open, onClose, contract }: CommandPaletteProps) {
-  const router = useRouter();
   const [query, setQuery] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [actionPins, setActionPins] = React.useState<CommandItem[]>([]);
@@ -115,7 +113,7 @@ export default function CommandPalette({ open, onClose, contract }: CommandPalet
 
   const navigate = (href: string) => {
     onClose();
-    router.push(href);
+    window.location.assign(href);
   };
 
   return (

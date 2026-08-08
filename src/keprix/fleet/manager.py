@@ -81,6 +81,52 @@ class FleetManager:
                 return row
         return None
 
+    def remove(self, instance_id: str) -> bool:
+        rows = self._load()
+        kept = [row for row in rows if row.get("id") != instance_id]
+        if len(kept) == len(rows):
+            return False
+        self._save(kept)
+        self.audit("remove", {"instance_id": instance_id})
+        return True
+
+    def probe_health(self, instance_id: str, *, timeout_s: float = 5.0) -> dict[str, Any] | None:
+        """Server-side health pull against the instance base_url."""
+        row = self.get_instance(instance_id)
+        if row is None:
+            return None
+        base = str(row.get("base_url") or "").rstrip("/")
+        reachable = False
+        version = str(row.get("version") or "0.0.0")
+        alerts = int(row.get("alerts") or 0)
+        try:
+            import urllib.request
+
+            req = urllib.request.Request(f"{base}/api/health", method="GET")
+            with urllib.request.urlopen(req, timeout=timeout_s) as resp:  # noqa: S310
+                reachable = 200 <= int(getattr(resp, "status", 200) or 200) < 300
+                raw = resp.read().decode("utf-8", errors="replace")
+                try:
+                    payload = json.loads(raw) if raw else {}
+                except json.JSONDecodeError:
+                    payload = {}
+                if isinstance(payload, dict):
+                    version = str(payload.get("version") or payload.get("keprix_version") or version)
+                    alerts = int(payload.get("alerts") or alerts)
+        except Exception:
+            reachable = False
+        return self.record_health(
+            instance_id,
+            metrics={
+                "reachable": reachable,
+                "version": version,
+                "alerts": alerts,
+                "cpu_pct": float(row.get("cpu_pct") or 0),
+                "ram_pct": float(row.get("ram_pct") or 0),
+                "disk_pct": float(row.get("disk_pct") or 0),
+            },
+        )
+
     def record_health(self, instance_id: str, *, metrics: dict[str, Any]) -> dict[str, Any] | None:
         rows = self._load()
         for index, row in enumerate(rows):

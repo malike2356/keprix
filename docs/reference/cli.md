@@ -267,7 +267,7 @@ For more help on a command:
 | `vault` | {list-packs,init,validate,doctor,migrate-workspace,render-template,audit,ensure-default} |
 | `upgrade` | [--skip-tests] [--step] [--to VERSION] [--list-prompts] |
 | `integrations` | See CLI help |
-| `upstream` | See CLI help |
+| `upstream` | {check,list,review,decide,adopt,complete,work-package,diff,report,cron-install,sync-registry} |
 | `scout` | {ping,test-signal,test-command,status,integration-test,signals,suspend,quarantine,block-egress,set-sandbox} |
 | `channel-shield` | See CLI help |
 | `email-shield` | See CLI help |

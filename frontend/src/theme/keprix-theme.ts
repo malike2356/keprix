@@ -80,14 +80,35 @@ export function createKeprixTheme(mode: ThemeMode = "dark", paletteOverride?: Ke
     },
     typography: {
       fontFamily: keprixTypography.fontFamily,
-      h1: { fontSize: "2.5rem", fontWeight: 700, lineHeight: 1.2 },
-      h2: { fontSize: "2rem", fontWeight: 700, lineHeight: 1.25 },
-      h3: { fontSize: "1.5rem", fontWeight: 600, lineHeight: 1.3 },
-      h4: { fontSize: "1.25rem", fontWeight: 600, lineHeight: 1.4 },
-      h5: { fontSize: "1.125rem", fontWeight: 600 },
-      h6: { fontSize: "1rem", fontWeight: 600 },
-      body1: { fontSize: "0.9375rem", lineHeight: 1.6 },
-      body2: { fontSize: "0.875rem", lineHeight: 1.57 },
+      h1: {
+        fontFamily: keprixTypography.fontFamilyDisplay,
+        fontSize: "2.5rem",
+        fontWeight: 600,
+        lineHeight: 1.2,
+      },
+      h2: {
+        fontFamily: keprixTypography.fontFamilyDisplay,
+        fontSize: "2rem",
+        fontWeight: 600,
+        lineHeight: 1.25,
+      },
+      h3: {
+        fontFamily: keprixTypography.fontFamilyDisplay,
+        fontSize: "1.5rem",
+        fontWeight: 600,
+        lineHeight: 1.3,
+      },
+      h4: {
+        fontFamily: keprixTypography.fontFamilyDisplay,
+        fontSize: "1.25rem",
+        fontWeight: 600,
+        lineHeight: 1.4,
+      },
+      h5: { fontFamily: keprixTypography.fontFamilyDisplay, fontSize: "1.125rem", fontWeight: 600 },
+      h6: { fontFamily: keprixTypography.fontFamilyDisplay, fontSize: "1rem", fontWeight: 600 },
+      body1: { fontSize: "0.9375rem", fontWeight: 400, lineHeight: 1.6 },
+      body2: { fontSize: "0.875rem", fontWeight: 400, lineHeight: 1.57 },
+      button: { fontWeight: 500 },
     },
     shape: { borderRadius: 8 },
     shadows: buildShadows(mode) as Theme["shadows"],
@@ -97,12 +118,19 @@ export function createKeprixTheme(mode: ThemeMode = "dark", paletteOverride?: Ke
           body: {
             backgroundColor: c.bgDefault,
             color: c.textPrimary,
+            fontFamily: keprixTypography.fontFamily,
+          },
+          code: {
+            fontFamily: keprixTypography.fontFamilyMono,
+          },
+          pre: {
+            fontFamily: keprixTypography.fontFamilyMono,
           },
         },
       },
       MuiButton: {
         styleOverrides: {
-          root: { textTransform: "none", fontWeight: 600, borderRadius: 8 },
+          root: { textTransform: "none", fontWeight: 500, borderRadius: 8 },
           containedPrimary: {
             backgroundColor: c.primary,
             color: contrastFor(c.primary),
@@ -146,7 +174,7 @@ export function createKeprixTheme(mode: ThemeMode = "dark", paletteOverride?: Ke
       },
       MuiChip: {
         styleOverrides: {
-          root: { fontWeight: 600, fontSize: "0.75rem" },
+          root: { fontWeight: 500, fontSize: "0.75rem" },
         },
       },
       MuiListItemButton: {
@@ -158,6 +186,26 @@ export function createKeprixTheme(mode: ThemeMode = "dark", paletteOverride?: Ke
               backgroundColor: alpha(c.primary, 0.15),
               color: c.primary,
               "&:hover": { backgroundColor: alpha(c.primary, 0.2) },
+            },
+          },
+        },
+      },
+      MuiOutlinedInput: {
+        styleOverrides: {
+          notchedOutline: {
+            "& legend": {
+              boxSizing: "content-box",
+            },
+          },
+        },
+      },
+      MuiInputLabel: {
+        styleOverrides: {
+          outlined: {
+            "&.MuiInputLabel-shrink": {
+              backgroundColor: c.bgCard,
+              paddingInline: 4,
+              marginInline: -4,
             },
           },
         },

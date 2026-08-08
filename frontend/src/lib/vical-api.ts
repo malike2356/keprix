@@ -195,6 +195,29 @@ export async function fetchBookings(): Promise<VicalBooking[]> {
   return data.items;
 }
 
+export async function createHostBooking(body: {
+  guest_name: string;
+  guest_email: string;
+  starts_at: string;
+  ends_at?: string;
+  event_type_id?: string;
+  slug?: string;
+  notes?: string;
+  skip_slot_check?: boolean;
+}): Promise<VicalBooking> {
+  return parseJson(
+    await ceApi("/api/vical/bookings", {
+      method: "POST",
+      body: JSON.stringify({
+        ...body,
+        source: "api",
+        skip_slot_check: body.skip_slot_check ?? true,
+      }),
+    }),
+    "Could not create booking",
+  );
+}
+
 export async function approveBooking(id: string): Promise<VicalBooking> {
   return parseJson(
     await ceApi(`/api/vical/bookings/${encodeURIComponent(id)}/approve`, { method: "POST", body: "{}" }),

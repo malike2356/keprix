@@ -13,6 +13,7 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { keyframes } from "@mui/material/styles";
 import * as React from "react";
+import StructuredDataView from "@/components/ui/StructuredDataView";
 import type { MessageBlock } from "@/lib/workspace-api";
 
 const pulse = keyframes`
@@ -72,18 +73,16 @@ export default function ToolCallBlock({ block }: ToolCallBlockProps) {
               Input
             </Typography>
             <Box
-              component="pre"
               sx={{
                 m: 0,
                 mt: 0.5,
                 p: 1,
                 borderRadius: 1,
                 bgcolor: "background.paper",
-                fontSize: 12,
                 overflow: "auto",
               }}
             >
-              {JSON.stringify(block.input, null, 2)}
+              <StructuredDataView value={block.input} emptyLabel="No input" />
             </Box>
           </Box>
           {block.output ? (

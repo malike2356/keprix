@@ -48,6 +48,14 @@ async def list_experiments(_user: dict = Depends(get_current_user)) -> dict[str,
     return {"items": get_ml_workspace_store().list_experiments()}
 
 
+@router.get("/runs")
+async def list_runs(
+    experiment_id: str | None = None,
+    _user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    return {"items": get_ml_workspace_store().list_runs(experiment_id)}
+
+
 @router.post("/runs")
 async def create_run(body: RunBody, _user: dict = Depends(get_current_user)) -> dict[str, Any]:
     return {"run": get_ml_workspace_store().create_run(body.experiment_id, metrics=body.metrics)}

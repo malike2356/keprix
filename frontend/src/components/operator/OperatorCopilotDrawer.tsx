@@ -49,9 +49,12 @@ type ChatTurn = {
 
 const SUGGESTIONS = [
   "What page am I on?",
+  "What modules are available?",
+  "Is readiness green?",
   "What needs my approval?",
   "Why did my last playbook fail?",
   "Which channel is unhealthy?",
+  "Where is Channel Shield?",
 ] as const;
 
 function attentionCount(context?: OperatorContextBundle | null): number {
@@ -101,8 +104,12 @@ function OperatorCopilotBody({ embedded = false }: PanelProps) {
   const pathname = usePathname() || "/";
   const pageLabel = labelForPath(pathname);
   const { data, error, isLoading, mutate } = useSWR(
-    "operator-context-full",
-    () => fetchOperatorContext("default", "full"),
+    ["operator-context-full", pathname, pageLabel],
+    () =>
+      fetchOperatorContext("default", "full", {
+        pagePath: pathname,
+        pageLabel,
+      }),
     { revalidateOnFocus: true, shouldRetryOnError: false },
   );
   const [input, setInput] = React.useState("");
@@ -217,6 +224,12 @@ function OperatorCopilotBody({ embedded = false }: PanelProps) {
       ) : data ? (
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
           <Chip size="small" variant="outlined" label={`Page: ${pageLabel}`} />
+          <Chip size="small" variant="outlined" label={`v${data.installed_version || "?"}`} />
+          <Chip
+            size="small"
+            color={data.readiness_overall === "pass" ? "success" : data.readiness_overall === "fail" ? "error" : "default"}
+            label={`Readiness ${data.readiness_overall || "n/a"}`}
+          />
           <Chip size="small" color={data.staged_mutations ? "warning" : "default"} label={`Staged ${data.staged_mutations}`} />
           <Chip
             size="small"
@@ -228,6 +241,13 @@ function OperatorCopilotBody({ embedded = false }: PanelProps) {
             color={data.channel_issues?.length ? "error" : "success"}
             label={`Channels ${data.channel_issues?.length ? `${data.channel_issues.length} issue(s)` : "ok"}`}
           />
+          {typeof data.modules_counts?.available === "number" ? (
+            <Chip
+              size="small"
+              variant="outlined"
+              label={`Modules ${data.modules_counts.available} GUI`}
+            />
+          ) : null}
         </Stack>
       ) : null}
 
@@ -263,7 +283,8 @@ function OperatorCopilotBody({ embedded = false }: PanelProps) {
       >
         {turns.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
-            Ask about this page, approvals, failed playbooks, or channel health.
+            Ask about any Keprix surface: this page, modules, readiness, approvals, playbooks,
+            channels, settings, billing, governance, or how a feature works.
           </Typography>
         ) : (
           <Stack spacing={1.5}>

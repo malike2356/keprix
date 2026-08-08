@@ -10,8 +10,8 @@ try:
 except Exception:
     PRODUCT_VERSION = "0.16.0"
 EDITION = "community"
-HOMEPAGE = "https://keprix.io"
-DOCS_URL = "https://keprix.io/docs"
+HOMEPAGE = "https://keprixai.com"
+DOCS_URL = "https://keprixai.com/docs"
 GITHUB_URL = "https://github.com/malike2356/keprix"
 DEVELOPER_IDENTITY_DIR = "~/.keprix/identity"
 DEVELOPER_CONFIG_DIR = "~/.keprix"

@@ -1,0 +1,39 @@
+id: generic
+title: Generic vertical pack
+description: Default discovery pack for Companies House, CSV, and web directory.
+jurisdiction: UK
+adapters:
+  - companies_house
+  - csv_import
+  - web_directory
+  - fake
+ui_copy:
+  scrape_claim: false
+  note: Default pack. Social API adapters remain phased stubs.
+stage_labels:
+  discovered: Discovered
+  enriched: Enriched
+  listed: On list for review
+  enrolled: In nurture
+  customer: Customer
+sheet_types:
+  - id: leads
+    description: Generic lead list
+    markers: [lead, company, email, phone]
+    columns:
+      - {name: company_name, role: company_name}
+      - {name: contact_email, role: contact_email}
+      - {name: contact_phone, role: contact_phone}
+      - {name: contact_name, role: identity}
+      - {name: url, role: url}
+      - {name: stage, role: stage}
+    metrics: [score]
+  - id: generic
+    description: Generic tabular import
+    markers: [generic, import, sheet]
+    columns:
+      - {name: company_name, role: company_name}
+      - {name: contact_email, role: contact_email}
+      - {name: contact_phone, role: contact_phone}
+      - {name: name, role: identity}
+    metrics: []
