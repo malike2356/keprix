@@ -166,10 +166,10 @@ export default function PersonasInventoryPage() {
                       onClick={() => setSelectedName(n)}
                       sx={{ cursor: "pointer" }}
                     >
-                      <TableCell>{n || "—"}</TableCell>
-                      <TableCell>{String(row.role || "—")}</TableCell>
-                      <TableCell>{String(row.tone || "—")}</TableCell>
-                      <TableCell>{String(row.agent_type || "—")}</TableCell>
+                      <TableCell>{n || ";"}</TableCell>
+                      <TableCell>{String(row.role || ";")}</TableCell>
+                      <TableCell>{String(row.tone || ";")}</TableCell>
+                      <TableCell>{String(row.agent_type || ";")}</TableCell>
                     </TableRow>
                   );
                 })}

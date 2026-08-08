@@ -241,7 +241,7 @@ export default function AdminReadinessPage() {
             <Chip size="small" label={`warn ${data.counts?.warn ?? 0}`} color="warning" variant="outlined" />
             <Chip size="small" label={`fail ${data.counts?.fail ?? 0}`} color="error" variant="outlined" />
             <Typography variant="caption" color="text.secondary">
-              Generated {data.generated_at ? new Date(data.generated_at).toLocaleString() : "—"}
+              Generated {data.generated_at ? new Date(data.generated_at).toLocaleString() : ";"}
             </Typography>
             <Box sx={{ flexGrow: 1 }} />
             <TextField
@@ -361,7 +361,7 @@ export default function AdminReadinessPage() {
                                 Open
                               </Button>
                             ) : (
-                              "—"
+                              ";"
                             )}
                           </TableCell>
                         </TableRow>
@@ -443,12 +443,12 @@ export default function AdminReadinessPage() {
                               ? new Date(row.created_at * 1000).toLocaleString()
                               : row.created_at
                                 ? String(row.created_at)
-                                : "—"}
+                                : ";"}
                           </TableCell>
-                          <TableCell>{row.backup_id || "—"}</TableCell>
+                          <TableCell>{row.backup_id || ";"}</TableCell>
                           <TableCell>{row.ok ? "yes" : "no"}</TableCell>
                           <TableCell>{row.restored_files ?? 0}</TableCell>
-                          <TableCell>{row.note || "—"}</TableCell>
+                          <TableCell>{row.note || ";"}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

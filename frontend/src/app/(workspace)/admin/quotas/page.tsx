@@ -502,15 +502,15 @@ function DenialsPanel({ onError }: { onError: (msg: string | null) => void }) {
           {items.map((row, idx) => (
             <TableRow key={row.id ?? idx}>
               <TableCell>
-                {row.created_at ? new Date(row.created_at).toLocaleString() : "—"}
+                {row.created_at ? new Date(row.created_at).toLocaleString() : ";"}
               </TableCell>
               <TableCell>
                 {row.scope_type}:{row.scope_id}
               </TableCell>
-              <TableCell>{row.metric || "—"}</TableCell>
-              <TableCell>{row.service || "—"}</TableCell>
-              <TableCell>{row.reason || "—"}</TableCell>
-              <TableCell>{row.workspace_id || "—"}</TableCell>
+              <TableCell>{row.metric || ";"}</TableCell>
+              <TableCell>{row.service || ";"}</TableCell>
+              <TableCell>{row.reason || ";"}</TableCell>
+              <TableCell>{row.workspace_id || ";"}</TableCell>
             </TableRow>
           ))}
         </TableBody>

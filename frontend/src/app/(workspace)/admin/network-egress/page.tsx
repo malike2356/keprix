@@ -38,7 +38,7 @@ function isAdminRole(role: string | undefined): boolean {
 }
 
 function formatTs(ts?: number): string {
-  if (!ts) return "—";
+  if (!ts) return ";";
   return new Date(ts * 1000).toLocaleString();
 }
 
@@ -196,26 +196,26 @@ export default function AdminNetworkEgressPage() {
                   {[...entries].reverse().map((row, idx) => (
                     <TableRow key={`${row.ts}-${row.host}-${idx}`} hover>
                       <TableCell>{formatTs(row.ts)}</TableCell>
-                      <TableCell>{row.product_id || "—"}</TableCell>
+                      <TableCell>{row.product_id || ";"}</TableCell>
                       <TableCell>
-                        <Typography variant="body2">{row.host || "—"}</Typography>
+                        <Typography variant="body2">{row.host || ";"}</Typography>
                         {row.url_path ? (
                           <Typography variant="caption" color="text.secondary" display="block">
                             {row.url_path}
                           </Typography>
                         ) : null}
                       </TableCell>
-                      <TableCell>{row.ip || "—"}</TableCell>
+                      <TableCell>{row.ip || ";"}</TableCell>
                       <TableCell>
                         <Chip
                           size="small"
-                          label={row.decision || "—"}
+                          label={row.decision || ";"}
                           color={row.decision === "BLOCKED" ? "error" : "success"}
                           variant="outlined"
                         />
                       </TableCell>
-                      <TableCell>{row.reason || "—"}</TableCell>
-                      <TableCell>{row.tool_name || "—"}</TableCell>
+                      <TableCell>{row.reason || ";"}</TableCell>
+                      <TableCell>{row.tool_name || ";"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

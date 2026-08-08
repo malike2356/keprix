@@ -13,6 +13,8 @@ from fastapi import APIRouter, Header, HTTPException, Query, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
+from keprix.auth.dependencies import get_optional_current_user
+
 from keprix.universal_sidecar.contract import (
     CONTRACT_NAME,
     CONTRACT_VERSION,
@@ -147,6 +149,26 @@ def _auth_admin(authorization: str | None, *, correlation_id: str = "") -> Workl
     return token
 
 
+async def _auth_platform_or_sidecar_admin(
+    request: Request,
+    authorization: str | None,
+    *,
+    correlation_id: str = "",
+) -> dict[str, Any] | WorkloadToken | None:
+    """Accept an authenticated Keprix admin or a sidecar administration token."""
+    platform_user = await get_optional_current_user(request, None)
+    if platform_user is not None:
+        if platform_user.get("role") not in {"admin", "owner"}:
+            _raise_error(
+                403,
+                error="Keprix admin or owner access required",
+                code="denied",
+                correlation_id=correlation_id,
+            )
+        return platform_user
+    return _auth_admin(authorization, correlation_id=correlation_id)
+
+
 def _require_project(project_key: str, *, correlation_id: str = "") -> dict[str, Any]:
     row = get_project_registry().get(project_key)
     if not row:
@@ -169,6 +191,16 @@ class PairCodeBody(BaseModel):
     callback_urls: list[str] = Field(default_factory=list)
     scopes: list[str] = Field(default_factory=list)
     ttl_seconds: int = 300
+
+
+class OperatorPairCodeBody(BaseModel):
+    project_key: str
+    requested_scopes: list[str] = Field(default_factory=list)
+    ttl_seconds: int = 300
+
+
+class OperatorKillSwitchBody(BaseModel):
+    engaged: bool
 
 
 class PairApproveBody(BaseModel):
@@ -283,8 +315,52 @@ async def list_projects(
     x_correlation_id: str | None = Header(default=None),
 ) -> dict[str, Any]:
     corr = _correlation(request, x_correlation_id)
-    _auth_admin(authorization, correlation_id=corr)
-    return {"projects": get_project_registry().list_projects()}
+    await _auth_platform_or_sidecar_admin(
+        request,
+        authorization,
+        correlation_id=corr,
+    )
+    registry = get_project_registry()
+    projects = registry.list_projects()
+    for project in projects:
+        key = str(project.get("project_key") or "")
+        killed = registry.is_killed(key)
+        project["kill_switch"] = killed
+        project["health"] = "degraded" if killed or not project.get("enabled") else "ok"
+    return {"projects": projects, "correlation_id": corr}
+
+
+@router.post("/pair/codes")
+async def create_operator_pairing_code(
+    body: OperatorPairCodeBody,
+    request: Request,
+    authorization: str | None = Header(default=None),
+    x_correlation_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Create a pairing code from the authenticated Keprix operator UI."""
+    corr = _correlation(request, x_correlation_id)
+    await _auth_platform_or_sidecar_admin(request, authorization, correlation_id=corr)
+    row = _require_project(body.project_key, correlation_id=corr)
+    manifest = row["manifest"]
+    scopes = body.requested_scopes or sorted(row.get("grants") or {"discover"})
+    try:
+        result = get_pairing_store().create_code(
+            project_key=body.project_key,
+            deployment=str(manifest.get("deployment") or "local"),
+            environment=str(manifest.get("environment") or "local"),
+            base_url=str(manifest.get("base_url") or ""),
+            callback_urls=list(manifest.get("callback_urls") or []),
+            requested_scopes=scopes,
+            ttl_seconds=body.ttl_seconds,
+        )
+    except PermissionError as exc:
+        _raise_error(403, error=str(exc), code="denied", correlation_id=corr)
+    return {
+        **result,
+        "pairing_code": result["code"],
+        "scopes": result["requested_scopes"],
+        "correlation_id": corr,
+    }
 
 
 @router.get("/architecture")
@@ -843,6 +919,27 @@ async def admin_kill(
         "switch": body.switch,
         "value": body.value,
         "node": body.node,
+        "correlation_id": corr,
+    }
+
+
+@router.post("/projects/{project_key}/kill-switch")
+async def operator_kill_switch(
+    project_key: str,
+    body: OperatorKillSwitchBody,
+    request: Request,
+    authorization: str | None = Header(default=None),
+    x_correlation_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Set the project-wide kill switch from the authenticated Keprix UI."""
+    corr = _correlation(request, x_correlation_id)
+    _require_project(project_key, correlation_id=corr)
+    await _auth_platform_or_sidecar_admin(request, authorization, correlation_id=corr)
+    get_project_registry().kill(project_key, switch="project", value=body.engaged)
+    return {
+        "ok": True,
+        "project_key": project_key,
+        "engaged": body.engaged,
         "correlation_id": corr,
     }
 

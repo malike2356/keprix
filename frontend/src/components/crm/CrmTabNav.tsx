@@ -56,6 +56,9 @@ export function CrmTabNav() {
         mt: 1,
         mb: 0,
         pb: 0.25,
+        width: "100%",
+        minWidth: 0,
+        maxWidth: "100%",
       }}
     >
       <Box
@@ -63,9 +66,10 @@ export function CrmTabNav() {
           display: "flex",
           flexWrap: "wrap",
           alignItems: "stretch",
-          gap: 0.25,
-          rowGap: 0,
+          columnGap: 0.25,
+          rowGap: 0.25,
           width: "100%",
+          minWidth: 0,
           maxWidth: "100%",
           overflowX: "hidden",
         }}

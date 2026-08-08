@@ -1,8 +1,6 @@
 "use client";
 
 import Box from "@mui/material/Box";
-import Tab from "@mui/material/Tab";
-import Tabs from "@mui/material/Tabs";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -40,41 +38,68 @@ export function OutreachTabNav() {
   const value = activeTabId(pathname);
 
   return (
-    <Box sx={{ borderBottom: 1, borderColor: "divider", mt: 1, mb: 0 }}>
-      <Tabs
-        value={value}
-        variant="scrollable"
-        allowScrollButtonsMobile
+    <Box
+      component="nav"
+      aria-label="Outreach sections"
+      sx={{
+        borderBottom: 1,
+        borderColor: "divider",
+        mt: 1,
+        mb: 0,
+        pb: 0.25,
+        width: "100%",
+        minWidth: 0,
+        maxWidth: "100%",
+      }}
+    >
+      <Box
         sx={{
-          minHeight: 40,
-          "& .MuiTab-root": {
-            minHeight: 40,
-            textTransform: "none",
-            fontWeight: 500,
-            color: "text.secondary",
-            px: 1.5,
-            py: 0,
-          },
-          "& .Mui-selected": {
-            color: "text.primary",
-            fontWeight: 600,
-          },
-          "& .MuiTabs-indicator": {
-            height: 2,
-            borderRadius: 1,
-          },
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "stretch",
+          columnGap: 0.25,
+          rowGap: 0.25,
+          width: "100%",
+          minWidth: 0,
+          maxWidth: "100%",
+          overflowX: "hidden",
         }}
       >
-        {TABS.map((tab) => (
-          <Tab
-            key={tab.id}
-            label={tab.label}
-            value={tab.id}
-            component={Link}
-            href={tab.href}
-          />
-        ))}
-      </Tabs>
+        {TABS.map((tab) => {
+          const selected = tab.id === value;
+          return (
+            <Box
+              key={tab.id}
+              component={Link}
+              href={tab.href}
+              aria-current={selected ? "page" : undefined}
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: 36,
+                px: 1.25,
+                py: 0.5,
+                textDecoration: "none",
+                fontWeight: selected ? 600 : 500,
+                fontSize: "0.8125rem",
+                lineHeight: 1.25,
+                color: selected ? "text.primary" : "text.secondary",
+                borderBottom: 2,
+                borderColor: selected ? "primary.main" : "transparent",
+                whiteSpace: "nowrap",
+                flex: "0 0 auto",
+                "&:hover": {
+                  bgcolor: "action.hover",
+                  borderColor: selected ? "primary.main" : "divider",
+                  color: "text.primary",
+                },
+              }}
+            >
+              {tab.label}
+            </Box>
+          );
+        })}
+      </Box>
     </Box>
   );
 }

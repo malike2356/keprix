@@ -142,6 +142,57 @@ def test_http_routes_health_and_capabilities():
     assert caps.json()["project_key"] == "demo"
 
 
+def test_operator_ui_routes_accept_keprix_admin_session_contract():
+    get_project_registry().apply(minimal_manifest())
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+
+    listed = client.get("/sidecar/v1/projects")
+    assert listed.status_code == 200
+    assert listed.json()["projects"][0]["project_key"] == "demo"
+    assert listed.json()["projects"][0]["health"] == "ok"
+
+    paired = client.post(
+        "/sidecar/v1/pair/codes",
+        json={"project_key": "demo", "requested_scopes": ["discover"]},
+    )
+    assert paired.status_code == 200
+    assert paired.json()["pairing_code"]
+    assert paired.json()["scopes"] == ["discover"]
+
+    killed = client.post(
+        "/sidecar/v1/projects/demo/kill-switch",
+        json={"engaged": True},
+    )
+    assert killed.status_code == 200
+    assert killed.json()["engaged"] is True
+    assert get_project_registry().is_killed("demo") is True
+
+
+def test_project_list_accepts_real_keprix_session_when_sidecar_dev_open_is_off(monkeypatch):
+    get_project_registry().apply(minimal_manifest())
+    monkeypatch.setenv("KEPRIX_SIDECAR_DEV_OPEN", "0")
+    monkeypatch.setattr("keprix.auth.dependencies.auth_enabled", lambda: True)
+    monkeypatch.setattr(
+        "keprix.auth.dependencies.auth_manager.validate_token",
+        lambda token: {"id": "owner-1", "username": "owner", "role": "owner"}
+        if token == "platform-session"
+        else None,
+    )
+    monkeypatch.setattr("keprix.auth.dependencies.auth_manager.touch_session", lambda token: None)
+    app = FastAPI()
+    app.include_router(router)
+    client = TestClient(app)
+
+    response = client.get(
+        "/sidecar/v1/projects",
+        headers={"Authorization": "Bearer platform-session"},
+    )
+    assert response.status_code == 200
+    assert response.json()["projects"][0]["project_key"] == "demo"
+
+
 def test_public_bind_refuses_without_secure_config(monkeypatch):
     from keprix.universal_sidecar import app as sidecar_app
 

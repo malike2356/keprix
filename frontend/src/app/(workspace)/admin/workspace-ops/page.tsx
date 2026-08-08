@@ -220,7 +220,7 @@ export default function WorkspaceOpsPage() {
           ) : (
             <>
               <Typography variant="body2" sx={{ mb: 0.5 }}>
-                Path: {cache.data?.path || "—"}
+                Path: {cache.data?.path || ";"}
               </Typography>
               {!cache.data?.enabled ? (
                 <Alert severity="info" sx={{ my: 1 }}>
