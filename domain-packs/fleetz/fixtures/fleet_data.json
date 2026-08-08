@@ -1,0 +1,187 @@
+{
+  "fleets": {
+    "fleet-accra-01": {
+      "id": "fleet-accra-01",
+      "name": "Accra Pilot Fleet",
+      "timezone": "Africa/Accra",
+      "currency": "GHS",
+      "overdue_cases": ["case-open-1"],
+      "data_quality_gaps": ["vehicle-02:gps_gap"]
+    },
+    "fleet-tema-02": {
+      "id": "fleet-tema-02",
+      "name": "Tema Port Fleet",
+      "timezone": "Africa/Accra",
+      "currency": "GHS",
+      "overdue_cases": [],
+      "data_quality_gaps": []
+    }
+  },
+  "vehicles": {
+    "vehicle-01": {
+      "id": "vehicle-01",
+      "fleet_id": "fleet-accra-01",
+      "plate": "GR-1234-20",
+      "odometer_km": 45210.5,
+      "engine_hours": 1820.0,
+      "last_service_odometer_km": 40000,
+      "last_service_engine_hours": 1500,
+      "last_position": {
+        "lat": 5.6037,
+        "lon": -0.1870,
+        "epoch_s": 1780000000,
+        "speed_kph": 32
+      },
+      "fuel": {
+        "unit": "L",
+        "samples": [
+          {"epoch_s": 1779996400, "litres": 80.0},
+          {"epoch_s": 1779998200, "litres": 72.0},
+          {"epoch_s": 1780000000, "litres": 55.0}
+        ]
+      },
+      "device_health": {"online": true, "status": "ok", "last_seen_epoch_s": 1780000000},
+      "sensor_health": {
+        "status": "ok",
+        "sample_count": 48,
+        "gap_ratio": 0.04,
+        "calibration_age_days": 25,
+        "spoof_flags": 0
+      },
+      "idle_segments": [
+        {"speed_kph": 0, "duration_s": 600, "idle_threshold_kph": 3},
+        {"speed_kph": 2, "duration_s": 120, "idle_threshold_kph": 3}
+      ],
+      "ids": {"device_id": "dev-01", "vehicle_id": "vehicle-01"}
+    },
+    "vehicle-02": {
+      "id": "vehicle-02",
+      "fleet_id": "fleet-accra-01",
+      "plate": "GR-5678-21",
+      "odometer_km": 12000,
+      "engine_hours": 400,
+      "last_service_odometer_km": 10000,
+      "last_service_engine_hours": 350,
+      "last_position": null,
+      "fuel": {"unit": "L", "samples": []},
+      "device_health": {"online": false, "status": "offline", "last_seen_epoch_s": 1779900000},
+      "sensor_health": {
+        "status": "degraded",
+        "sample_count": 2,
+        "gap_ratio": 0.6,
+        "calibration_age_days": 200,
+        "spoof_flags": 1
+      },
+      "idle_segments": [],
+      "ids": {"device_id": "dev-02", "vehicle_id": "vehicle-02"}
+    },
+    "vehicle-tema-01": {
+      "id": "vehicle-tema-01",
+      "fleet_id": "fleet-tema-02",
+      "plate": "GT-9999-22",
+      "odometer_km": 8000,
+      "engine_hours": 200,
+      "last_service_odometer_km": 5000,
+      "last_service_engine_hours": 100,
+      "last_position": {
+        "lat": 5.6698,
+        "lon": -0.0166,
+        "epoch_s": 1780000100,
+        "speed_kph": 10
+      },
+      "fuel": {
+        "unit": "L",
+        "samples": [
+          {"epoch_s": 1779999000, "litres": 100.0},
+          {"epoch_s": 1780000100, "litres": 98.0}
+        ]
+      },
+      "device_health": {"online": true, "status": "ok"},
+      "sensor_health": {
+        "status": "ok",
+        "sample_count": 20,
+        "gap_ratio": 0.02,
+        "calibration_age_days": 10,
+        "spoof_flags": 0
+      },
+      "idle_segments": [],
+      "ids": {"device_id": "dev-tema-01", "vehicle_id": "vehicle-tema-01"}
+    }
+  },
+  "drivers": {
+    "driver-01": {
+      "id": "driver-01",
+      "fleet_id": "fleet-accra-01",
+      "display_name": "Kwame Mensah",
+      "display_name_redacted": "Driver K.",
+      "phone": "+233200000001",
+      "risk_score": 0.25,
+      "risk_events": ["harsh_brake_3"],
+      "off_duty_tracks": [{"lat": 5.55, "lon": -0.2}]
+    }
+  },
+  "trips": {
+    "trip-01": {
+      "id": "trip-01",
+      "fleet_id": "fleet-accra-01",
+      "vehicle_id": "vehicle-01",
+      "distance_m": 12500,
+      "start_epoch_s": 1779996400,
+      "end_epoch_s": 1780000000,
+      "points": [
+        {"lat": 5.60, "lon": -0.19},
+        {"lat": 5.61, "lon": -0.18}
+      ]
+    }
+  },
+  "alerts": {
+    "alert-fuel-01": {
+      "id": "alert-fuel-01",
+      "fleet_id": "fleet-accra-01",
+      "vehicle_id": "vehicle-01",
+      "type": "fuel_anomaly",
+      "status": "open",
+      "severity": "high",
+      "occurred_at": "2026-08-08T08:00:00Z"
+    },
+    "alert-fuel-01-dup": {
+      "id": "alert-fuel-01-dup",
+      "fleet_id": "fleet-accra-01",
+      "vehicle_id": "vehicle-01",
+      "type": "fuel_anomaly",
+      "status": "open",
+      "severity": "high",
+      "duplicate_of": "alert-fuel-01",
+      "occurred_at": "2026-08-08T08:01:00Z"
+    }
+  },
+  "geofences": {
+    "geo-tema": {
+      "id": "geo-tema",
+      "fleet_id": "fleet-accra-01",
+      "name": "Tema Port",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[-0.02, 5.66], [-0.01, 5.66], [-0.01, 5.67], [-0.02, 5.67], [-0.02, 5.66]]]
+      }
+    }
+  },
+  "maintenance": [
+    {
+      "id": "maint-01",
+      "fleet_id": "fleet-accra-01",
+      "vehicle_id": "vehicle-01",
+      "status": "scheduled",
+      "title": "Oil and filter"
+    }
+  ],
+  "audit": [
+    {
+      "id": "audit-01",
+      "fleet_id": "fleet-accra-01",
+      "action": "alert.opened",
+      "subject": "alert-fuel-01",
+      "at": "2026-08-08T08:00:00Z"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "pack_id": "fleetz",
+  "version": "0.1.0",
+  "title": "Fleetz fleet intelligence sidecar",
+  "summary": "Advisory Keprix pack for Fleetz fleet, fuel, maintenance, and operator workflows. Vehicle commands disabled.",
+  "hub_visibility": "private"
+}

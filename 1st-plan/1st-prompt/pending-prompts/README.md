@@ -29,8 +29,9 @@ ready to build next.
      isolation, Ghana localisation, field channels and offline resilience.
    - `keprix-sidecar-xeclone/`: consent-governed persona and multimodal clone,
      Carina bridge, dual-run, biometric assets, publishing and Scout governance.
-   - `keprix-sidecar-fleetz/`: bounded telemetry and fuel intelligence with a
-     strict product-owned vehicle-control boundary.
+   - ~~`keprix-sidecar-fleetz/`~~ COMPLETED 2026-08-08 (archived under
+     `../prompts-archive/keprix-sidecar-fleetz/`). Pack: `domain-packs/fleetz/`.
+     Sign-off: `domain-packs/fleetz/docs/PILOT-SIGNOFF.md`.
    - `keprix-sidecar-clinicom/`: CLS-00..04 COMPLETED 2026-08-08 (archived under
      `../prompts-archive/keprix-sidecar-clinicom/`). CLS-05 remains pending for
      owner-approved Contabo shadow/cutover. Contabo remains on Carina.

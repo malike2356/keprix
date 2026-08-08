@@ -11,6 +11,7 @@ from typing import Any
 from keprix.product_sidecar.catalog import build_aiva_wrapper_nodes, build_carina_nodes
 from keprix.product_sidecar.fixtures import FIXTURE_PRODUCT_KEYS, build_all_fixture_packs
 from keprix.product_sidecar.packs.abbis import build_abbis_nodes
+from keprix.product_sidecar.packs.fleetz import build_fleetz_nodes
 from keprix.product_sidecar.types import ProductPackManifest
 
 STABLE_PRODUCT_KEYS = frozenset(
@@ -100,6 +101,95 @@ def build_abbis_pack() -> ProductPackManifest:
         ),
         migrations=("001_abbis_ns",),
         feature_flag="product.abbis.sidecar",
+    )
+
+
+def _fleetz_connector() -> dict[str, Any]:
+    return {
+        "base_url_env": "FLEETZ_PRODUCT_API_URL",
+        "host_allowlist": ["127.0.0.1", "localhost", "fleetz.local"],
+        "routes": [
+            {"method": "GET", "path": "/api/keprix/v1/health", "purpose": "liveness"},
+            {"method": "GET", "path": "/api/keprix/v1/capabilities", "purpose": "negotiate"},
+            {"method": "POST", "path": "/api/keprix/v1/token/exchange", "purpose": "identity"},
+            {"method": "GET", "path": "/api/keprix/v1/context", "purpose": "context_slice"},
+            {"method": "POST", "path": "/api/keprix/v1/events/ack", "purpose": "event_ack", "idempotency": True},
+            {"method": "GET", "path": "/api/keprix/v1/fleets/{fleet_id}", "purpose": "fleet_read"},
+            {"method": "GET", "path": "/api/keprix/v1/vehicles/{vehicle_id}", "purpose": "vehicle_read"},
+            {
+                "method": "GET",
+                "path": "/api/keprix/v1/vehicles/{vehicle_id}/positions/summary",
+                "purpose": "position_summary",
+            },
+            {
+                "method": "GET",
+                "path": "/api/keprix/v1/vehicles/{vehicle_id}/fuel/summary",
+                "purpose": "fuel_summary",
+            },
+            {
+                "method": "POST",
+                "path": "/api/keprix/v1/actions/{action}/preview",
+                "purpose": "action_preview",
+                "idempotency": True,
+            },
+            {
+                "method": "POST",
+                "path": "/api/keprix/v1/actions/{action}/apply",
+                "purpose": "action_apply",
+                "approval_required": True,
+                "idempotency": True,
+            },
+        ],
+        "default_deny": True,
+        "no_sql": True,
+        "no_ui_scrape": True,
+        "no_traccar_command_api": True,
+        "no_mqtt_command_publish": True,
+    }
+
+
+def build_fleetz_pack() -> ProductPackManifest:
+    nodes = build_fleetz_nodes()
+    payload = {"product": "fleetz", "nodes": sorted(nodes.keys()), "version": "0.1.0"}
+    return ProductPackManifest(
+        product_key="fleetz",
+        pack_id="fleetz-fleet-sidecar",
+        version="0.1.0",
+        title="Fleetz fleet intelligence pack",
+        contract_version=_CONTRACT_VERSION,
+        nodes=nodes,
+        enabled=True,
+        checksum=_checksum(payload),
+        signature="fleetz-dev",
+        connector=_fleetz_connector(),
+        policies={
+            "soft_wall_bus": "product",
+            "cross_product": "deny",
+            "advisory_default": True,
+            "no_vehicle_commands": True,
+            "timezone": "Africa/Accra",
+            "currency": "GHS",
+        },
+        memory_namespace="product:fleetz",
+        playbooks=(
+            "fleetz.fuel_investigation",
+            "fleetz.alert_triage",
+            "fleetz.maintenance_workflow",
+            "fleetz.daily_fleet_briefing",
+            "fleetz.driver_message",
+            "fleetz.route_geofence_optimisation",
+        ),
+        events=(
+            "fleetz.vehicle.state",
+            "fleetz.trip",
+            "fleetz.fuel.anomaly",
+            "fleetz.geofence",
+            "fleetz.sensor.health",
+            "fleetz.maintenance",
+            "fleetz.alert",
+        ),
+        migrations=("001_fleetz_ns",),
+        feature_flag="product.fleetz.sidecar",
     )
 
 
@@ -241,16 +331,19 @@ class ProductPackRegistry:
         carina = build_carina_pack()
         aiva = build_aiva_pack(carina)
         abbis = build_abbis_pack()
+        fleetz = build_fleetz_pack()
         self._packs["carina"] = carina
         self._packs["aiva"] = aiva
         self._packs["abbis"] = abbis
+        self._packs["fleetz"] = fleetz
         self._lkg["carina"] = deepcopy(carina)
         self._lkg["aiva"] = deepcopy(aiva)
         self._lkg["abbis"] = deepcopy(abbis)
+        self._lkg["fleetz"] = deepcopy(fleetz)
         if self._install_fixtures:
             for key, pack in build_all_fixture_packs().items():
-                if key == "abbis":
-                    # Real ABBIS pack replaces the foundation fixture.
+                if key in {"abbis", "fleetz"}:
+                    # Real product packs replace foundation fixtures.
                     continue
                 self._packs[key] = pack
                 self._lkg[key] = deepcopy(pack)
@@ -450,7 +543,9 @@ __all__ = [
     "ProductPackRegistry",
     "STABLE_PRODUCT_KEYS",
     "build_aiva_pack",
+    "build_abbis_pack",
     "build_carina_pack",
+    "build_fleetz_pack",
     "get_product_pack_registry",
     "reset_product_pack_registry_for_tests",
     "validate_pack",

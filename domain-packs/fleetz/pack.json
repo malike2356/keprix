@@ -1,0 +1,52 @@
+{
+  "domain_name": "fleetz",
+  "version": "0.1.0",
+  "jurisdictions": ["GH"],
+  "common_tasks": [
+    "Daily fleet briefing",
+    "Fuel anomaly investigation",
+    "Alert triage",
+    "Maintenance forecast",
+    "Driver safety message draft"
+  ],
+  "playbooks": [
+    {
+      "title": "Fuel investigation",
+      "href": "/playbooks/fleetz-fuel-investigation"
+    },
+    {
+      "title": "Alert triage",
+      "href": "/playbooks/fleetz-alert-triage"
+    }
+  ],
+  "disclaimers": [
+    "Keprix Fleetz tools are advisory. They do not immobilise vehicles, cut fuel, or replace Fleetz primary alerts and product policy."
+  ],
+  "limitations": [
+    "Default pack uses fixtures until Fleetz product API is live.",
+    "Vehicle and device command nodes are disabled.",
+    "Geofence and route changes are preview-only."
+  ],
+  "can_do": [
+    "Expose /v1/products/fleetz contract",
+    "Run deterministic fuel/distance/idle/maintenance calculators",
+    "Draft cases, tasks, notifications with approval gates"
+  ],
+  "cannot_do": [
+    "Issue arbitrary vehicle or tracker commands",
+    "Connect to Traccar command APIs or MQTT command topics",
+    "Read cross-fleet telemetry",
+    "Treat missing telemetry as zero"
+  ],
+  "tool_permissions": ["network:read"],
+  "localization_coverage": {
+    "locales": ["en", "en-GH"],
+    "fallback": "en",
+    "low_resource_fallback": "en",
+    "timezone": "Africa/Accra",
+    "currency": "GHS",
+    "voice_friendly": false
+  },
+  "data_schemas": ["schemas.json"],
+  "tests": ["domain-packs/fleetz/tests/test_fleetz_sidecar.py"]
+}

@@ -1,0 +1,24 @@
+{
+  "terms": [
+    {
+      "term": "sidecar",
+      "definition": "HTTP service exposing Fleetz advisory AI capabilities beside the Fleetz product API.",
+      "locale": "en"
+    },
+    {
+      "term": "non_actionable",
+      "definition": "Telemetry labelled stale or low quality; must not drive definitive operational claims.",
+      "locale": "en"
+    },
+    {
+      "term": "hypothesis",
+      "definition": "Inferred explanation for a fuel or alert pattern; never an accusation of theft.",
+      "locale": "en"
+    },
+    {
+      "term": "vehicle_command",
+      "definition": "Safety-critical device action (immobilise, fuel cut, tracker config). Disabled on default sidecar.",
+      "locale": "en"
+    }
+  ]
+}

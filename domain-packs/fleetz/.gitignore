@@ -1,0 +1,5 @@
+.fleetz-sidecar.pid
+.fleetz-sidecar.log
+provision/receipts/
+__pycache__/
+*.pyc

@@ -1,0 +1,40 @@
+{
+  "playbooks": [
+    {
+      "id": "fuel_investigation",
+      "title": "Fuel anomaly investigation",
+      "summary": "Correlate sensor quality and drain pattern into a hypothesis case; never accuse.",
+      "href": "/playbooks/fleetz-fuel-investigation"
+    },
+    {
+      "id": "alert_triage",
+      "title": "Alert triage",
+      "summary": "Group duplicate alerts, check freshness, propose case/task/notification with idempotency.",
+      "href": "/playbooks/fleetz-alert-triage"
+    },
+    {
+      "id": "maintenance_workflow",
+      "title": "Maintenance workflow",
+      "summary": "Turn mileage and engine hours into a proposed task with deterministic evidence.",
+      "href": "/playbooks/fleetz-maintenance"
+    },
+    {
+      "id": "daily_fleet_briefing",
+      "title": "Daily fleet briefing",
+      "summary": "Offline vehicles, alerts, fuel, utilisation, maintenance, overdue cases, data-quality gaps.",
+      "href": "/playbooks/fleetz-daily-brief"
+    },
+    {
+      "id": "driver_message",
+      "title": "Driver message draft",
+      "summary": "Neutral safety language, minimum location, approval required; emergencies to human dispatch.",
+      "href": "/playbooks/fleetz-driver-message"
+    },
+    {
+      "id": "route_geofence_optimisation",
+      "title": "Route and geofence optimisation",
+      "summary": "Proposal and simulation only; product validates geometry before any apply.",
+      "href": "/playbooks/fleetz-route-geofence"
+    }
+  ]
+}

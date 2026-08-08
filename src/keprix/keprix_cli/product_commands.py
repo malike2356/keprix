@@ -9,6 +9,15 @@ def _split_csv(value: str) -> list[str]:
     return [part.strip() for part in value.split(",") if part.strip()]
 
 
+def _print(payload: dict | list, *, as_json: bool, text: str = "") -> None:
+    if as_json:
+        print(json.dumps(payload, indent=2, default=str))
+    elif text:
+        print(text)
+    else:
+        print(json.dumps(payload, indent=2, default=str))
+
+
 def cmd_product(args) -> int:
     from keprix.integrations.product_registry import list_registered_products, register_product
 
@@ -41,24 +50,85 @@ def cmd_product(args) -> int:
         return 0
 
     if args.product_command == "provision":
-        if args.product_id != "clinicom":
-            print(json.dumps({"error": f"unsupported product: {args.product_id}"}))
-            return 2
-        from keprix.integrations.clinicom_provision import (
-            provision_clinicom,
-            provision_status,
-        )
+        # Legacy clinicom readiness path preserved when --legacy-clinicom is set
+        if getattr(args, "legacy_clinicom", False) or (
+            args.product_id == "clinicom" and getattr(args, "status", False) and getattr(args, "use_integration", False)
+        ):
+            from keprix.integrations.clinicom_provision import (
+                provision_clinicom,
+                provision_status as clinicom_status,
+            )
 
-        receipt = provision_status() if args.status else provision_clinicom(write_receipt=not args.plan)
-        if args.json:
-            print(json.dumps(receipt, indent=2))
+            receipt = clinicom_status() if args.status else provision_clinicom(write_receipt=not args.plan)
+            _print(receipt, as_json=args.json, text=f"Clinicom provision status: {receipt['status']}")
+            return 0 if receipt["status"] in {"ready_for_owner_review", "not_provisioned"} else 1
+
+        from keprix.product_sidecar.provision import plan_provision, provision_product, provision_status
+
+        if args.plan:
+            receipt = plan_provision(args.product_id)
+        elif args.status:
+            receipt = provision_status(args.product_id)
         else:
-            print(f"Clinicom provision status: {receipt['status']}")
-            for check in receipt["checks"]:
-                print(f"- {check['name']}: {check['status']}")
-            if receipt.get("receipt_path"):
-                print(f"Receipt: {receipt['receipt_path']}")
-        return 0 if receipt["status"] in {"ready_for_owner_review", "not_provisioned"} else 1
+            receipt = provision_product(
+                args.product_id,
+                dry_run=False,
+                activate=bool(getattr(args, "activate", False)),
+                version=str(getattr(args, "version", "1.0.0")),
+            )
+        _print(receipt, as_json=True)
+        status = str(receipt.get("status") or "")
+        return 0 if status in {"planned", "provisioned", "already_provisioned", "not_provisioned"} else 1
+
+    if args.product_command == "plan":
+        from keprix.product_sidecar.provision import plan_provision
+
+        _print(plan_provision(args.product_id), as_json=True)
+        return 0
+
+    if args.product_command == "status":
+        from keprix.product_sidecar.provision import provision_status
+        from keprix.product_sidecar.registry import get_product_pack_registry
+
+        receipt = provision_status(args.product_id)
+        health = None
+        try:
+            health = get_product_pack_registry().health(args.product_id)
+        except KeyError:
+            health = {"error": "pack_missing"}
+        _print({"provision": receipt, "health": health}, as_json=True)
+        return 0
+
+    if args.product_command == "upgrade":
+        from keprix.product_sidecar.provision import upgrade_product
+
+        _print(upgrade_product(args.product_id, version=args.version), as_json=True)
+        return 0
+
+    if args.product_command == "rollback":
+        from keprix.product_sidecar.provision import rollback_product
+
+        _print(rollback_product(args.product_id), as_json=True)
+        return 0
+
+    if args.product_command == "disable":
+        from keprix.product_sidecar.provision import disable_product
+
+        _print(disable_product(args.product_id), as_json=True)
+        return 0
+
+    if args.product_command == "remove":
+        from keprix.product_sidecar.provision import remove_product
+
+        _print(remove_product(args.product_id), as_json=True)
+        return 0
+
+    if args.product_command == "conformance":
+        from keprix.product_sidecar.conformance import run_foundation_conformance_safe
+
+        report = run_foundation_conformance_safe()
+        _print(report, as_json=True)
+        return 0 if report.get("ready") else 1
 
     print(json.dumps({"error": f"unknown product command: {args.product_command}"}))
     return 2
