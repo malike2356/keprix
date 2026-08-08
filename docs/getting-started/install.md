@@ -10,7 +10,9 @@ curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/inst
 
 The installer clones or updates code under `${KEPRIX_HOME:-$HOME/.keprix}/keprix`, creates an isolated Python env (prefers `uv` when available), installs the `[tui]` extra, and puts `keprix` on PATH via `~/.local/bin`.
 
-**Public repo required:** until GitHub is anonymously readable, the raw URL 404s and the one-liner fails closed. See [public GitHub checklist](../operations/public-github-checklist.md). Until then, clone via SSH (or an allowed remote) and run `bash scripts/install.sh` from that checkout.
+The repository and raw installer are publicly readable. The curl command follows
+the development channel. Stable distribution uses `scripts/install-release.sh`
+with an exact version, manifest checksum, and signature verification.
 
 **Windows:** use WSL2 and run the installer inside Linux. Native Windows is not claimed.
 

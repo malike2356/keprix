@@ -38,7 +38,7 @@ export default function TenantsPage() {
 
   return (
     <Box>
-      <PageHeader title="Tenants" subtitle="Membership and tenant registry for this Keprix instance." />
+      <PageHeader title="Tenants" description="Membership and tenant registry for this Keprix instance." />
       {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
       {mineError ? <Alert severity="warning" sx={{ mb: 2 }}>Could not load /api/tenants/me</Alert> : null}
       <Typography variant="h6" sx={{ mt: 2 }}>My tenants</Typography>

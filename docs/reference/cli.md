@@ -13,13 +13,13 @@ usage: keprix [-h] [--version] [-z PROMPT] [-m MODEL] [--provider PROVIDER]
               [--worktree] [--accept-hooks] [--skills SKILLS] [--yolo]
               [--pass-session-id] [--ignore-user-config] [--ignore-rules]
               [--safe-mode] [--tui] [--cli] [--dev]
-              {chat,model,fallback,secrets,migrate,gateway,proxy,lsp,setup,postinstall,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,cron,webhook,portal,kanban,hooks,doctor,readiness,configure,health,proposals,approve,reject,repair,rollback,sdk,slash,coding,opportunity,mutation,research,builder,ingest,agent-os,vault,upgrade,integrations,upstream,scout,channel-shield,email-shield,product,ops,incident,forensics,audit,policy,language,agent-app,security,dump,debug,backup,usage,checkpoints,import,config,pairing,skills,bundles,plugins,curator,memory,tools,computer-use,mcp,sessions,insights,claw,version,update,uninstall,acp,profile,completion,dashboard,desktop,gui,logs,prompt-size}
+              {chat,model,fallback,secrets,migrate,gateway,proxy,lsp,setup,postinstall,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,cron,webhook,portal,kanban,hooks,doctor,readiness,configure,health,proposals,approve,reject,repair,rollback,sdk,slash,coding,opportunity,mutation,research,builder,ingest,agent-os,vault,upgrade,integrations,upstream,scout,channel-shield,email-shield,product,sidecar,ops,incident,forensics,audit,policy,language,agent-app,security,dump,debug,backup,usage,checkpoints,import,config,pairing,skills,bundles,plugins,curator,memory,tools,computer-use,mcp,sessions,insights,claw,version,update,uninstall,acp,profile,completion,dashboard,desktop,gui,logs,prompt-size}
               ...
 
 Keprix - AI assistant with tool-calling capabilities
 
 positional arguments:
-  {chat,model,fallback,secrets,migrate,gateway,proxy,lsp,setup,postinstall,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,cron,webhook,portal,kanban,hooks,doctor,readiness,configure,health,proposals,approve,reject,repair,rollback,sdk,slash,coding,opportunity,mutation,research,builder,ingest,agent-os,vault,upgrade,integrations,upstream,scout,channel-shield,email-shield,product,ops,incident,forensics,audit,policy,language,agent-app,security,dump,debug,backup,usage,checkpoints,import,config,pairing,skills,bundles,plugins,curator,memory,tools,computer-use,mcp,sessions,insights,claw,version,update,uninstall,acp,profile,completion,dashboard,desktop,gui,logs,prompt-size}
+  {chat,model,fallback,secrets,migrate,gateway,proxy,lsp,setup,postinstall,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,cron,webhook,portal,kanban,hooks,doctor,readiness,configure,health,proposals,approve,reject,repair,rollback,sdk,slash,coding,opportunity,mutation,research,builder,ingest,agent-os,vault,upgrade,integrations,upstream,scout,channel-shield,email-shield,product,sidecar,ops,incident,forensics,audit,policy,language,agent-app,security,dump,debug,backup,usage,checkpoints,import,config,pairing,skills,bundles,plugins,curator,memory,tools,computer-use,mcp,sessions,insights,claw,version,update,uninstall,acp,profile,completion,dashboard,desktop,gui,logs,prompt-size}
                         Command to run
     chat                Interactive chat with the agent
     model               Select default model and provider
@@ -79,7 +79,10 @@ positional arguments:
     scout               Scout connectivity and integration tests
     channel-shield      Channel Shield doctor, adapters, and fixture E2E
     email-shield        Alias for channel-shield (email-focused)
-    product             Register Keprix-built products for Scout monitoring
+    product             Product sidecar provision, registry, Scout register,
+                        and conformance
+    sidecar             Keprix Universal Sidecar: manifest, pair, invoke,
+                        jobs, conformance
     ops                 Security operations runbook and reports
     incident            Incident response commands
     forensics           Forensic snapshot and chain-of-custody tools
@@ -271,7 +274,8 @@ For more help on a command:
 | `scout` | {ping,test-signal,test-command,status,integration-test,signals,suspend,quarantine,block-egress,set-sandbox} |
 | `channel-shield` | See CLI help |
 | `email-shield` | See CLI help |
-| `product` | See CLI help |
+| `product` | {register,list,provision,plan,status,upgrade,rollback,disable,remove,conformance} |
+| `sidecar` | {init,validate,diff,explain,doctor,plan,apply,export-redacted,start,quickstart,pair,capabilities,invoke,job,watch,send-event,verify-webhook,connector-test,conformance} |
 | `ops` | {daily-check,report,compliance,compliance-sync,policy-review,capacity,drill,cron-install} |
 | `incident` | {declare,snapshot,rotate-creds,seal-vault,lockdown,post-mortem,list} |
 | `forensics` | See CLI help |

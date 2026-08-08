@@ -10,6 +10,7 @@ const KIND_ROW: Record<BrainNodeKind, number> = {
   task: 4,
   tool: 5,
   source: 6,
+  entity: 2,
 };
 
 const ROW_HEIGHT = 130;

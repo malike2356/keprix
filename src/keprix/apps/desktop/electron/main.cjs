@@ -597,7 +597,7 @@ app.setName(APP_NAME)
 app.setAboutPanelOptions({
   applicationName: APP_NAME,
   applicationVersion: resolveHermesVersion(),
-  copyright: 'Copyright © 2026 Nous Research'
+  copyright: 'Copyright (c) 2026 Verlox Limited'
 })
 
 // Custom scheme for streaming local media (video/audio) into the renderer.

@@ -61,6 +61,7 @@ nav:
   - Home: index.md
   - Getting started:
       - Install Keprix: getting-started/install.md
+      - Desktop: getting-started/desktop.md
       - First run: getting-started/first-run.md
       - Quickstart: getting-started/quickstart.md
       - Manual install (developers): getting-started/manual-install.md

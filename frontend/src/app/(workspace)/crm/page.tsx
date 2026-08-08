@@ -59,15 +59,14 @@ export default function CrmOverviewPage() {
   const workspaceKillOn = (kills.data?.items || []).some(
     (k) => String(k.scope) === "workspace" && Boolean(k.enabled),
   );
+  const loadError = status.error || funnel.error;
 
   return (
     <Stack spacing={3}>
       {status.error || funnel.error ? (
         <Alert severity="error">
           Could not load CRM overview
-          {status.error || funnel.error
-            ? `: ${String((status.error || funnel.error) as Error)?.message || status.error || funnel.error}`
-            : null}
+          {loadError ? `: ${loadError instanceof Error ? loadError.message : String(loadError)}` : null}
         </Alert>
       ) : null}
 

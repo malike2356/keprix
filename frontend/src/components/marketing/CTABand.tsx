@@ -142,7 +142,7 @@ export function CTABand() {
           <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap" }}>
             <Button
               component={Link}
-              href="/auth/setup"
+              href="/download"
               variant="contained"
               size="large"
               sx={{
@@ -154,7 +154,7 @@ export function CTABand() {
                 "&:hover": { boxShadow: `0 6px 36px ${alpha(c.primary, 0.6)}` },
               }}
             >
-              Deploy free
+              Install Community
             </Button>
             <Button
               component={Link}

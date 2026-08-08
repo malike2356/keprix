@@ -1,0 +1,19 @@
+{
+  "schema": "keprix.release-manifest.v1",
+  "product": "Keprix",
+  "version": "0.16.0",
+  "git_commit": "unknown",
+  "source_tag": "unpublished",
+  "channel": "development",
+  "built_at": "2026-08-08T00:00:00+00:00",
+  "compatibility": {
+    "public_api": "v1",
+    "sidecar_api": "v1",
+    "database_schema": 10,
+    "minimum_rollback_database_schema": 10
+  },
+  "artifacts": [],
+  "release_notes_url": "https://github.com/malike2356/keprix/releases",
+  "known_issues_url": "https://github.com/malike2356/keprix/issues",
+  "support_url": "https://github.com/malike2356/keprix/discussions"
+}

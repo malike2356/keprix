@@ -1,0 +1,92 @@
+name: Desktop release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  package:
+    environment: ${{ matrix.environment }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14
+            target: mac
+            environment: desktop-macos
+          - os: windows-2022
+            target: win
+            environment: desktop-windows
+          - os: ubuntu-24.04
+            target: linux
+            environment: desktop-linux
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: src/keprix
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: src/keprix/package-lock.json
+      - run: npm ci
+      - name: Validate signing configuration
+        if: matrix.target != 'linux'
+        shell: bash
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: |
+          if [[ "${{ matrix.target }}" == "mac" ]]; then
+            test -n "$APPLE_ID" && test -n "$APPLE_TEAM_ID" && test -n "$APPLE_APP_SPECIFIC_PASSWORD"
+          else
+            test -n "$CSC_LINK" && test -n "$CSC_KEY_PASSWORD"
+          fi
+      - name: Build desktop package
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: npm run dist:${{ matrix.target }}
+      - name: Generate checksums
+        shell: bash
+        run: |
+          cd apps/desktop/release
+          find . -maxdepth 1 -type f ! -name '*.blockmap' -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.target }}
+          path: src/keprix/apps/desktop/release/
+          if-no-files-found: error
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: desktop-*
+          path: release
+          merge-multiple: true
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: release/*
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          fail_on_unmatched_files: true

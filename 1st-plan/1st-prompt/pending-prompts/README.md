@@ -7,7 +7,14 @@ ready to build next.
 
 **Current execution order (parallel OK):**
 
-0. ~~**Keprix Universal Sidecar public integration API**~~ COMPLETED 2026-08-08.
+0. **Worldwide distribution and GTM closeout (600-618)**: PENDING 2026-08-08.
+   Build order: `keprix-worldwide-distribution-gtm/ref-600-keprix-worldwide-distribution-gtm-build-order.md`.
+   Live audit found public source and website available, but no GitHub Release,
+   PyPI package, public Docker images, or downloadable signed desktop artifacts.
+   This series closes stable bare-metal, Docker, TUI, desktop, website, security,
+   support, and stranger-validation gaps without reopening completed 416-428 work.
+
+1. ~~**Keprix Universal Sidecar public integration API**~~ COMPLETED 2026-08-08.
    Archived at `../prompts-archive/keprix-universal-sidecar/`. Docs:
    `docs/universal-sidecar/`. Contract `/sidecar/v1` (mounted :3333 / sidecar-only :3360).
 1. ~~**Keprix product sidecar foundation (KSF-00..04)**~~ COMPLETED 2026-08-08 and

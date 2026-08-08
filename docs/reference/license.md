@@ -1,6 +1,8 @@
 # License
 
 ```text
+SPDX-License-Identifier: MIT
+
 MIT License
 
 keprix

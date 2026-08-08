@@ -245,13 +245,14 @@ export default function ChannelShieldPage() {
     try {
       const channel = channelFilter === "all" ? undefined : channelFilter;
       const status = statusFilter === "all" ? undefined : statusFilter;
-      const results = await Promise.allSettled([
+      const [protectionsResult, messagesResult, healthResult, settingsResult, agentOsResult] = await Promise.allSettled([
         fetchProtections(channel),
         fetchMessages({ channel, status }),
         fetchAdapterHealth(),
         fetchSettings(),
         fetchAgentOsPanel(),
       ]);
+      const results = [protectionsResult, messagesResult, healthResult, settingsResult, agentOsResult];
       const labels = ["protections", "messages", "adapters", "settings", "agent OS"] as const;
       const failures: string[] = [];
       results.forEach((result, index) => {
@@ -261,11 +262,11 @@ export default function ChannelShieldPage() {
           failures.push(`${labels[index]}: ${reason}`);
           return;
         }
-        if (index === 0) setProtections(result.value);
-        if (index === 1) setMessages(result.value);
-        if (index === 2) setHealth(result.value.health || []);
-        if (index === 3) setSettings(result.value);
-        if (index === 4) setAgentOs(result.value);
+        if (index === 0 && protectionsResult.status === "fulfilled") setProtections(protectionsResult.value);
+        if (index === 1 && messagesResult.status === "fulfilled") setMessages(messagesResult.value);
+        if (index === 2 && healthResult.status === "fulfilled") setHealth(healthResult.value.health || []);
+        if (index === 3 && settingsResult.status === "fulfilled") setSettings(settingsResult.value);
+        if (index === 4 && agentOsResult.status === "fulfilled") setAgentOs(agentOsResult.value);
       });
       if (failures.length) setError(failures.join(" | "));
     } catch (err) {

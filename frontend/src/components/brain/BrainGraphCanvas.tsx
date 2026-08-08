@@ -140,14 +140,12 @@ function buildSim(
   });
 
   const idSet = new Set(simNodes.map((node) => node.id));
-  const links: SimLink[] = edges
-    .map((edge) => {
+  const links: SimLink[] = edges.flatMap((edge): SimLink[] => {
       const source = edgeEndpointKey(edge.source_kind, edge.source_id);
       const target = edgeEndpointKey(edge.target_kind, edge.target_id);
-      if (!idSet.has(source) || !idSet.has(target)) return null;
-      return { id: edge.edge_id, source, target };
-    })
-    .filter((edge): edge is SimLink => edge !== null);
+      if (!idSet.has(source) || !idSet.has(target)) return [];
+      return [{ id: edge.edge_id, source, target }];
+    });
 
   return { nodes: simNodes, links };
 }

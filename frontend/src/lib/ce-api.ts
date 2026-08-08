@@ -6,6 +6,8 @@ export type CEUser = {
   username: string;
   role: string;
   email?: string | null;
+  workspace_id?: string | null;
+  active_workspace_id?: string | null;
 };
 
 export function getCEToken(): string | null {

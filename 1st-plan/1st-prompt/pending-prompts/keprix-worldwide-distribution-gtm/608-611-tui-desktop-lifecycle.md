@@ -1,6 +1,6 @@
 # Prompts 608-611: terminal, desktop, and lifecycle parity
 
-**Status:** PENDING
+**Status:** CODE PREPARED; SIGNED CROSS-PLATFORM PROOF PENDING
 **Depends on:** 600-602
 
 ## Prompt 608: terminal release parity

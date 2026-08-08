@@ -104,6 +104,7 @@ export default function CalendarPage() {
 
     let cancelled = false;
     async function focusEvent() {
+      if (!eventParam) return;
       const fromList = events.find((row) => row.id === eventParam);
       let target = fromList;
       if (!target) {

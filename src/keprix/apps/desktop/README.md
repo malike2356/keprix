@@ -1,13 +1,15 @@
-# Keprix Desktop 
+# Keprix Desktop
 
 <p align="center">
-  <a href="https://github.com/NousResearch/keprix/releases"><img src="https://img.shields.io/badge/Download-macOS%20%C2%B7%20Windows%20%C2%B7%20Linux-FFD700?style=for-the-badge" alt="Download"></a>
-  <a href="https://keprix.nousresearch.com/docs/"><img src="https://img.shields.io/badge/Docs-keprix--agent.nousresearch.com-FFD700?style=for-the-badge" alt="Documentation"></a>
-  <a href="https://discord.gg/NousResearch"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
-  <a href="https://github.com/NousResearch/keprix/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
+  <a href="https://github.com/malike2356/keprix"><img src="https://img.shields.io/badge/Source-GitHub-FFD700?style=for-the-badge" alt="Source"></a>
+  <a href="https://keprixai.com/docs"><img src="https://img.shields.io/badge/Docs-keprixai.com-FFD700?style=for-the-badge" alt="Documentation"></a>
+  <a href="https://github.com/malike2356/keprix/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License: MIT"></a>
 </p>
 
-**The native desktop app for [Keprix](../../README.md); the self-improving AI agent from [Nous Research](https://nousresearch.com).** Same engine, in a polished native window; chat with streaming tool output, side-by-side previews, a file browser, voice, and settings, no terminal required. Keprix uses its own home by default, so it does not load a live Hermes install's sessions, memory, or skills unless you explicitly point it there. Available for **macOS, Windows, and Linux**.
+The native desktop shell for Keprix by Verlox Limited. It provides agent chat,
+streaming tool output, previews, file browsing, voice, and settings in a native
+window. Desktop remains a release candidate until signed artifacts pass the clean
+machine matrix.
 
 <table>
 <tr><td><b>Chat with the full agent</b></td><td>Streaming responses, live tool activity, structured tool summaries, and the same conversation history as every other Keprix surface.</td></tr>
@@ -34,7 +36,9 @@ It builds and launches the GUI against your Keprix home by default. On first lau
 
 ### Prebuilt installers
 
-Prebuilt installers are built and distributed via [the Keprix Desktop website.](https://keprix.nousresearch.com/).
+No stable prebuilt installer is published yet. Stable links will appear on
+`https://keprixai.com/download` only after GitHub Release assets are signed,
+checksummed, and tested. Build from source for development use.
 
 ---
 
@@ -110,7 +114,7 @@ rm "$HOME/.keprix/hermes-agent/.hermes-bootstrap-complete"
 # Rebuild a broken Python venv
 rm -rf "$HOME/.keprix/hermes-agent/venv"
 # Reset a stuck macOS microphone prompt (macOS only)
-tccutil reset Microphone com.nousresearch.keprix
+tccutil reset Microphone com.verlox.keprix
 ```
 
 **Windows (PowerShell):**
@@ -128,9 +132,8 @@ Remove-Item -Recurse -Force "$env:LOCALAPPDATA\keprix\hermes-agent\venv"
 
 ## Community
 
--  [Discord](https://discord.gg/NousResearch)
--  [Documentation](https://keprix.nousresearch.com/docs/)
-- BUG:  [Issues](https://github.com/NousResearch/keprix/issues)
+- [Documentation](https://keprixai.com/docs)
+- [Issues](https://github.com/malike2356/keprix/issues)
 
 ---
 
@@ -138,4 +141,4 @@ Remove-Item -Recurse -Force "$env:LOCALAPPDATA\keprix\hermes-agent\venv"
 
 MIT; see [LICENSE](../../LICENSE).
 
-Built by [Nous Research](https://nousresearch.com).
+Built by Verlox Limited.

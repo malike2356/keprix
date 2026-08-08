@@ -5,3 +5,4 @@
 1st-plan/ export-ignore
 AGENTS.md export-ignore
 CLAUDE.md export-ignore
+.access/ export-ignore

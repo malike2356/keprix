@@ -502,7 +502,7 @@ export default function CompaniesHouseWorkspace({
         color={configured ? "success" : "warning"}
         label={configured ? "Live registry" : "Key required"}
       />
-      <CompaniesHouseKeyForm status={status} onSaved={() => mutateStatus()} />
+      <CompaniesHouseKeyForm status={status} onSaved={async () => { await mutateStatus(); }} />
       {embedded ? (
         <Button component={NextLink} href="/companies-house" size="small" variant="outlined">
           Full browser

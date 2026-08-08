@@ -505,7 +505,7 @@ export function Hero() {
               <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                 <Button
                   component={Link}
-                  href="/auth/setup"
+                  href="/download"
                   variant="contained"
                   size="large"
                   sx={{
@@ -519,7 +519,7 @@ export function Hero() {
                     },
                   }}
                 >
-                  Deploy in 2 minutes
+                  Install Community
                 </Button>
                 <Button
                   component="a"

@@ -10,6 +10,7 @@ const RING_BY_KIND: Record<BrainNodeKind, number> = {
   task: 2,
   tool: 3,
   source: 4,
+  entity: 2,
 };
 
 const RING_RADIUS = [0, 220, 420, 620, 820];

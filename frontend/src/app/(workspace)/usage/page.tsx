@@ -10,9 +10,9 @@ function first(value: string | string[] | undefined): string | undefined {
 export default async function LegacyDataRedirect({
   searchParams,
 }: {
-  searchParams: Promise<SearchParams> | SearchParams;
+  searchParams: Promise<SearchParams>;
 }) {
-  const params = await Promise.resolve(searchParams);
+  const params = await searchParams;
   const next = new URLSearchParams();
   for (const [key, value] of Object.entries(params || {})) {
     const item = first(value);

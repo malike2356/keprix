@@ -37,7 +37,7 @@ export default function CompaniesHouseSettingsPage() {
         </Alert>
       ) : null}
 
-      <CompaniesHouseKeyForm status={data} forceOpen onSaved={() => mutate()} />
+      <CompaniesHouseKeyForm status={data} forceOpen onSaved={async () => { await mutate(); }} />
     </Box>
   );
 }

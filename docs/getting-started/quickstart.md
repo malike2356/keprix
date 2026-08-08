@@ -12,7 +12,9 @@ See [Install](install.md) for the full guide.
 curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
 ```
 
-This one-liner needs a **public** GitHub repository. Until the repo is anonymously readable, that URL 404s. Clone via SSH (or an allowed remote) and run `bash scripts/install.sh` from the checkout instead. Owner checklist: [public-github-checklist.md](../operations/public-github-checklist.md).
+The public GitHub repository is anonymously readable. This command follows the
+development channel. For immutable stable releases, download and inspect
+`scripts/install-release.sh`, then run it with an exact `--version`.
 
 Next steps after install:
 

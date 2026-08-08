@@ -1,6 +1,6 @@
 # Prompts 605-607: Docker, supply chain, and releases
 
-**Status:** IN PROGRESS (605 implementation prepared; public proof pending)
+**Status:** CODE PREPARED; OWNER CONFIGURATION AND PUBLIC PROOF PENDING
 **Depends on:** 600-602
 
 ## Prompt 605: public multi-architecture Docker delivery
@@ -49,3 +49,10 @@ when required publication was skipped or failed.
 Add release concurrency, environment approvals, tag protection, changelog generation,
 rollback notes, release notes with known issues, and a post-publish audit. Test the
 workflow with a prerelease channel before stable.
+
+**Prompts 606-607 status:** release, PyPI, Docker, and desktop workflows now fail
+closed, request GitHub OIDC attestations, generate integrity metadata, and reserve
+protected environments for signing and publication. Manifest generation and final
+live gates are implemented. Owner configuration, action pinning policy approval,
+the first prerelease, anonymous artifact verification, and clean-host evidence are
+still required. These prompts remain pending because those proofs do not yet exist.

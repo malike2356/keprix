@@ -4,11 +4,11 @@
   "private": true,
   "version": "0.16.0",
   "description": "Native desktop shell for Keprix.",
-  "author": "Nous Research",
+  "author": "Verlox Limited",
   "type": "module",
   "main": "electron/main.cjs",
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": ">=24.0.0"
   },
   "scripts": {
     "dev": "concurrently -k \"npm:dev:renderer\" \"npm:dev:electron\"",
@@ -54,8 +54,8 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@keprix/shared": "file:../shared",
     "@icons-pack/react-simple-icons": "^13.13.0",
+    "@keprix/shared": "file:../shared",
     "@nanostores/react": "^1.1.0",
     "@nous-research/ui": "^0.13.0",
     "@radix-ui/react-slot": "^1.2.4",
@@ -88,7 +88,7 @@
     "react-arborist": "^3.5.0",
     "react-dnd-html5-backend": "^14.0.3",
     "react-dom": "^19.2.5",
-    "react-router-dom": "^7.17.0",
+    "react-router-dom": "7.18.2",
     "react-shiki": "^0.9.3",
     "remark-math": "^6.0.0",
     "remend": "^1.3.0",
@@ -115,9 +115,9 @@
     "@typescript-eslint/eslint-plugin": "^8.59.1",
     "@typescript-eslint/parser": "^8.59.1",
     "@vitejs/plugin-react": "^6.0.1",
-    "concurrently": "^10.0.3",
+    "concurrently": "10.0.4",
     "cross-env": "^10.1.0",
-    "electron": "^40.9.3",
+    "electron": "41.10.3",
     "electron-builder": "^26.8.1",
     "eslint": "^9.39.4",
     "eslint-plugin-perfectionist": "^5.9.0",
@@ -134,9 +134,9 @@
     "wait-on": "^9.0.5"
   },
   "build": {
-    "electronVersion": "40.9.3",
+    "electronVersion": "41.10.3",
     "electronDist": "../../node_modules/electron/dist",
-    "appId": "com.nousresearch.keprix",
+    "appId": "com.verlox.keprix",
     "productName": "Keprix",
     "executableName": "Keprix",
     "protocols": [
@@ -233,7 +233,7 @@
     },
     "linux": {
       "category": "Development",
-      "maintainer": "Nous Research <support@nousresearch.com>",
+      "maintainer": "Verlox Limited <support@keprixai.com>",
       "synopsis": "Native desktop shell for Keprix.",
       "target": [
         "AppImage",

@@ -5,10 +5,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-if [[ -x "$ROOT/.venv/bin/python" ]]; then
+PYTHON="python3"
+if [[ -x "$ROOT/.venv/bin/python" ]] && "$ROOT/.venv/bin/python" -m pip --version >/dev/null 2>&1; then
   PYTHON="$ROOT/.venv/bin/python"
-else
-  PYTHON="python3"
 fi
 
 bash "$ROOT/scripts/generate-docs.sh"

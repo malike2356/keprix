@@ -1,6 +1,6 @@
 # Prompts 612-615: website, repository, security, and support
 
-**Status:** PENDING
+**Status:** CODE PREPARED; LIVE ARTIFACT AND OWNER POLICY PROOF PENDING
 **Depends on:** 601-611 as applicable
 
 ## Prompt 612: production download centre

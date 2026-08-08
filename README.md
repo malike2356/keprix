@@ -10,13 +10,18 @@ CI and Release badges resolve for anonymous users after the GitHub repository is
 
 ## Quick Install
 
-Primary path (Linux, macOS, WSL2):
+Stable installers and immutable terminal releases will appear at
+[keprixai.com/download](https://keprixai.com/download) only after their signatures,
+checksums, SBOMs, and provenance are published.
+
+Current source installation (Linux, macOS, WSL2):
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
 ```
 
-Identical to `scripts/install-curl.sh`. Requires a **public** GitHub repo; until then clone and run `bash scripts/install.sh` from the checkout. See [docs/operations/public-github-checklist.md](docs/operations/public-github-checklist.md).
+This follows the development branch and is not an immutable stable release. Review
+the script before running it. See [docs/operations/public-github-checklist.md](docs/operations/public-github-checklist.md).
 
 Then:
 
