@@ -1,0 +1,8 @@
+{
+  "name": "carina-aiva-sidecar",
+  "version": "1.0.0",
+  "title": "Carina/Aiva product sidecar pack",
+  "products": ["carina", "aiva"],
+  "contract_version": "1.0.0",
+  "description": "Advertises Keprix capability nodes for Carina/Aiva shell consumption."
+}

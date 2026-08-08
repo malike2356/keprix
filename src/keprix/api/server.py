@@ -154,8 +154,11 @@ from keprix.api.notebook_research_routes import router as notebook_research_rout
 from keprix.api.design_preview_routes import router as design_preview_router
 from keprix.api.vault_pack_routes import router as vault_pack_router
 from keprix.api.hot_cache_routes import router as hot_cache_router
+from keprix.proxy.http_routes import router as proxy_ops_router
 from keprix.api.google_workspace_routes import router as google_workspace_router
 from keprix.api.agent_sync_routes import router as agent_sync_router
+from keprix.api.carina_agent_routes import router as carina_agent_router
+from keprix.api.keprix_kill_routes import router as keprix_kill_router
 from keprix.api.syncthing_routes import router as syncthing_router
 from keprix.api.credential_audit_routes import router as credential_audit_router
 from keprix.api.rotation_routes import router as credential_rotation_router
@@ -374,6 +377,12 @@ def create_app() -> FastAPI:
         except Exception:
             pass
         try:
+            from keprix.channel_shield.bootstrap import ensure_channel_shield_tables
+
+            await ensure_channel_shield_tables()
+        except Exception:
+            pass
+        try:
             from keprix.contacts.bootstrap import ensure_contacts_tables
 
             await ensure_contacts_tables()
@@ -392,6 +401,54 @@ def create_app() -> FastAPI:
             from keprix.memory.schema import ensure_world_class_schema
 
             await ensure_world_class_schema()
+        except Exception:
+            pass
+        try:
+            from keprix.outreach.bootstrap import ensure_outreach_tables
+
+            await ensure_outreach_tables()
+        except Exception:
+            pass
+        try:
+            from keprix.crm.bootstrap import ensure_crm_tables
+
+            await ensure_crm_tables()
+        except Exception:
+            pass
+        try:
+            from keprix.outreach.cron_seed import ensure_outreach_cron_jobs
+
+            ensure_outreach_cron_jobs()
+        except Exception:
+            pass
+        try:
+            from keprix.worker_kb.bootstrap import ensure_worker_kb_tables
+
+            await ensure_worker_kb_tables()
+        except Exception:
+            pass
+        try:
+            from keprix.aiva_escalation.bootstrap import ensure_escalation_tables
+
+            await ensure_escalation_tables()
+        except Exception:
+            pass
+        try:
+            from keprix.aiva_escalation.cron_seed import ensure_escalation_cron_jobs
+
+            ensure_escalation_cron_jobs()
+        except Exception:
+            pass
+        try:
+            from keprix.aiva_analytics.bootstrap import ensure_analytics_tables
+
+            await ensure_analytics_tables()
+        except Exception:
+            pass
+        try:
+            from keprix.aiva_analytics.cron_seed import ensure_analytics_cron_jobs
+
+            ensure_analytics_cron_jobs()
         except Exception:
             pass
         start_email_poller()
@@ -647,8 +704,80 @@ def create_app() -> FastAPI:
     app.include_router(agent_os_phase5_router)
     app.include_router(workspace_template_router)
     app.include_router(hot_cache_router)
+    app.include_router(proxy_ops_router)
     app.include_router(google_workspace_router)
     app.include_router(agent_sync_router)
+    app.include_router(carina_agent_router)
+    try:
+        from keprix.product_sidecar.routes import router as product_sidecar_router
+
+        app.include_router(product_sidecar_router)
+    except Exception:
+        pass
+    app.include_router(keprix_kill_router)
+    try:
+        from keprix.aiva_escalation.routes import router as aiva_escalation_router
+
+        app.include_router(aiva_escalation_router)
+    except Exception:
+        pass
+    try:
+        from keprix.aiva_analytics.ui_routes import router as aiva_analytics_ui_router
+
+        app.include_router(aiva_analytics_ui_router)
+    except Exception:
+        pass
+        try:
+            from keprix.outreach.ui_routes import router as outreach_ui_router
+
+            app.include_router(outreach_ui_router)
+        except Exception:
+            pass
+        try:
+            from keprix.crm.routes import router as crm_router
+
+            app.include_router(crm_router)
+            from keprix.discovery.routes import router as crm_discovery_router
+
+            app.include_router(crm_discovery_router)
+            from keprix.crm.icp_routes import router as crm_icp_router
+
+            app.include_router(crm_icp_router)
+            from keprix.crm.nice_routes import router as crm_nice_router
+
+            app.include_router(crm_nice_router)
+            from keprix.discovery import bootstrap_discovery
+
+            try:
+                bootstrap_discovery()
+            except Exception:
+                import logging as _logging
+
+                _logging.getLogger(__name__).exception("discovery bootstrap failed")
+        except Exception:
+            pass
+        try:
+            from keprix.sheet_preprocess.routes import (
+                alias_router as sheet_preprocess_alias_router,
+            )
+            from keprix.sheet_preprocess.routes import router as sheet_preprocess_router
+
+            app.include_router(sheet_preprocess_router)
+            app.include_router(sheet_preprocess_alias_router)
+        except Exception:
+            pass
+    try:
+        from keprix.worker_kb.ui_routes import router as worker_kb_ui_router
+
+        app.include_router(worker_kb_ui_router)
+    except Exception:
+        pass
+    try:
+        from keprix.api.scout_ops_ui_routes import router as scout_ops_ui_router
+
+        app.include_router(scout_ops_ui_router)
+    except Exception:
+        pass
     app.include_router(syncthing_router)
     app.include_router(credential_audit_router)
     app.include_router(credential_rotation_router)

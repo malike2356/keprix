@@ -7,10 +7,50 @@ ready to build next.
 
 **Current execution order (parallel OK):**
 
-1. `data-ops-surfaces-upgrade.md` (Must P0-P2 + P4 Analytics Must + `/data` tabs shipped; P3 RAG + Nice/Ultimate open).
-2. **Keprix close Carina parity gaps (403-415)** under `keprix-carina-parity/` (FILED PENDING 2026-08-04). Multi-tenancy, governance, AI security beyond 372-375, Scout Warden, packs, product tools, RAG admin, self-knowledge, billing promo/BYOK, workflows, CI. Source: `/opt/lampp/htdocs/verlox/archive/keprix-carina-parity-gap-2026-07-30.md`. Build order: `../prompts-archive/ref-403-keprix-carina-parity-build-order.md`. Sister: Carina inbound `carina/.../carina-keprix-parity/`.
-3. ~~**Capability mesh (389-402)**~~ completed 2026-08-04 and archived under `../prompts-archive/389-402-*.md`. Build order: `../prompts-archive/ref-389-keprix-capability-mesh-build-order.md`. Graph + DoD/audit + Telegram pilot tools (viCal/calendar/contacts) + slash + IDs + discovery; evidence `pytest tests/capability_mesh tests/vical` (36 passed).
-4. ~~**viCal booking adoption (376-388)**~~ completed 2026-08-04 and archived under `../prompts-archive/376-388-*.md`. Build order: `../prompts-archive/ref-376-keprix-vical-booking-build-order.md`. Code: `keprix/src/keprix/vical/`, hub `/vical`, guest `/book/{slug}`; evidence `pytest tests/vical tests/personas/test_echo_scheduler.py` (24 passed).
+0. **Keprix Universal Sidecar public integration API** PENDING. Folder:
+   `keprix-universal-sidecar/`. Product-neutral configuration and pairing for any
+   self-hosted project; private sidecar port/profile, typed capability nodes,
+   allowlisted project API reads/actions, durable jobs/events, signed callbacks,
+   SSE, memory/retention, Python/TypeScript SDKs, starter kits, operator UI,
+   Docker/Kubernetes/air-gap deployment, conformance and public GitHub release.
+   Reuses `keprix-sidecar-foundation/` and the shared security contract; no second
+   runtime or unrestricted tool/HTTP proxy.
+1. **Keprix product sidecar readiness** PENDING. Shared contract:
+   `ref-keprix-product-sidecar-contract.md`. Shared foundation queue:
+   `keprix-sidecar-foundation/` (pack registry, HTTP/node API, product connectors,
+   identity/grants, provisioning, events/jobs, isolation and conformance). Separate
+   product build queues:
+   - `keprix-sidecar-carina-aiva/` (**516-531 / CAS**): COMPLETED 2026-08-08.
+     Archived at `../prompts-archive/keprix-sidecar-carina-aiva/`. Sign-off
+     `docs/architecture/carina-aiva-keprix-sidecar-signoff.md`.
+   - `keprix-sidecar-petraclus/`: authorised security targets, air-gap,
+     edition gates, findings, remediation proposals and reports.
+   - `keprix-sidecar-abbis/`: unified intelligence mesh, stakeholder/accessory
+     isolation, Ghana localisation, field channels and offline resilience.
+   - `keprix-sidecar-xeclone/`: consent-governed persona and multimodal clone,
+     Carina bridge, dual-run, biometric assets, publishing and Scout governance.
+   - `keprix-sidecar-fleetz/`: bounded telemetry and fuel intelligence with a
+     strict product-owned vehicle-control boundary.
+   - `keprix-sidecar-clinicom/`: contract 2.0 parity, clinical safety, shadow
+     validation and owner-approved cutover. Contabo remains on Carina until its
+     final switch prompt passes.
+   The product packs may build in parallel after shared runtime primitives are
+   accepted. Each product remains its domain data and entitlement authority.
+   Carina/Aiva CAS depends on foundation (KSF) and should lead when the goal is
+   platform engine replacement; Xeclone/Clinicom remain separate product cuts.
+2. ~~**Operator GUI gap closeout (467-505 Must)**~~ COMPLETED 2026-08-08 and archived under `../prompts-archive/keprix-operator-gui-gap-closeout/`. Sign-off: `docs/architecture/operator-gui-gap-signoff.md`.
+3. ~~**Visual agentic CRM (429-465 + 466 + 506-515)**~~ COMPLETED 2026-08-08; entire set archived under `../prompts-archive/keprix-agentic-crm-lead-gen/` (including refs). Sign-offs: `docs/architecture/agentic-crm-signoff.md`, `docs/architecture/visual-crm-signoff.md`, `docs/architecture/agentic-crm-nice-signoff.md` (all **READY**). Operator config: `/crm/settings#connections`.
+4. *(prior queue clear)* DATA ops and Public GTM archived 2026-08-07.
+5. ~~**DATA ops surfaces upgrade**~~ completed 2026-08-07 and archived as `../prompts-archive/data-ops-surfaces-upgrade.md` (Must P0-P4 + `/data` tabs; P5 Nice / P6 Ultimate deferred). Evidence: `pytest tests/frontend/test_data_ops_p3.py` (5 passed) plus earlier P0/P1/P2/P4 tests.
+6. ~~**Public GTM + Hermes install parity (416-428)**~~ completed 2026-08-07 and archived under `../prompts-archive/416-428-*.md`. Build order: `../prompts-archive/ref-416-keprix-public-gtm-hermes-install-build-order.md`. Sign-off: `docs/architecture/public-gtm-signoff.md` (Verdict **READY** 2026-08-07 after GitHub publicize + Contabo marketing origin).
+7. ~~**Capability mesh (389-402)**~~ completed 2026-08-04 and archived under `../prompts-archive/389-402-*.md`. Build order: `../prompts-archive/ref-389-keprix-capability-mesh-build-order.md`. Graph + DoD/audit + Telegram pilot tools (viCal/calendar/contacts) + slash + IDs + discovery; evidence `pytest tests/capability_mesh tests/vical` (36 passed).
+8. ~~**viCal booking adoption (376-388)**~~ completed 2026-08-04 and archived under `../prompts-archive/376-388-*.md`. Build order: `../prompts-archive/ref-376-keprix-vical-booking-build-order.md`. Code: `keprix/src/keprix/vical/`, hub `/vical`, guest `/book/{slug}`; evidence `pytest tests/vical tests/personas/test_echo_scheduler.py` (24 passed).
+
+Completed and archived on 2026-08-07:
+
+- **DATA ops surfaces upgrade**: Must P0-P4 + unified `/data?tab=` workspace; P3 RAG Must (MUI panel, step timeline, file/vault/URL sources, stores run counts); P5 Nice / P6 Ultimate deferred (owner ask only). Archive: `../prompts-archive/data-ops-surfaces-upgrade.md`. Evidence: `pytest tests/frontend/test_data_ops_p3.py` (5 passed).
+- **Public GTM + Hermes install parity 416-428**: quarantine, public git hygiene, curl installer, PyPI honesty, install-first README/docs, `keprixai.com` metadata, MkDocs/env, ship gate, Contabo origin runbook + live marketing origin, sign-off **READY**. Archive: `../prompts-archive/416-428-*.md`. Build order: `../prompts-archive/ref-416-keprix-public-gtm-hermes-install-build-order.md`.
+- **Keprix close Carina parity gaps 403-415**: multi-tenancy, isolation, governance/DSAR, AI security beyond 372, Scout Warden, packs, product tools, RAG admin, self-knowledge, billing promo/BYOK, workflows, CI. Gap doc restored with 2026-08-04 + 2026-08-07 status maps. Archive: `../prompts-archive/403-415-*.md`. Build order: `../prompts-archive/ref-403-keprix-carina-parity-build-order.md`.
 
 Completed and archived on 2026-08-04:
 
@@ -206,11 +246,11 @@ Prior series **117-212** archived under `../prompts-archive/`.
 | 301-315 | `../prompts-archive/ref-301-agent-os-ui-polish-build-order.md` | COMPLETED 2026-07-12 (archived) |
 | 223 | `../prompts-archive/ref-223-built-apps-navigation-architecture-reference.md` | Reference |
 
-**Current execution order:** pending items in this folder (parallel OK):
+**Current execution order:** none active in this folder (archived rows below for history):
 
 | File | Status |
 | --- | --- |
-| `data-ops-surfaces-upgrade.md` | PENDING: Must P0-P2 + P4 Analytics + `/data` tabs shipped; P3 RAG + Nice/Ultimate remain |
+| `../prompts-archive/data-ops-surfaces-upgrade.md` | ARCHIVED 2026-08-07 (Must P0-P4 + `/data` tabs; P5 Nice / P6 Ultimate deferred) |
 | `372-fail-closed-prompt-guard-and-context-quarantine.md` | ARCHIVED 2026-08-03 |
 | `373-least-privilege-tool-acl-lethal-trifecta.md` | ARCHIVED 2026-08-03 |
 | `374-rag-graphiti-ingest-poison-controls.md` | ARCHIVED 2026-08-03 |
