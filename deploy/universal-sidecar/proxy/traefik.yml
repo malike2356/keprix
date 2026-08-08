@@ -1,0 +1,16 @@
+# WARNING: TLS for private clients only. Prefer mTLS entrypoints.
+# Do not expose Universal Sidecar anonymously on the public internet.
+
+http:
+  routers:
+    keprix-sidecar:
+      rule: "Host(`sidecar.internal`)"
+      entryPoints:
+        - websecure
+      service: keprix-sidecar
+      tls: {}
+  services:
+    keprix-sidecar:
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:3360"

@@ -1,0 +1,13 @@
+# WARNING: Only terminate TLS for trusted private clients.
+# Do not expose Universal Sidecar to the public internet without auth + mTLS.
+
+sidecar.internal {
+        # Prefer private DNS + firewall. Require client certs in production.
+        # tls {
+        #         client_auth {
+        #                 mode require_and_verify
+        #                 trust_pool file /etc/caddy/clients.pem
+        #         }
+        # }
+        reverse_proxy 127.0.0.1:3360
+}

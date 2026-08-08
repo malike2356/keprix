@@ -1,0 +1,37 @@
+# Keprix Universal Sidecar (compose)
+# Security: do not publish 3360 to the public internet by default.
+# Prefer binding to loopback on the host, or leave unmapped and reach the
+# service only from sibling containers on a private network.
+
+services:
+  keprix-sidecar:
+    build:
+      context: ../../..
+      dockerfile: deploy/universal-sidecar/compose/Dockerfile.sidecar
+    image: keprix-universal-sidecar:local
+    # No public ports mapped by default.
+    # To debug from the host only (loopback), uncomment:
+    # ports:
+    #   - "127.0.0.1:3360:3360"
+    expose:
+      - "3360"
+    environment:
+      KEPRIX_SIDECAR_HOST: "0.0.0.0"
+      KEPRIX_SIDECAR_PORT: "3360"
+      # Container network bind requires auth/TLS or explicit allow:
+      KEPRIX_SIDECAR_ALLOW_PUBLIC: "1"
+      # Provide secrets via env file or secrets store; never commit real tokens.
+      # KEPRIX_UNIVERSAL_SIDECAR_TOKEN_SECRET: set-in-env-file
+    restart: unless-stopped
+    networks:
+      - sidecar_private
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  sidecar_private:
+    driver: bridge
+    internal: false

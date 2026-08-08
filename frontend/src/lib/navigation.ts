@@ -58,7 +58,14 @@ export const primaryNavigation: NavItem[] = [
   { id: "email", label: "Email", href: "/email", icon: "email", group: "workspace" },
   { id: "notifications", label: "Notifications", href: "/notifications", icon: "email", group: "workspace" },
   { id: "contacts", label: "Contacts", href: "/contacts", icon: "contacts", group: "workspace" },
-  { id: "leads", label: "Leads", href: "/leads", icon: "contacts", group: "workspace" },
+  { id: "leads", label: "Product signups", href: "/leads", icon: "contacts", group: "workspace" },
+  { id: "crm", label: "CRM", href: "/crm", icon: "contacts", group: "workspace" },
+  { id: "crm-enrich", label: "Sheet enrich", href: "/crm/enrich", icon: "science", group: "workspace" },
+  { id: "crm-discover", label: "Discover", href: "/crm/discover", icon: "search", group: "workspace" },
+  { id: "crm-jobs", label: "CRM jobs", href: "/crm/jobs", icon: "monitoring", group: "workspace" },
+  { id: "escalations", label: "Escalations", href: "/escalations", icon: "shield", group: "workspace" },
+  { id: "worker-kb", label: "Worker KB", href: "/workers/kb", icon: "memory", group: "workspace" },
+  { id: "document-agents", label: "Document agents", href: "/document-agents", icon: "folder", group: "workspace" },
   { id: "documents", label: "Documents", href: "/documents", icon: "folder", group: "workspace" },
   { id: "files", label: "Files", href: "/files", icon: "folder", group: "workspace" },
   { id: "gallery", label: "Gallery", href: "/gallery", icon: "image", group: "workspace" },
@@ -74,13 +81,15 @@ export const primaryNavigation: NavItem[] = [
   { id: "rag-pipeline", label: "RAG Pipelines", href: "/data?tab=rag", icon: "science", group: "data" },
   { id: "playbook", label: "Local models", href: "/data?tab=models", icon: "playbook", group: "data" },
   { id: "video-ingest", label: "Video ingest", href: "/data?tab=video", icon: "video", group: "data" },
-  { id: "analytics", label: "Analytics workspace", href: "/data?tab=analytics", icon: "compare", group: "data" },
+  { id: "aiva-analytics", label: "Analytics", href: "/analytics", icon: "compare", group: "data" },
+  { id: "analytics", label: "Data analysis", href: "/data?tab=analytics", icon: "compare", group: "data" },
   { id: "usage", label: "LLM usage", href: "/data?tab=usage", icon: "monitoring", group: "data" },
   { id: "observability", label: "Observability", href: "/data?tab=observability", icon: "activity", group: "data" },
   // Research
   { id: "research", label: "Deep Research", href: "/research", icon: "science", group: "research" },
   { id: "companies-house", label: "Companies House", href: "/companies-house", icon: "business", group: "research" },
-  { id: "opportunities", label: "Opportunities", href: "/opportunities", icon: "science", group: "research" },
+  { id: "outreach", label: "Outreach", href: "/outreach", icon: "email", group: "research" },
+  { id: "opportunities", label: "Research opportunities", href: "/opportunities", icon: "science", group: "research" },
   { id: "compare", label: "Compare Models", href: "/compare", icon: "compare", group: "research" },
   // Apps
   { id: "hub", label: "Hub", href: "/hub", icon: "apps", group: "apps" },
@@ -103,14 +112,16 @@ export const primaryNavigation: NavItem[] = [
   { id: "playbooks", label: "Playbooks", href: "/playbooks", icon: "playbook", group: "automations" },
   { id: "playbook-triggers", label: "Triggers", href: "/playbooks/triggers", icon: "schedule", group: "automations" },
   { id: "integrations", label: "Integrations", href: "/integrations", icon: "extension", group: "automations" },
+  { id: "sidecars", label: "Sidecars", href: "/settings/sidecars", icon: "extension", group: "automations" },
   { id: "cron", label: "Cron Jobs", href: "/admin/cron", icon: "schedule", group: "automations" },
   { id: "mcp", label: "MCP Servers", href: "/admin/mcp", icon: "extension", group: "automations" },
   { id: "browser-adoption", label: "Browser", href: "/browser", icon: "extension", group: "automations" },
   { id: "coding-adoption", label: "Coding", href: "/admin/coding", icon: "code", group: "automations" },
+  { id: "admin-code-agent", label: "Code-agent", href: "/admin/code-agent", icon: "code", group: "automations" },
   { id: "ponytail-ladder", label: "Ponytail ladder", href: "/coding/ladder", icon: "code", group: "automations" },
   { id: "tools-adoption", label: "Tool library", href: "/admin/tools", icon: "extension", group: "automations" },
-  { id: "analytics-adoption", label: "Analytics", href: "/data?tab=analytics", icon: "compare", group: "automations" },
   { id: "evals", label: "Evals", href: "/evals", icon: "science", group: "automations" },
+  { id: "agent-os-improvements", label: "Improvements", href: "/agent-os/improvements", icon: "monitoring", group: "automations" },
   // Security
   { id: "vault", label: "Vault", href: "/vault", icon: "lock", group: "security" },
   { id: "vault-setup", label: "Vault setup", href: "/vault/setup", icon: "folder", group: "security" },
@@ -118,6 +129,7 @@ export const primaryNavigation: NavItem[] = [
   { id: "review-gateway", label: "Review gateway", href: "/review-gateway", icon: "shield", group: "security" },
   { id: "channel-shield", label: "Channel Shield", href: "/channel-shield", icon: "shield", group: "security" },
   { id: "scout-warden", label: "Scout Warden", href: "/admin/scout-warden", icon: "shield", group: "security" },
+  { id: "scout-ops", label: "Scout kill & sensors", href: "/admin/scout-ops", icon: "shield", group: "security" },
   { id: "dsar", label: "DSAR", href: "/admin/dsar", icon: "shield", group: "security" },
   { id: "operator-copilot", label: "Operator copilot", href: "/control-center", icon: "extension", group: "security" },
   { id: "support", label: "Support", href: "/support", icon: "help", group: "security" },
@@ -127,12 +139,22 @@ export const primaryNavigation: NavItem[] = [
   { id: "admin", label: "Admin", href: "/dashboard", icon: "shield", group: "admin" },
   { id: "users", label: "Users", href: "/settings/users", icon: "users", group: "admin" },
   { id: "tenants", label: "Tenants", href: "/tenants", icon: "users", group: "admin" },
-  { id: "billing", label: "Billing", href: "/settings/billing", icon: "payments", group: "admin" },
   { id: "modules", label: "Modules", href: "/settings/modules", icon: "apps", group: "admin" },
-  { id: "upgrade", label: "Keprix upgrades", href: "/settings/upgrade", icon: "backup", group: "admin" },
+  { id: "billing", label: "Billing", href: "/settings/billing", icon: "payments", group: "commerce" },
+  { id: "upgrade", label: "Keprix upgrades", href: "/settings/upgrade", icon: "backup", group: "commerce" },
   { id: "feature-flags", label: "Feature Flags", href: "/admin/feature-flags", icon: "apps", group: "admin" },
   { id: "admin-quotas", label: "Quotas", href: "/admin/quotas", icon: "monitoring", group: "admin" },
-  { id: "admin-tool-acl", label: "Tool ACL", href: "/admin/tools", icon: "shield", group: "admin" },
+  { id: "admin-tool-acl", label: "Tool ACL", href: "/admin/tool-acl", icon: "shield", group: "admin" },
+  { id: "admin-fleet", label: "Fleet", href: "/admin/fleet", icon: "monitoring", group: "admin" },
+  { id: "admin-companion", label: "Companion", href: "/admin/companion", icon: "users", group: "admin" },
+  { id: "admin-code-agent-ops", label: "Code-agent sessions", href: "/admin/code-agent", icon: "code", group: "admin" },
+  { id: "admin-typed-agents", label: "Typed agents", href: "/admin/typed-agents", icon: "apps", group: "admin" },
+  { id: "admin-kernel", label: "Kernel", href: "/admin/kernel", icon: "apps", group: "admin" },
+  { id: "admin-interfaces", label: "Interfaces", href: "/admin/interfaces", icon: "apps", group: "admin" },
+  { id: "admin-intent", label: "Intent schemas", href: "/admin/intent", icon: "apps", group: "admin" },
+  { id: "admin-tool-adapters", label: "Tool adapters", href: "/admin/tool-adapters", icon: "apps", group: "admin" },
+  { id: "admin-personas", label: "Personas", href: "/admin/personas", icon: "users", group: "admin" },
+  { id: "admin-workspace-ops", label: "Workspace ops", href: "/admin/workspace-ops", icon: "settings", group: "admin" },
   { id: "admin-network-egress", label: "Network egress", href: "/admin/network-egress", icon: "shield", group: "admin" },
   { id: "admin-isolation-audit", label: "Isolation audit", href: "/admin/isolation-audit", icon: "shield", group: "admin" },
   { id: "admin-upstream", label: "Hermes upstream", href: "/admin/upstream", icon: "monitoring", group: "admin" },
@@ -165,8 +187,14 @@ export const launcherCards: LauncherCard[] = [
   { id: "calendar", title: "Calendar", description: "Review schedules and deadlines.", href: "/calendar", icon: "calendar" },
   { id: "email", title: "Email", description: "Triage inbox threads with AI summaries.", href: "/email", icon: "email" },
   { id: "contacts", title: "Contacts", description: "Search people and sync address books.", href: "/contacts", icon: "contacts" },
+  { id: "crm", title: "CRM", description: "Workspace CRM: accounts, leads, contacts, deals, lists, and Soft Wall approvals.", href: "/crm", icon: "contacts" },
   { id: "playbook", title: "Playbook", description: "Scan hardware and manage local models.", href: "/data?tab=models", icon: "playbook" },
-  { id: "analytics", title: "Analytics", description: "Run verified Python analytics in an isolated session.", href: "/data?tab=analytics", icon: "compare" },
+  { id: "analytics", title: "Data analysis", description: "Run verified Python analytics in an isolated session.", href: "/data?tab=analytics", icon: "compare" },
+  { id: "aiva-analytics", title: "Analytics", description: "Workspace conversation metrics, outreach funnel, and escalations.", href: "/analytics", icon: "compare" },
+  { id: "outreach", title: "Outreach", description: "Sales engagement: Soft Wall sequences, pipeline, leads, replies, bookings, and Companies House ingest.", href: "/outreach", icon: "email" },
+  { id: "escalations", title: "Escalations", description: "Human VA queue for low-confidence agent turns.", href: "/escalations", icon: "shield" },
+  { id: "worker-kb", title: "Worker KB", description: "Per-worker FAQs and instructions for agent context.", href: "/workers/kb", icon: "memory" },
+  { id: "scout-ops", title: "Scout kill & sensors", description: "Operator kill switch and Scout sensor catalog.", href: "/admin/scout-ops", icon: "shield" },
   { id: "compare", title: "Compare Models", description: "Blind A/B model evaluation.", href: "/compare", icon: "compare" },
   { id: "usage", title: "LLM usage", description: "Monitor token consumption and estimated spend.", href: "/data?tab=usage", icon: "monitoring" },
   { id: "video-ingest", title: "Video ingest", description: "Create transcript and frame manifests from local or remote videos.", href: "/data?tab=video", icon: "image" },
@@ -241,11 +269,29 @@ export function navigationFromContract(contract: UiContract | null): {
   };
 }
 
+/** True when the current path (+ optional query) matches a nav href (supports /data?tab=...). */
+export function isNavHrefActive(pathname: string, search: string, href: string): boolean {
+  const path = (pathname.split("?")[0] || "/").replace(/\/$/, "") || "/";
+  const [hrefPathRaw, hrefQuery = ""] = href.split("?");
+  const hrefPath = (hrefPathRaw || "/").replace(/\/$/, "") || "/";
+  if (hrefQuery) {
+    if (path !== hrefPath) return false;
+    const want = new URLSearchParams(hrefQuery);
+    const have = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
+    for (const [key, value] of want.entries()) {
+      if (have.get(key) !== value) return false;
+    }
+    return true;
+  }
+  return path === hrefPath || path.startsWith(`${hrefPath}/`);
+}
+
 /** Best-effort label for the current pathname from static nav (longest href match wins). */
 export function labelForPath(pathname: string, items: NavItem[] = primaryNavigation): string {
-  const path = pathname.split("?")[0] || "/";
+  const [pathPart, query = ""] = pathname.split("?");
+  const path = pathPart || "/";
   const ranked = [...items]
-    .filter((item) => path === item.href || path.startsWith(`${item.href}/`))
+    .filter((item) => isNavHrefActive(path, query, item.href))
     .sort((a, b) => b.href.length - a.href.length);
   if (ranked[0]) return ranked[0].label;
   if (path === "/" || path === "") return "Home";

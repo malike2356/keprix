@@ -1,0 +1,39 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: keprix-sidecar
+  labels:
+    app.kubernetes.io/name: keprix-sidecar
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: keprix-sidecar
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow only from product namespaces / pods that need the sidecar.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: product-api
+      ports:
+        - protocol: TCP
+          port: 3360
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: UDP
+          port: 53
+    # Product southbound API (tighten to specific pods/CIDRs in production)
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/component: product-api
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 8099

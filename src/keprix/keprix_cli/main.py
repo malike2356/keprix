@@ -321,6 +321,7 @@ from keprix_cli.subcommands.channel_shield import (
     build_email_shield_parser,
 )
 from keprix_cli.subcommands.product import build_product_parser
+from keprix_cli.subcommands.sidecar import build_sidecar_parser
 from keprix_cli.subcommands.ops import build_ops_parser
 from keprix_cli.subcommands.incident import build_incident_parser
 from keprix_cli.subcommands.forensics import build_forensics_parser
@@ -345,6 +346,7 @@ from keprix_cli import upstream_commands
 from keprix_cli import scout_commands
 from keprix_cli import channel_shield_commands
 from keprix_cli import product_commands
+from keprix_cli import sidecar_commands
 from keprix_cli import ops_commands
 from keprix_cli import incident_commands
 from keprix_cli import forensics_commands
@@ -11949,6 +11951,11 @@ def main():
     build_product_parser(
         subparsers,
         cmd_product=product_commands.cmd_product,
+    )
+
+    build_sidecar_parser(
+        subparsers,
+        cmd_sidecar=sidecar_commands.cmd_sidecar,
     )
 
     build_ops_parser(

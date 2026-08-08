@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keprix-sidecar
+  labels:
+    app.kubernetes.io/name: keprix-sidecar
+    app.kubernetes.io/component: universal-sidecar
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: keprix-sidecar
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: keprix-sidecar
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        fsGroup: 10001
+      containers:
+        - name: sidecar
+          image: keprix-universal-sidecar:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3360
+          env:
+            - name: KEPRIX_UNIVERSAL_SIDECAR_HOST
+              value: "0.0.0.0"
+            - name: KEPRIX_UNIVERSAL_SIDECAR_PORT
+              value: "3360"
+            - name: KEPRIX_UNIVERSAL_SIDECAR_TOKEN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keprix-sidecar-secrets
+                  key: token-secret
+          readinessProbe:
+            httpGet:
+              path: /sidecar/v1/health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /sidecar/v1/health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]

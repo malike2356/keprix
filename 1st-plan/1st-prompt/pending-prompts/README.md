@@ -7,14 +7,9 @@ ready to build next.
 
 **Current execution order (parallel OK):**
 
-0. **Keprix Universal Sidecar public integration API** PENDING. Folder:
-   `keprix-universal-sidecar/`. Product-neutral configuration and pairing for any
-   self-hosted project; private sidecar port/profile, typed capability nodes,
-   allowlisted project API reads/actions, durable jobs/events, signed callbacks,
-   SSE, memory/retention, Python/TypeScript SDKs, starter kits, operator UI,
-   Docker/Kubernetes/air-gap deployment, conformance and public GitHub release.
-   Reuses `keprix-sidecar-foundation/` and the shared security contract; no second
-   runtime or unrestricted tool/HTTP proxy.
+0. ~~**Keprix Universal Sidecar public integration API**~~ COMPLETED 2026-08-08.
+   Archived at `../prompts-archive/keprix-universal-sidecar/`. Docs:
+   `docs/universal-sidecar/`. Contract `/sidecar/v1` (mounted :3333 / sidecar-only :3360).
 1. **Keprix product sidecar readiness** PENDING. Shared contract:
    `ref-keprix-product-sidecar-contract.md`. Shared foundation queue:
    `keprix-sidecar-foundation/` (pack registry, HTTP/node API, product connectors,
@@ -23,8 +18,9 @@ ready to build next.
    - `keprix-sidecar-carina-aiva/` (**516-531 / CAS**): COMPLETED 2026-08-08.
      Archived at `../prompts-archive/keprix-sidecar-carina-aiva/`. Sign-off
      `docs/architecture/carina-aiva-keprix-sidecar-signoff.md`.
-   - `keprix-sidecar-petraclus/`: authorised security targets, air-gap,
-     edition gates, findings, remediation proposals and reports.
+   - ~~`keprix-sidecar-petraclus/`~~ COMPLETED 2026-08-08. Archived at
+     `../prompts-archive/keprix-sidecar-petraclus/`. Sign-off
+     `docs/architecture/petraclus-keprix-sidecar-signoff.md`.
    - ~~`keprix-sidecar-abbis/`~~ COMPLETED 2026-08-08 (archived under `../prompts-archive/keprix-sidecar-abbis/`). Pack: `domain-packs/abbis/`. Sign-off: `docs/architecture/abbis-sidecar.md`.
      isolation, Ghana localisation, field channels and offline resilience.
    - ~~`keprix-sidecar-xeclone/`~~ COMPLETED 2026-08-08 (archived under

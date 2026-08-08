@@ -43,3 +43,9 @@ There is no paid bug bounty at this time. Security researchers are credited in
 
 - Contributor expectations: [docs/community/code-of-conduct.md](docs/community/code-of-conduct.md)
 - Contribution workflow: [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Universal Sidecar
+
+Security issues in the Universal Sidecar (`/sidecar/v1`, manifests,
+connectors, pairing) must use the private disclosure process above.
+See also [docs/universal-sidecar/security-policy.md](docs/universal-sidecar/security-policy.md).

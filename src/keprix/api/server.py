@@ -714,6 +714,12 @@ def create_app() -> FastAPI:
         app.include_router(product_sidecar_router)
     except Exception:
         pass
+    try:
+        from keprix.universal_sidecar.routes import router as universal_sidecar_router
+
+        app.include_router(universal_sidecar_router)
+    except Exception:
+        pass
     app.include_router(keprix_kill_router)
     try:
         from keprix.aiva_escalation.routes import router as aiva_escalation_router

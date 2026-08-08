@@ -1,0 +1,28 @@
+contract_version: "1.0.0"
+project_key: express_demo
+display_name: Express Starter
+deployment: local-dev
+environment: local
+base_url: http://127.0.0.1:8098
+auth:
+  profile: bearer
+  vault_ref: env:DEMO_TOKEN
+egress:
+  allow_loopback: true
+capabilities:
+  - node: summarise
+    version: "1.0.0"
+    scopes: [invoke:summarise]
+  - node: finish
+    version: "1.0.0"
+    scopes: [invoke:finish]
+memory:
+  mode: ephemeral
+connectors:
+  - key: order.get
+    method: GET
+    path: /api/orders/{id}
+    purpose: Fetch order for summarisation
+    mode: read
+    sensitivity: pii_minimised
+    grants: [connector:order.get]

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: keprix-sidecar
+  labels:
+    app.kubernetes.io/name: keprix-sidecar
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: keprix-sidecar
+  ports:
+    - name: http
+      port: 3360
+      targetPort: http
+      protocol: TCP

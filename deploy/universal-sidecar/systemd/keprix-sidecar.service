@@ -1,0 +1,24 @@
+[Unit]
+Description=Keprix Universal Sidecar
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=keprix
+Group=keprix
+WorkingDirectory=/opt/keprix
+Environment=KEPRIX_UNIVERSAL_SIDECAR_HOST=127.0.0.1
+Environment=KEPRIX_UNIVERSAL_SIDECAR_PORT=3360
+# EnvironmentFile=-/etc/keprix/sidecar.env
+ExecStart=/usr/bin/python3 -m keprix.universal_sidecar.app
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/keprix
+
+[Install]
+WantedBy=multi-user.target
