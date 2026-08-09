@@ -63,6 +63,12 @@ class ApplyBody(BaseModel):
     upsert_crm: bool = True
 
 
+class GoogleSheetImportBody(BaseModel):
+    spreadsheet_id: str
+    range_name: str = "Sheet1!A1:ZZ50000"
+    title: str = "Google Sheet"
+
+
 def _register_routes(r: APIRouter) -> None:
     @r.post("/upload", status_code=201)
     async def upload_sheet(
@@ -87,6 +93,35 @@ def _register_routes(r: APIRouter) -> None:
             raise HTTPException(
                 status_code=400,
                 detail={"error_code": "upload_rejected", "message": str(exc)},
+            ) from exc
+        return {"upload": meta, "correlation_id": _corr(request)}
+
+    @r.post("/import/google-sheet", status_code=201)
+    async def import_google_sheet(
+        body: GoogleSheetImportBody,
+        request: Request,
+        workspace_id: str | None = Query(default=None),
+        x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+        user: dict = Depends(get_current_user),
+    ) -> dict[str, Any]:
+        require_cap(user, "edit")
+        ws = _workspace(workspace_id, x_workspace_id, user)
+        try:
+            from keprix.integrations.google_workspace.bridge import GoogleWorkspaceBridge
+
+            result = GoogleWorkspaceBridge().sheets_read(body.spreadsheet_id, body.range_name)
+            values = result.get("values") or (result.get("result") or {}).get("values") or []
+            meta = sheet_service.save_google_sheet_values(
+                ws,
+                spreadsheet_id=body.spreadsheet_id,
+                values=values,
+                title=body.title,
+                actor_id=_uid(user),
+            )
+        except (ValueError, RuntimeError) as exc:
+            raise HTTPException(
+                status_code=400,
+                detail={"error_code": "google_sheet_import_failed", "message": str(exc)},
             ) from exc
         return {"upload": meta, "correlation_id": _corr(request)}
 
@@ -236,6 +271,7 @@ def _register_routes(r: APIRouter) -> None:
     @r.get("/{job_id}/download")
     async def download_enriched(
         job_id: str,
+        format: str = Query(default="xlsx", pattern="^(xlsx|csv)$"),
         workspace_id: str | None = Query(default=None),
         x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
         user: dict = Depends(get_current_user),
@@ -243,7 +279,7 @@ def _register_routes(r: APIRouter) -> None:
         require_cap(user, "export")
         ws = _workspace(workspace_id, x_workspace_id, user)
         try:
-            path = sheet_service.copy_output_for_download(ws, job_id)
+            path = sheet_service.copy_output_for_download(ws, job_id, output_format=format)
         except LookupError:
             raise HTTPException(status_code=404, detail={"error_code": "enrichment_not_found"})
         except FileNotFoundError:
@@ -253,8 +289,31 @@ def _register_routes(r: APIRouter) -> None:
         return FileResponse(
             path,
             filename=path.name,
-            media_type="text/csv",
+            media_type=(
+                "text/csv"
+                if format == "csv"
+                else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            ),
         )
+
+    @r.post("/{job_id}/publish/google-sheet")
+    async def publish_google_sheet(
+        job_id: str,
+        workspace_id: str | None = Query(default=None),
+        x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+        user: dict = Depends(get_current_user),
+    ) -> dict[str, Any]:
+        require_cap(user, "export")
+        ws = _workspace(workspace_id, x_workspace_id, user)
+        try:
+            return sheet_service.publish_output_to_google_sheet(ws, job_id)
+        except (LookupError, FileNotFoundError):
+            raise HTTPException(status_code=404, detail={"error_code": "output_not_found"})
+        except (ValueError, RuntimeError) as exc:
+            raise HTTPException(
+                status_code=400,
+                detail={"error_code": "google_sheet_export_failed", "message": str(exc)},
+            ) from exc
 
 
 _register_routes(router)

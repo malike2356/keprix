@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 import os
 import re
@@ -78,6 +79,41 @@ def save_upload(
         "actor_id": actor_id,
     }
     meta_path = dest.with_suffix(dest.suffix + ".meta.json")
+    meta_path.write_text(json.dumps(meta, default=str), encoding="utf-8")
+    return meta
+
+
+def save_google_sheet_values(
+    workspace_id: str,
+    *,
+    spreadsheet_id: str,
+    values: list[list[Any]],
+    title: str = "Google Sheet",
+    actor_id: str | None = None,
+) -> dict[str, Any]:
+    """Store Google Sheet values as the same canonical CSV used by file uploads."""
+    if not spreadsheet_id.strip():
+        raise ValueError("spreadsheet_id_required")
+    if not values:
+        raise ValueError("google_sheet_empty")
+    from io import StringIO
+
+    output = StringIO(newline="")
+    writer = csv.writer(output)
+    writer.writerows(values)
+    safe_title = Path(title or "Google Sheet").stem or "Google Sheet"
+    meta = save_upload(
+        workspace_id,
+        filename=f"{safe_title}.csv",
+        content=output.getvalue().encode("utf-8"),
+        actor_type="google_sheet",
+        actor_id=actor_id,
+    )
+    meta["source"] = {
+        "kind": "google_sheet",
+        "spreadsheet_id": spreadsheet_id,
+    }
+    meta_path = Path(meta["path"]).with_suffix(".csv.meta.json")
     meta_path.write_text(json.dumps(meta, default=str), encoding="utf-8")
     return meta
 
@@ -371,7 +407,7 @@ def apply_sheet_job(
     return public
 
 
-def copy_output_for_download(workspace_id: str, job_id: str) -> Path:
+def copy_output_for_download(workspace_id: str, job_id: str, *, output_format: str = "xlsx") -> Path:
     row = _store().get_enrichment_job(workspace_id, job_id)
     if not row:
         raise LookupError("enrichment_not_found")
@@ -384,7 +420,40 @@ def copy_output_for_download(workspace_id: str, job_id: str) -> Path:
         path.relative_to(root)
     except ValueError as exc:
         raise PermissionError("path_outside_workspace") from exc
-    return path
+    fmt = output_format.strip().lower()
+    if fmt == "csv":
+        return path
+    if fmt != "xlsx":
+        raise ValueError("unsupported_export_format")
+
+    destination = root / "outputs" / f"{job_id}_enriched.xlsx"
+    if not destination.is_file() or destination.stat().st_mtime < path.stat().st_mtime:
+        frame, _inspection = load_table_with_inspection(path)
+        from keprix.sheet_preprocess.processor import write_table
+
+        write_table(frame, destination)
+    return destination
+
+
+def publish_output_to_google_sheet(workspace_id: str, job_id: str) -> dict[str, Any]:
+    """Publish a completed canonical CSV through the configured Google Workspace bridge."""
+    path = copy_output_for_download(workspace_id, job_id, output_format="csv")
+    frame, _inspection = load_table_with_inspection(path)
+    values = [[str(column) for column in frame.columns]]
+    import pandas as pd
+
+    values.extend([["" if pd.isna(value) else value for value in row] for row in frame.itertuples(index=False, name=None)])
+    from keprix.integrations.google_workspace.bridge import GoogleWorkspaceBridge
+
+    result = GoogleWorkspaceBridge().call(
+        "gws_sheets_create",
+        {"title": f"Keprix enriched sheet {job_id[:8]}", "values": values},
+    )
+    return {
+        "spreadsheet_id": result.get("spreadsheet_id") or result.get("spreadsheetId"),
+        "spreadsheet_url": result.get("spreadsheet_url") or result.get("spreadsheetUrl"),
+        "result": result,
+    }
 
 
 def seed_upload_from_path(workspace_id: str, path: str | Path) -> dict[str, Any]:

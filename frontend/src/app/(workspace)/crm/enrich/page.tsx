@@ -20,6 +20,7 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import NextLink from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -34,6 +35,8 @@ import {
   type SheetEnrichJob,
   uploadCrmSheet,
   crmSheetDownloadUrl,
+  importCrmGoogleSheet,
+  publishCrmGoogleSheet,
 } from "@/lib/crm-api";
 import { CRM_WORKSPACE, type CrmApproval } from "@/components/crm/types";
 import CrmLicensedEnrichPanel from "@/components/crm/CrmLicensedEnrichPanel";
@@ -121,6 +124,7 @@ export default function CrmEnrichPage() {
 
   const [file, setFile] = React.useState<File | null>(null);
   const [uploadId, setUploadId] = React.useState<string | null>(null);
+  const [googleSheetId, setGoogleSheetId] = React.useState("");
   const [job, setJob] = React.useState<SheetEnrichJob | null>(null);
   const [columnMap, setColumnMap] = React.useState<ColumnMap>({});
   const [pendingApproval, setPendingApproval] = React.useState<CrmApproval | null>(null);
@@ -188,6 +192,41 @@ export default function CrmEnrichPage() {
       setMessage(`Uploaded ${uploaded.upload.filename}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onGoogleSheetImport = async () => {
+    if (!googleSheetId.trim()) {
+      setError("Enter a Google Sheet ID or URL first");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const match = googleSheetId.match(/\/spreadsheets\/d\/([^/]+)/);
+      const spreadsheetId = match?.[1] || googleSheetId.trim();
+      const imported = await importCrmGoogleSheet({ spreadsheet_id: spreadsheetId }, workspaceId);
+      setUploadId(imported.upload.upload_id);
+      setMessage(`Imported ${imported.upload.filename}; ready to convert and propose`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google Sheet import failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onPublishGoogleSheet = async () => {
+    if (!job?.id) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const published = await publishCrmGoogleSheet(String(job.id), workspaceId);
+      if (published.spreadsheet_url) window.open(published.spreadsheet_url, "_blank", "noopener,noreferrer");
+      setMessage("Google Sheet created in the connected account");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google Sheet export failed");
     } finally {
       setBusy(false);
     }
@@ -395,7 +434,8 @@ export default function CrmEnrichPage() {
             <Stack spacing={1.5}>
               <Typography variant="subtitle1">1. Upload spreadsheet</Typography>
               <Typography variant="body2" color="text.secondary">
-                CSV, TSV, or XLSX. After upload, run Propose to survey blank cells and draft a CRM upsert plan.
+                CSV, TSV, XLSX, or a connected Google Sheet. Keprix converts the selected worksheet to a canonical
+                table for processing, then offers Excel, Google Sheets, or CSV delivery.
               </Typography>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems={{ sm: "center" }}>
                 <Button variant="outlined" component="label" disabled={busy}>
@@ -420,6 +460,18 @@ export default function CrmEnrichPage() {
                   onClick={() => void onPropose()}
                 >
                   Propose
+                </Button>
+              </Stack>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} alignItems={{ sm: "center" }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Google Sheet URL or ID"
+                  value={googleSheetId}
+                  onChange={(event) => setGoogleSheetId(event.target.value)}
+                />
+                <Button variant="outlined" disabled={busy || !googleSheetId.trim()} onClick={() => void onGoogleSheetImport()}>
+                  Import Google Sheet
                 </Button>
               </Stack>
               {uploadId ? (
@@ -626,13 +678,17 @@ export default function CrmEnrichPage() {
                     Reject
                   </Button>
                   {job.status === "applied" && job.output_path ? (
-                    <Button
-                      component="a"
-                      href={crmSheetDownloadUrl(String(job.id), workspaceId)}
-                      variant="outlined"
-                    >
-                      Download enriched file
-                    </Button>
+                    <>
+                      <Button component="a" href={crmSheetDownloadUrl(String(job.id), "xlsx", workspaceId)} variant="outlined">
+                        Download Excel
+                      </Button>
+                      <Button component="a" href={crmSheetDownloadUrl(String(job.id), "csv", workspaceId)} variant="outlined">
+                        Download CSV
+                      </Button>
+                      <Button variant="outlined" disabled={busy} onClick={() => void onPublishGoogleSheet()}>
+                        Create Google Sheet
+                      </Button>
+                    </>
                   ) : null}
                 </Stack>
                 {pendingApproval ? (

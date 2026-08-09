@@ -117,7 +117,7 @@ def test_happy_path_upload_propose_soft_wall_apply_creates_leads(client: TestCli
 
     download = client.get(
         f"/api/crm/sheets/{job_id}/download",
-        params={"workspace_id": "ws1"},
+        params={"workspace_id": "ws1", "format": "csv"},
     )
     assert download.status_code == 200
     assert "Acme" in download.text or "company" in download.text.lower()
@@ -221,3 +221,92 @@ def test_agent_tools_registered_and_deep_link(tmp_path: Path, monkeypatch: pytes
     )
     assert blocked["blocked"] is True
     assert blocked["deep_link"] == f"/crm/enrich?job={job_id}"
+
+
+def test_applied_sheet_downloads_as_excel_or_csv(client: TestClient) -> None:
+    upload_id = _upload_leads(client, workspace_id="ws_export")
+    proposed = client.post(
+        "/api/crm/sheets/propose",
+        params={"workspace_id": "ws_export"},
+        json={"upload_id": upload_id},
+    )
+    job_id = proposed.json()["enrichment_job"]["id"]
+    applied = client.post(
+        f"/api/crm/sheets/{job_id}/apply",
+        params={"workspace_id": "ws_export"},
+        json={"force": True, "upsert_crm": False},
+    )
+    assert applied.status_code == 200, applied.text
+
+    excel = client.get(
+        f"/api/crm/sheets/{job_id}/download",
+        params={"workspace_id": "ws_export", "format": "xlsx"},
+    )
+    assert excel.status_code == 200
+    assert excel.headers["content-type"].startswith(
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    assert excel.content.startswith(b"PK")
+
+    csv_export = client.get(
+        f"/api/crm/sheets/{job_id}/download",
+        params={"workspace_id": "ws_export", "format": "csv"},
+    )
+    assert csv_export.status_code == 200
+    assert csv_export.headers["content-type"].startswith("text/csv")
+
+
+def test_google_sheet_import_uses_canonical_upload(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        "keprix.integrations.google_workspace.bridge.GoogleWorkspaceBridge.sheets_read",
+        lambda _self, _spreadsheet_id, _range_name: {
+            "values": [["company", "email"], ["Acme", "hello@acme.test"]]
+        },
+    )
+    response = client.post(
+        "/api/crm/sheets/import/google-sheet",
+        params={"workspace_id": "ws_google"},
+        json={"spreadsheet_id": "sheet-123", "title": "Lead tracker"},
+    )
+    assert response.status_code == 201, response.text
+    upload = response.json()["upload"]
+    assert upload["filename"] == "Lead tracker.csv"
+    assert upload["source"]["kind"] == "google_sheet"
+    assert Path(upload["path"]).read_text(encoding="utf-8").startswith("company,email")
+    metadata = Path(upload["path"] + ".meta.json").read_text(encoding="utf-8")
+    assert '"spreadsheet_id": "sheet-123"' in metadata
+
+
+def test_applied_sheet_can_publish_to_google_sheet(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    upload_id = _upload_leads(client, workspace_id="ws_publish")
+    proposed = client.post(
+        "/api/crm/sheets/propose",
+        params={"workspace_id": "ws_publish"},
+        json={"upload_id": upload_id},
+    )
+    job_id = proposed.json()["enrichment_job"]["id"]
+    applied = client.post(
+        f"/api/crm/sheets/{job_id}/apply",
+        params={"workspace_id": "ws_publish"},
+        json={"force": True, "upsert_crm": False},
+    )
+    assert applied.status_code == 200, applied.text
+
+    captured: dict = {}
+
+    def fake_call(_self, tool: str, args: dict) -> dict:
+        captured.update({"tool": tool, "args": args})
+        return {
+            "spreadsheet_id": "published-123",
+            "spreadsheet_url": "https://docs.google.com/spreadsheets/d/published-123",
+        }
+
+    monkeypatch.setattr("keprix.integrations.google_workspace.bridge.GoogleWorkspaceBridge.call", fake_call)
+    response = client.post(
+        f"/api/crm/sheets/{job_id}/publish/google-sheet",
+        params={"workspace_id": "ws_publish"},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["spreadsheet_id"] == "published-123"
+    assert captured["tool"] == "gws_sheets_create"
+    assert captured["args"]["values"][0]

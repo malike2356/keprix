@@ -591,6 +591,19 @@ export async function uploadCrmSheet(file: File, workspaceId = DEFAULT_WORKSPACE
   );
 }
 
+export async function importCrmGoogleSheet(
+  body: { spreadsheet_id: string; range_name?: string; title?: string },
+  workspaceId = DEFAULT_WORKSPACE,
+) {
+  return parseJson<{ upload: { upload_id: string; filename: string; path: string; size_bytes: number } }>(
+    await ceApi(`/api/crm/sheets/import/google-sheet${qs(workspaceParams(workspaceId))}`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+    "Failed to import Google Sheet",
+  );
+}
+
 export async function proposeCrmSheet(
   body: {
     upload_id?: string;
@@ -652,8 +665,17 @@ export async function applyCrmSheetJob(
   );
 }
 
-export function crmSheetDownloadUrl(jobId: string, workspaceId = DEFAULT_WORKSPACE) {
-  return `/api/crm/sheets/${encodeURIComponent(jobId)}/download${qs(workspaceParams(workspaceId))}`;
+export function crmSheetDownloadUrl(jobId: string, format: "xlsx" | "csv" = "xlsx", workspaceId = DEFAULT_WORKSPACE) {
+  return `/api/crm/sheets/${encodeURIComponent(jobId)}/download${qs({ ...workspaceParams(workspaceId), format })}`;
+}
+
+export async function publishCrmGoogleSheet(jobId: string, workspaceId = DEFAULT_WORKSPACE) {
+  return parseJson<{ spreadsheet_id?: string; spreadsheet_url?: string }>(
+    await ceApi(`/api/crm/sheets/${encodeURIComponent(jobId)}/publish/google-sheet${qs(workspaceParams(workspaceId))}`, {
+      method: "POST",
+    }),
+    "Failed to publish Google Sheet",
+  );
 }
 
 /* Funnel enroll / inbox / workflows (442-448) */
