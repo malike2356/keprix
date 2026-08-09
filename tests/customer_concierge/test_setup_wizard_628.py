@@ -12,6 +12,7 @@ from keprix.auth import dependencies as deps
 from keprix.customer_concierge.prompt_overlay import build_concierge_persona_overlay
 from keprix.customer_concierge.readiness import evaluate_readiness
 from keprix.customer_concierge.routes import public_router, router
+from keprix.customer_concierge.audience.store import reset_audience_store_for_tests
 from keprix.customer_concierge.store import reset_concierge_store_for_tests
 
 
@@ -22,6 +23,7 @@ def db_path(tmp_path: Path) -> Path:
 
 @pytest.fixture()
 def store(db_path: Path):
+    reset_audience_store_for_tests(db_path)
     return reset_concierge_store_for_tests(db_path)
 
 
@@ -29,6 +31,7 @@ def store(db_path: Path):
 def client(db_path: Path, monkeypatch):
     monkeypatch.setenv("KEPRIX_CONCIERGE_DB_PATH", str(db_path))
     reset_concierge_store_for_tests(db_path)
+    reset_audience_store_for_tests(db_path)
     app = FastAPI()
     app.include_router(router)
     app.include_router(public_router)

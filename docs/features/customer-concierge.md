@@ -29,8 +29,20 @@ When published, `build_concierge_persona_overlay` injects business name, descrip
 - Capability matrix: `docs/architecture/customer-concierge-capability-matrix.md`
 - Health API: `GET /api/customer-concierge/capability-health` (honest `not_configured`; `ready=false` until managed booking exists)
 
+## Audience principal (Prompt 630)
+
+External visitors use a durable `audience_session` principal (not a workspace member or API operator).
+
+- Package: `src/keprix/customer_concierge/audience/`
+- Public web session: `POST /api/customer-concierge/public/{workspaceId}/{personaId}/session`
+- Gateway channel session: `POST .../channel/session` (Telegram and peers)
+- Deny-by-default tool policy (`tool_policy.py`); shell, Vault, Brain, admin, billing blocked in code
+- Signed embed tokens + nonce replay prevention; optional origin allowlist
+- Operator privacy: `GET/DELETE /api/customer-concierge/audience/identities...`
+- Tests: `tests/customer_concierge/test_audience_principal_630.py`
+
 ## Related
 
 - Shared architecture: `/opt/lampp/htdocs/verlox/shared/workspace-governance/AIVA-KEPRIX-CUSTOMER-CONCIERGE-BOOKING.md`
 - Package: `src/keprix/customer_concierge/`
-- Later prompts harden audience principal (630), knowledge (631), Zoom saga (632), and inbox tabs (634)
+- Later prompts: knowledge (631), Zoom saga (632), inbox tabs (634)

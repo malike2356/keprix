@@ -8,6 +8,21 @@ from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query
 from pydantic import AliasChoices, BaseModel, Field
 
 from keprix.auth.dependencies import get_current_user
+from keprix.customer_concierge.audience.context import (
+    gate_tool_for_current_audience,
+    get_audience_context,
+)
+from keprix.customer_concierge.audience.embed import new_embed_nonce, sign_widget_embed_config
+from keprix.customer_concierge.audience.ingress import (
+    check_message_rate,
+    open_audience_session,
+    resume_audience_session,
+)
+from keprix.customer_concierge.audience.retrieval_guard import (
+    forbidden_storage_access,
+    sanitize_visitor_text,
+)
+from keprix.customer_concierge.audience.store import get_audience_store
 from keprix.customer_concierge.capability_health import evaluate_capability_health
 from keprix.customer_concierge.prompt_overlay import (
     build_concierge_persona_overlay,
@@ -16,11 +31,7 @@ from keprix.customer_concierge.prompt_overlay import (
 )
 from keprix.customer_concierge.readiness import evaluate_readiness
 from keprix.customer_concierge.store import get_concierge_store
-from keprix.customer_concierge.widget import (
-    gate_new_widget_session,
-    public_widget_embed,
-    public_widget_status,
-)
+from keprix.customer_concierge.widget import public_widget_embed, public_widget_status
 
 router = APIRouter(prefix="/api/customer-concierge", tags=["customer-concierge"])
 public_router = APIRouter(prefix="/api/customer-concierge/public", tags=["customer-concierge-public"])
@@ -237,6 +248,62 @@ async def preview(
     }
 
 
+@router.get("/audience/identities")
+async def list_audience_identities(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    rows = get_audience_store().list_identities(ws)
+    return {"workspaceId": ws, "identities": [r.to_dict() for r in rows]}
+
+
+@router.get("/audience/identities/{identity_id}/export")
+async def export_audience_identity(
+    identity_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    payload = get_audience_store().export_identity(ws, identity_id)
+    if not payload:
+        raise HTTPException(status_code=404, detail={"error_code": "identity_not_found"})
+    return {"ok": True, **payload}
+
+
+@router.delete("/audience/identities/{identity_id}")
+async def erase_audience_identity(
+    identity_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    result = get_audience_store().erase_identity(ws, identity_id)
+    return {"ok": True, **result}
+
+
+@router.post("/embed/sign")
+async def sign_embed(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    persona_id = str(body.get("personaId") or body.get("persona_id") or "default")
+    import time
+
+    nonce = new_embed_nonce()
+    exp = int(time.time() * 1000) + int(body.get("ttlMs") or 15 * 60 * 1000)
+    token = sign_widget_embed_config(
+        {"personaId": persona_id, "workspaceId": ws, "nonce": nonce, "exp": exp}
+    )
+    return {"ok": True, "token": token, "nonce": nonce, "exp": exp}
+
+
 @public_router.get("/{workspace_id}/{persona_id}/status")
 async def public_status(workspace_id: str, persona_id: str) -> dict[str, Any]:
     profile = get_concierge_store().get(workspace_id, persona_id)
@@ -249,27 +316,72 @@ async def public_open_session(
     persona_id: str,
     body: dict[str, Any] = Body(default_factory=dict),
 ) -> dict[str, Any]:
-    store = get_concierge_store()
-    profile = store.get(workspace_id, persona_id)
-    gate = gate_new_widget_session(profile)
-    if not gate["ok"]:
-        raise HTTPException(status_code=403, detail=gate)
-    assert profile is not None
-    try:
-        session = store.open_session(profile)
-    except PermissionError:
-        raise HTTPException(status_code=403, detail={"error_code": "concierge_unpublished"}) from None
+    result = open_audience_session(
+        workspace_id=workspace_id,
+        persona_id=persona_id,
+        channel=str(body.get("channel") or "web"),
+        external_key=body.get("externalKey") or body.get("external_key"),
+        origin=body.get("origin"),
+        locale=body.get("locale"),
+        display_name=body.get("displayName") or body.get("display_name"),
+        email=body.get("email"),
+        embed_token=body.get("embedToken") or body.get("embed_token"),
+        embed_nonce=body.get("nonce"),
+        consent_state=str(body.get("consentState") or "unknown"),
+    )
+    if not result.get("ok"):
+        raise HTTPException(status_code=403, detail=result)
     ensure_prompt_layer_registered()
     set_concierge_prompt_context(workspace_id, persona_id)
+    session = result["session"]
     return {
         "ok": True,
-        "sessionId": session.id,
-        "greeting": profile.greeting_message,
-        "personaName": profile.persona_name,
-        "businessName": profile.business_name,
-        # Visitor is never a workspace member
+        "sessionId": session["id"],
+        "widgetSessionToken": session.get("widgetSessionToken"),
+        "greeting": result.get("greeting"),
+        "personaName": result.get("personaName"),
+        "businessName": result.get("businessName"),
+        "principal": "audience_session",
+        "actorType": "audience",
+        "workspaceMember": False,
+        "channel": session.get("channel"),
+        "identityId": session.get("identityId"),
+    }
+
+
+@public_router.post("/{workspace_id}/{persona_id}/channel/session")
+async def public_channel_session(
+    workspace_id: str,
+    persona_id: str,
+    body: dict[str, Any] = Body(default_factory=dict),
+) -> dict[str, Any]:
+    """Gateway channel (Telegram/WhatsApp/email/SMS/voice) audience session."""
+    channel = str(body.get("channel") or "").strip().lower()
+    if channel in {"", "web"}:
+        raise HTTPException(status_code=400, detail={"error_code": "use_web_session_endpoint"})
+    result = open_audience_session(
+        workspace_id=workspace_id,
+        persona_id=persona_id,
+        channel=channel,
+        external_key=str(body.get("externalKey") or body.get("external_key") or ""),
+        display_name=body.get("displayName"),
+        email=body.get("email"),
+        locale=body.get("locale"),
+        consent_state=str(body.get("consentState") or "unknown"),
+    )
+    if not result.get("ok"):
+        raise HTTPException(status_code=403, detail=result)
+    ensure_prompt_layer_registered()
+    set_concierge_prompt_context(workspace_id, persona_id)
+    session = result["session"]
+    return {
+        "ok": True,
+        "sessionId": session["id"],
+        "channel": channel,
         "principal": "audience_session",
         "workspaceMember": False,
+        "greeting": result.get("greeting"),
+        "identityId": session.get("identityId"),
     }
 
 
@@ -280,24 +392,62 @@ async def public_session_message(
     session_id: str,
     body: dict[str, Any] = Body(default_factory=dict),
 ) -> dict[str, Any]:
-    store = get_concierge_store()
-    session = store.get_session(session_id)
-    if not session or session.workspace_id != workspace_id or session.persona_id != persona_id:
-        raise HTTPException(status_code=404, detail={"error_code": "session_not_found"})
-    if not store.allow_widget_message(session_id):
-        raise HTTPException(status_code=403, detail={"error_code": "session_closed"})
-    profile = store.get(workspace_id, persona_id)
+    resumed = resume_audience_session(
+        workspace_id=workspace_id,
+        persona_id=persona_id,
+        session_id=session_id,
+        widget_token=body.get("widgetSessionToken"),
+    )
+    if not resumed.get("ok"):
+        # Preserve unpublished existing conversations via legacy widget rows when present
+        legacy = get_concierge_store().get_session(session_id)
+        if not legacy or legacy.workspace_id != workspace_id or not get_concierge_store().allow_widget_message(
+            session_id
+        ):
+            raise HTTPException(status_code=403, detail=resumed)
+    else:
+        rate = check_message_rate(workspace_id, session_id)
+        if not rate.get("allowed"):
+            raise HTTPException(status_code=429, detail={"error_code": "rate_limited", **rate})
+
+    # Optional tool attempt from client/agent loop: deny-by-default
+    tool_name = str(body.get("tool") or body.get("toolName") or "").strip()
+    if tool_name:
+        if get_audience_context() is None:
+            raise HTTPException(
+                status_code=403,
+                detail={"error_code": "audience_context_required", "tool": tool_name},
+            )
+        gate = gate_tool_for_current_audience(tool_name)
+        if not gate.get("ok"):
+            raise HTTPException(status_code=403, detail=gate)
+
+    storage_target = str(body.get("storageTarget") or body.get("retrieve") or "")
+    if storage_target and forbidden_storage_access(storage_target, require_audience=False):
+        raise HTTPException(
+            status_code=403,
+            detail={"error_code": "private_storage_forbidden", "target": storage_target},
+        )
+
+    profile = get_concierge_store().get(workspace_id, persona_id)
     text = str(body.get("text") or "").strip()
-    # Echo greeting-aware stub; full agent loop lands in later prompts
+    sanitized = sanitize_visitor_text(text)
     reply = profile.greeting_message if not text else (
         f"Thanks for your message. A team member can help further via {profile.escalation_email}."
         if profile
         else "Thanks for your message."
     )
+    if sanitized["suspicious"]:
+        reply = (
+            "I can help with published business questions and bookings. "
+            "I cannot access private workspace tools or files."
+        )
     return {
         "ok": True,
         "sessionId": session_id,
         "reply": reply,
         "published": bool(profile and profile.published),
         "workspaceMember": False,
+        "principal": "audience_session",
+        "injectionSuspicious": sanitized["suspicious"],
     }

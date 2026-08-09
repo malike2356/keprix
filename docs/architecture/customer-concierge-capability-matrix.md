@@ -21,8 +21,8 @@ Honesty rule: URL templates, in-memory outboxes, and operator-auth support route
 | Microsoft calendar | MISSING | Not live |
 | Outbound delivery proof | MISSING | `vical/notifications.py` in-memory outbox |
 | External customer support | MISSING | `support/routes.py` operator-auth |
-| Audience session principal | MISSING | Prompt 630 |
-| Channel Shield web path | PARTIAL | Adapter exists; not fully wired to concierge embed |
+| Audience session principal | REAL | Prompt 630; `customer_concierge/audience/*` deny-by-default tools |
+| Channel Shield web path | PARTIAL | Embed HMAC + origin allowlist; gateway adapter still broader |
 | Carina runtime dependency | OUT_OF_SCOPE | Forbidden; static import scan |
 
 Conformance: `tests/customer_concierge/test_contract_conformance_629.py`.

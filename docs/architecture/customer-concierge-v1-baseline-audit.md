@@ -28,6 +28,7 @@ Tests assert these gap codes: `zoom_meeting_create`, `durable_notification_deliv
 | REUSABLE | `frontend/src/app/(workspace)/concierge/page.tsx` | Operator Setup area |
 | REUSABLE | `frontend/src/app/(embed)/concierge/[workspaceId]/[personaId]/page.tsx` | Publish-gated embed |
 | EXTENDED (629) | `src/keprix/customer_concierge/capability_health.py` | Honest provider readiness |
+| ADDED (630) | `src/keprix/customer_concierge/audience/*` | Durable audience principal, tool policy, embed HMAC, privacy |
 
 ### 2. Contract / models
 
@@ -111,7 +112,7 @@ Helper: `src/keprix/customer_concierge/scope.py`.
 
 | Prompt | Extends |
 | --- | --- |
-| 630 | Audience principal + tool policy |
+| 630 | Audience principal + tool policy (**COMPLETED**) |
 | 631 | Published knowledge + external support/handoff |
 | 632 | Booking saga + Zoom create |
 | 633 | Calendar invitations + reconciliation |
