@@ -68,6 +68,14 @@ See `document-vault-contract.md` owners table. One canonical vault service; adap
 | R3 | Leave migrated rows in place (no destructive reverse unless owner asks) |
 | R4 | Re-run read-only inventory; compare checksum report to pre-cutover baseline |
 | R5 | If writers ran incorrectly, restore from backup that includes metadata + blobs + mappings |
+| R6 | Emergency retract of programme ready claim: `KEPRIX_DOCUMENT_VAULT_READY=0` |
+
+## Programme close (Prompt 653)
+
+- `document_vault_ready` is true; CE offline smoke and conformance evidence are stored under `docs/architecture/evidence/document-vault-conformance-653.json`.
+- Dual-write stops when `ENABLED=1` and `CUTOVER=1` (`dual_write` is migrate and not cutover).
+- Legacy tables and routes remain for bounded rollback; obsolete source deletion waits for soak evidence, not this close alone.
+- Google live sync and Telegram delivery stay credential-gated; do not claim false-live.
 
 ## Read-only audit report
 

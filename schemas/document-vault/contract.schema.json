@@ -133,7 +133,7 @@
     },
     "document_vault_ready": {
       "type": "boolean",
-      "description": "True only after Prompt 653 programme close. Prompt 645 leaves this false."
+      "description": "True after Prompt 653 programme close. Runtime still requires KEPRIX_DOCUMENT_VAULT_ENABLED. Set KEPRIX_DOCUMENT_VAULT_READY=0 only for emergency retract."
     },
     "surfaces_inventoried": {
       "type": "array",

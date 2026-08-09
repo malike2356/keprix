@@ -1,7 +1,7 @@
-"""Document Vault contract conformance (Prompt 645).
+"""Document Vault contract conformance (Prompt 645/653).
 
 Locks shared behavioral contract alignment and proves no Carina runtime
-dependency. document_vault_ready stays false until Prompt 653.
+dependency. document_vault_ready is True after Prompt 653 programme close.
 """
 
 from __future__ import annotations
@@ -20,8 +20,6 @@ OWNERSHIP = ROOT / "docs/architecture/document-vault-ownership-and-migration.md"
 SCHEMA = ROOT / "schemas/document-vault/contract.schema.json"
 PKG = ROOT / "src/keprix/document_vault"
 
-DOCUMENT_VAULT_READY = False
-
 
 def test_shared_and_keprix_contract_docs_exist() -> None:
     assert SHARED.is_file()
@@ -39,13 +37,17 @@ def test_shared_and_keprix_contract_docs_exist() -> None:
 
 
 def test_schema_version_flags_and_readiness() -> None:
+    from keprix.document_vault import DOCUMENT_VAULT_READY
+    from keprix.document_vault.ready import document_vault_ready
+
     schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
     assert schema["properties"]["contract_version"]["const"] == "1.0.0"
     assert schema["properties"]["product"]["const"] == "keprix"
     assert schema["properties"]["carina_runtime_required"]["const"] is False
     flags = schema["properties"]["flags"]["properties"]
     assert flags["KEPRIX_DOCUMENT_VAULT_HOST_FS_BRIDGE"]["const"] is False
-    assert DOCUMENT_VAULT_READY is False
+    assert DOCUMENT_VAULT_READY is True
+    assert document_vault_ready() is True
     assert "document_vault_ready" in schema["properties"]
 
 
@@ -74,6 +76,7 @@ def test_package_declares_no_carina_runtime() -> None:
     assert document_vault.CARINA_RUNTIME_REQUIRED is False
     assert document_vault.PRODUCT == "keprix"
     assert document_vault.CONTRACT_VERSION == "1.0.0"
+    assert document_vault.DOCUMENT_VAULT_READY is True
 
 
 def test_document_vault_package_has_no_carina_imports() -> None:
@@ -100,7 +103,6 @@ def test_matrix_lists_build_order_and_host_fs_out_of_scope() -> None:
     assert "OUT_OF_SCOPE" in text
     assert "/api/fs" in text
     assert "document_vault" in text.lower() or "Document Vault" in text
-    # 646 closed canonical storage; programme ready flag still false until 653
     from keprix.document_vault.store import DocumentVaultStore
     from keprix.document_vault.service import DocumentVaultService
 
@@ -115,6 +117,16 @@ def test_flags_force_host_fs_bridge_off(monkeypatch: pytest.MonkeyPatch) -> None
     flags = load_flags()
     assert flags.host_fs_bridge is False
     assert flags.enabled is True
+    assert flags.ready is True
+
+
+def test_ready_emergency_rollback(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("KEPRIX_DOCUMENT_VAULT_READY", "0")
+    from keprix.document_vault.ready import document_vault_ready
+    from keprix.document_vault.flags import load_flags
+
+    assert document_vault_ready() is False
+    assert load_flags().ready is False
 
 
 def test_fs_adapter_never_routes_to_vault() -> None:

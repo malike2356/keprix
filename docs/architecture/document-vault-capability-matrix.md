@@ -57,7 +57,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | Vault Soft Wall agent policy | REAL | Rule of Two via CRM Soft Wall for delete/share/bulk/conflict/classified export (650) |
 | Channel / Telegram vault ops | REAL | Binding + `/vault` slash + import quarantine/dedup + attach/URL export (651) |
 | Search/RAG/security ops | REAL | Opt-in index policy + content citations + jobs/dead letters + backup drill (652) |
-| E2E package + deploy close | MISSING | Prompt 653 |
+| E2E package + deploy close | REAL | Prompt 653; `document_vault_ready` true; CE smoke + evidence JSON |
 
 ## Build order
 

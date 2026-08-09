@@ -27,7 +27,7 @@ ADAPTERS: tuple[AdapterSpec, ...] = (
         source="workspace.documents_pg|repository",
         target="document_vault.items",
         status="partial",
-        notes="Migrate via /api/document-vault/migrate; live dual-write when ENABLED+CUTOVER",
+        notes="Migrate via /api/document-vault/migrate; dual-write only while ENABLED and not CUTOVER; CUTOVER=1 stops dual-write",
     ),
     AdapterSpec(
         caller="/api/vault/files",
@@ -96,4 +96,10 @@ def adapter_routing_allowed(caller: str) -> dict[str, Any]:
             "legacy": True,
             "flags": flags.as_env_map(),
         }
-    return {"ok": True, "flags": flags.as_env_map()}
+    # Cutover: canonical vault is the only write path; dual-write stops.
+    return {
+        "ok": True,
+        "flags": flags.as_env_map(),
+        "cutover": bool(flags.cutover),
+        "dual_write": bool(flags.migrate and not flags.cutover),
+    }

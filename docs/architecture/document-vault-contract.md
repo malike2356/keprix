@@ -50,12 +50,15 @@ Required kinds: folder, rich_document, spreadsheet, presentation, markdown, html
 | --- | --- | --- |
 | `KEPRIX_DOCUMENT_VAULT_ENABLED` | `0` | Canonical service on |
 | `KEPRIX_DOCUMENT_VAULT_MIGRATE` | `0` | Allow migration writers (646+) |
-| `KEPRIX_DOCUMENT_VAULT_CUTOVER` | `0` | Retire adapters after evidence |
+| `KEPRIX_DOCUMENT_VAULT_CUTOVER` | `0` | Stop dual-write; callers use canonical only |
+| `KEPRIX_DOCUMENT_VAULT_GOOGLE_SYNC` | `0` | Optional Google Drive OAuth sync |
+| `KEPRIX_DOCUMENT_VAULT_CHANNEL_OPS` | follows ENABLED | Channel / Telegram vault ops |
+| `KEPRIX_DOCUMENT_VAULT_READY` | `1` (653) | Programme closed; set `0` only for emergency retract |
 | `KEPRIX_DOCUMENT_VAULT_HOST_FS_BRIDGE` | `0` (forced) | Never bridge host FS into vault |
 
 ## Readiness
 
-`document_vault_ready` stays **false** until Prompt 653. Prompt 645 only locks inventory, contract, flags, read-only audit, and conformance.
+`document_vault_ready` is **true** after Prompt 653 programme close. Runtime still requires `KEPRIX_DOCUMENT_VAULT_ENABLED=1`. Evidence: `docs/architecture/evidence/document-vault-conformance-653.json` and `python -m keprix.document_vault.conformance`.
 
 ## Error codes
 

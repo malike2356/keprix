@@ -74,7 +74,7 @@ def _duplicate_report(samples: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def _orphan_and_conflict_stubs() -> dict[str, Any]:
-    """Placeholders until 646 stores exist; keep report shape stable."""
+    """Orphan placeholders; live scans available via ops.repair when enabled."""
     return {
         "orphans": {
             "versions_without_parent": [],
@@ -82,7 +82,7 @@ def _orphan_and_conflict_stubs() -> dict[str, Any]:
             "index_entries_without_item": [],
         },
         "identifier_conflicts": [],
-        "note": "Canonical vault tables land in Prompt 646; orphans stay empty pre-migrate.",
+        "note": "Use POST /api/document-vault/ops/repair/orphans for live orphan repair (652).",
     }
 
 
@@ -147,8 +147,9 @@ def build_inventory_report(
             orphans["note"],
             "Admin host FS and credential vault are never migrate targets.",
             "KEPRIX_DOCUMENT_VAULT_HOST_FS_BRIDGE is always false.",
+            "Programme closed in Prompt 653; enable with KEPRIX_DOCUMENT_VAULT_ENABLED=1.",
         ],
-        "document_vault_ready": False,
+        "document_vault_ready": flags.ready,
     }
     # Integrity: never claim mutation in 645 inventory path.
     assert report["mutated"] is False

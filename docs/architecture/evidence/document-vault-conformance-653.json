@@ -1,0 +1,170 @@
+{
+  "contract_version": "1.0.0",
+  "product": "keprix",
+  "carina_runtime_required": false,
+  "document_vault_ready": true,
+  "generated_at": "2026-08-09T20:39:39+00:00",
+  "flags": {
+    "KEPRIX_DOCUMENT_VAULT_ENABLED": false,
+    "KEPRIX_DOCUMENT_VAULT_MIGRATE": false,
+    "KEPRIX_DOCUMENT_VAULT_CUTOVER": false,
+    "KEPRIX_DOCUMENT_VAULT_HOST_FS_BRIDGE": false,
+    "KEPRIX_DOCUMENT_VAULT_GOOGLE_SYNC": false,
+    "KEPRIX_DOCUMENT_VAULT_GOOGLE_SHARED_DRIVES": false,
+    "KEPRIX_DOCUMENT_VAULT_CHANNEL_OPS": false,
+    "KEPRIX_DOCUMENT_VAULT_READY": true
+  },
+  "ce_smoke": {
+    "ok": true,
+    "folder_id": "d9e70159-c5f7-4b27-8d6f-e7e57d4140f0",
+    "item_id": "6687718d-7bab-43d3-a0c1-343d845b46b1",
+    "indexed": "indexed",
+    "list_count": 1,
+    "trashed": true,
+    "restored": true,
+    "backup_verified": true,
+    "cross_tenant_leak": false,
+    "path": "/tmp/dv-ce-smoke-dlvdfr0s"
+  },
+  "matrix": [
+    {
+      "capability": "postgresql_server_mode",
+      "status": "REAL",
+      "evidence": "store.resolve_backend + Alembic 029-032; Contabo health",
+      "notes": "Uses KEPRIX_DATABASE_URL when available"
+    },
+    {
+      "capability": "community_edition_local_mode",
+      "status": "REAL",
+      "evidence": "run_ce_offline_smoke",
+      "notes": "/tmp/dv-ce-smoke-dlvdfr0s"
+    },
+    {
+      "capability": "web_explorer",
+      "status": "REAL",
+      "evidence": "frontend DocumentVaultExplorer; /documents + /files",
+      "notes": "Prompt 648"
+    },
+    {
+      "capability": "desktop_vault_tab",
+      "status": "REAL",
+      "evidence": "desktop right-sidebar Document Vault mode",
+      "notes": "Prompt 648"
+    },
+    {
+      "capability": "tui_vault",
+      "status": "REAL",
+      "evidence": "tui palette + /vault slash",
+      "notes": "Prompt 648"
+    },
+    {
+      "capability": "agent_chat_tools",
+      "status": "REAL",
+      "evidence": "document_vault_* tools + Soft Wall",
+      "notes": "Prompt 650; tests/document_vault/test_agent_tools_policy.py"
+    },
+    {
+      "capability": "cli_inventory",
+      "status": "REAL",
+      "evidence": "python -m keprix.document_vault.inventory",
+      "notes": "Prompt 645"
+    },
+    {
+      "capability": "telegram_channel",
+      "status": "REAL",
+      "evidence": "/vault slash + channel bindings",
+      "notes": "Prompt 651; credential-gated live Telegram MANUAL"
+    },
+    {
+      "capability": "local_storage",
+      "status": "REAL",
+      "evidence": "LocalStorageAdapter CE smoke",
+      "notes": ""
+    },
+    {
+      "capability": "conversions_pdf",
+      "status": "REAL",
+      "evidence": "formats/engines + test_formats.py",
+      "notes": "Prompt 647"
+    },
+    {
+      "capability": "search_rag",
+      "status": "REAL",
+      "evidence": "search package + test_search_rag_ops.py",
+      "notes": "Prompt 652; opt-in index_policy"
+    },
+    {
+      "capability": "approvals_soft_wall",
+      "status": "REAL",
+      "evidence": "soft_wall + agent tools tests",
+      "notes": "Prompt 650"
+    },
+    {
+      "capability": "google_outbound_sync",
+      "status": "REAL",
+      "evidence": "google reconciler + test_google_drive_sync.py",
+      "notes": "Live OAuth BLOCKED_OPTIONAL_CREDENTIALS without test account"
+    },
+    {
+      "capability": "google_server_notifications",
+      "status": "REAL",
+      "evidence": "google/watch + webhook route",
+      "notes": "Requires public HTTPS; local CE uses poll"
+    },
+    {
+      "capability": "google_local_polling",
+      "status": "REAL",
+      "evidence": "manual/scheduled reconcile same engine",
+      "notes": "Prompt 649"
+    },
+    {
+      "capability": "conflicts",
+      "status": "REAL",
+      "evidence": "preserve-both + conflict_resolve Soft Wall",
+      "notes": "Prompt 649/650"
+    },
+    {
+      "capability": "trash_restore",
+      "status": "REAL",
+      "evidence": "CE smoke + store tests",
+      "notes": ""
+    },
+    {
+      "capability": "tenant_isolation",
+      "status": "REAL",
+      "evidence": "CE smoke cross-workspace get_item",
+      "notes": ""
+    },
+    {
+      "capability": "backup_restore",
+      "status": "REAL",
+      "evidence": "ops/backup temp_backup_restore_roundtrip",
+      "notes": "Prompt 652"
+    },
+    {
+      "capability": "no_carina_runtime",
+      "status": "REAL",
+      "evidence": "document_vault package import scan",
+      "notes": "test_contract_conformance"
+    },
+    {
+      "capability": "host_fs_out_of_scope",
+      "status": "REAL",
+      "evidence": "adapter_routing_allowed /api/fs",
+      "notes": "Always forbidden"
+    }
+  ],
+  "summary": {
+    "total": 21,
+    "real": 21,
+    "failed": 0,
+    "green": true
+  },
+  "honesty": [
+    "Google live sync against a controlled test account is MANUAL / BLOCKED_OPTIONAL_CREDENTIALS when credentials are absent.",
+    "Telegram live message delivery is MANUAL without bot tokens.",
+    "Shared Drives remain gated false.",
+    "KEPRIX_DOCUMENT_VAULT_ENABLED defaults off; set 1 to activate runtime.",
+    "Bounded rollback: set ENABLED=0 and CUTOVER=0; READY=0 only to retract the ready claim."
+  ]
+}

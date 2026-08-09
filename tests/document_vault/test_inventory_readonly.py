@@ -14,7 +14,7 @@ def test_inventory_report_is_read_only_and_complete(tmp_path: Path) -> None:
     assert report["mutated"] is False
     assert report["dry_run"] is True
     assert report["carina_runtime_required"] is False
-    assert report["document_vault_ready"] is False
+    assert report["document_vault_ready"] is True
     assert report["surfaces"]["total"] >= 15
     assert report["surfaces"]["present"] == report["surfaces"]["total"]
     assert report["surfaces"]["missing"] == []
