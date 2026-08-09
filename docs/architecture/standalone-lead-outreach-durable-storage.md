@@ -46,4 +46,12 @@ Apply steps:
 
 ## Contabo / hosted note
 
-After deploying this revision, run Alembic upgrade through `028_crm_durable_storage` on the hosted database before enabling `KEPRIX_CRM_BACKEND=postgres` (or relying on `auto` outside pytest).
+Bootstrap (`ensure_crm_tables` / store open) runs `CREATE TABLE IF NOT EXISTS` for CRM and outreach TEXT schemas when Postgres is reachable. That is enough for runtime.
+
+Alembic `028_crm_durable_storage` remains the versioned migration. On hosts that never had `alembic_version` (tables created by older bootstraps), prefer:
+
+```bash
+docker exec keprix-backend sh -c 'cd /app && alembic stamp 028_crm_durable_storage'
+```
+
+Do not run `alembic upgrade head` from an empty version table on Contabo if older tables already exist; that can hit `DuplicateTableError` on historical revisions. Stamp after verifying CRM/outreach tables exist, or upgrade only on fresh databases.
