@@ -1,7 +1,6 @@
 "use client";
 
 import Box from "@mui/material/Box";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
@@ -67,10 +66,12 @@ export function OutreachTabNav() {
       >
         {TABS.map((tab) => {
           const selected = tab.id === value;
+          // Use a real <a> (same as CrmTabNav). MUI Box + next/link often
+          // fails to forward href / client-navigate in the workspace shell.
           return (
             <Box
               key={tab.id}
-              component={Link}
+              component="a"
               href={tab.href}
               aria-current={selected ? "page" : undefined}
               sx={{
@@ -88,6 +89,7 @@ export function OutreachTabNav() {
                 borderColor: selected ? "primary.main" : "transparent",
                 whiteSpace: "nowrap",
                 flex: "0 0 auto",
+                cursor: "pointer",
                 "&:hover": {
                   bgcolor: "action.hover",
                   borderColor: selected ? "primary.main" : "divider",
@@ -105,3 +107,4 @@ export function OutreachTabNav() {
 }
 
 export default OutreachTabNav;
+
