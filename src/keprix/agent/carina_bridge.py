@@ -235,6 +235,7 @@ class CarinaAgentBridge:
         scout: Any | None = None,
         worker_id: str | None = None,
         inject_worker_kb: bool = True,
+        product: str | None = None,
         confidence: float | None = None,
         force_escalate: bool = False,
         escalation_enabled: bool = True,
@@ -244,6 +245,7 @@ class CarinaAgentBridge:
 
         resolved_session = session_id or f"sess_{uuid.uuid4().hex[:12]}"
         scout_guard = scout if scout is not None else self.scout
+        product_key = str(product or "").strip().lower() or None
         registry = CarinaToolRegistry(
             native_dispatch=self.tool_registry._native_dispatch,
             http_client=self.tool_registry._http_client,
@@ -301,6 +303,7 @@ class CarinaAgentBridge:
                     registry=registry,
                     scout=scout_guard,
                     worker_id=worker_id,
+                    product=product_key,
                     confidence=confidence,
                     force_escalate=force_escalate,
                     escalation_enabled=escalation_enabled,
@@ -350,6 +353,7 @@ class CarinaAgentBridge:
         registry: CarinaToolRegistry,
         scout: Any | None = None,
         worker_id: str | None = None,
+        product: str | None = None,
         confidence: float | None = None,
         force_escalate: bool = False,
         escalation_enabled: bool = True,
@@ -459,6 +463,7 @@ class CarinaAgentBridge:
 
             conversation.append({"role": "assistant", "content": turn.content or ""})
             await self.session_store.save(workspace_id, session_id, _persistable_messages(conversation))
+            self._schedule_aiva_compaction(product, workspace_id, session_id)
 
             if scout is not None:
                 await scout.log_event(
@@ -491,6 +496,7 @@ class CarinaAgentBridge:
                 holding = str(escalation_meta.get("holding_message") or final_content)
                 conversation[-1] = {"role": "assistant", "content": holding}
                 await self.session_store.save(workspace_id, session_id, _persistable_messages(conversation))
+                self._schedule_aiva_compaction(product, workspace_id, session_id)
                 return {
                     "message": {
                         "role": "assistant",
@@ -523,6 +529,7 @@ class CarinaAgentBridge:
         # Hit max iterations while still producing tool calls: surface them.
         tool_calls = list(last_turn.tool_calls) if last_turn else []
         await self.session_store.save(workspace_id, session_id, _persistable_messages(conversation))
+        self._schedule_aiva_compaction(product, workspace_id, session_id)
         return {
             "message": {
                 "role": "assistant",
@@ -533,8 +540,36 @@ class CarinaAgentBridge:
             "finish_reason": "tool_calls" if tool_calls else "stop",
             "session_id": session_id,
             "usage": usage_total,
-            "error": "max_iterations",
-        }
+                "error": "max_iterations",
+            }
+
+    def _schedule_aiva_compaction(
+        self,
+        product: str | None,
+        workspace_id: str,
+        session_id: str,
+    ) -> None:
+        if str(product or "").strip().lower() != "aiva":
+            return
+
+        async def _run() -> None:
+            try:
+                from keprix.aiva.session_compaction import maybe_compact_session_store
+
+                await maybe_compact_session_store(self.session_store, workspace_id, session_id)
+            except Exception as exc:
+                logger.warning(
+                    "Aiva background compaction failed for %s/%s: %s",
+                    workspace_id,
+                    session_id,
+                    exc,
+                )
+
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return
+        loop.create_task(_run())
 
 
 def _default_native_dispatch(name: str, args: dict[str, Any]) -> Any:
@@ -751,10 +786,17 @@ def _normalize_message(msg: dict[str, Any]) -> dict[str, Any]:
 
 
 def _persistable_messages(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Drop leading system prompt from persisted session history."""
+    """Drop leading live system prompt from persisted session history.
+
+    Keep Aiva compaction summaries (system messages marked aiva_summary).
+    """
     out: list[dict[str, Any]] = []
     for msg in messages:
         if msg.get("role") == "system" and not out:
+            content = str(msg.get("content") or "")
+            if msg.get("aiva_summary") or content.startswith("[aiva-session-summary]"):
+                out.append(msg)
+                continue
             continue
         out.append(msg)
     return out

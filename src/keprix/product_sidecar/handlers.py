@@ -57,8 +57,11 @@ async def handle_agent_run(ctx: RequestContext, payload: dict[str, Any]) -> dict
 
     model = str(payload.get("model") or "deepseek-v4-pro")
     route = None
+    system_prompt = str(payload.get("system_prompt") or "")
+    inject_worker_kb = payload.get("inject_worker_kb", True) is not False
     if ctx.product == "aiva":
         from keprix.aiva.model_routing import resolve_aiva_model
+        from keprix.aiva.system_prompt import build_aiva_system_prompt
 
         route = resolve_aiva_model(
             workspace_id=ctx.workspace_id,
@@ -75,6 +78,40 @@ async def handle_agent_run(ctx: RequestContext, payload: dict[str, Any]) -> dict
         )
         model = route.model_id
 
+        # Replace fat Carina/engineering system prompts with the lean Aiva persona.
+        caller_prompt = system_prompt.strip()
+        domain_knowledge = str(payload.get("domain_knowledge") or "").strip()
+        if caller_prompt and len(caller_prompt) < 2500 and "verlox monorepo" not in caller_prompt.lower():
+            # Short caller text is treated as extra domain knowledge, not a full system prompt.
+            if not domain_knowledge:
+                domain_knowledge = caller_prompt
+        overrides = payload.get("aiva_workspace_overrides") or payload.get("workspace_overrides") or {}
+        if not isinstance(overrides, dict):
+            overrides = {}
+        system_prompt = build_aiva_system_prompt(
+            aiva_name=(str(payload["aiva_name"]).strip() if payload.get("aiva_name") else None),
+            user_name=(str(payload["user_name"]).strip() if payload.get("user_name") else None),
+            tone=(str(payload["tone"]).strip() if payload.get("tone") else None),
+            domain=(str(payload.get("aiva_domain") or payload.get("domain") or "").strip() or None),
+            tools=payload.get("tools") or payload.get("carina_tools") or [],
+            memory_injection=(
+                str(payload["memory_injection"]).strip() if payload.get("memory_injection") else None
+            ),
+            calendar_today=(
+                str(payload["calendar_today"]).strip() if payload.get("calendar_today") else None
+            ),
+            recent_emails_summary=(
+                str(payload["recent_emails_summary"]).strip()
+                if payload.get("recent_emails_summary")
+                else None
+            ),
+            domain_knowledge=domain_knowledge or None,
+            workspace_overrides=overrides,
+        )
+        # Worker KB can re-inflate the prompt; Aiva lean path opts out unless asked.
+        if "inject_worker_kb" not in payload:
+            inject_worker_kb = False
+
     bridge = CarinaAgentBridge()
     started = time.perf_counter()
     result = await bridge.run(
@@ -82,13 +119,14 @@ async def handle_agent_run(ctx: RequestContext, payload: dict[str, Any]) -> dict
         session_id=payload.get("session_id") or ctx.session_id,
         model=model,
         temperature=float(payload.get("temperature", 0.7)),
-        system_prompt=str(payload.get("system_prompt") or ""),
+        system_prompt=system_prompt,
         messages=payload.get("messages") or [],
         tools=payload.get("tools") or [],
         carina_tools=payload.get("carina_tools") or [],
         scout=get_aiva_scout_guard(),
         worker_id=(str(payload["worker_id"]).strip() if payload.get("worker_id") else None),
-        inject_worker_kb=payload.get("inject_worker_kb", True) is not False,
+        inject_worker_kb=inject_worker_kb,
+        product=ctx.product,
         confidence=(
             float(payload["confidence"])
             if payload.get("confidence") is not None and str(payload.get("confidence")).strip() != ""
