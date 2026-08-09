@@ -50,6 +50,7 @@ def _lead_from_body(body: dict[str, Any]) -> dict[str, Any]:
         "company": body.get("company"),
         "phone": body.get("phone"),
         "source": body.get("source") or "manual",
+        "source_url": body.get("source_url"),
         "tags": body.get("tags"),
         "notes": body.get("notes"),
     }

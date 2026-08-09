@@ -22,6 +22,8 @@ export type OutreachLead = {
   phone?: string | null;
   company?: string | null;
   source?: string | null;
+  source_url?: string | null;
+  sourceUrl?: string | null;
   campaign_id?: string | null;
   campaignId?: string | null;
   status: string;

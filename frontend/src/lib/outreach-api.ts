@@ -115,6 +115,7 @@ export async function createOutreachLead(
     company?: string;
     phone?: string;
     source?: string;
+    source_url?: string;
     campaign_id?: string;
     tags?: string[];
   },
