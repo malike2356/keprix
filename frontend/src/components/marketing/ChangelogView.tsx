@@ -243,11 +243,11 @@ export function ChangelogView({ releases }: ChangelogViewProps) {
                           minWidth: 0,
                           borderRadius: 2.5,
                           border: `1px solid ${release.isUnreleased ? alpha(c.warning, 0.25) : isLatest ? alpha(c.primary, 0.35) : alpha(c.divider, 0.4)}`,
-                          bgcolor: "rgba(10,10,22,0.72)",
+                          bgcolor: alpha(c.bgPaper, isDark ? 0.72 : 0.96),
                           backdropFilter: "blur(20px)",
                           boxShadow: isLatest
-                            ? `0 8px 40px rgba(0,0,0,0.45), 0 0 0 1px ${alpha(c.primary, 0.12)}`
-                            : "0 4px 24px rgba(0,0,0,0.35)",
+                            ? `0 8px 40px ${alpha(c.textPrimary, isDark ? 0.18 : 0.08)}, 0 0 0 1px ${alpha(c.primary, 0.12)}`
+                            : `0 4px 24px ${alpha(c.textPrimary, isDark ? 0.14 : 0.06)}`,
                           overflow: "hidden",
                           position: "relative",
                         }}
@@ -260,7 +260,7 @@ export function ChangelogView({ releases }: ChangelogViewProps) {
                             left: 0,
                             right: 0,
                             height: "40%",
-                            background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%)",
+                            background: `linear-gradient(180deg, ${alpha(c.textPrimary, isDark ? 0.04 : 0.025)} 0%, transparent 100%)`,
                             pointerEvents: "none",
                           }}
                         />

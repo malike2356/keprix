@@ -180,6 +180,45 @@ export function createKeprixTheme(mode: ThemeMode = "dark", paletteOverride?: Ke
           }),
         },
       },
+      MuiDialog: {
+        styleOverrides: {
+          paper: ({ theme }) => ({
+            backgroundImage: "none",
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+            border: `1px solid ${theme.palette.divider}`,
+          }),
+        },
+      },
+      MuiPopover: {
+        styleOverrides: {
+          paper: ({ theme }) => ({
+            backgroundImage: "none",
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+            border: `1px solid ${theme.palette.divider}`,
+          }),
+        },
+      },
+      MuiMenu: {
+        styleOverrides: {
+          paper: ({ theme }) => ({
+            backgroundImage: "none",
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+          }),
+        },
+      },
+      MuiAccordion: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            backgroundImage: "none",
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+            borderColor: theme.palette.divider,
+          }),
+        },
+      },
       MuiCard: {
         styleOverrides: {
           root: ({ theme }) => ({

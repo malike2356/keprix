@@ -55,11 +55,11 @@ export default function ConciergeEmbedPage() {
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", p: 2, bgcolor: "#f7f7f5" }}>
+    <Box sx={{ minHeight: "100vh", p: 2, bgcolor: "background.default", color: "text.primary" }}>
       <Stack spacing={1} maxWidth={420} mx="auto">
         <Typography variant="h6">Customer Concierge</Typography>
         {!published && error ? <Typography color="error">{error}</Typography> : null}
-        <Box sx={{ border: "1px solid #ddd", borderRadius: 1, p: 2, minHeight: 320, bgcolor: "#fff" }}>
+        <Box sx={{ border: 1, borderColor: "divider", borderRadius: 1, p: 2, minHeight: 320, bgcolor: "background.paper" }}>
           {messages.map((m, i) => (
             <Typography key={`${m.role}-${i}`} variant="body2" sx={{ mb: 1 }}>
               <strong>{m.role === "visitor" ? "You" : "Concierge"}:</strong> {m.text}

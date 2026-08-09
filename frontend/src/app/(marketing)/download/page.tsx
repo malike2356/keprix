@@ -42,7 +42,7 @@ export default function DownloadPage() {
         <section aria-labelledby="source-install" style={{ marginTop: 40 }}>
           <h2 id="source-install">Stable native packages are not published yet</h2>
           <p>No unverified or placeholder installer is offered. You can use the reviewed source path now:</p>
-          <pre style={{ overflowX: "auto", padding: 16, background: "#111827", color: "#f9fafb" }}>
+          <pre style={{ overflowX: "auto", padding: 16, background: "var(--kp-bg-paper)", color: "var(--kp-text-primary)", border: "1px solid var(--kp-border)", borderRadius: 8 }}>
             <code>git clone https://github.com/malike2356/keprix.git{`\n`}cd keprix{`\n`}bash scripts/install.sh</code>
           </pre>
         </section>
@@ -51,7 +51,7 @@ export default function DownloadPage() {
           <h2 id="verified-downloads">Verified release {manifest.version}</h2>
           <div style={{ display: "grid", gap: 16 }}>
             {artifacts.map((artifact) => (
-              <article key={artifact.id} style={{ border: "1px solid #d1d5db", borderRadius: 12, padding: 20 }}>
+              <article key={artifact.id} style={{ border: "1px solid var(--kp-border)", background: "var(--kp-bg-paper)", color: "var(--kp-text-primary)", borderRadius: 12, padding: 20 }}>
                 <h3>{artifact.platform} {artifact.architecture}</h3>
                 <p>{artifact.filename} ({sizeLabel(artifact.size)})</p>
                 <p><code>SHA256 {artifact.sha256}</code></p>

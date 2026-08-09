@@ -64,6 +64,8 @@ const QUICK_LINKS = [
 
 function CopyButton({ code }: { code: string }) {
   const [copied, setCopied] = React.useState(false);
+  const { mode } = useThemeMode();
+  const c = getMarketingColors(mode);
   return (
     <Box
       component="button"
@@ -77,17 +79,17 @@ function CopyButton({ code }: { code: string }) {
         position: "absolute",
         top: 14,
         right: 14,
-        bgcolor: "rgba(255,255,255,0.06)",
-        border: "1px solid rgba(255,255,255,0.1)",
+        bgcolor: alpha(c.textPrimary, 0.06),
+        border: `1px solid ${alpha(c.divider, 0.8)}`,
         borderRadius: 1,
         p: 0.75,
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "rgba(255,255,255,0.55)",
+        color: c.textSecondary,
         transition: "all 0.15s",
-        "&:hover": { bgcolor: "rgba(255,255,255,0.1)", color: "#fff" },
+        "&:hover": { bgcolor: alpha(c.textPrimary, 0.1), color: c.textPrimary },
       }}
     >
       {copied ? <CheckIcon sx={{ fontSize: 16, color: "#10B981" }} /> : <ContentCopyIcon sx={{ fontSize: 16 }} />}
@@ -151,12 +153,12 @@ export default function DocsPage() {
               py: 0.6,
               mb: 3,
               borderRadius: 5,
-              border: "1px solid rgba(108,92,231,0.3)",
-              bgcolor: "rgba(108,92,231,0.08)",
+              border: `1px solid ${alpha(c.primary, 0.3)}`,
+              bgcolor: alpha(c.primary, 0.08),
             }}
           >
             <Box sx={{ width: 6, height: 6, borderRadius: "50%", bgcolor: "#10B981", boxShadow: "0 0 8px #10B981" }} />
-            <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: "#6c5ce7", letterSpacing: "0.06em" }}>
+            <Typography sx={{ fontSize: "0.75rem", fontWeight: 700, color: c.primary, letterSpacing: "0.06em" }}>
               Keprix - Open Source Docs
             </Typography>
           </Box>
@@ -169,7 +171,7 @@ export default function DocsPage() {
               letterSpacing: "-0.04em",
               lineHeight: 1.05,
               mb: 2.5,
-              background: "linear-gradient(140deg, #ededf8 20%, rgba(108,92,231,0.85) 70%, #6495ed 100%)",
+              background: `linear-gradient(140deg, ${c.textPrimary} 20%, ${alpha(c.primary, 0.85)} 70%, ${c.secondary} 100%)`,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
@@ -182,7 +184,7 @@ export default function DocsPage() {
 
           <Typography
             sx={{
-              color: "#8888a8",
+              color: c.textSecondary,
               fontSize: { xs: "1rem", md: "1.2rem" },
               lineHeight: 1.7,
               maxWidth: 520,
@@ -207,9 +209,9 @@ export default function DocsPage() {
                 fontWeight: 700,
                 px: 4,
                 borderRadius: "9999px",
-                background: "linear-gradient(135deg, #6c5ce7 0%, #6495ed 100%)",
-                boxShadow: "0 4px 28px rgba(108,92,231,0.45)",
-                "&:hover": { boxShadow: "0 6px 36px rgba(108,92,231,0.6)" },
+                background: `linear-gradient(135deg, ${c.primary} 0%, ${c.secondary} 100%)`,
+                boxShadow: `0 4px 28px ${alpha(c.primary, 0.45)}`,
+                "&:hover": { boxShadow: `0 6px 36px ${alpha(c.primary, 0.6)}` },
               }}
             >
               Get started
@@ -226,9 +228,9 @@ export default function DocsPage() {
                 fontWeight: 600,
                 px: 4,
                 borderRadius: "9999px",
-                borderColor: "rgba(255,255,255,0.12)",
-                color: "#8888a8",
-                "&:hover": { borderColor: "rgba(108,92,231,0.5)", color: "#ededf8", bgcolor: "rgba(108,92,231,0.06)" },
+                borderColor: c.divider,
+                color: c.textSecondary,
+                "&:hover": { borderColor: alpha(c.primary, 0.5), color: c.textPrimary, bgcolor: alpha(c.primary, 0.06) },
               }}
             >
               API explorer
@@ -245,9 +247,9 @@ export default function DocsPage() {
                 fontWeight: 600,
                 px: 3.5,
                 borderRadius: "9999px",
-                borderColor: "rgba(255,255,255,0.08)",
-                color: "#8888a8",
-                "&:hover": { borderColor: "rgba(255,255,255,0.2)", color: "#ededf8", bgcolor: "rgba(255,255,255,0.04)" },
+                borderColor: c.divider,
+                color: c.textSecondary,
+                "&:hover": { borderColor: alpha(c.textPrimary, 0.2), color: c.textPrimary, bgcolor: alpha(c.textPrimary, 0.04) },
               }}
             >
               Edit on GitHub
@@ -278,17 +280,17 @@ export default function DocsPage() {
                   px: 2,
                   py: 0.6,
                   borderRadius: 5,
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  bgcolor: "rgba(255,255,255,0.03)",
-                  color: "#8888a8",
+                  border: `1px solid ${c.divider}`,
+                  bgcolor: alpha(c.textPrimary, 0.03),
+                  color: c.textSecondary,
                   fontSize: "0.8rem",
                   fontWeight: 500,
                   textDecoration: "none",
                   transition: "all 0.15s",
                   "&:hover": {
-                    borderColor: "rgba(108,92,231,0.3)",
-                    color: "#ededf8",
-                    bgcolor: "rgba(108,92,231,0.08)",
+                    borderColor: alpha(c.primary, 0.3),
+                    color: c.textPrimary,
+                    bgcolor: alpha(c.primary, 0.08),
                   },
                 }}
               >
@@ -303,7 +305,7 @@ export default function DocsPage() {
       <Container maxWidth="lg" sx={{ pb: { xs: 10, md: 14 } }}>
 
         {/* Divider */}
-        <Box sx={{ height: 1, bgcolor: "rgba(255,255,255,0.05)", mb: 8 }} />
+        <Box sx={{ height: 1, bgcolor: c.divider, mb: 8 }} />
 
         <Typography
           sx={{
@@ -340,24 +342,24 @@ export default function DocsPage() {
                     height: "100%",
                     textDecoration: "none",
                     borderRadius: 2.5,
-                    border: "1px solid rgba(255,255,255,0.07)",
-                    bgcolor: "rgba(10,10,22,0.65)",
+                    border: `1px solid ${c.divider}`,
+                    bgcolor: alpha(c.bgPaper, isDark ? 0.65 : 0.96),
                     backdropFilter: "blur(16px)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 20px rgba(0,0,0,0.3)",
+                    boxShadow: `inset 0 1px 0 ${alpha(c.textPrimary, 0.05)}, 0 4px 20px ${alpha(c.textPrimary, isDark ? 0.14 : 0.05)}`,
                     p: 3,
                     position: "relative",
                     overflow: "hidden",
                     transition: "border-color 0.22s, box-shadow 0.22s, transform 0.22s",
                     "&:hover": {
                       borderColor: alpha(meta.color, 0.35),
-                      boxShadow: `0 8px 36px rgba(0,0,0,0.4), 0 0 0 1px ${alpha(meta.color, 0.12)}, inset 0 1px 0 rgba(255,255,255,0.08)`,
+                      boxShadow: `0 8px 36px ${alpha(c.textPrimary, isDark ? 0.18 : 0.07)}, 0 0 0 1px ${alpha(meta.color, 0.12)}, inset 0 1px 0 ${alpha(c.textPrimary, 0.08)}`,
                       transform: "translateY(-2px)",
                       "& .section-arrow": { opacity: 1, transform: "translateX(2px)" },
                     },
                   }}
                 >
                   {/* Specular */}
-                  <Box aria-hidden sx={{ position: "absolute", top: 0, left: 0, right: 0, height: "45%", background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%)", pointerEvents: "none", borderRadius: "10px 10px 0 0" }} />
+                  <Box aria-hidden sx={{ position: "absolute", top: 0, left: 0, right: 0, height: "45%", background: `linear-gradient(180deg, ${alpha(c.textPrimary, 0.04)} 0%, transparent 100%)`, pointerEvents: "none", borderRadius: "10px 10px 0 0" }} />
 
                   {/* Icon */}
                   <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", mb: 2.5 }}>
@@ -383,8 +385,8 @@ export default function DocsPage() {
                         px: 1.25,
                         py: 0.4,
                         borderRadius: 5,
-                        border: "1px solid rgba(255,255,255,0.07)",
-                        bgcolor: "rgba(255,255,255,0.04)",
+                        border: `1px solid ${c.divider}`,
+                        bgcolor: alpha(c.textPrimary, 0.04),
                       }}
                     >
                       <Typography sx={{ fontSize: "0.72rem", fontWeight: 600, color: alpha(c.textSecondary, 0.6) }}>
@@ -451,13 +453,13 @@ export default function DocsPage() {
         </Grid>
 
         {/* Install strip */}
-        <Box sx={{ mt: 8, height: 1, bgcolor: "rgba(255,255,255,0.05)", mb: 8 }} />
+        <Box sx={{ mt: 8, height: 1, bgcolor: c.divider, mb: 8 }} />
 
         <Box
           sx={{
             borderRadius: 3,
             overflow: "hidden",
-            border: "1px solid rgba(255,255,255,0.07)",
+            border: `1px solid ${c.divider}`,
             display: { xs: "block", lg: "grid" },
             gridTemplateColumns: "1fr 1fr",
           }}
@@ -466,12 +468,12 @@ export default function DocsPage() {
           <Box
             sx={{
               p: { xs: 4, md: 5 },
-              bgcolor: "rgba(8,8,20,0.8)",
+              bgcolor: alpha(c.bgPaper, isDark ? 0.8 : 0.98),
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
-              borderRight: { lg: "1px solid rgba(255,255,255,0.07)" },
-              borderBottom: { xs: "1px solid rgba(255,255,255,0.07)", lg: "none" },
+              borderRight: { lg: `1px solid ${c.divider}` },
+              borderBottom: { xs: `1px solid ${c.divider}`, lg: "none" },
               position: "relative",
               overflow: "hidden",
             }}
@@ -479,7 +481,7 @@ export default function DocsPage() {
             <Box aria-hidden sx={{ position: "absolute", top: -80, left: -80, width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(108,92,231,0.1) 0%, transparent 70%)", filter: "blur(32px)", pointerEvents: "none" }} />
             <Typography
               component="p"
-              sx={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#6c5ce7", mb: 1.5 }}
+              sx={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: c.primary, mb: 1.5 }}
             >
               Deploy
             </Typography>
@@ -491,7 +493,7 @@ export default function DocsPage() {
                 letterSpacing: "-0.03em",
                 lineHeight: 1.2,
                 mb: 1.5,
-                background: "linear-gradient(140deg, #ededf8 30%, rgba(108,92,231,0.85) 100%)",
+                background: `linear-gradient(140deg, ${c.textPrimary} 30%, ${alpha(c.primary, 0.85)} 100%)`,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -500,7 +502,7 @@ export default function DocsPage() {
             >
               Up and running in five minutes.
             </Typography>
-            <Typography sx={{ color: "#8888a8", fontSize: "0.9rem", lineHeight: 1.7, mb: 3, position: "relative" }}>
+            <Typography sx={{ color: c.textSecondary, fontSize: "0.9rem", lineHeight: 1.7, mb: 3, position: "relative" }}>
               Three commands, Docker required. MIT licensed. No account.
             </Typography>
             <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", position: "relative" }}>
@@ -512,9 +514,9 @@ export default function DocsPage() {
                   fontWeight: 700,
                   px: 3,
                   borderRadius: "9999px",
-                  background: "linear-gradient(135deg, #6c5ce7 0%, #6495ed 100%)",
-                  boxShadow: "0 4px 20px rgba(108,92,231,0.4)",
-                  "&:hover": { boxShadow: "0 6px 28px rgba(108,92,231,0.55)" },
+                  background: `linear-gradient(135deg, ${c.primary} 0%, ${c.secondary} 100%)`,
+                  boxShadow: `0 4px 20px ${alpha(c.primary, 0.4)}`,
+                  "&:hover": { boxShadow: `0 6px 28px ${alpha(c.primary, 0.55)}` },
                 }}
               >
                 Deploy instance
@@ -529,9 +531,9 @@ export default function DocsPage() {
                   fontWeight: 600,
                   px: 3,
                   borderRadius: "9999px",
-                  borderColor: "rgba(255,255,255,0.12)",
-                  color: "#8888a8",
-                  "&:hover": { borderColor: "rgba(108,92,231,0.4)", color: "#ededf8", bgcolor: "rgba(108,92,231,0.06)" },
+                  borderColor: c.divider,
+                  color: c.textSecondary,
+                  "&:hover": { borderColor: alpha(c.primary, 0.4), color: c.textPrimary, bgcolor: alpha(c.primary, 0.06) },
                 }}
               >
                 Read quickstart
@@ -543,12 +545,12 @@ export default function DocsPage() {
           <Box
             sx={{
               p: { xs: 3, md: 4 },
-              bgcolor: "#06060e",
+              bgcolor: isDark ? c.bgDefault : c.bgCard,
               position: "relative",
               fontFamily: "monospace",
             }}
           >
-            <Typography sx={{ fontSize: "0.72rem", color: alpha("#8888a8", 0.6), mb: 2, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            <Typography sx={{ fontSize: "0.72rem", color: alpha(c.textSecondary, 0.6), mb: 2, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
               Quick install
             </Typography>
             <Box
@@ -557,7 +559,7 @@ export default function DocsPage() {
                 m: 0,
                 fontFamily: "monospace",
                 fontSize: "0.78rem",
-                color: "#c9d1d9",
+                color: c.textPrimary,
                 overflow: "auto",
                 whiteSpace: "pre-wrap",
                 lineHeight: 2,

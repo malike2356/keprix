@@ -164,7 +164,7 @@ export function CTABand() {
                 fontWeight: 600,
                 px: 4,
                 borderRadius: "9999px",
-                borderColor: "rgba(255,255,255,0.12)",
+                borderColor: c.divider,
                 color: c.textSecondary,
                 "&:hover": {
                   borderColor: alpha(c.primary, 0.5),

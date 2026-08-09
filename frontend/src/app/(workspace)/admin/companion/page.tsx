@@ -150,7 +150,10 @@ export default function CompanionAdminPage() {
                 alt="Companion pairing QR"
                 width={180}
                 height={180}
-                style={{ borderRadius: 8, background: "#fff" }}
+                style={{
+                  borderRadius: 8,
+                  background: "#fff", // theme-surface-ok: QR quiet zone required for reliable scanning.
+                }}
               />
             ) : null}
             <Box>
