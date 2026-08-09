@@ -18,7 +18,7 @@
 
 | Root | Branch | SHA | Notes |
 | --- | --- | --- | --- |
-| keprix/ | main | fill-at-ship | Contabo rsync mirror must match push |
+| keprix/ | main | 94515be | Contabo rsync mirror matched push |
 
 ## Proof commands (local)
 

@@ -23,14 +23,16 @@
     "docs/operations/customer-concierge-release-manifest.md"
   ],
   "publicHealth": {
-    "app.keprixai.com": "pending_ship",
-    "api.health": "pending_ship",
-    "keprixai.com": "pending_ship",
-    "carinaai.uk": "pending_ship"
+    "app.keprixai.com": 200,
+    "api.health": 200,
+    "keprixai.com": 200,
+    "carinaai.uk": 200,
+    "recordedAt": "2026-08-09T23:00:00Z"
   },
   "honesty": [
     "No fake success when providers disconnected",
     "ICS and static URL remain labelled unmanaged fallbacks",
     "Host start URLs never in public payloads"
-  ]
+  ],
+  "gitSha": "94515be"
 }
