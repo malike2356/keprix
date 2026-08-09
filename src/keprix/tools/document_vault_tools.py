@@ -147,9 +147,21 @@ def document_vault_search(args: dict[str, Any], **kwargs: Any) -> str:
         q = str(args.get("q") or args.get("query") or "").strip()
         if not q:
             return _err("q is required")
+        mode = str(args.get("mode") or "metadata").strip().lower()
+        if mode in {"content", "rag"}:
+            from keprix.document_vault.search.retriever import content_search
+
+            result = content_search(
+                _store(),
+                ctx.workspace_id,
+                q,
+                limit=int(args.get("limit") or 20),
+                grants=ctx.grants or None,
+            )
+            return _ok(result)
         result = _store().search(ctx.workspace_id, q, limit=int(args.get("limit") or 50))
         items = [_compact_item(row) for row in result.get("items") or []]
-        return _ok({"ok": True, "q": q, "items": items, "count": len(items)})
+        return _ok({"ok": True, "q": q, "items": items, "count": len(items), "mode": "metadata"})
     except Exception as exc:
         return _fail(exc)
 
@@ -763,9 +775,9 @@ _register(
 )
 _register(
     "document_vault_search",
-    "Search Document Vault by name/content metadata query.",
+    "Search Document Vault by metadata or content (mode=metadata|content) with revision citations.",
     document_vault_search,
-    {"q": {"type": "string"}, "limit": {"type": "integer"}},
+    {"q": {"type": "string"}, "limit": {"type": "integer"}, "mode": {"type": "string"}},
     ["q"],
 )
 _register(

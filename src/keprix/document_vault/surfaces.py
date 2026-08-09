@@ -194,11 +194,11 @@ SURFACES: tuple[Surface, ...] = (
         "Document cache; vault import via gateway/vault + channel package (651)",
     ),
     Surface(
-        "document_vault_channel",
-        "gateway",
-        "src/keprix/document_vault/channel",
+        "document_vault_search_ops",
+        "tools",
+        "src/keprix/document_vault/search",
         True,
         False,
-        "Trusted bindings, quarantine import, /vault slash, delivery tokens (651)",
+        "Opt-in content index + citations + ops diagnostics (652)",
     ),
 )

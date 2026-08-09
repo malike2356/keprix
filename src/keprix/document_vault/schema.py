@@ -75,6 +75,11 @@ CREATE TABLE IF NOT EXISTS document_vault_jobs (
     payload_json TEXT NOT NULL DEFAULT '{}',
     result_json TEXT NOT NULL DEFAULT '{}',
     error TEXT,
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    max_retries INTEGER NOT NULL DEFAULT 3,
+    dead_letter_reason TEXT,
+    claimed_by TEXT,
+    claimed_at TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
     UNIQUE(workspace_id, idempotency_key)
@@ -189,6 +194,38 @@ CREATE TABLE IF NOT EXISTS document_vault_delivery_tokens (
 
 CREATE INDEX IF NOT EXISTS ix_dv_delivery_tokens_hash
     ON document_vault_delivery_tokens(token_hash);
+
+CREATE TABLE IF NOT EXISTS document_vault_index_entries (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    item_id TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    source_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    chunk_count INTEGER NOT NULL DEFAULT 0,
+    content_checksum TEXT,
+    indexed_at TEXT,
+    error TEXT,
+    UNIQUE(workspace_id, item_id, revision)
+);
+
+CREATE INDEX IF NOT EXISTS ix_dv_index_ws_item
+    ON document_vault_index_entries(workspace_id, item_id);
+CREATE INDEX IF NOT EXISTS ix_dv_index_ws_status
+    ON document_vault_index_entries(workspace_id, status);
+
+CREATE TABLE IF NOT EXISTS document_vault_index_chunks (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    item_id TEXT NOT NULL,
+    revision INTEGER NOT NULL,
+    chunk_index INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    UNIQUE(workspace_id, item_id, revision, chunk_index)
+);
+
+CREATE INDEX IF NOT EXISTS ix_dv_chunks_ws_item
+    ON document_vault_index_chunks(workspace_id, item_id);
 """
 
 # Postgres uses the same TEXT schema (CRM-style) so domain SQL stays portable.

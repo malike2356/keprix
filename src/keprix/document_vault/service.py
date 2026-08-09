@@ -90,7 +90,7 @@ class DocumentVaultService:
         next_rev = int(item.get("current_revision") or 0) + 1
         locator = build_locator(workspace_id=workspace_id, item_id=item_id, revision=next_rev)
         self.storage.put(locator, data)
-        return self.store.update_item(
+        updated = self.store.update_item(
             workspace_id,
             item_id,
             expected_revision=expected_revision,
@@ -101,6 +101,13 @@ class DocumentVaultService:
             change_summary=change_summary or "write",
             actor_id=actor_id,
         )
+        try:
+            from keprix.document_vault.search.hooks import on_item_written
+
+            on_item_written(self.store, workspace_id, updated)
+        except Exception:
+            pass
+        return updated
 
     def append_text(
         self,

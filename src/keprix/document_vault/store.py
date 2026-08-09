@@ -107,7 +107,27 @@ class DocumentVaultStore:
                     self._execute(stmt)
             else:
                 self._conn.executescript(SQLITE_SCHEMA)
+            self._ensure_job_lifecycle_columns()
             self._commit()
+
+    def _ensure_job_lifecycle_columns(self) -> None:
+        try:
+            cols = {str(r[1]) for r in self._execute("PRAGMA table_info(document_vault_jobs)").fetchall()}
+        except Exception:
+            return
+        alters = (
+            ("retry_count", "INTEGER NOT NULL DEFAULT 0"),
+            ("max_retries", "INTEGER NOT NULL DEFAULT 3"),
+            ("dead_letter_reason", "TEXT"),
+            ("claimed_by", "TEXT"),
+            ("claimed_at", "TEXT"),
+        )
+        for name, ddl in alters:
+            if name not in cols:
+                try:
+                    self._execute(f"ALTER TABLE document_vault_jobs ADD COLUMN {name} {ddl}")
+                except Exception:
+                    pass
 
     def close(self) -> None:
         with self._lock:
@@ -530,7 +550,14 @@ class DocumentVaultStore:
                 payload={"count": len(targets)},
             )
             self._commit()
-        return self.get_item(workspace_id, item_id, include_trashed=True)  # type: ignore[return-value]
+        result = self.get_item(workspace_id, item_id, include_trashed=True)
+        try:
+            from keprix.document_vault.search.hooks import on_item_trashed_or_deleted
+
+            on_item_trashed_or_deleted(self, workspace_id, item_id, reason="trash")
+        except Exception:
+            pass
+        return result  # type: ignore[return-value]
 
     def restore(self, workspace_id: str, item_id: str, *, actor_id: str | None = None) -> dict[str, Any]:
         with self._lock:
@@ -561,7 +588,14 @@ class DocumentVaultStore:
                 payload={"parent_id": parent_id},
             )
             self._commit()
-        return self.get_item(workspace_id, item_id)  # type: ignore[return-value]
+        restored = self.get_item(workspace_id, item_id)
+        try:
+            from keprix.document_vault.search.hooks import on_item_restored
+
+            on_item_restored(self, workspace_id, restored)
+        except Exception:
+            pass
+        return restored  # type: ignore[return-value]
 
     def permanent_delete(self, workspace_id: str, item_id: str, *, actor_id: str | None = None) -> dict[str, Any]:
         with self._lock:
@@ -590,6 +624,13 @@ class DocumentVaultStore:
                 payload={},
             )
             self._commit()
+        try:
+            from keprix.document_vault.search.hooks import on_item_trashed_or_deleted
+
+            on_item_trashed_or_deleted(self, workspace_id, item_id, reason="permanent_delete")
+            self.delete_index_for_item(workspace_id, item_id)
+        except Exception:
+            pass
         return {"ok": True, "item_id": item_id}
 
     def list_revisions(self, workspace_id: str, item_id: str) -> list[dict[str, Any]]:
@@ -1255,6 +1296,282 @@ class DocumentVaultStore:
             out = dict(row)
             out["consumed_at"] = now
             return out
+
+    # ── Search index + job lifecycle (Prompt 652) ───────────────────
+
+    def upsert_index_entry(
+        self,
+        workspace_id: str,
+        *,
+        item_id: str,
+        revision: int,
+        source_id: str,
+        status: str,
+        chunk_count: int = 0,
+        content_checksum: str | None = None,
+        error: str | None = None,
+    ) -> dict[str, Any]:
+        now = _utcnow()
+        with self._lock:
+            existing = self._fetchone(
+                """
+                SELECT * FROM document_vault_index_entries
+                WHERE workspace_id = ? AND item_id = ? AND revision = ?
+                """,
+                (workspace_id, item_id, revision),
+            )
+            if existing:
+                self._execute(
+                    """
+                    UPDATE document_vault_index_entries SET
+                        source_id = ?, status = ?, chunk_count = ?,
+                        content_checksum = ?, indexed_at = ?, error = ?
+                    WHERE workspace_id = ? AND item_id = ? AND revision = ?
+                    """,
+                    (
+                        source_id,
+                        status,
+                        chunk_count,
+                        content_checksum,
+                        now if status == "indexed" else existing.get("indexed_at"),
+                        error,
+                        workspace_id,
+                        item_id,
+                        revision,
+                    ),
+                )
+            else:
+                self._execute(
+                    """
+                    INSERT INTO document_vault_index_entries (
+                        id, workspace_id, item_id, revision, source_id, status,
+                        chunk_count, content_checksum, indexed_at, error
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(uuid.uuid4()),
+                        workspace_id,
+                        item_id,
+                        revision,
+                        source_id,
+                        status,
+                        chunk_count,
+                        content_checksum,
+                        now if status == "indexed" else None,
+                        error,
+                    ),
+                )
+            self._commit()
+            row = self._fetchone(
+                """
+                SELECT * FROM document_vault_index_entries
+                WHERE workspace_id = ? AND item_id = ? AND revision = ?
+                """,
+                (workspace_id, item_id, revision),
+            )
+        return dict(row or {})
+
+    def replace_index_chunks(
+        self,
+        workspace_id: str,
+        item_id: str,
+        revision: int,
+        chunks: list[str],
+    ) -> int:
+        with self._lock:
+            self._execute(
+                """
+                DELETE FROM document_vault_index_chunks
+                WHERE workspace_id = ? AND item_id = ?
+                """,
+                (workspace_id, item_id),
+            )
+            for idx, text in enumerate(chunks):
+                self._execute(
+                    """
+                    INSERT INTO document_vault_index_chunks (
+                        id, workspace_id, item_id, revision, chunk_index, text
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (str(uuid.uuid4()), workspace_id, item_id, revision, idx, text),
+                )
+            self._commit()
+        return len(chunks)
+
+    def delete_index_for_item(self, workspace_id: str, item_id: str) -> int:
+        with self._lock:
+            cur1 = self._execute(
+                "DELETE FROM document_vault_index_chunks WHERE workspace_id = ? AND item_id = ?",
+                (workspace_id, item_id),
+            )
+            cur2 = self._execute(
+                "DELETE FROM document_vault_index_entries WHERE workspace_id = ? AND item_id = ?",
+                (workspace_id, item_id),
+            )
+            self._commit()
+        return int(getattr(cur1, "rowcount", 0) or 0) + int(getattr(cur2, "rowcount", 0) or 0)
+
+    def list_index_entries(self, workspace_id: str) -> list[dict[str, Any]]:
+        with self._lock:
+            return self._fetchall(
+                """
+                SELECT * FROM document_vault_index_entries
+                WHERE workspace_id = ?
+                ORDER BY indexed_at DESC
+                """,
+                (workspace_id,),
+            )
+
+    def search_index_chunks(
+        self,
+        workspace_id: str,
+        query: str,
+        *,
+        limit: int = 50,
+    ) -> list[dict[str, Any]]:
+        like = f"%{query}%"
+        with self._lock:
+            rows = self._fetchall(
+                """
+                SELECT *, 1.0 AS score FROM document_vault_index_chunks
+                WHERE workspace_id = ? AND text LIKE ?
+                ORDER BY chunk_index ASC
+                LIMIT ?
+                """,
+                (workspace_id, like, max(1, min(limit * 5, 500))),
+            )
+        return rows
+
+    def scan_orphan_index_entries(self, workspace_id: str) -> list[dict[str, Any]]:
+        with self._lock:
+            return self._fetchall(
+                """
+                SELECT e.* FROM document_vault_index_entries e
+                LEFT JOIN document_vault_items i
+                  ON i.workspace_id = e.workspace_id AND i.id = e.item_id
+                WHERE e.workspace_id = ? AND i.id IS NULL
+                """,
+                (workspace_id,),
+            )
+
+    def claim_job(self, workspace_id: str, *, worker_id: str = "worker") -> dict[str, Any] | None:
+        now = _utcnow()
+        with self._lock:
+            row = self._fetchone(
+                """
+                SELECT * FROM document_vault_jobs
+                WHERE workspace_id = ? AND status = 'queued'
+                ORDER BY created_at ASC
+                LIMIT 1
+                """,
+                (workspace_id,),
+            )
+            if not row:
+                return None
+            self._execute(
+                """
+                UPDATE document_vault_jobs
+                SET status = 'running', claimed_by = ?, claimed_at = ?, updated_at = ?
+                WHERE id = ? AND status = 'queued'
+                """,
+                (worker_id, now, now, row["id"]),
+            )
+            self._commit()
+            refreshed = self._fetchone("SELECT * FROM document_vault_jobs WHERE id = ?", (row["id"],))
+        out = dict(refreshed or row)
+        out["payload"] = _json_loads(out.get("payload_json"), {})
+        return out
+
+    def complete_job(
+        self,
+        workspace_id: str,
+        job_id: str,
+        *,
+        result: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        now = _utcnow()
+        with self._lock:
+            self._execute(
+                """
+                UPDATE document_vault_jobs
+                SET status = 'completed', result_json = ?, error = NULL,
+                    dead_letter_reason = NULL, updated_at = ?
+                WHERE id = ? AND workspace_id = ?
+                """,
+                (_json_dumps(result or {}), now, job_id, workspace_id),
+            )
+            self._commit()
+            row = self._fetchone(
+                "SELECT * FROM document_vault_jobs WHERE id = ? AND workspace_id = ?",
+                (job_id, workspace_id),
+            )
+        return dict(row) if row else None
+
+    def fail_job(self, workspace_id: str, job_id: str, *, reason: str) -> dict[str, Any] | None:
+        now = _utcnow()
+        with self._lock:
+            row = self._fetchone(
+                "SELECT * FROM document_vault_jobs WHERE id = ? AND workspace_id = ?",
+                (job_id, workspace_id),
+            )
+            if not row:
+                return None
+            retries = int(row.get("retry_count") or 0) + 1
+            max_retries = int(row.get("max_retries") or 3)
+            if retries >= max_retries:
+                status = "dead_letter"
+                dead = reason
+            else:
+                status = "queued"
+                dead = None
+            self._execute(
+                """
+                UPDATE document_vault_jobs
+                SET status = ?, retry_count = ?, error = ?, dead_letter_reason = ?,
+                    claimed_by = NULL, claimed_at = NULL, updated_at = ?
+                WHERE id = ? AND workspace_id = ?
+                """,
+                (status, retries, reason, dead, now, job_id, workspace_id),
+            )
+            self._commit()
+            refreshed = self._fetchone(
+                "SELECT * FROM document_vault_jobs WHERE id = ? AND workspace_id = ?",
+                (job_id, workspace_id),
+            )
+        return dict(refreshed) if refreshed else None
+
+    def retry_job(self, workspace_id: str, job_id: str) -> dict[str, Any] | None:
+        now = _utcnow()
+        with self._lock:
+            row = self._fetchone(
+                "SELECT * FROM document_vault_jobs WHERE id = ? AND workspace_id = ?",
+                (job_id, workspace_id),
+            )
+            if not row or str(row.get("status")) not in {"dead_letter", "failed"}:
+                return None
+            self._execute(
+                """
+                UPDATE document_vault_jobs
+                SET status = 'queued', dead_letter_reason = NULL, error = NULL,
+                    claimed_by = NULL, claimed_at = NULL, updated_at = ?
+                WHERE id = ? AND workspace_id = ?
+                """,
+                (now, job_id, workspace_id),
+            )
+            self._commit()
+            refreshed = self._fetchone(
+                "SELECT * FROM document_vault_jobs WHERE id = ? AND workspace_id = ?",
+                (job_id, workspace_id),
+            )
+        return dict(refreshed) if refreshed else None
+
+    def get_job(self, workspace_id: str, job_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._fetchone(
+                "SELECT * FROM document_vault_jobs WHERE id = ? AND workspace_id = ?",
+                (job_id, workspace_id),
+            )
+        return dict(row) if row else None
 
 
 def _split_sql(script: str) -> list[str]:

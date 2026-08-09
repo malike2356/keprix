@@ -95,7 +95,7 @@ def bind_channel_identity(
         channel_user_id=user_key,
         actor_id=str(actor_id or user_key),
         audience=audience or "private",
-        grants=grants or ["vault.read", "vault.write"],
+        grants=grants or ["vault.read", "vault.write", "vault.search", "vault.export"],
         status="active",
     )
 

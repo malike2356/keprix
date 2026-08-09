@@ -56,7 +56,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | Document Vault agent tools | REAL | `document_vault_*` toolset; trusted session context (650) |
 | Vault Soft Wall agent policy | REAL | Rule of Two via CRM Soft Wall for delete/share/bulk/conflict/classified export (650) |
 | Channel / Telegram vault ops | REAL | Binding + `/vault` slash + import quarantine/dedup + attach/URL export (651) |
-| Search/RAG/security ops | PARTIAL | Existing indexes; 652 consolidates |
+| Search/RAG/security ops | REAL | Opt-in index policy + content citations + jobs/dead letters + backup drill (652) |
 | E2E package + deploy close | MISSING | Prompt 653 |
 
 ## Build order
@@ -70,7 +70,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | 649 | Google Drive OAuth sync and push; **COMPLETED** |
 | 650 | Agent tools, policy, approvals; **COMPLETED** |
 | 651 | Channel and Telegram vault operations; **COMPLETED** |
-| 652 | Search, RAG, security, operations |
+| 652 | Search, RAG, security, operations; **COMPLETED** |
 | 653 | E2E, packaging, docs, deploy; flip `document_vault_ready` |
 
 ## Community Edition constraints

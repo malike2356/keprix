@@ -683,3 +683,109 @@ def revoke_channel_binding_route(
     _ = user
     row = revoke_channel_binding(platform, channel_user_id)
     return {"ok": True, "binding": row}
+
+
+@router.get("/search")
+def content_or_metadata_search(
+    q: str = Query(...),
+    mode: str = Query(default="metadata"),
+    limit: int = Query(default=20, ge=1, le=100),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    if not load_flags().enabled:
+        raise HTTPException(status_code=503, detail={"error_code": "not_configured"})
+    if mode in {"content", "rag"}:
+        from keprix.document_vault.search.retriever import content_search
+
+        return content_search(_store(), ws, q, limit=limit, grants=None)
+    result = _store().search(ws, q, limit=limit)
+    return {"ok": True, "mode": "metadata", "q": q, **result}
+
+
+@router.post("/items/{item_id}/reindex")
+def reindex_item_route(
+    item_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.document_vault.ops.repair import reindex_item
+
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return reindex_item(ws, item_id, store=_store(), service=_svc())
+
+
+@router.get("/ops/diagnostics")
+def ops_diagnostics(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.document_vault.ops.diagnostics import build_diagnostics
+
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return build_diagnostics(ws, store=_store())
+
+
+@router.post("/ops/jobs/{job_id}/retry")
+def ops_retry_job(
+    job_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.document_vault.ops.jobs import retry_job
+
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    try:
+        return {"ok": True, "job": retry_job(_store(), ws, job_id)}
+    except VaultError as exc:
+        _raise(exc)
+        raise
+
+
+@router.post("/ops/jobs/drain")
+def ops_drain_jobs(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.document_vault.ops.jobs import drain_jobs
+
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    results = drain_jobs(ws, limit=int(body.get("limit") or 20), store=_store(), service=_svc())
+    return {"ok": True, "results": results, "count": len(results)}
+
+
+@router.post("/ops/repair/orphans")
+def ops_repair_orphans(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.document_vault.ops.repair import repair_orphan_index_entries
+
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    dry_run = body.get("dry_run", True)
+    return repair_orphan_index_entries(ws, dry_run=bool(dry_run), store=_store())
+
+
+@router.post("/ops/backup")
+def ops_backup(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.document_vault.ops.backup import export_workspace_pack
+
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    dest = body.get("dest_dir")
+    if not dest:
+        raise HTTPException(status_code=400, detail={"error_code": "dest_dir_required"})
+    return export_workspace_pack(_store(), ws, dest, storage_root=body.get("storage_root"))

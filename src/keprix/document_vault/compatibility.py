@@ -39,9 +39,9 @@ ADAPTERS: tuple[AdapterSpec, ...] = (
     AdapterSpec(
         caller="/api/documents",
         source="documents.index_manager",
-        target="document_vault.index_state",
-        status="planned",
-        notes="Version-aware index jobs in 652",
+        target="document_vault.index_entries",
+        status="partial",
+        notes="Canonical content index + revision citations (652); legacy indexes remain until cutover",
     ),
     AdapterSpec(
         caller="/api/files/upload",
