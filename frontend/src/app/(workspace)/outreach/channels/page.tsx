@@ -6,7 +6,6 @@ import CardContent from "@mui/material/CardContent";
 import Grid from "@mui/material/Grid2";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 
 const CHANNELS = [
   {
@@ -41,13 +40,18 @@ export default function OutreachChannelsPage() {
     <Stack spacing={2}>
       <Typography variant="body2" color="text.secondary">
         Content and engagement channels that feed sales engagement. Email sequences live under Sequences and
-        Approvals; Soft Wall gates outbound sends.
+        Approvals; Soft Wall gates outbound sends. Open a card to jump to that channel.
       </Typography>
       <Grid container spacing={1.5}>
         {CHANNELS.map((item) => (
-          <Grid key={item.href} size={{ xs: 12, sm: 6 }}>
-            <Card variant="outlined">
-              <CardActionArea component={Link} href={item.href}>
+          <Grid key={item.href} size={{ xs: 12, sm: 6, md: 4 }}>
+            <Card variant="outlined" sx={{ height: "100%" }}>
+              {/* Plain <a>: MUI CardActionArea + next/link often drops navigation in the workspace shell. */}
+              <CardActionArea
+                component="a"
+                href={item.href}
+                sx={{ height: "100%", alignItems: "stretch" }}
+              >
                 <CardContent>
                   <Typography variant="subtitle1">{item.title}</Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
