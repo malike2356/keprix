@@ -30,6 +30,10 @@ export type CrmPage = {
   count: number;
   limit: number;
   offset: number;
+  total?: number;
+  next_cursor?: string | null;
+  sort?: string;
+  order?: string;
   workspace_id?: string;
 };
 

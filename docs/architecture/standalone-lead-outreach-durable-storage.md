@@ -46,7 +46,7 @@ Apply steps:
 
 ## Contabo / hosted note
 
-Bootstrap (`ensure_crm_tables` / store open) runs `CREATE TABLE IF NOT EXISTS` for CRM and outreach TEXT schemas when Postgres is reachable. That is enough for runtime.
+Bootstrap (`ensure_crm_tables` / store open) runs `CREATE TABLE IF NOT EXISTS` for CRM and outreach TEXT schemas when Postgres is reachable. That is enough for runtime. Spreadsheet CRM saved views use `crm_saved_views` (ensured via `ensure_crm_saved_views` on SQLite open and `schema_pg.ensure_crm_pg_schema`).
 
 Alembic `028_crm_durable_storage` remains the versioned migration. On hosts that never had `alembic_version` (tables created by older bootstraps), prefer:
 

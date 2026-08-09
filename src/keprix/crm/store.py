@@ -6,6 +6,7 @@ import json
 import sqlite3
 import threading
 import uuid
+from base64 import urlsafe_b64decode, urlsafe_b64encode
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable
@@ -104,6 +105,30 @@ LEAD_UPDATE_ALLOWED = frozenset(
         "preferred_locale",
     }
 ) | LEAD_INGESTION_FIELD_NAMES
+
+LEAD_SORT_FIELDS = frozenset(
+    {
+        "updated_at",
+        "created_at",
+        "company_name",
+        "name",
+        "stage",
+        "pipeline_stage",
+        "source",
+        "priority",
+        "niche",
+        "locality",
+        "website",
+        "consent_status",
+        "owner_agent_id",
+        "owner_user_id",
+        "assigned_agent",
+        "last_contacted_at",
+        "last_reply_at",
+        "next_action_at",
+        "last_touch_at",
+    }
+)
 
 
 def _utcnow() -> str:
@@ -284,9 +309,10 @@ class CrmStore:
             self._conn.executescript(SQLITE_SCHEMA)
             self._conn.commit()
             try:
-                from keprix.crm.schema import ensure_crm_lead_ingestion_columns
+                from keprix.crm.schema import ensure_crm_lead_ingestion_columns, ensure_crm_saved_views
 
                 ensure_crm_lead_ingestion_columns(self._conn)
+                ensure_crm_saved_views(self._conn)
             except Exception:
                 pass
 
@@ -624,6 +650,163 @@ class CrmStore:
 
     def list_leads(self, workspace_id: str, **kwargs: Any) -> list[dict[str, Any]]:
         return self._list("crm_leads", workspace_id, **kwargs)
+
+    @staticmethod
+    def encode_lead_cursor(updated_at: str, lead_id: str) -> str:
+        payload = json.dumps({"u": updated_at, "i": lead_id}, separators=(",", ":"))
+        return urlsafe_b64encode(payload.encode("utf-8")).decode("ascii")
+
+    @staticmethod
+    def decode_lead_cursor(cursor: str) -> tuple[str, str] | None:
+        try:
+            raw = urlsafe_b64decode(cursor.encode("ascii") + b"===")
+            data = json.loads(raw.decode("utf-8"))
+            updated_at = str(data.get("u") or "")
+            lead_id = str(data.get("i") or "")
+            if updated_at and lead_id:
+                return updated_at, lead_id
+        except Exception:
+            return None
+        return None
+
+    def query_leads(
+        self,
+        workspace_id: str,
+        *,
+        q: str | None = None,
+        stage: str | None = None,
+        source: str | None = None,
+        tag: str | None = None,
+        priority: str | None = None,
+        consent_status: str | None = None,
+        suppressed: bool | None = None,
+        domain_pack: str | None = None,
+        include_archived: bool = False,
+        sort: str = "updated_at",
+        order: str = "desc",
+        limit: int = 100,
+        cursor: str | None = None,
+        offset: int | None = None,
+        ids: list[str] | None = None,
+    ) -> dict[str, Any]:
+        """Filter/sort leads with keyset pagination (preferred) or offset."""
+        ws = self._require_workspace(workspace_id)
+        sort_field = sort if sort in LEAD_SORT_FIELDS else "updated_at"
+        order_dir = "ASC" if str(order).lower() == "asc" else "DESC"
+        limit = max(1, min(int(limit), 500))
+
+        clauses = ["workspace_id = ?", "deleted_at IS NULL"]
+        values: list[Any] = [ws]
+        if not include_archived:
+            clauses.append("(archived_at IS NULL OR archived_at = '')")
+        if stage:
+            clauses.append("(stage = ? OR pipeline_stage = ?)")
+            values.extend([stage, stage])
+        if source:
+            clauses.append("source = ?")
+            values.append(source)
+        if priority:
+            clauses.append("priority = ?")
+            values.append(priority)
+        if consent_status:
+            clauses.append("consent_status = ?")
+            values.append(consent_status)
+        if domain_pack:
+            clauses.append("domain_pack = ?")
+            values.append(domain_pack)
+        if tag:
+            # JSON list storage: match quoted tag token.
+            clauses.append("tags LIKE ?")
+            values.append(f'%"{tag}"%')
+        if suppressed is True:
+            clauses.append(
+                "(stage = 'suppressed' OR pipeline_stage = 'suppressed' "
+                "OR (suppression_reason IS NOT NULL AND suppression_reason != ''))"
+            )
+        elif suppressed is False:
+            clauses.append(
+                "(COALESCE(stage, '') != 'suppressed' AND COALESCE(pipeline_stage, '') != 'suppressed' "
+                "AND (suppression_reason IS NULL OR suppression_reason = ''))"
+            )
+        if ids:
+            placeholders = ",".join("?" for _ in ids)
+            clauses.append(f"id IN ({placeholders})")
+            values.extend(ids)
+        if q:
+            needle = f"%{q.strip().lower()}%"
+            clauses.append(
+                "("
+                "LOWER(COALESCE(name, '')) LIKE ? OR "
+                "LOWER(COALESCE(company_name, '')) LIKE ? OR "
+                "LOWER(COALESCE(website, '')) LIKE ? OR "
+                "LOWER(COALESCE(niche, '')) LIKE ? OR "
+                "LOWER(COALESCE(locality, '')) LIKE ? OR "
+                "LOWER(COALESCE(emails, '')) LIKE ?"
+                ")"
+            )
+            values.extend([needle, needle, needle, needle, needle, needle])
+
+        where_sql = " AND ".join(clauses)
+
+        count_row = self._fetchone(
+            f"SELECT COUNT(*) AS c FROM crm_leads WHERE {where_sql}",
+            tuple(values),
+        )
+        total = int((count_row or {}).get("c") or 0)
+
+        page_clauses = list(clauses)
+        page_values = list(values)
+        decoded = self.decode_lead_cursor(cursor) if cursor else None
+        use_keyset = decoded is not None and offset is None
+        if use_keyset and decoded is not None:
+            cur_updated, cur_id = decoded
+            if order_dir == "DESC":
+                page_clauses.append(
+                    f"({sort_field} < ? OR ({sort_field} = ? AND id < ?))"
+                )
+            else:
+                page_clauses.append(
+                    f"({sort_field} > ? OR ({sort_field} = ? AND id > ?))"
+                )
+            # Keyset always ties with id using updated_at when sorting by updated_at;
+            # for other sort fields still use the sort column value from cursor's u
+            # only when sort is updated_at. For other fields, fall back to offset-style.
+            if sort_field == "updated_at":
+                page_values.extend([cur_updated, cur_updated, cur_id])
+            else:
+                # Non-updated_at keyset: use (sort_field, id) from last row encoded in cursor.
+                # Cursor stores updated_at in u; for other sorts encode sort value in u.
+                page_values.extend([cur_updated, cur_updated, cur_id])
+
+        page_where = " AND ".join(page_clauses)
+        order_sql = f"{sort_field} {order_dir}, id {order_dir}"
+        sql = f"SELECT * FROM crm_leads WHERE {page_where} ORDER BY {order_sql} LIMIT ?"
+        page_values.append(limit)
+        if not use_keyset:
+            off = max(0, int(offset or 0))
+            sql = (
+                f"SELECT * FROM crm_leads WHERE {where_sql} "
+                f"ORDER BY {order_sql} LIMIT ? OFFSET ?"
+            )
+            page_values = list(values) + [limit, off]
+
+        items = self._fetchall(sql, tuple(page_values))
+        next_cursor = None
+        if items and len(items) >= limit:
+            last = items[-1]
+            # Encode the sort field value when not updated_at so keyset continues.
+            sort_val = last.get(sort_field) if sort_field != "updated_at" else last.get("updated_at")
+            next_cursor = self.encode_lead_cursor(str(sort_val or ""), str(last["id"]))
+
+        return {
+            "items": items,
+            "next_cursor": next_cursor,
+            "total": total,
+            "limit": limit,
+            "offset": 0 if use_keyset else max(0, int(offset or 0)),
+            "sort": sort_field,
+            "order": order_dir.lower(),
+        }
 
     def update_lead(
         self,
@@ -1875,6 +2058,157 @@ class CrmStore:
         if row is None:
             raise RuntimeError(f"failed to insert into {table}")
         return row
+
+    # ── Saved views (spreadsheet CRM) ─────────────────────────
+    def list_saved_views(
+        self,
+        workspace_id: str,
+        *,
+        owner_user_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        ws = self._require_workspace(workspace_id)
+        if owner_user_id:
+            rows = self._fetchall(
+                """
+                SELECT * FROM crm_saved_views
+                WHERE workspace_id = ?
+                  AND (visibility = 'workspace' OR owner_user_id = ?)
+                ORDER BY updated_at DESC
+                """,
+                (ws, owner_user_id),
+            )
+        else:
+            rows = self._fetchall(
+                """
+                SELECT * FROM crm_saved_views
+                WHERE workspace_id = ?
+                ORDER BY updated_at DESC
+                """,
+                (ws,),
+            )
+        for row in rows:
+            cfg = row.get("config_json")
+            if isinstance(cfg, str):
+                try:
+                    row["config"] = json.loads(cfg or "{}")
+                except json.JSONDecodeError:
+                    row["config"] = {}
+            else:
+                row["config"] = cfg or {}
+            row.pop("config_json", None)
+        return rows
+
+    def get_saved_view(self, workspace_id: str, view_id: str) -> dict[str, Any] | None:
+        ws = self._require_workspace(workspace_id)
+        row = self._fetchone(
+            "SELECT * FROM crm_saved_views WHERE id = ? AND workspace_id = ?",
+            (view_id, ws),
+        )
+        if not row:
+            return None
+        cfg = row.get("config_json")
+        if isinstance(cfg, str):
+            try:
+                row["config"] = json.loads(cfg or "{}")
+            except json.JSONDecodeError:
+                row["config"] = {}
+        else:
+            row["config"] = cfg or {}
+        row.pop("config_json", None)
+        return row
+
+    def create_saved_view(
+        self,
+        workspace_id: str,
+        *,
+        name: str,
+        owner_user_id: str,
+        visibility: str = "private",
+        config: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        ws = self._require_workspace(workspace_id)
+        vis = visibility if visibility in {"private", "workspace"} else "private"
+        now = _utcnow()
+        row_id = str(uuid.uuid4())
+        with self._lock:
+            self._conn.execute(
+                """
+                INSERT INTO crm_saved_views (
+                    id, workspace_id, name, owner_user_id, visibility, config_json, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (row_id, ws, name, owner_user_id, vis, _dumps(config or {}), now, now),
+            )
+            self._conn.commit()
+        return self.get_saved_view(ws, row_id)  # type: ignore[return-value]
+
+    def update_saved_view(
+        self,
+        workspace_id: str,
+        view_id: str,
+        *,
+        actor_user_id: str,
+        name: str | None = None,
+        visibility: str | None = None,
+        config: dict[str, Any] | None = None,
+    ) -> dict[str, Any] | None:
+        ws = self._require_workspace(workspace_id)
+        existing = self.get_saved_view(ws, view_id)
+        if not existing:
+            return None
+        if existing.get("visibility") == "private" and existing.get("owner_user_id") != actor_user_id:
+            raise PermissionError("private_view_owner_only")
+        sets: list[str] = []
+        vals: list[Any] = []
+        if name is not None:
+            sets.append("name = ?")
+            vals.append(name)
+        if visibility is not None:
+            vis = visibility if visibility in {"private", "workspace"} else existing.get("visibility")
+            sets.append("visibility = ?")
+            vals.append(vis)
+        if config is not None:
+            sets.append("config_json = ?")
+            vals.append(_dumps(config))
+        if not sets:
+            return existing
+        sets.append("updated_at = ?")
+        vals.append(_utcnow())
+        vals.extend([view_id, ws])
+        with self._lock:
+            self._conn.execute(
+                f"UPDATE crm_saved_views SET {', '.join(sets)} WHERE id = ? AND workspace_id = ?",
+                tuple(vals),
+            )
+            self._conn.commit()
+        return self.get_saved_view(ws, view_id)
+
+    def delete_saved_view(
+        self,
+        workspace_id: str,
+        view_id: str,
+        *,
+        actor_user_id: str,
+    ) -> bool:
+        ws = self._require_workspace(workspace_id)
+        existing = self.get_saved_view(ws, view_id)
+        if not existing:
+            return False
+        if existing.get("visibility") == "private" and existing.get("owner_user_id") != actor_user_id:
+            raise PermissionError("private_view_owner_only")
+        if (
+            existing.get("visibility") == "workspace"
+            and existing.get("owner_user_id") != actor_user_id
+        ):
+            # Workspace views: owner or same workspace editor may delete; keep owner-only for CE safety.
+            raise PermissionError("workspace_view_owner_only")
+        with self._lock:
+            self._conn.execute(
+                "DELETE FROM crm_saved_views WHERE id = ? AND workspace_id = ?",
+                (view_id, ws),
+            )
+            self._conn.commit()
+        return True
 
 
 class ConflictError(RuntimeError):

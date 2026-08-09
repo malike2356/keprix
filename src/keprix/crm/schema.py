@@ -532,3 +532,25 @@ def ensure_crm_lead_ingestion_columns(conn) -> None:
                 alter_ddl = "custom_fields TEXT DEFAULT '{}'"
             conn.execute(f"ALTER TABLE crm_leads ADD COLUMN {alter_ddl}")
     conn.commit()
+
+
+SAVED_VIEWS_DDL = """
+CREATE TABLE IF NOT EXISTS crm_saved_views (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    owner_user_id TEXT NOT NULL,
+    visibility TEXT NOT NULL DEFAULT 'private',
+    config_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_crm_saved_views_ws ON crm_saved_views(workspace_id, visibility);
+CREATE INDEX IF NOT EXISTS ix_crm_saved_views_owner ON crm_saved_views(workspace_id, owner_user_id);
+"""
+
+
+def ensure_crm_saved_views(conn) -> None:
+    """Ensure spreadsheet CRM saved-views table exists (SQLite or pg_compat)."""
+    conn.executescript(SAVED_VIEWS_DDL)
+    conn.commit()

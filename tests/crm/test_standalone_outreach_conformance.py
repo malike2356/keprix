@@ -24,7 +24,6 @@ KNOWN_GAPS: dict[str, str] = {
     "provider_events": "MISSING: no ESP webhook normalizer (625)",
     "automatic_mailbox_scan": "PARTIAL: stub/cron prompt only (626)",
     "channel_attachment_import": "SIMULATED: email_ingest stub (627)",
-    "spreadsheet_grid_crm": "PARTIAL: tables exist; full sheet CRM is 623",
 }
 
 

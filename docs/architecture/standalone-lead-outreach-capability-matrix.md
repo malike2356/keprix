@@ -44,7 +44,7 @@ Honesty rule: UI presence or mocked tests alone never mark REAL. Conformance sui
 | Provenance | REAL | `crm_field_provenance` |
 | Contacts / Accounts | REAL | CRUD APIs + GUI |
 | Customer / paying conversion | REAL | Soft Wall `stage_customer_paying` |
-| Spreadsheet CRM editable grid | PARTIAL | Collection tables + bulk actions; not full sheet-grid CRM (Prompt 623) |
+| Spreadsheet CRM editable grid | REAL | `/crm/leads` DataGrid + keyset/bulk/views/export/ingest APIs (`CrmLeadsDataGrid`, `tests/crm/test_leads_grid_api.py`) |
 | Lists | REAL | CRM + outreach lists |
 | Campaigns / sequences | REAL | Outreach store + GUI |
 | Scheduling / process-due | REAL | `process_due` + cron seeds |

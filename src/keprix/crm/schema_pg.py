@@ -6,6 +6,7 @@ from keprix.crm.schema import (
     INGESTION_JOBS_DDL,
     LEAD_INGESTION_COLUMNS,
     SQLITE_SCHEMA,
+    ensure_crm_saved_views,
 )
 
 # SQLite schema already uses TEXT primary keys and portable types.
@@ -33,6 +34,7 @@ CRM_TABLE_NAMES: tuple[str, ...] = (
     "crm_contactability_decisions",
     "crm_sender_readiness",
     "crm_kill_switches",
+    "crm_saved_views",
 )
 
 
@@ -47,4 +49,5 @@ def ensure_crm_pg_schema(conn) -> None:
             if name == "custom_fields" and "NOT NULL" in ddl:
                 alter_ddl = "custom_fields TEXT DEFAULT '{}'"
             conn.execute(f"ALTER TABLE crm_leads ADD COLUMN {alter_ddl}")
+    ensure_crm_saved_views(conn)
     conn.commit()

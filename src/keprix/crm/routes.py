@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import tempfile
 import uuid
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query, Request
-from pydantic import BaseModel, Field
+from fastapi.responses import FileResponse
+from pydantic import BaseModel, ConfigDict, Field
 
 from keprix.auth.dependencies import get_current_user
 from keprix.crm.deliverability import compute_deliverability_snapshot
@@ -96,6 +99,8 @@ def _http_conflict(exc: ConflictError) -> HTTPException:
 
 
 class LeadCreate(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     name: str | None = None
     company_name: str | None = None
     company_number: str | None = None
@@ -110,12 +115,21 @@ class LeadCreate(BaseModel):
     account_id: str | None = None
     external_source_id: str | None = None
     assigned_agent: str | None = None
+    website: str | None = None
+    niche: str | None = None
+    locality: str | None = None
+    priority: str | None = None
+    notes: str | None = None
+    pipeline_stage: str | None = None
 
 
 class LeadPatch(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     name: str | None = None
     company_name: str | None = None
     company_number: str | None = None
+    email: str | None = None
     emails: list[Any] | None = None
     phones: list[Any] | None = None
     source: str | None = None
@@ -127,6 +141,35 @@ class LeadPatch(BaseModel):
     assigned_agent: str | None = None
     expected_version: int | None = None
     approval_id: str | None = None
+    website: str | None = None
+    niche: str | None = None
+    locality: str | None = None
+    google_maps_url: str | None = None
+    google_reviews: str | None = None
+    google_rating: str | None = None
+    website_score: str | None = None
+    ranks_top3: str | None = None
+    weakness: str | None = None
+    priority: str | None = None
+    notes: str | None = None
+    source_type: str | None = None
+    source_name: str | None = None
+    source_url: str | None = None
+    source_captured_at: str | None = None
+    owner_agent_id: str | None = None
+    owner_user_id: str | None = None
+    list_id: str | None = None
+    campaign_id: str | None = None
+    sequence_id: str | None = None
+    pipeline_stage: str | None = None
+    last_contacted_at: str | None = None
+    last_reply_at: str | None = None
+    next_action_at: str | None = None
+    consent_status: str | None = None
+    suppression_reason: str | None = None
+    custom_fields: dict[str, Any] | None = None
+    archived_at: str | None = None
+    last_touch_at: str | None = None
 
 
 class ListCreate(BaseModel):
@@ -147,6 +190,40 @@ class BulkSoftDelete(BaseModel):
     ids: list[str]
     preview: bool = True
     reason: str | None = None
+
+
+class BulkLeadPatch(BaseModel):
+    ids: list[str]
+    patch: dict[str, Any] = Field(default_factory=dict)
+    expected_versions: dict[str, int] | None = None
+    approval_id: str | None = None
+    force: bool = False
+    tags_add: list[str] | None = None
+    add_to_list_id: str | None = None
+
+
+class BulkLeadArchive(BaseModel):
+    ids: list[str]
+    preview: bool = False
+    expected_versions: dict[str, int] | None = None
+
+
+class LeadExportWorkbook(BaseModel):
+    ids: list[str] | None = None
+    filter: dict[str, Any] | None = None
+    format: str = "xlsx"
+
+
+class SavedViewCreate(BaseModel):
+    name: str
+    visibility: str = "private"
+    config: dict[str, Any] = Field(default_factory=dict)
+
+
+class SavedViewPatch(BaseModel):
+    name: str | None = None
+    visibility: str | None = None
+    config: dict[str, Any] | None = None
 
 
 class EnrichApplyBody(BaseModel):
@@ -245,21 +322,39 @@ async def list_leads(
     source: str | None = None,
     domain_pack: str | None = None,
     tag: str | None = None,
+    priority: str | None = None,
+    consent_status: str | None = None,
+    suppressed: bool | None = None,
+    sort: str = "updated_at",
+    order: str = "desc",
     limit: int = 100,
-    offset: int = 0,
+    offset: int | None = None,
+    cursor: str | None = None,
+    include_archived: bool = False,
     user: dict = Depends(get_current_user),
 ) -> dict[str, Any]:
     require_cap(user, "view")
     ws = _workspace(workspace_id, x_workspace_id, user)
-    rows = _filter_rows(
-        _store().list_leads(ws, limit=5000),
+    # Prefer SQL filter/sort/keyset; fall back keeps offset clients working.
+    page = _store().query_leads(
+        ws,
         q=q,
         stage=stage,
         source=source,
-        domain_pack=domain_pack,
         tag=tag,
+        priority=priority,
+        consent_status=consent_status,
+        suppressed=suppressed,
+        domain_pack=domain_pack,
+        include_archived=include_archived,
+        sort=sort,
+        order=order,
+        limit=limit,
+        cursor=cursor,
+        offset=offset if cursor is None else None,
     )
-    page = _page(rows, limit=limit, offset=offset)
+    # Backward-compatible count alias.
+    page["count"] = page.get("total", len(page.get("items") or []))
     page["workspace_id"] = ws
     page["correlation_id"] = _corr(request)
     return page
@@ -288,6 +383,279 @@ async def create_lead(
     if idempotency_key:
         store.remember_idempotency(ws, scope="create_lead", idempotency_key=idempotency_key, result=lead)
     return {"lead": lead, "correlation_id": _corr(request)}
+
+
+@router.post("/leads/bulk-patch")
+async def bulk_patch_leads(
+    body: BulkLeadPatch,
+    request: Request,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    store = _store()
+    patch = dict(body.patch or {})
+    target_stage = patch.get("stage") or patch.get("pipeline_stage")
+    soft_wall_payload: dict[str, Any] | None = None
+
+    needs_stage_wall = target_stage in PAYING_STAGES
+    needs_campaign_wall = bool(patch.get("campaign_id"))
+    if needs_stage_wall or needs_campaign_wall:
+        require_cap(user, "approve")
+        kind = "stage_customer_paying" if needs_stage_wall else "mass_update"
+        gate = gate_or_approve(
+            ws,
+            kind=kind,
+            subject=f"Bulk patch {len(body.ids)} leads"
+            + (f" to {target_stage}" if needs_stage_wall else " campaign proposal"),
+            payload={
+                "ids": body.ids,
+                "patch": patch,
+                "kind": kind,
+            },
+            object_type="lead_bulk",
+            object_id=",".join(body.ids[:8]),
+            actor_id=_uid(user),
+            approval_id=body.approval_id,
+            force=body.force,
+        )
+        if gate.get("blocked"):
+            return {
+                "updated": [],
+                "failed": [],
+                "soft_wall": gate,
+                "blocked": True,
+                "error_code": gate.get("error_code"),
+                "approval": gate.get("approval"),
+                "correlation_id": _corr(request),
+            }
+        soft_wall_payload = gate
+
+    updated: list[dict[str, Any]] = []
+    failed: list[dict[str, Any]] = []
+    versions = body.expected_versions or {}
+    for lead_id in dict.fromkeys(body.ids):
+        existing = store.get_lead(ws, lead_id)
+        if not existing:
+            failed.append({"id": lead_id, "error_code": "lead_not_found"})
+            continue
+        lead_patch = dict(patch)
+        if body.tags_add:
+            merged = list(dict.fromkeys([*(existing.get("tags") or []), *body.tags_add]))
+            lead_patch["tags"] = merged
+        if body.add_to_list_id:
+            lead_patch["list_id"] = body.add_to_list_id
+        expected = versions.get(lead_id)
+        try:
+            row = store.update_lead(
+                ws,
+                lead_id,
+                expected_version=expected,
+                actor_type="user",
+                actor_id=_uid(user),
+                **lead_patch,
+            )
+            if row and body.add_to_list_id:
+                try:
+                    store.add_list_member(
+                        ws,
+                        body.add_to_list_id,
+                        member_type="lead",
+                        member_id=lead_id,
+                    )
+                except Exception:
+                    pass
+            if row:
+                updated.append(row)
+            else:
+                failed.append({"id": lead_id, "error_code": "update_failed"})
+        except ConflictError as exc:
+            failed.append({"id": lead_id, "error_code": "version_conflict", "message": str(exc)})
+        except Exception as exc:
+            failed.append({"id": lead_id, "error_code": "update_error", "message": str(exc)})
+
+    return {
+        "updated": updated,
+        "failed": failed,
+        "soft_wall": soft_wall_payload,
+        "correlation_id": _corr(request),
+    }
+
+
+@router.post("/leads/bulk-archive")
+async def bulk_archive_leads(
+    body: BulkLeadArchive,
+    request: Request,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    from datetime import datetime, timezone
+
+    ids = list(dict.fromkeys(body.ids))
+    if body.preview:
+        return {
+            "preview": True,
+            "count": len(ids),
+            "ids": ids,
+            "correlation_id": _corr(request),
+        }
+    now = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    return await bulk_patch_leads(
+        BulkLeadPatch(
+            ids=ids,
+            patch={"archived_at": now},
+            expected_versions=body.expected_versions,
+        ),
+        request,
+        workspace_id=ws,
+        x_workspace_id=None,
+        user=user,
+    )
+
+
+@router.post("/leads/export-workbook")
+async def export_leads_workbook(
+    body: LeadExportWorkbook,
+    request: Request,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+):
+    require_cap(user, "export")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    store = _store()
+    filt = dict(body.filter or {})
+    if body.ids:
+        page = store.query_leads(ws, ids=list(body.ids), include_archived=True, limit=max(len(body.ids), 1))
+        leads = page["items"]
+    else:
+        page = store.query_leads(
+            ws,
+            q=filt.get("q"),
+            stage=filt.get("stage"),
+            source=filt.get("source"),
+            tag=filt.get("tag"),
+            priority=filt.get("priority"),
+            consent_status=filt.get("consent_status"),
+            suppressed=filt.get("suppressed"),
+            include_archived=bool(filt.get("include_archived")),
+            sort=str(filt.get("sort") or "updated_at"),
+            order=str(filt.get("order") or "desc"),
+            limit=min(int(filt.get("limit") or 5000), 5000),
+        )
+        leads = page["items"]
+
+    from keprix.crm.ingestion.export import export_leads
+
+    fmt = (body.format or "xlsx").lower().lstrip(".")
+    suffix = ".csv" if fmt == "csv" else ".xlsx"
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix, prefix="keprix-leads-")
+    tmp_path = Path(tmp.name)
+    tmp.close()
+    export_leads(leads, tmp_path, format=fmt)
+    media = "text/csv" if fmt == "csv" else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    return FileResponse(
+        path=str(tmp_path),
+        media_type=media,
+        filename=f"keprix-leads{suffix}",
+    )
+
+
+@router.post("/leads/ingest-preview")
+async def leads_ingest_preview(
+    request: Request,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    from keprix.crm.ingestion.readers import read_bytes, read_rows_list
+    from keprix.crm.ingestion.service import preview_rows
+
+    content_type = (request.headers.get("content-type") or "").lower()
+    rows: list[dict[str, Any]] = []
+    sample_limit = 20
+    if "multipart/form-data" in content_type:
+        form = await request.form()
+        upload = form.get("file")
+        if upload is None or not hasattr(upload, "read"):
+            raise HTTPException(status_code=422, detail={"error_code": "rows_or_file_required"})
+        payload = await upload.read()  # type: ignore[union-attr]
+        filename = getattr(upload, "filename", None) or "upload.csv"
+        loaded = read_bytes(payload, filename=str(filename))
+        rows = loaded.get("rows") or []
+    else:
+        body = await request.json()
+        sample_limit = int(body.get("limit") or 20)
+        if isinstance(body.get("rows"), list):
+            loaded = read_rows_list(body["rows"])
+            rows = loaded.get("rows") or []
+        else:
+            raise HTTPException(status_code=422, detail={"error_code": "rows_or_file_required"})
+    preview = preview_rows(rows, limit=sample_limit)
+    preview["workspace_id"] = ws
+    preview["correlation_id"] = _corr(request)
+    preview["enrich_deep_link"] = "/crm/enrich"
+    return preview
+
+
+@router.post("/leads/ingest")
+async def leads_ingest(
+    request: Request,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    from keprix.crm.ingestion.service import IngestOptions, ingest_bytes, ingest_row_array
+
+    content_type = (request.headers.get("content-type") or "").lower()
+    options_kwargs: dict[str, Any] = {
+        "actor_id": _uid(user),
+        "source_type": "spreadsheet",
+    }
+    if "multipart/form-data" in content_type:
+        form = await request.form()
+        upload = form.get("file")
+        if upload is None or not hasattr(upload, "read"):
+            raise HTTPException(status_code=422, detail={"error_code": "rows_or_file_required"})
+        payload = await upload.read()  # type: ignore[union-attr]
+        filename = getattr(upload, "filename", None) or "upload.csv"
+        options_kwargs["overwrite"] = str(form.get("overwrite") or "").lower() in {"1", "true", "yes"}
+        options_kwargs["dry_run"] = str(form.get("dry_run") or "").lower() in {"1", "true", "yes"}
+        options_kwargs["source_name"] = str(form.get("source_name") or filename)
+        options = IngestOptions(**options_kwargs)
+        result = ingest_bytes(
+            ws,
+            payload,
+            filename=str(filename),
+            store=_store(),
+            options=options,
+        )
+    else:
+        body = await request.json()
+        options = IngestOptions(
+            overwrite=bool(body.get("overwrite")),
+            source_type=str(body.get("source_type") or "spreadsheet"),
+            source_name=body.get("source_name"),
+            source_url=body.get("source_url"),
+            actor_id=_uid(user),
+            dry_run=bool(body.get("dry_run")),
+        )
+        if isinstance(body.get("rows"), list):
+            result = ingest_row_array(ws, body["rows"], store=_store(), options=options)
+        else:
+            raise HTTPException(status_code=422, detail={"error_code": "rows_or_file_required"})
+    result["workspace_id"] = ws
+    result["correlation_id"] = _corr(request)
+    return result
 
 
 @router.get("/leads/{lead_id}")
@@ -323,7 +691,7 @@ async def patch_lead(
     data = body.model_dump(exclude_none=True)
     expected = data.pop("expected_version", None)
     approval_id = data.pop("approval_id", None)
-    new_stage = data.get("stage")
+    new_stage = data.get("stage") or data.get("pipeline_stage")
     if new_stage in PAYING_STAGES and new_stage != existing.get("stage"):
         require_cap(user, "approve")
         gate = gate_or_approve(
@@ -348,6 +716,38 @@ async def patch_lead(
     except ConflictError as exc:
         raise _http_conflict(exc) from exc
     return {"lead": updated, "correlation_id": _corr(request)}
+
+
+@router.get("/leads/{lead_id}/provenance")
+async def lead_provenance(
+    lead_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "view")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    lead = _store().get_lead(ws, lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail={"error_code": "lead_not_found"})
+    items = _store().list_provenance(ws, entity_type="lead", entity_id=lead_id)
+    return {"items": items, "count": len(items), "lead_id": lead_id}
+
+
+@router.get("/leads/{lead_id}/activities")
+async def lead_activities(
+    lead_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "view")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    lead = _store().get_lead(ws, lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail={"error_code": "lead_not_found"})
+    items = _store().list_activities(ws, entity_type="lead", entity_id=lead_id)
+    return {"items": items, "count": len(items), "lead_id": lead_id}
 
 
 @router.delete("/leads/{lead_id}")
@@ -391,6 +791,81 @@ async def bulk_delete_leads(
             deleted.append(row["id"])
     return {"preview": False, "count": len(deleted), "deleted": deleted, "correlation_id": _corr(request)}
 
+
+# ── Saved views ───────────────────────────────────────────────
+@router.get("/views")
+async def list_saved_views(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "view")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    items = _store().list_saved_views(ws, owner_user_id=_uid(user))
+    return {"items": items, "count": len(items), "workspace_id": ws}
+
+
+@router.post("/views", status_code=201)
+async def create_saved_view(
+    body: SavedViewCreate,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    view = _store().create_saved_view(
+        ws,
+        name=body.name,
+        owner_user_id=_uid(user),
+        visibility=body.visibility,
+        config=body.config,
+    )
+    return {"view": view}
+
+
+@router.patch("/views/{view_id}")
+async def patch_saved_view(
+    view_id: str,
+    body: SavedViewPatch,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    try:
+        view = _store().update_saved_view(
+            ws,
+            view_id,
+            actor_user_id=_uid(user),
+            name=body.name,
+            visibility=body.visibility,
+            config=body.config,
+        )
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail={"error_code": str(exc)}) from exc
+    if not view:
+        raise HTTPException(status_code=404, detail={"error_code": "view_not_found"})
+    return {"view": view}
+
+
+@router.delete("/views/{view_id}")
+async def delete_saved_view(
+    view_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    try:
+        ok = _store().delete_saved_view(ws, view_id, actor_user_id=_uid(user))
+    except PermissionError as exc:
+        raise HTTPException(status_code=403, detail={"error_code": str(exc)}) from exc
+    if not ok:
+        raise HTTPException(status_code=404, detail={"error_code": "view_not_found"})
+    return {"ok": True}
 
 # ── Accounts / contacts / deals (CRUD) ────────────────────────
 def _crud_list(entity: str, list_fn, create_fn, get_fn, patch_fn, delete_fn):

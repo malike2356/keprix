@@ -763,6 +763,20 @@ export async function fetchCrmWorkflows(workspaceId = DEFAULT_WORKSPACE) {
   );
 }
 
+export async function createCrmWorkflow(
+  body: Record<string, unknown>,
+  workspaceId = DEFAULT_WORKSPACE,
+) {
+  return parseJson<Record<string, unknown>>(
+    await ceApi(`/api/crm/workflows${qs(workspaceParams(workspaceId))}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+    "Failed to create CRM workflow",
+  );
+}
+
 export async function setCrmWorkflowStatus(
   sequenceId: string,
   status: string,
@@ -1489,5 +1503,230 @@ export async function createCrmComment(
       body: JSON.stringify(body),
     }),
     "Failed to add comment",
+  );
+}
+
+/* Spreadsheet CRM leads grid (Prompt 623) */
+
+export type CrmLeadsQuery = {
+  q?: string;
+  stage?: string;
+  source?: string;
+  tag?: string;
+  priority?: string;
+  consent_status?: string;
+  suppressed?: boolean;
+  sort?: string;
+  order?: "asc" | "desc";
+  limit?: number;
+  offset?: number;
+  cursor?: string;
+  include_archived?: boolean;
+};
+
+export async function fetchCrmLeadsGrid(opts: CrmLeadsQuery = {}, workspaceId = DEFAULT_WORKSPACE) {
+  return parseJson<CrmPage & { next_cursor?: string | null; total?: number }>(
+    await ceApi(
+      `/api/crm/leads${qs({
+        ...workspaceParams(workspaceId),
+        q: opts.q,
+        stage: opts.stage,
+        source: opts.source,
+        tag: opts.tag,
+        priority: opts.priority,
+        consent_status: opts.consent_status,
+        suppressed: opts.suppressed,
+        sort: opts.sort,
+        order: opts.order,
+        limit: opts.limit ?? 100,
+        offset: opts.offset,
+        cursor: opts.cursor,
+        include_archived: opts.include_archived,
+      })}`,
+    ),
+    "Failed to load CRM leads grid",
+  );
+}
+
+export async function bulkPatchCrmLeads(
+  body: {
+    ids: string[];
+    patch: Record<string, unknown>;
+    expected_versions?: Record<string, number>;
+    approval_id?: string;
+    force?: boolean;
+    tags_add?: string[];
+    add_to_list_id?: string;
+  },
+  workspaceId = DEFAULT_WORKSPACE,
+) {
+  return parseJson<{
+    updated: CrmRecord[];
+    failed: Array<{ id: string; error_code?: string; message?: string }>;
+    soft_wall?: Record<string, unknown>;
+    blocked?: boolean;
+    approval?: CrmApproval;
+    error_code?: string;
+  }>(
+    await ceApi(`/api/crm/leads/bulk-patch${qs(workspaceParams(workspaceId))}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+    "Failed to bulk patch CRM leads",
+  );
+}
+
+export async function bulkArchiveCrmLeads(
+  ids: string[],
+  opts: { preview?: boolean; expected_versions?: Record<string, number> } = {},
+  workspaceId = DEFAULT_WORKSPACE,
+) {
+  return parseJson<Record<string, unknown>>(
+    await ceApi(`/api/crm/leads/bulk-archive${qs(workspaceParams(workspaceId))}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ids,
+        preview: opts.preview ?? false,
+        expected_versions: opts.expected_versions,
+      }),
+    }),
+    "Failed to archive CRM leads",
+  );
+}
+
+export async function exportCrmLeadsWorkbook(
+  body: {
+    ids?: string[];
+    filter?: Record<string, unknown>;
+    format: "xlsx" | "csv";
+  },
+  workspaceId = DEFAULT_WORKSPACE,
+) {
+  const response = await ceApi(`/api/crm/leads/export-workbook${qs(workspaceParams(workspaceId))}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(parseApiErrorMessage(payload, "Failed to export CRM leads"));
+  }
+  return response.blob();
+}
+
+export async function fetchCrmLeadProvenance(leadId: string, workspaceId = DEFAULT_WORKSPACE) {
+  return parseJson<{ items: CrmRecord[]; count: number }>(
+    await ceApi(`/api/crm/leads/${encodeURIComponent(leadId)}/provenance${qs(workspaceParams(workspaceId))}`),
+    "Failed to load lead provenance",
+  );
+}
+
+export async function fetchCrmLeadActivities(leadId: string, workspaceId = DEFAULT_WORKSPACE) {
+  return parseJson<{ items: CrmActivity[]; count: number }>(
+    await ceApi(`/api/crm/leads/${encodeURIComponent(leadId)}/activities${qs(workspaceParams(workspaceId))}`),
+    "Failed to load lead activities",
+  );
+}
+
+export type CrmSavedView = {
+  id: string;
+  name: string;
+  owner_user_id?: string;
+  visibility: "private" | "workspace" | string;
+  config?: Record<string, unknown>;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export async function fetchCrmSavedViews(workspaceId = DEFAULT_WORKSPACE) {
+  return parseJson<{ items: CrmSavedView[]; count: number }>(
+    await ceApi(`/api/crm/views${qs(workspaceParams(workspaceId))}`),
+    "Failed to load saved views",
+  );
+}
+
+export async function createCrmSavedView(
+  body: { name: string; visibility?: string; config?: Record<string, unknown> },
+  workspaceId = DEFAULT_WORKSPACE,
+) {
+  return parseJson<{ view: CrmSavedView }>(
+    await ceApi(`/api/crm/views${qs(workspaceParams(workspaceId))}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+    "Failed to create saved view",
+  );
+}
+
+export async function patchCrmSavedView(
+  viewId: string,
+  body: { name?: string; visibility?: string; config?: Record<string, unknown> },
+  workspaceId = DEFAULT_WORKSPACE,
+) {
+  return parseJson<{ view: CrmSavedView }>(
+    await ceApi(`/api/crm/views/${encodeURIComponent(viewId)}${qs(workspaceParams(workspaceId))}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+    "Failed to update saved view",
+  );
+}
+
+export async function deleteCrmSavedView(viewId: string, workspaceId = DEFAULT_WORKSPACE) {
+  return parseJson<{ ok: boolean }>(
+    await ceApi(`/api/crm/views/${encodeURIComponent(viewId)}${qs(workspaceParams(workspaceId))}`, {
+      method: "DELETE",
+    }),
+    "Failed to delete saved view",
+  );
+}
+
+export async function previewCrmLeadsIngest(
+  body: { rows: Record<string, unknown>[]; limit?: number },
+  workspaceId = DEFAULT_WORKSPACE,
+) {
+  return parseJson<{
+    header_map: Record<string, string>;
+    unknown_headers: string[];
+    row_count: number;
+    sample: Array<{ raw: Record<string, unknown>; normalized: Record<string, unknown> }>;
+    enrich_deep_link?: string;
+  }>(
+    await ceApi(`/api/crm/leads/ingest-preview${qs(workspaceParams(workspaceId))}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+    "Failed to preview lead ingest",
+  );
+}
+
+export async function ingestCrmLeadsFile(file: File, workspaceId = DEFAULT_WORKSPACE) {
+  const form = new FormData();
+  form.append("file", file);
+  return parseJson<Record<string, unknown>>(
+    await ceApi(`/api/crm/leads/ingest${qs(workspaceParams(workspaceId))}`, {
+      method: "POST",
+      body: form,
+    }),
+    "Failed to ingest leads file",
+  );
+}
+
+export async function ingestCrmLeadsRows(
+  body: { rows: Record<string, unknown>[]; overwrite?: boolean; dry_run?: boolean },
+  workspaceId = DEFAULT_WORKSPACE,
+) {
+  return parseJson<Record<string, unknown>>(
+    await ceApi(`/api/crm/leads/ingest${qs(workspaceParams(workspaceId))}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+    "Failed to ingest lead rows",
   );
 }
