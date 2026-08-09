@@ -633,6 +633,10 @@ async def _default_complete(
     if tools:
         kwargs["tools"] = tools
         kwargs["tool_choice"] = "auto"
+    if provider == "deepseek" and model == "deepseek-v4-flash":
+        fast_thinking = os.environ.get("AIVA_DEEPSEEK_THINKING", "false").strip().lower()
+        if fast_thinking not in {"1", "true", "yes", "on"}:
+            kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
 
     response = await client.chat.completions.create(**kwargs)
     choice = response.choices[0]
@@ -813,16 +817,24 @@ def _record_run_analytics(
         cost = estimate_llm_cost(usage=canonical, model=model, provider="")
         if cost.amount_usd is not None:
             cost_usd = float(cost.amount_usd)
-        get_llm_usage_recorder().record_sync(
-            usage=canonical,
-            provider="",
-            model=model,
-            channel="aiva",
-            workspace_id=workspace_id,
-            duration_ms=int(max(0.0, duration_seconds) * 1000),
-            metadata={"worker_id": worker_id, "source": "carina_bridge"},
-            cost_result=cost,
-        )
+        recorder_kwargs = {
+            "usage": canonical,
+            "provider": "",
+            "model": model,
+            "channel": "aiva",
+            "workspace_id": workspace_id,
+            "duration_ms": int(max(0.0, duration_seconds) * 1000),
+            "metadata": {"worker_id": worker_id, "source": "carina_bridge"},
+            "cost_result": cost,
+        }
+        recorder = get_llm_usage_recorder()
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            recorder.record_sync(**recorder_kwargs)
+        else:
+            task = loop.create_task(recorder.record(**recorder_kwargs))
+            task.add_done_callback(_consume_background_exception)
     except Exception:
         logger.debug("llm usage recorder skipped", exc_info=True)
 
@@ -841,3 +853,10 @@ def _record_run_analytics(
     except Exception:
         logger.debug("aiva analytics record skipped", exc_info=True)
 
+
+def _consume_background_exception(task: asyncio.Task[Any]) -> None:
+    """Retrieve background recorder exceptions without delaying the agent reply."""
+    try:
+        task.exception()
+    except (asyncio.CancelledError, Exception):
+        return

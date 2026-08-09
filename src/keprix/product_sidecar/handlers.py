@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable, Awaitable
+import logging
+import time
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 from keprix.product_sidecar.state import (
     get_approval_store,
@@ -15,6 +18,7 @@ from keprix.product_sidecar.state import (
 from keprix.product_sidecar.types import RequestContext
 
 Handler = Callable[[RequestContext, dict[str, Any]], Awaitable[dict[str, Any]]]
+logger = logging.getLogger(__name__)
 
 
 def _deep_link(product: str, kind: str, approval_id: str) -> str:
@@ -51,11 +55,32 @@ async def handle_agent_run(ctx: RequestContext, payload: dict[str, Any]) -> dict
     from keprix.agent.carina_bridge import CarinaAgentBridge
     from keprix.security.aiva_scout import get_aiva_scout_guard
 
+    model = str(payload.get("model") or "deepseek-v4-pro")
+    route = None
+    if ctx.product == "aiva":
+        from keprix.aiva.model_routing import resolve_aiva_model
+
+        route = resolve_aiva_model(
+            workspace_id=ctx.workspace_id,
+            tier=str(payload.get("aiva_tier") or payload.get("billing_tier") or "starter"),
+            workspace_model=(
+                str(payload["workspace_model"]).strip() if payload.get("workspace_model") else None
+            ),
+            workspace_provider=(
+                str(payload["workspace_provider"]).strip()
+                if payload.get("workspace_provider")
+                else None
+            ),
+            require_tools=bool(payload.get("tools") or payload.get("carina_tools")),
+        )
+        model = route.model_id
+
     bridge = CarinaAgentBridge()
+    started = time.perf_counter()
     result = await bridge.run(
         workspace_id=ctx.workspace_id,
         session_id=payload.get("session_id") or ctx.session_id,
-        model=str(payload.get("model") or "deepseek-v4-pro"),
+        model=model,
         temperature=float(payload.get("temperature", 0.7)),
         system_prompt=str(payload.get("system_prompt") or ""),
         messages=payload.get("messages") or [],
@@ -72,6 +97,26 @@ async def handle_agent_run(ctx: RequestContext, payload: dict[str, Any]) -> dict
         force_escalate=bool(payload.get("force_escalate")),
         escalation_enabled=payload.get("escalation_enabled", True) is not False,
     )
+    duration_ms = int((time.perf_counter() - started) * 1000)
+    if route is not None:
+        logger.info(
+            "Aiva model call workspace=%s tier=%s provider=%s model=%s duration_ms=%d target_ms=%d",
+            ctx.workspace_id,
+            route.tier,
+            route.provider,
+            route.model,
+            duration_ms,
+            route.latency_target_ms,
+        )
+        if isinstance(result, dict):
+            result["model_routing"] = {
+                "provider": route.provider,
+                "model": route.model,
+                "tier": route.tier,
+                "source": route.source,
+                "duration_ms": duration_ms,
+                "latency_target_ms": route.latency_target_ms,
+            }
     return result
 
 
@@ -457,4 +502,3 @@ async def handle_pack_ping(ctx: RequestContext, payload: dict[str, Any]) -> dict
 
 
 HANDLERS["pack.ping"] = handle_pack_ping
-
