@@ -268,11 +268,23 @@ def ensure_outreach_pg_schema(conn) -> None:
     """Apply TEXT-id outreach DDL; replace unused UUID 024 tables when detected."""
     if _outreach_needs_text_rebuild(conn):
         conn.executescript(OUTREACH_DROP_UUID_TABLES_SQL)
-    conn.executescript(OUTREACH_PG_SCHEMA_SQL)
-    conn.commit()
+    # Apply DDL statement-by-statement so one failed index on an older table
+    # does not block additive ensure_scheduler_columns.
+    for stmt in OUTREACH_PG_SCHEMA_SQL.split(";"):
+        chunk = stmt.strip()
+        if not chunk:
+            continue
+        # Lease index requires additive columns on upgraded DBs; skip here.
+        if "ix_outreach_enrollments_lease" in chunk:
+            continue
+        try:
+            conn.execute(chunk)
+        except Exception:
+            pass
     try:
-        from keprix.outreach.store import ensure_scheduler_columns
-
-        ensure_scheduler_columns(conn)
+        conn.commit()
     except Exception:
         pass
+    from keprix.outreach.store import ensure_scheduler_columns
+
+    ensure_scheduler_columns(conn)

@@ -32,7 +32,21 @@ async def ensure_outreach_tables() -> list[str]:
                 chunk = stmt.strip()
                 if not chunk:
                     continue
-                await conn.execute(text(chunk))
+                if "ix_outreach_enrollments_lease" in chunk:
+                    continue
+                try:
+                    await conn.execute(text(chunk))
+                except Exception:
+                    logger.debug("outreach ddl skip: %s", chunk[:80], exc_info=True)
+        try:
+            from keprix.crm.pg_compat import connect_crm_pg
+            from keprix.outreach.store import ensure_scheduler_columns
+
+            sync = connect_crm_pg()
+            ensure_scheduler_columns(sync)
+            sync.close()
+        except Exception:
+            logger.exception("outreach scheduler column ensure failed")
         names.extend(
             [
                 "outreach_campaigns",

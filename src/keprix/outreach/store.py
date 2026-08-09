@@ -257,6 +257,26 @@ def ensure_scheduler_columns(conn) -> None:
     """Additive scheduler / Soft Wall columns + indexes for older outreach DBs."""
 
     def _cols(table: str) -> set[str]:
+        # Prefer information_schema on Postgres; PRAGMA via pg_compat also works.
+        try:
+            rows = conn.execute(
+                """
+                SELECT column_name AS name
+                FROM information_schema.columns
+                WHERE table_schema = 'public' AND table_name = ?
+                """,
+                (table,),
+            ).fetchall()
+            if rows:
+                names: set[str] = set()
+                for r in rows:
+                    if hasattr(r, "keys"):
+                        names.add(str(r["name"] if "name" in r.keys() else r[0]))
+                    else:
+                        names.add(str(r[0]))
+                return names
+        except Exception:
+            pass
         try:
             return {str(r[1]) for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}
         except Exception:
@@ -274,7 +294,11 @@ def ensure_scheduler_columns(conn) -> None:
     cols = _cols("outreach_enrollments")
     for name, ddl in enrollment_alters:
         if name not in cols:
-            conn.execute(f"ALTER TABLE outreach_enrollments ADD COLUMN {name} {ddl}")
+            try:
+                conn.execute(f"ALTER TABLE outreach_enrollments ADD COLUMN {name} {ddl}")
+            except Exception:
+                # Concurrent / already-added race
+                pass
 
     message_alters = (
         ("idempotency_key", "TEXT"),
@@ -286,7 +310,10 @@ def ensure_scheduler_columns(conn) -> None:
     msg_cols = _cols("outreach_messages")
     for name, ddl in message_alters:
         if name not in msg_cols:
-            conn.execute(f"ALTER TABLE outreach_messages ADD COLUMN {name} {ddl}")
+            try:
+                conn.execute(f"ALTER TABLE outreach_messages ADD COLUMN {name} {ddl}")
+            except Exception:
+                pass
 
     conn.execute(
         """
@@ -300,12 +327,19 @@ def ensure_scheduler_columns(conn) -> None:
         )
         """
     )
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS ix_outreach_enrollments_due ON outreach_enrollments(status, next_run_at)"
-    )
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS ix_outreach_enrollments_lease ON outreach_enrollments(status, locked_until)"
-    )
+    # Indexes after columns exist (never in CREATE TABLE scripts alone for upgrades).
+    try:
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS ix_outreach_enrollments_due ON outreach_enrollments(status, next_run_at)"
+        )
+    except Exception:
+        pass
+    try:
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS ix_outreach_enrollments_lease ON outreach_enrollments(status, locked_until)"
+        )
+    except Exception:
+        pass
     try:
         conn.execute(
             """
@@ -315,7 +349,6 @@ def ensure_scheduler_columns(conn) -> None:
             """
         )
     except Exception:
-        # Postgres / non-partial backends use a non-partial unique index below
         try:
             conn.execute(
                 """
@@ -325,10 +358,16 @@ def ensure_scheduler_columns(conn) -> None:
             )
         except Exception:
             pass
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS ix_outreach_scheduler_hb_ws ON outreach_scheduler_heartbeats(workspace_id)"
-    )
-    conn.commit()
+    try:
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS ix_outreach_scheduler_hb_ws ON outreach_scheduler_heartbeats(workspace_id)"
+        )
+    except Exception:
+        pass
+    try:
+        conn.commit()
+    except Exception:
+        pass
 
 
 class OutreachStore:
