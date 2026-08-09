@@ -1,0 +1,15 @@
+{
+  "contractVersion": "1.0.0",
+  "commandId": "cmd_synth_zoom_001",
+  "provider": "zoom",
+  "action": "create_meeting",
+  "workspaceId": "ws_synth_tenant_001",
+  "conciergeId": "cg_synth_001",
+  "actorType": "system",
+  "idempotencyKey": "synthetic-zoom-create-001",
+  "payload": {
+    "topic": "Synthetic intro call",
+    "startsAt": "2026-08-12T10:00:00.000Z",
+    "durationMinutes": 30
+  }
+}

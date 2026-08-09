@@ -1,0 +1,17 @@
+{
+  "objectType": "booking",
+  "object": {
+    "id": "bk_synth_001",
+    "workspaceId": "ws_synth_tenant_001",
+    "conciergeId": "cg_synth_001",
+    "meetingTypeId": "mt_synth_intro",
+    "status": "held",
+    "startsAt": "2026-08-12T10:00:00.000Z",
+    "endsAt": "2026-08-12T10:30:00.000Z",
+    "timezone": "Europe/London",
+    "actorType": "audience",
+    "guestEmail": "guest.synthetic@example.test",
+    "joinUrl": null,
+    "idempotencyKey": "synthetic-booking-hold-001"
+  }
+}

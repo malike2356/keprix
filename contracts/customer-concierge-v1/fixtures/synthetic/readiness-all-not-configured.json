@@ -1,0 +1,52 @@
+{
+  "contractVersion": "1.0.0",
+  "workspaceId": "ws_synth_tenant_001",
+  "conciergeId": "cg_synth_001",
+  "ready": false,
+  "features": {
+    "publicConcierge": {
+      "key": "publicConcierge",
+      "enabled": true,
+      "status": "not_configured",
+      "detail": "No published concierge profile"
+    },
+    "zoom": {
+      "key": "zoom",
+      "enabled": true,
+      "status": "not_configured",
+      "detail": "ZOOM_CLIENT_ID or worker Zoom session missing"
+    },
+    "googleCalendar": {
+      "key": "googleCalendar",
+      "enabled": true,
+      "status": "not_configured",
+      "detail": "Google Calendar OAuth session missing"
+    },
+    "microsoftCalendar": {
+      "key": "microsoftCalendar",
+      "enabled": true,
+      "status": "not_configured",
+      "detail": "Microsoft Calendar driver not live"
+    },
+    "emailDelivery": {
+      "key": "emailDelivery",
+      "enabled": true,
+      "status": "not_configured",
+      "detail": "Outbound email provider not configured"
+    },
+    "inboundWebhookReconciliation": {
+      "key": "inboundWebhookReconciliation",
+      "enabled": true,
+      "status": "not_configured",
+      "detail": "Provider inbound webhook receivers not configured"
+    }
+  },
+  "blockers": [
+    "publicConcierge",
+    "zoom",
+    "googleCalendar",
+    "microsoftCalendar",
+    "emailDelivery",
+    "inboundWebhookReconciliation"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://verlox.local/contracts/customer-concierge-v1/event-envelope.schema.json",
+  "title": "Customer Concierge v1 event envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "eventId",
+    "eventType",
+    "occurredAt",
+    "workspaceId",
+    "conciergeId",
+    "correlationId",
+    "causationId",
+    "actorType",
+    "payload"
+  ],
+  "properties": {
+    "contractVersion": { "type": "string", "const": "1.0.0" },
+    "eventId": { "type": "string", "minLength": 1 },
+    "eventType": {
+      "type": "string",
+      "enum": [
+        "conversation.started",
+        "contact.matched",
+        "consent.changed",
+        "booking.held",
+        "booking.confirmed",
+        "invitation.sent",
+        "attendee.response_changed",
+        "booking.rescheduled",
+        "booking.cancelled",
+        "reminder.sent",
+        "support_case.opened",
+        "handoff.requested",
+        "conversation.closed"
+      ]
+    },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "workspaceId": { "type": "string", "minLength": 1 },
+    "conciergeId": { "type": "string", "minLength": 1 },
+    "correlationId": { "type": "string", "minLength": 1 },
+    "causationId": { "type": "string", "minLength": 1 },
+    "actorType": {
+      "type": "string",
+      "enum": ["audience", "operator", "system", "provider"]
+    },
+    "actorId": { "type": ["string", "null"] },
+    "payload": {
+      "type": "object",
+      "description": "Redacted business payload. Must not contain secrets or host start URLs."
+    }
+  }
+}

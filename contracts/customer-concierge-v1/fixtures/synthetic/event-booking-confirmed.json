@@ -1,0 +1,19 @@
+{
+  "contractVersion": "1.0.0",
+  "eventId": "evt_synth_confirmed_001",
+  "eventType": "booking.confirmed",
+  "occurredAt": "2026-08-09T12:10:00.000Z",
+  "workspaceId": "ws_synth_tenant_001",
+  "conciergeId": "cg_synth_001",
+  "correlationId": "corr_synth_001",
+  "causationId": "evt_synth_002",
+  "actorType": "system",
+  "actorId": null,
+  "payload": {
+    "bookingId": "bk_synth_001",
+    "orchestrationStatus": "confirmed",
+    "invitationDeliveryState": "sent",
+    "conferenceManaged": true,
+    "joinUrlPresent": true
+  }
+}

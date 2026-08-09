@@ -1,0 +1,14 @@
+{
+  "objectType": "audience_session",
+  "object": {
+    "id": "sess_synth_001",
+    "workspaceId": "ws_synth_tenant_001",
+    "conciergeId": "cg_synth_001",
+    "identityId": "aud_synth_001",
+    "actorType": "audience",
+    "channel": "web",
+    "status": "active",
+    "consentRecordId": null,
+    "startedAt": "2026-08-09T12:00:00.000Z"
+  }
+}

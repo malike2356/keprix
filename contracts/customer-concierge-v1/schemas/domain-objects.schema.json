@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://verlox.local/contracts/customer-concierge-v1/domain-objects.schema.json",
+  "title": "Customer Concierge v1 domain objects",
+  "$defs": {
+    "workspaceScoped": {
+      "type": "object",
+      "required": ["workspaceId"],
+      "properties": {
+        "workspaceId": { "type": "string", "minLength": 1 }
+      }
+    },
+    "audienceIdentity": {
+      "allOf": [
+        { "$ref": "#/$defs/workspaceScoped" },
+        {
+          "type": "object",
+          "required": ["id", "channel", "actorType", "externalKey"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "channel": {
+              "type": "string",
+              "enum": ["web", "telegram", "whatsapp", "email", "sms", "voice"]
+            },
+            "actorType": { "const": "audience" },
+            "externalKey": { "type": "string", "minLength": 1 },
+            "displayName": { "type": ["string", "null"] },
+            "email": { "type": ["string", "null"] },
+            "phone": { "type": ["string", "null"] },
+            "crmContactId": { "type": ["string", "null"] }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "audienceSession": {
+      "allOf": [
+        { "$ref": "#/$defs/workspaceScoped" },
+        {
+          "type": "object",
+          "required": ["id", "conciergeId", "identityId", "actorType", "channel", "status"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "conciergeId": { "type": "string", "minLength": 1 },
+            "identityId": { "type": "string", "minLength": 1 },
+            "actorType": { "const": "audience" },
+            "channel": {
+              "type": "string",
+              "enum": ["web", "telegram", "whatsapp", "email", "sms", "voice"]
+            },
+            "status": {
+              "type": "string",
+              "enum": ["active", "handed_off", "closed"]
+            },
+            "consentRecordId": { "type": ["string", "null"] },
+            "startedAt": { "type": "string", "format": "date-time" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "booking": {
+      "allOf": [
+        { "$ref": "#/$defs/workspaceScoped" },
+        {
+          "type": "object",
+          "required": [
+            "id",
+            "conciergeId",
+            "meetingTypeId",
+            "status",
+            "startsAt",
+            "endsAt",
+            "timezone",
+            "actorType"
+          ],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "conciergeId": { "type": "string", "minLength": 1 },
+            "meetingTypeId": { "type": "string", "minLength": 1 },
+            "status": {
+              "type": "string",
+              "enum": [
+                "held",
+                "pending_confirmation",
+                "provisioning",
+                "confirmed",
+                "action_required",
+                "rescheduling",
+                "cancelled",
+                "completed",
+                "no_show"
+              ]
+            },
+            "startsAt": { "type": "string", "format": "date-time" },
+            "endsAt": { "type": "string", "format": "date-time" },
+            "timezone": { "type": "string", "minLength": 1 },
+            "actorType": {
+              "type": "string",
+              "enum": ["audience", "operator", "system", "provider"]
+            },
+            "guestEmail": { "type": ["string", "null"] },
+            "joinUrl": { "type": ["string", "null"] },
+            "idempotencyKey": { "type": ["string", "null"] }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "supportCase": {
+      "allOf": [
+        { "$ref": "#/$defs/workspaceScoped" },
+        {
+          "type": "object",
+          "required": ["id", "conciergeId", "sessionId", "status", "actorType"],
+          "properties": {
+            "id": { "type": "string", "minLength": 1 },
+            "conciergeId": { "type": "string", "minLength": 1 },
+            "sessionId": { "type": "string", "minLength": 1 },
+            "status": {
+              "type": "string",
+              "enum": ["open", "pending_customer", "pending_operator", "resolved", "closed"]
+            },
+            "actorType": {
+              "type": "string",
+              "enum": ["audience", "operator", "system"]
+            },
+            "subject": { "type": ["string", "null"] }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "required": ["objectType", "object"],
+      "properties": {
+        "objectType": { "const": "audience_identity" },
+        "object": { "$ref": "#/$defs/audienceIdentity" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["objectType", "object"],
+      "properties": {
+        "objectType": { "const": "audience_session" },
+        "object": { "$ref": "#/$defs/audienceSession" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["objectType", "object"],
+      "properties": {
+        "objectType": { "const": "booking" },
+        "object": { "$ref": "#/$defs/booking" }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": ["objectType", "object"],
+      "properties": {
+        "objectType": { "const": "support_case" },
+        "object": { "$ref": "#/$defs/supportCase" }
+      },
+      "additionalProperties": false
+    }
+  ]
+}

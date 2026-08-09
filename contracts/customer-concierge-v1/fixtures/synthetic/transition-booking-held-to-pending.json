@@ -1,0 +1,10 @@
+{
+  "contractVersion": "1.0.0",
+  "machine": "booking",
+  "from": "held",
+  "to": "pending_confirmation",
+  "workspaceId": "ws_synth_tenant_001",
+  "actorType": "audience",
+  "entityId": "bk_synth_001",
+  "reason": "guest_submitted_details"
+}

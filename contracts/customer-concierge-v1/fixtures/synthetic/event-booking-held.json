@@ -1,0 +1,19 @@
+{
+  "contractVersion": "1.0.0",
+  "eventId": "evt_synth_002",
+  "eventType": "booking.held",
+  "occurredAt": "2026-08-09T12:05:00.000Z",
+  "workspaceId": "ws_synth_tenant_001",
+  "conciergeId": "cg_synth_001",
+  "correlationId": "corr_synth_001",
+  "causationId": "evt_synth_001",
+  "actorType": "audience",
+  "actorId": "aud_synth_001",
+  "payload": {
+    "bookingId": "bk_synth_001",
+    "meetingTypeId": "mt_synth_intro",
+    "startsAt": "2026-08-12T10:00:00.000Z",
+    "endsAt": "2026-08-12T10:30:00.000Z",
+    "timezone": "Europe/London"
+  }
+}

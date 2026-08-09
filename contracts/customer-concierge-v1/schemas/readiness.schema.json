@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://verlox.local/contracts/customer-concierge-v1/readiness.schema.json",
+  "title": "Customer Concierge v1 readiness report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "workspaceId", "conciergeId", "features", "ready"],
+  "properties": {
+    "contractVersion": { "type": "string", "const": "1.0.0" },
+    "workspaceId": { "type": "string", "minLength": 1 },
+    "conciergeId": { "type": ["string", "null"] },
+    "ready": { "type": "boolean" },
+    "features": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "publicConcierge",
+        "zoom",
+        "googleCalendar",
+        "microsoftCalendar",
+        "emailDelivery",
+        "inboundWebhookReconciliation"
+      ],
+      "properties": {
+        "publicConcierge": { "$ref": "#/$defs/featureStatus" },
+        "zoom": { "$ref": "#/$defs/featureStatus" },
+        "googleCalendar": { "$ref": "#/$defs/featureStatus" },
+        "microsoftCalendar": { "$ref": "#/$defs/featureStatus" },
+        "emailDelivery": { "$ref": "#/$defs/featureStatus" },
+        "inboundWebhookReconciliation": { "$ref": "#/$defs/featureStatus" }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "$defs": {
+    "featureStatus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "enabled", "status"],
+      "properties": {
+        "key": { "type": "string", "minLength": 1 },
+        "enabled": {
+          "type": "boolean",
+          "description": "Product/feature flag. False means intentionally disabled."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ready", "not_configured", "disconnected", "error", "disabled"]
+        },
+        "detail": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

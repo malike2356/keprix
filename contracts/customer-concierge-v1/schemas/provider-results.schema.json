@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://verlox.local/contracts/customer-concierge-v1/provider-results.schema.json",
+  "title": "Customer Concierge v1 provider results",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "commandId",
+    "provider",
+    "workspaceId",
+    "actorType",
+    "status",
+    "ok"
+  ],
+  "properties": {
+    "contractVersion": { "type": "string", "const": "1.0.0" },
+    "commandId": { "type": "string", "minLength": 1 },
+    "provider": {
+      "type": "string",
+      "enum": ["google_calendar", "microsoft_calendar", "zoom", "email", "sms"]
+    },
+    "workspaceId": { "type": "string", "minLength": 1 },
+    "actorType": {
+      "type": "string",
+      "enum": ["audience", "operator", "system", "provider"]
+    },
+    "ok": { "type": "boolean" },
+    "status": {
+      "type": "string",
+      "enum": [
+        "succeeded",
+        "failed",
+        "retryable",
+        "action_required",
+        "not_configured",
+        "duplicate"
+      ]
+    },
+    "providerResourceId": { "type": ["string", "null"] },
+    "joinUrl": {
+      "type": ["string", "null"],
+      "description": "Guest join URL only. Never include Zoom host start URL."
+    },
+    "deliveryState": {
+      "type": ["string", "null"],
+      "enum": ["pending", "sent", "delivered", "accepted", "declined", "failed", "unknown", null]
+    },
+    "errorCode": { "type": ["string", "null"] },
+    "errorMessage": { "type": ["string", "null"] }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://verlox.local/contracts/customer-concierge-v1/state-machines.schema.json",
+  "title": "Customer Concierge v1 state machines",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "machine", "from", "to", "workspaceId", "actorType"],
+  "properties": {
+    "contractVersion": { "type": "string", "const": "1.0.0" },
+    "machine": {
+      "type": "string",
+      "enum": ["booking", "delivery", "support_case", "audience_session"]
+    },
+    "from": { "type": "string", "minLength": 1 },
+    "to": { "type": "string", "minLength": 1 },
+    "workspaceId": { "type": "string", "minLength": 1 },
+    "actorType": {
+      "type": "string",
+      "enum": ["audience", "operator", "system", "provider"]
+    },
+    "entityId": { "type": "string", "minLength": 1 },
+    "reason": { "type": ["string", "null"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "machine": { "const": "booking" } } },
+      "then": {
+        "properties": {
+          "from": {
+            "enum": [
+              "held",
+              "pending_confirmation",
+              "provisioning",
+              "confirmed",
+              "action_required",
+              "rescheduling",
+              "cancelled",
+              "completed",
+              "no_show"
+            ]
+          },
+          "to": {
+            "enum": [
+              "held",
+              "pending_confirmation",
+              "provisioning",
+              "confirmed",
+              "action_required",
+              "rescheduling",
+              "cancelled",
+              "completed",
+              "no_show"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "machine": { "const": "delivery" } } },
+      "then": {
+        "properties": {
+          "from": {
+            "enum": ["pending", "sent", "delivered", "accepted", "declined", "failed", "unknown"]
+          },
+          "to": {
+            "enum": ["pending", "sent", "delivered", "accepted", "declined", "failed", "unknown"]
+          }
+        }
+      }
+    }
+  ]
+}

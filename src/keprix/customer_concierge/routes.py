@@ -8,6 +8,7 @@ from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query
 from pydantic import AliasChoices, BaseModel, Field
 
 from keprix.auth.dependencies import get_current_user
+from keprix.customer_concierge.capability_health import evaluate_capability_health
 from keprix.customer_concierge.prompt_overlay import (
     build_concierge_persona_overlay,
     ensure_prompt_layer_registered,
@@ -161,6 +162,22 @@ async def readiness(
 ) -> dict[str, Any]:
     ws = _workspace(workspace_id, x_workspace_id, user)
     return evaluate_readiness(ws, persona_id)
+
+
+@router.get("/capability-health")
+async def capability_health(
+    persona_id: str = Query(default="default", alias="personaId"),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Honest provider/capability health (Prompt 629). Never fakes Zoom or delivery ready."""
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return evaluate_capability_health(
+        workspace_id=ws,
+        persona_id=persona_id,
+        user_id=_uid(user),
+    )
 
 
 @router.post("/publish")

@@ -1,0 +1,50 @@
+{
+  "contract": "customer-concierge",
+  "version": "1.0.0",
+  "compatibleVersions": ["1.0.0"],
+  "title": "Customer Concierge v1",
+  "authority": "shared/workspace-governance/AIVA-KEPRIX-CUSTOMER-CONCIERGE-BOOKING.md",
+  "products": ["carina-aiva", "keprix"],
+  "runtimeDependency": "none",
+  "mandatoryFields": {
+    "tenant": "workspaceId",
+    "externalActor": "actorType"
+  },
+  "schemas": [
+    "schemas/event-envelope.schema.json",
+    "schemas/domain-objects.schema.json",
+    "schemas/state-machines.schema.json",
+    "schemas/provider-commands.schema.json",
+    "schemas/provider-results.schema.json",
+    "schemas/readiness.schema.json"
+  ],
+  "fixtureDir": "fixtures/synthetic",
+  "bookingStates": [
+    "held",
+    "pending_confirmation",
+    "provisioning",
+    "confirmed",
+    "action_required",
+    "rescheduling",
+    "cancelled",
+    "completed",
+    "no_show"
+  ],
+  "deliveryStates": [
+    "pending",
+    "sent",
+    "delivered",
+    "accepted",
+    "declined",
+    "failed",
+    "unknown"
+  ],
+  "actorTypes": ["audience", "operator", "system", "provider"],
+  "providerReadinessStatuses": [
+    "ready",
+    "not_configured",
+    "disconnected",
+    "error",
+    "disabled"
+  ]
+}

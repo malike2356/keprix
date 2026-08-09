@@ -1,0 +1,14 @@
+{
+  "contractVersion": "1.0.0",
+  "commandId": "cmd_synth_zoom_001",
+  "provider": "zoom",
+  "workspaceId": "ws_synth_tenant_001",
+  "actorType": "system",
+  "ok": false,
+  "status": "not_configured",
+  "providerResourceId": null,
+  "joinUrl": null,
+  "deliveryState": null,
+  "errorCode": "zoom_oauth_missing",
+  "errorMessage": "Zoom OAuth is not configured for this workspace"
+}

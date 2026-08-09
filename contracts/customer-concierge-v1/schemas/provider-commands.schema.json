@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://verlox.local/contracts/customer-concierge-v1/provider-commands.schema.json",
+  "title": "Customer Concierge v1 provider commands",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion",
+    "commandId",
+    "provider",
+    "action",
+    "workspaceId",
+    "actorType",
+    "idempotencyKey"
+  ],
+  "properties": {
+    "contractVersion": { "type": "string", "const": "1.0.0" },
+    "commandId": { "type": "string", "minLength": 1 },
+    "provider": {
+      "type": "string",
+      "enum": ["google_calendar", "microsoft_calendar", "zoom", "email", "sms"]
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "create_event",
+        "update_event",
+        "cancel_event",
+        "create_meeting",
+        "update_meeting",
+        "cancel_meeting",
+        "send_message",
+        "reconcile_webhook"
+      ]
+    },
+    "workspaceId": { "type": "string", "minLength": 1 },
+    "conciergeId": { "type": ["string", "null"] },
+    "actorType": {
+      "type": "string",
+      "enum": ["audience", "operator", "system", "provider"]
+    },
+    "idempotencyKey": { "type": "string", "minLength": 1 },
+    "payload": { "type": "object" }
+  }
+}
