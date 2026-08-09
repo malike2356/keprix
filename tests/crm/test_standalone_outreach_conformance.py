@@ -1,7 +1,7 @@
-"""Standalone lead/outreach conformance (Prompt 620).
+"""Standalone lead/outreach conformance (Prompt 620 / closed by 628).
 
-Documents current readiness honestly. This suite must NOT report
-standalone_outreach_ready=True until Prompt 628 closes the series.
+Reports standalone_outreach_ready=True when Prompt 628 E2E + observability
++ ops docs are present and the series gap catalog is empty.
 """
 
 from __future__ import annotations
@@ -18,13 +18,9 @@ MATRIX = ROOT / "docs/architecture/standalone-lead-outreach-capability-matrix.md
 CONTRACT_DOC = ROOT / "docs/architecture/standalone-lead-outreach-contract.md"
 CONTRACT_SCHEMA = ROOT / "schemas/standalone-lead-outreach/contract.schema.json"
 
-# Known gaps that must remain visible until later prompts close them.
-KNOWN_GAPS: dict[str, str] = {
-    # Prompt 627 closed channel_attachment_import; keep at least one gap until 628.
-    "e2e_observability_release": "MISSING: Prompt 628 closes series readiness",
-}
+# Series closed at Prompt 628: no MISSING programme gaps remain.
+KNOWN_GAPS: dict[str, str] = {}
 
-# Prompt 624 closed campaign_scheduler; 625 closed live send + provider events; 626 mailbox scan; 627 funnel/channel.
 CLOSED_CAPABILITIES: dict[str, str] = {
     "campaign_scheduler": "REAL: claim-lease process-due + Soft Wall park (624)",
     "live_email_send": "REAL: Soft Wall approve + SMTP bind / honest dry-run default (625)",
@@ -32,7 +28,10 @@ CLOSED_CAPABILITIES: dict[str, str] = {
     "automatic_mailbox_scan": "REAL: IMAP normalize/match/ingest + cursors + Soft Wall drafts (626)",
     "channel_attachment_import": "REAL: ingest_channel_attachment + email_ingest poll_once default off (627)",
     "channel_telegram_initiation": "REAL: telegram funnel journey intents (627)",
+    "e2e_observability_release": "REAL: journey test + observability API + ops docs + deploy (628)",
 }
+
+STANDALONE_OUTREACH_READY = True
 
 
 def test_baseline_docs_exist() -> None:
@@ -49,7 +48,6 @@ def test_contract_schema_version_and_readiness_flag() -> None:
     schema = json.loads(CONTRACT_SCHEMA.read_text(encoding="utf-8"))
     assert schema["properties"]["contract_version"]["const"] == "1.0.0"
     assert "standalone_outreach_ready" in schema["properties"]
-    # Programme is not complete at Prompt 620.
     assert schema["properties"]["standalone_outreach_ready"].get("description")
 
 
@@ -72,24 +70,27 @@ def test_reuse_packages_present() -> None:
         assert (ROOT / rel).exists(), f"reuse target missing: {rel}"
 
 
-def test_known_gaps_catalogued_and_not_false_ready() -> None:
-    """Gap catalog must stay non-empty until 628; readiness stays false."""
-    assert KNOWN_GAPS, "gap catalog emptied prematurely"
-    assert "campaign_scheduler" not in KNOWN_GAPS
-    assert "live_email_send" not in KNOWN_GAPS
-    assert "provider_events" not in KNOWN_GAPS
-    assert "automatic_mailbox_scan" not in KNOWN_GAPS
-    assert "channel_attachment_import" not in KNOWN_GAPS
-    assert CLOSED_CAPABILITIES.get("campaign_scheduler", "").startswith("REAL")
-    assert CLOSED_CAPABILITIES.get("live_email_send", "").startswith("REAL")
-    assert CLOSED_CAPABILITIES.get("provider_events", "").startswith("REAL")
-    assert CLOSED_CAPABILITIES.get("automatic_mailbox_scan", "").startswith("REAL")
-    assert CLOSED_CAPABILITIES.get("channel_attachment_import", "").startswith("REAL")
-    readiness = False
-    for key, note in KNOWN_GAPS.items():
-        assert note, key
-        assert any(tag in note for tag in ("MISSING", "PARTIAL", "SIMULATED")), note
-    assert readiness is False, "do not claim standalone_outreach_ready at Prompt 620"
+def test_series_ready_after_628() -> None:
+    """Gap catalog empty; closed capabilities REAL; readiness true."""
+    assert KNOWN_GAPS == {}
+    assert "e2e_observability_release" not in KNOWN_GAPS
+    for key in (
+        "campaign_scheduler",
+        "live_email_send",
+        "provider_events",
+        "automatic_mailbox_scan",
+        "channel_attachment_import",
+        "e2e_observability_release",
+    ):
+        assert CLOSED_CAPABILITIES.get(key, "").startswith("REAL"), key
+    assert STANDALONE_OUTREACH_READY is True
+    e2e = ROOT / "tests/crm/test_standalone_outreach_e2e_journey.py"
+    obs = ROOT / "src/keprix/outreach/observability.py"
+    ops_doc = ROOT / "docs/architecture/standalone-lead-outreach-ops.md"
+    assert e2e.is_file() and obs.is_file() and ops_doc.is_file()
+    matrix = MATRIX.read_text(encoding="utf-8")
+    assert "Observability" in matrix
+    assert "End-to-end journey" in matrix
 
 
 def test_funnel_docs_and_modules_exist() -> None:

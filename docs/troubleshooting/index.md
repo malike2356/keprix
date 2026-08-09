@@ -20,6 +20,7 @@ For product feature detail, start from the [full product map](../features/full-p
 | Chat silent, tools denied | [Chat and tools](chat-and-tools.md) |
 | Clicks / tabs do nothing | [UI navigation](ui-navigation.md) |
 | Outreach, Soft Wall, campaigns | [Soft Wall and outreach](soft-wall-and-outreach.md) |
+| Standalone CRM journey / observability | [Standalone lead outreach](standalone-lead-outreach.md) |
 | CRM pipeline and enrichment | [Agentic CRM](agentic-crm.md) |
 | Companies House empty results | [Companies House](companies-house.md) |
 | Product sidecars | [Universal sidecar](../universal-sidecar/troubleshooting.md), [Propreneur sidecar](propreneur-sidecar.md) |

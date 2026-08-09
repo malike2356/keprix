@@ -1073,6 +1073,19 @@ def delivery_health_route(
     return delivery_health(workspace_id=ws)
 
 
+@router.get("/observability")
+def observability_snapshot(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    """Unified scheduler/provider/mailbox/funnel observability (Prompt 628)."""
+    from keprix.outreach.observability import collect_outreach_observability
+
+    ws = _workspace(workspace_id, x_workspace_id)
+    return collect_outreach_observability(ws)
+
+
 @router.post("/delivery/reconcile")
 def delivery_reconcile(
     body: dict[str, Any] | None = None,

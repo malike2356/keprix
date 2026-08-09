@@ -160,7 +160,7 @@
     },
     "standalone_outreach_ready": {
       "type": "boolean",
-      "description": "Must remain false until Prompt 628 sign-off."
+      "description": "True after Prompt 628 E2E, observability, ops docs, and three-way deploy sign-off."
     }
   }
 }

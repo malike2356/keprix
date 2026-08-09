@@ -58,7 +58,7 @@ Monotonic forward ranks for normal progress. Terminal failure / complaint / unsu
 | Live email send | REAL when SMTP bind works and dry-run off; PARTIAL under default dry-run |
 | Provider events | REAL for normalizer + apply (fixtures); ESP live send BLOCKED_OPTIONAL_CREDENTIALS without keys |
 
-`standalone_outreach_ready` remains false until series 628.
+`standalone_outreach_ready` is true after series Prompt 628.
 
 ## APIs
 

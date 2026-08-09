@@ -85,4 +85,4 @@ Existing `/api/crm/*` and `/api/outreach/*` paths remain. New fields are additiv
 
 ## Readiness
 
-Conformance reports `standalone_outreach_ready: false` until Prompt 628 sign-off. Partial REAL capabilities do not equal programme complete.
+Conformance reports `standalone_outreach_ready: true` after Prompt 628 sign-off (E2E journey + observability + ops docs + three-way deploy). Partial REAL capabilities alone were not enough before 628.

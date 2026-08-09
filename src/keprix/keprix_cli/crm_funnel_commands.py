@@ -71,5 +71,12 @@ def cmd_crm_funnel(args) -> int:
         sys.stdout.write(json.dumps(result, default=str, indent=2) + "\n")
         return 0
 
+    if command == "observability":
+        from keprix.outreach.observability import collect_outreach_observability
+
+        result = collect_outreach_observability(str(ws))
+        sys.stdout.write(json.dumps(result, default=str, indent=2) + "\n")
+        return 0 if result.get("complete") else 1
+
     sys.stderr.write(f"unknown crm-funnel command: {command}\n")
     return 2

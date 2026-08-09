@@ -75,7 +75,7 @@ Telegram: REAL initiation. Slack/WhatsApp: PARTIAL thin adapters to the same jou
 
 - Keep `KEPRIX_OUTREACH_DRY_RUN=1`  
 - Keep `KEPRIX_SHEET_EMAIL_INGEST` default off (`0`)  
-- `standalone_outreach_ready` remains false until Prompt 628  
+- `standalone_outreach_ready` is true after Prompt 628 (E2E + observability + ops)
 
 ## Tests
 

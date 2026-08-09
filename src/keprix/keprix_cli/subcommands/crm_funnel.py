@@ -46,3 +46,7 @@ def build_crm_funnel_parser(
     journey.add_argument("--force", action="store_true")
     journey.add_argument("--approval-id", default=None)
     journey.set_defaults(func=cmd_crm_funnel)
+
+    obs = sub.add_parser("observability", help="Standalone outreach observability snapshot")
+    obs.add_argument("--workspace-id", required=True)
+    obs.set_defaults(func=cmd_crm_funnel)

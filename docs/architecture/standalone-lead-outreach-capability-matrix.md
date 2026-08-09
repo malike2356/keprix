@@ -1,6 +1,6 @@
 # Standalone lead and outreach capability matrix (Prompt 620)
 
-**Status:** BASELINE LOCKED  
+**Status:** SERIES COMPLETE (620-628)  
 **Date:** 2026-08-09  
 **Series:** `keprix-standalone-lead-outreach` (620-628)  
 **Depends on:** Archived Visual Agentic CRM (`keprix-agentic-crm-lead-gen`, docs/architecture/agentic-crm-*)
@@ -63,6 +63,9 @@ Honesty rule: UI presence or mocked tests alone never mark REAL. Conformance sui
 | API / frontend initiation | REAL | Documented APIs + full consoles |
 | Local single-user persistence | REAL | `crm.sqlite` + `outreach.sqlite` |
 | Hosted multi-workspace persistence | REAL | SQLite CE + Postgres TEXT schema (`durable.py`, Alembic 028); workspace scoped queries |
+| End-to-end journey (import→send→reply→customer→export) | REAL | `tests/crm/test_standalone_outreach_e2e_journey.py` + mail-capture SMTP adapter; Mailpit overlay optional |
+| Observability (scheduler/provider/mailbox/funnel) | REAL | `GET /api/outreach/observability`, `keprix crm-funnel observability`; see `standalone-lead-outreach-ops.md` |
+| Ops docs (CE/Docker/Postgres/backup) | REAL | `docs/architecture/standalone-lead-outreach-ops.md`, `docs/troubleshooting/standalone-lead-outreach.md` |
 
 ## Build order (series)
 
@@ -76,19 +79,19 @@ Honesty rule: UI presence or mocked tests alone never mark REAL. Conformance sui
 | 625 | Approved email delivery + provider events | 624 |
 | 626 | Automatic mailbox replies | 625 |
 | 627 | Funnel nurture + channel orchestration | 625+ |
-| 628 | E2E observability, release, deploy | all prior |
+| 628 | E2E observability, release, deploy | all prior; **COMPLETED** |
 
 ## Test commands
 
 ```bash
-# Prompt 620 conformance (documents gaps; readiness must stay false until series closes)
+# Series closed: readiness true when e2e + observability present
 cd /opt/lampp/htdocs/verlox/keprix
-python -m pytest tests/crm/test_standalone_outreach_conformance.py -q
+python -m pytest tests/crm/test_standalone_outreach_conformance.py tests/crm/test_standalone_outreach_e2e_journey.py -q
 
-# Existing CRM/outreach regression (do not treat green UI tests as live-send readiness)
+# Existing CRM/outreach regression
 python -m pytest tests/crm tests/tools/test_outreach_automation.py tests/discovery -q --tb=line
 ```
 
-## Dual-store hazard (must resolve in 621-622)
+## Dual-store hazard (resolved by mapping)
 
 Outreach `PIPELINE_STAGES` (`new`, `enrolled`, `contacted`, …) differ from CRM `CrmStage`. Standalone contract SoT is **CRM stages**; outreach statuses map into them. Do not create a third vocabulary.
