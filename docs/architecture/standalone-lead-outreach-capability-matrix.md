@@ -52,7 +52,7 @@ Honesty rule: UI presence or mocked tests alone never mark REAL. Conformance sui
 | Live email send | REAL | Soft Wall approve → `delivery.send_approved_message`; SMTP via `email_accounts` when bound; default `KEPRIX_OUTREACH_DRY_RUN=1` (honest dry-run); ESP live BLOCKED_OPTIONAL_CREDENTIALS without keys; see `standalone-lead-outreach-delivery.md` |
 | Provider events (bounce/complaint) | REAL | Normalizer + apply + idempotency (`provider_events.py`); signed webhooks when verify keys set; fixtures cover SES/SendGrid/Mailgun |
 | Reply ingest API | REAL | Manual/API inbound classify |
-| Automatic mailbox reply scan | PARTIAL | Stub / agent prompt seed (Prompt 626) |
+| Automatic mailbox reply scan | REAL | IMAP + normalize/match/ingest (`inbound_mail.py`, `thread_match.py`, `scan_replies`); cursors + idempotent provider_message_id; see `standalone-lead-outreach-mailbox.md` |
 | Bookings (viCal) | REAL | CRM offer-booking + outreach bookings |
 | Nurture | REAL | `crm/nurture.py` + workflows |
 | Suppression | REAL | Suppression wins over enroll/send |

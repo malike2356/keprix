@@ -231,6 +231,26 @@ def parse_addresses(raw: str | None) -> list[str]:
     return [addr for _, addr in email.utils.getaddresses([raw]) if addr]
 
 
+def _strip_msgid(value: str | None) -> str | None:
+    raw = (value or "").strip()
+    if not raw:
+        return None
+    if raw.startswith("<") and raw.endswith(">"):
+        return raw[1:-1].strip() or None
+    return raw
+
+
+def _parse_references_header(raw: str | None) -> list[str]:
+    if not raw:
+        return []
+    tokens: list[str] = []
+    for match in re.finditer(r"<([^>]+)>|(\S+)", str(raw)):
+        token = _strip_msgid(match.group(1) or match.group(2) or "")
+        if token and token not in tokens:
+            tokens.append(token)
+    return tokens
+
+
 def parse_message(
     raw_bytes: bytes,
     *,
@@ -252,6 +272,13 @@ def parse_message(
                 received_at = received_at.replace(tzinfo=timezone.utc)
         except Exception:
             pass
+    attachments_meta: list[dict[str, Any]] = []
+    try:
+        from keprix.outreach.inbound_mail import extract_attachment_meta_from_email_message
+
+        attachments_meta = extract_attachment_meta_from_email_message(msg)
+    except Exception:
+        attachments_meta = []
     return {
         "message_id": message_id,
         "uid": uid,
@@ -265,6 +292,9 @@ def parse_message(
         "body_html": extract_html_body(msg),
         "preview": preview or None,
         "has_attachments": has_attachments(msg),
+        "attachments_meta": attachments_meta,
+        "in_reply_to": _strip_msgid(msg.get("In-Reply-To")),
+        "references": _parse_references_header(msg.get("References")),
         "received_at": received_at,
     }
 

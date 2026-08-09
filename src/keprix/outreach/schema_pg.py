@@ -140,7 +140,26 @@ CREATE TABLE IF NOT EXISTS outreach_replies (
     classification TEXT,
     confidence REAL,
     resolved INTEGER DEFAULT 0,
+    provider_message_id TEXT,
+    thread_id TEXT,
+    match_status TEXT,
+    matched_message_id TEXT,
+    review_status TEXT,
+    mailbox TEXT,
+    in_reply_to TEXT,
+    attachments_meta_json TEXT,
+    payload_checksum TEXT,
     created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS outreach_inbound_cursors (
+    workspace_id TEXT NOT NULL,
+    account_id TEXT NOT NULL DEFAULT '',
+    mailbox TEXT NOT NULL DEFAULT '',
+    cursor_kind TEXT NOT NULL,
+    cursor_value TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (workspace_id, account_id, mailbox, cursor_kind)
 );
 
 CREATE TABLE IF NOT EXISTS outreach_control (
@@ -195,6 +214,8 @@ CREATE TABLE IF NOT EXISTS outreach_approvals (
     draft_body TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',
     campaign_id TEXT,
+    kind TEXT DEFAULT 'send',
+    approval_type TEXT,
     created_at TEXT NOT NULL,
     resolved_at TEXT
 );
@@ -221,6 +242,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS ix_outreach_messages_idem ON outreach_messages
 CREATE INDEX IF NOT EXISTS ix_outreach_messages_provider_mid ON outreach_messages(workspace_id, provider_message_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_provider_events_ws ON outreach_provider_events(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_replies_ws ON outreach_replies(workspace_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ix_outreach_replies_provider_mid ON outreach_replies(workspace_id, provider_message_id);
+CREATE INDEX IF NOT EXISTS ix_outreach_replies_match ON outreach_replies(workspace_id, match_status);
+CREATE INDEX IF NOT EXISTS ix_outreach_inbound_cursors_ws ON outreach_inbound_cursors(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_lists_ws ON outreach_lists(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_list_members_ws ON outreach_list_members(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_bookings_ws ON outreach_bookings(workspace_id);
@@ -252,6 +276,7 @@ OUTREACH_TABLE_NAMES: tuple[str, ...] = (
     "outreach_messages",
     "outreach_provider_events",
     "outreach_replies",
+    "outreach_inbound_cursors",
     "outreach_control",
     "outreach_lists",
     "outreach_list_members",
@@ -314,7 +339,12 @@ def ensure_outreach_pg_schema(conn) -> None:
         conn.commit()
     except Exception:
         pass
-    from keprix.outreach.store import ensure_delivery_columns, ensure_scheduler_columns
+    from keprix.outreach.store import (
+        ensure_delivery_columns,
+        ensure_mailbox_columns,
+        ensure_scheduler_columns,
+    )
 
     ensure_scheduler_columns(conn)
     ensure_delivery_columns(conn)
+    ensure_mailbox_columns(conn)

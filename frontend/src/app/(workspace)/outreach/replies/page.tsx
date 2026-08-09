@@ -12,8 +12,10 @@ import * as React from "react";
 import useSWR from "swr";
 import type { OutreachReply } from "@/components/outreach/types";
 import {
+  dismissOutreachReply,
   fetchOutreachReplies,
   postOutreachInboundReply,
+  postOutreachScanReplies,
   resolveOutreachReply,
 } from "@/lib/outreach-api";
 
@@ -48,6 +50,36 @@ export default function OutreachRepliesPage() {
   const replies = useSWR(["outreach-replies", WORKSPACE, filter], () =>
     fetchOutreachReplies(WORKSPACE, resolvedParam as 0 | 1 | undefined),
   );
+
+  const onScan = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const result = await postOutreachScanReplies(WORKSPACE);
+      setMessage(
+        `Mailbox scan: scanned ${result.scanned ?? 0}, matched ${result.matched ?? 0}, ambiguous ${result.ambiguous ?? 0}, unmatched ${result.unmatched ?? 0}, deduped ${result.deduped ?? 0}`,
+      );
+      await replies.mutate();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not scan mailbox");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onDismiss = async (replyId: string) => {
+    setBusy(true);
+    setError(null);
+    try {
+      await dismissOutreachReply(replyId, WORKSPACE);
+      setMessage("Reply dismissed");
+      await replies.mutate();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not dismiss reply");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const onInbound = async () => {
     setBusy(true);
@@ -97,15 +129,20 @@ export default function OutreachRepliesPage() {
 
       <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" spacing={1} alignItems={{ sm: "center" }}>
         <Typography variant="body2" color="text.secondary">
-          Unknown replies stay open for manual review. Interest and booking intent promote leads automatically.
+          Auto-ingested mailbox replies show match status. Ambiguous items stay open until assigned or dismissed.
         </Typography>
-        <ButtonGroup size="small">
-          {(["open", "resolved", "all"] as const).map((value) => (
-            <Button key={value} variant={filter === value ? "contained" : "outlined"} onClick={() => setFilter(value)}>
-              {value}
-            </Button>
-          ))}
-        </ButtonGroup>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Button size="small" variant="outlined" disabled={busy} onClick={() => void onScan()}>
+            Scan mailbox
+          </Button>
+          <ButtonGroup size="small">
+            {(["open", "resolved", "all"] as const).map((value) => (
+              <Button key={value} variant={filter === value ? "contained" : "outlined"} onClick={() => setFilter(value)}>
+                {value}
+              </Button>
+            ))}
+          </ButtonGroup>
+        </Stack>
       </Stack>
 
       <Card variant="outlined">
@@ -141,8 +178,10 @@ export default function OutreachRepliesPage() {
         <Stack spacing={1}>
           {items.map((review) => {
             const leadId = review.lead_id || review.leadId;
-            const from = review.from_email || review.fromEmail || "Unknown";
+            const from = review.from_email || review.fromEmail || review.from_address || "Unknown";
             const preview = review.body_preview || review.bodyPreview || review.body || "";
+            const matchStatus = review.match_status || review.matchStatus;
+            const reviewStatus = review.review_status || review.reviewStatus;
             const open = review.status === "open" || review.resolved === false || (!review.status && !review.resolved);
             return (
               <Card key={review.id} variant="outlined">
@@ -155,7 +194,9 @@ export default function OutreachRepliesPage() {
                         : ""}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {review.status || (review.resolved ? "resolved" : "open")}
+                      {[matchStatus, reviewStatus, review.status || (review.resolved ? "resolved" : "open")]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </Typography>
                   </Stack>
                   <Typography variant="caption" color="text.secondary" display="block">
@@ -178,6 +219,11 @@ export default function OutreachRepliesPage() {
                     {leadId ? (
                       <Button size="small" variant="outlined" component="a" href={`/outreach/leads/${leadId}`}>
                         Open lead
+                      </Button>
+                    ) : null}
+                    {open && (matchStatus === "ambiguous" || matchStatus === "unmatched") ? (
+                      <Button size="small" disabled={busy} onClick={() => void onDismiss(review.id)}>
+                        Dismiss
                       </Button>
                     ) : null}
                     {open

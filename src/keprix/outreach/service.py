@@ -1081,18 +1081,118 @@ class OutreachService:
             self.store._conn.commit()
         return self.store.get_sequence(workspace_id, sequence_id)
 
-    def list_replies(self, workspace_id: str, *, resolved: bool | None = None) -> list[dict[str, Any]]:
+    def list_replies(
+        self,
+        workspace_id: str,
+        *,
+        resolved: bool | None = None,
+        match_status: str | None = None,
+        review_status: str | None = None,
+    ) -> list[dict[str, Any]]:
         sql = """
             SELECT r.* FROM outreach_replies r
-            JOIN outreach_leads l ON l.id = r.lead_id
-            WHERE l.workspace_id = ?
+            WHERE r.workspace_id = ?
         """
         params: list[Any] = [workspace_id]
         if resolved is not None:
             sql += " AND r.resolved = ?"
             params.append(1 if resolved else 0)
+        if match_status:
+            sql += " AND r.match_status = ?"
+            params.append(match_status)
+        if review_status:
+            sql += " AND r.review_status = ?"
+            params.append(review_status)
         sql += " ORDER BY r.created_at DESC LIMIT 200"
         return self.store._fetchall(sql, tuple(params))
+
+    def list_review_queue(self, workspace_id: str) -> list[dict[str, Any]]:
+        """Ambiguous / unmatched replies awaiting operator review."""
+        return self.store._fetchall(
+            """
+            SELECT * FROM outreach_replies
+            WHERE workspace_id = ?
+              AND (
+                match_status IN ('ambiguous', 'unmatched')
+                OR review_status = 'needs_review'
+              )
+              AND COALESCE(resolved, 0) = 0
+            ORDER BY created_at DESC
+            LIMIT 200
+            """,
+            (workspace_id,),
+        )
+
+    def assign_inbound_reply(
+        self,
+        workspace_id: str,
+        reply_id: str,
+        *,
+        message_id: str | None = None,
+        lead_id: str | None = None,
+        apply_classify: bool = True,
+    ) -> dict[str, Any]:
+        """Operator assigns an ambiguous/unmatched reply to a delivery or lead."""
+        row = self.store._fetchone(
+            "SELECT * FROM outreach_replies WHERE id = ? AND workspace_id = ?",
+            (reply_id, workspace_id),
+        )
+        if not row:
+            raise LookupError("reply_not_found")
+        matched_message_id = message_id
+        resolved_lead_id = lead_id
+        enrollment_id = None
+        if matched_message_id:
+            msg = self.store.get_message(workspace_id, matched_message_id)
+            if not msg:
+                raise LookupError("message_not_found")
+            enrollment_id = msg.get("enrollment_id")
+            if enrollment_id:
+                enr = self.store.get_enrollment(str(enrollment_id), workspace_id=workspace_id)
+                if enr:
+                    resolved_lead_id = resolved_lead_id or enr.get("lead_id")
+        if not resolved_lead_id:
+            raise ValueError("lead_id or message_id required")
+        self.store.update_reply(
+            workspace_id,
+            reply_id,
+            lead_id=resolved_lead_id,
+            message_id=matched_message_id or row.get("message_id"),
+            matched_message_id=matched_message_id,
+            match_status="matched",
+            review_status="assigned",
+        )
+        out: dict[str, Any] = {
+            "reply": self.store._fetchone(
+                "SELECT * FROM outreach_replies WHERE id = ? AND workspace_id = ?",
+                (reply_id, workspace_id),
+            )
+        }
+        if apply_classify:
+            classified = self.classify_and_apply_reply(
+                workspace_id,
+                from_address=str(row.get("from_address") or ""),
+                body=str(row.get("body") or ""),
+                subject=str(row.get("subject") or ""),
+                lead_id=str(resolved_lead_id),
+                message_id=matched_message_id,
+                classification=row.get("classification"),
+                confidence=row.get("confidence"),
+                existing_reply_id=reply_id,
+                provider_message_id=row.get("provider_message_id"),
+                skip_create_reply=True,
+            )
+            out["classified"] = classified
+        return out
+
+    def dismiss_inbound_reply(self, workspace_id: str, reply_id: str) -> dict[str, Any] | None:
+        row = self.store.update_reply(
+            workspace_id,
+            reply_id,
+            resolved=True,
+            review_status="dismissed",
+        )
+        return row
 
     def resolve_reply(
         self,
@@ -1105,25 +1205,25 @@ class OutreachService:
         row = self.store._fetchone(
             """
             SELECT r.* FROM outreach_replies r
-            JOIN outreach_leads l ON l.id = r.lead_id
-            WHERE r.id = ? AND l.workspace_id = ?
+            WHERE r.id = ? AND r.workspace_id = ?
             """,
             (reply_id, workspace_id),
         )
         if not row:
             return None
-        self.store._conn.execute(
-            """
-            UPDATE outreach_replies
-            SET resolved = 1, classification = COALESCE(?, classification)
-            WHERE id = ?
-            """,
-            (classification, reply_id),
+        self.store.update_reply(
+            workspace_id,
+            reply_id,
+            resolved=True,
+            classification=classification or row.get("classification"),
+            review_status=row.get("review_status") or "resolved",
         )
-        self.store._conn.commit()
         if note:
             pass
-        return self.store._fetchone("SELECT * FROM outreach_replies WHERE id = ?", (reply_id,))
+        return self.store._fetchone(
+            "SELECT * FROM outreach_replies WHERE id = ? AND workspace_id = ?",
+            (reply_id, workspace_id),
+        )
 
     def import_companies_house_lead(self, workspace_id: str, body: dict[str, Any]) -> dict[str, Any]:
         company_name = str(body.get("company_name") or "").strip()
@@ -1198,6 +1298,17 @@ class OutreachService:
         message_id: str | None = None,
         classification: str | None = None,
         confidence: float | None = None,
+        existing_reply_id: str | None = None,
+        provider_message_id: str | None = None,
+        skip_create_reply: bool = False,
+        match_status: str | None = None,
+        matched_message_id: str | None = None,
+        thread_id: str | None = None,
+        mailbox: str | None = None,
+        in_reply_to: str | None = None,
+        attachments_meta: list[dict[str, Any]] | None = None,
+        payload_checksum: str | None = None,
+        create_draft_approval: bool = True,
     ) -> dict[str, Any]:
         lead = None
         if lead_id:
@@ -1217,26 +1328,86 @@ class OutreachService:
             result = classify_reply_sync(subject, body, from_address)
 
         label = str(result["classification"])
-        reply = self.store.create_reply(
-            lead_id=lead["id"],
-            message_id=message_id,
-            from_address=from_address,
-            subject=subject,
-            body=body,
-            classification=label,
-            confidence=result.get("confidence"),
-        )
+        reply: dict[str, Any] | None = None
+        if skip_create_reply and existing_reply_id:
+            updates: dict[str, Any] = {
+                "lead_id": lead["id"],
+                "message_id": message_id,
+                "from_address": from_address,
+                "subject": subject,
+                "body": body,
+                "classification": label,
+                "confidence": result.get("confidence"),
+                "match_status": match_status or "matched",
+                "matched_message_id": matched_message_id or message_id,
+                "review_status": "applied",
+            }
+            if provider_message_id is not None:
+                updates["provider_message_id"] = provider_message_id
+            if thread_id is not None:
+                updates["thread_id"] = thread_id
+            if mailbox is not None:
+                updates["mailbox"] = mailbox
+            if in_reply_to is not None:
+                updates["in_reply_to"] = in_reply_to
+            if attachments_meta is not None:
+                updates["attachments_meta_json"] = __import__("json").dumps(
+                    attachments_meta, ensure_ascii=False, default=str
+                )
+            if payload_checksum is not None:
+                updates["payload_checksum"] = payload_checksum
+            reply = self.store.update_reply(workspace_id, existing_reply_id, **updates)
+        else:
+            reply = self.store.create_reply(
+                workspace_id=workspace_id,
+                lead_id=lead["id"],
+                message_id=message_id,
+                from_address=from_address,
+                subject=subject,
+                body=body,
+                classification=label,
+                confidence=result.get("confidence"),
+                provider_message_id=provider_message_id,
+                match_status=match_status,
+                matched_message_id=matched_message_id or message_id,
+                thread_id=thread_id,
+                mailbox=mailbox,
+                in_reply_to=in_reply_to,
+                attachments_meta=attachments_meta,
+                payload_checksum=payload_checksum,
+            )
 
         new_status = lead_status_for_classification(label)
         self.store.update_lead_status(workspace_id, str(lead["id"]), new_status)
 
         stopped: list[str] = []
-        for enrollment in self.store.active_enrollments_for_lead(str(lead["id"])):
+        for enrollment in self.store.active_enrollments_for_lead(
+            str(lead["id"]), workspace_id=workspace_id
+        ):
             seq = self.store.get_sequence(workspace_id, str(enrollment["sequence_id"])) or {}
             stop = enrollment_stop_status(label, seq)
             if stop:
                 self.store.update_enrollment(enrollment["id"], status=stop, next_run_at=None)
                 stopped.append(str(enrollment["id"]))
+
+        # Immediate suppression for unsubscribe / complaint-like outcomes
+        if label in ("unsubscribe", "not_interested") or label == "bounce":
+            try:
+                from keprix.crm.store import get_crm_store
+
+                cstore = get_crm_store()
+                reason = "outreach_unsubscribe" if label == "unsubscribe" else f"outreach_{label}"
+                cstore.create_suppression_entry(
+                    workspace_id,
+                    channel="email",
+                    address=str(from_address or lead.get("email") or ""),
+                    reason=reason,
+                    source="outreach_mailbox_scan",
+                    actor_type="system",
+                    actor_id="outreach_inbound",
+                )
+            except Exception:
+                logger.exception("suppression failed for %s", from_address)
 
         draft = None
         if label == "objection":
@@ -1251,7 +1422,28 @@ class OutreachService:
                 else None
             )
             link = (campaign or {}).get("default_booking_link") or "{{booking_link}}"
-            draft = f"Great — please pick a time here: {link}"
+            draft = f"Great - please pick a time here: {link}"
+
+        draft_approval = None
+        if create_draft_approval and draft:
+            try:
+                from keprix.outreach.ops import get_outreach_ops_store
+
+                ops = get_outreach_ops_store()
+                draft_approval = ops.create_approval(
+                    workspace_id,
+                    message_id=message_id,
+                    enrollment_id=None,
+                    lead_id=str(lead["id"]),
+                    recipient=str(from_address or lead.get("email") or ""),
+                    subject=f"Re: {subject}" if subject else "Reply draft",
+                    draft_body=draft,
+                    campaign_id=lead.get("campaign_id"),
+                    kind="reply_draft",
+                    approval_type="reply_draft",
+                )
+            except Exception:
+                logger.exception("failed to park reply_draft Soft Wall approval")
 
         try:
             from keprix.aiva_analytics.metrics import record_outreach_reply
@@ -1266,6 +1458,7 @@ class OutreachService:
             "lead": self.store.get_lead(workspace_id, str(lead["id"])),
             "stopped_enrollments": stopped,
             "draft_response": draft,
+            "draft_approval": draft_approval,
         }
         try:
             from keprix.crm.engagement import hook_soft_wall_reply
@@ -1275,14 +1468,303 @@ class OutreachService:
             out["crm_error"] = str(exc)
         return out
 
-    def scan_replies(self, workspace_id: str | None = None) -> dict[str, Any]:
-        """Scan inbox for replies when email poller data is available; otherwise no-op."""
+    def ingest_inbound_normalized(
+        self,
+        workspace_id: str,
+        payload: dict[str, Any],
+        *,
+        apply_matched: bool = True,
+    ) -> dict[str, Any]:
+        """Normalize (if needed), match, persist, and optionally classify a matched reply."""
+        from keprix.outreach.inbound_mail import normalize_from_webhook_body, normalize_inbound
+        from keprix.outreach.thread_match import AMBIGUOUS, MATCHED, UNMATCHED, match_inbound_thread
+
+        ws = str(workspace_id or "").strip()
+        if not ws:
+            raise ValueError("workspace_id is required")
+
+        if payload.get("payload_checksum") and payload.get("from_address") is not None:
+            inbound = dict(payload)
+            inbound["workspace_id"] = ws
+        elif payload.get("text_body") is not None or payload.get("body") is not None:
+            if "provider_message_id" in payload or "in_reply_to" in payload or "references" in payload:
+                inbound = normalize_inbound(
+                    workspace_id=ws,
+                    mailbox=payload.get("mailbox"),
+                    provider_message_id=payload.get("provider_message_id") or payload.get("message_id"),
+                    thread_id=payload.get("thread_id"),
+                    in_reply_to=payload.get("in_reply_to"),
+                    references=payload.get("references"),
+                    from_address=payload.get("from_address") or payload.get("from"),
+                    to_addresses=payload.get("to_addresses"),
+                    subject=payload.get("subject"),
+                    text_body=payload.get("text_body") or payload.get("body"),
+                    received_at=payload.get("received_at"),
+                    attachments_meta=payload.get("attachments_meta"),
+                    extra=payload.get("_meta"),
+                )
+            else:
+                inbound = normalize_from_webhook_body(ws, payload)
+        else:
+            inbound = normalize_from_webhook_body(ws, payload)
+
+        pmid = inbound.get("provider_message_id")
+        if pmid:
+            existing = self.store.find_reply_by_provider_message_id(ws, str(pmid))
+            if existing:
+                return {
+                    "deduped": True,
+                    "status": "deduped",
+                    "reply": existing,
+                    "match": {"status": existing.get("match_status")},
+                }
+
+        match = match_inbound_thread(self.store, ws, inbound)
+        status = str(match.get("status") or UNMATCHED)
+
+        # Reject-only attachment metadata still stored; no raw payloads
+        attachments = list(inbound.get("attachments_meta") or [])
+
+        if status == MATCHED and apply_matched and match.get("lead_id"):
+            classified = self.classify_and_apply_reply(
+                ws,
+                from_address=str(inbound.get("from_address") or ""),
+                body=str(inbound.get("text_body") or ""),
+                subject=str(inbound.get("subject") or ""),
+                lead_id=str(match["lead_id"]),
+                message_id=match.get("message_id"),
+                provider_message_id=pmid,
+                match_status=MATCHED,
+                matched_message_id=match.get("message_id"),
+                thread_id=inbound.get("thread_id"),
+                mailbox=inbound.get("mailbox"),
+                in_reply_to=inbound.get("in_reply_to"),
+                attachments_meta=attachments,
+                payload_checksum=inbound.get("payload_checksum"),
+                create_draft_approval=True,
+            )
+            return {
+                "deduped": False,
+                "status": MATCHED,
+                "match": match,
+                "reply": classified.get("reply"),
+                "classified": classified,
+            }
+
+        review_status = "needs_review" if status in (AMBIGUOUS, UNMATCHED) else None
+        reply = self.store.create_reply(
+            workspace_id=ws,
+            lead_id=match.get("lead_id"),
+            message_id=match.get("message_id"),
+            from_address=str(inbound.get("from_address") or "unknown"),
+            subject=inbound.get("subject"),
+            body=str(inbound.get("text_body") or ""),
+            classification=None,
+            confidence=None,
+            provider_message_id=pmid,
+            thread_id=inbound.get("thread_id"),
+            match_status=status,
+            matched_message_id=match.get("message_id"),
+            review_status=review_status,
+            mailbox=inbound.get("mailbox"),
+            in_reply_to=inbound.get("in_reply_to"),
+            attachments_meta=attachments,
+            payload_checksum=inbound.get("payload_checksum"),
+            resolved=False,
+        )
+        # Soft Wall engagement inbox for review items (low confidence / unmatched)
+        try:
+            from keprix.crm.engagement import ingest_engagement
+
+            ingest_engagement(
+                workspace_id=ws,
+                engagement_type="inbound_needs_review",
+                body=str(inbound.get("text_body") or ""),
+                subject=str(inbound.get("subject") or ""),
+                from_address=str(inbound.get("from_address") or ""),
+                outreach_lead_id=str(match.get("lead_id") or "") or None,
+                confidence=0.2,
+                method="mailbox_match",
+                provider="outreach_inbound",
+                provider_event_id=str(pmid or reply.get("id") or ""),
+                raw_metadata={
+                    "match_status": status,
+                    "reason": match.get("reason"),
+                    "reply_id": reply.get("id"),
+                },
+                channel="email",
+            )
+        except Exception:
+            logger.exception("engagement inbox hook failed for review reply")
+
         return {
+            "deduped": False,
+            "status": status,
+            "match": match,
+            "reply": reply,
+        }
+
+    def scan_replies(
+        self,
+        workspace_id: str | None = None,
+        *,
+        messages: list[dict[str, Any]] | None = None,
+        account: dict[str, Any] | None = None,
+        fetch_fn: Any | None = None,
+    ) -> dict[str, Any]:
+        """Poll bound mailboxes (or ingest injected messages) and reconcile replies."""
+        from keprix.outreach.inbound_mail import (
+            fetch_imap_since_uid,
+            normalize_from_parsed_imap,
+            resolve_bound_email_accounts,
+        )
+        from keprix.outreach.ops import get_outreach_ops_store
+
+        counts = {
             "scanned": 0,
             "matched": 0,
-            "workspace_id": workspace_id,
-            "note": "inbox_scan_requires_email_account; use outreach_classify_reply for inbound payloads",
+            "ambiguous": 0,
+            "unmatched": 0,
+            "deduped": 0,
+            "errors": 0,
         }
+        details: list[dict[str, Any]] = []
+
+        if messages is not None:
+            if not workspace_id:
+                raise ValueError("workspace_id is required when injecting messages")
+            for raw in messages:
+                try:
+                    if raw.get("payload_checksum"):
+                        result = self.ingest_inbound_normalized(workspace_id, raw)
+                    else:
+                        inbound = normalize_from_parsed_imap(
+                            workspace_id,
+                            raw,
+                            mailbox=raw.get("mailbox")
+                            or (account or {}).get("email_address")
+                            or (account or {}).get("username"),
+                            account_id=(account or {}).get("id"),
+                        )
+                        result = self.ingest_inbound_normalized(workspace_id, inbound)
+                    counts["scanned"] += 1
+                    st = str(result.get("status") or "")
+                    if result.get("deduped"):
+                        counts["deduped"] += 1
+                    elif st == "matched":
+                        counts["matched"] += 1
+                    elif st == "ambiguous":
+                        counts["ambiguous"] += 1
+                    else:
+                        counts["unmatched"] += 1
+                    details.append({"status": st, "reply_id": (result.get("reply") or {}).get("id")})
+                    # Advance cursor when injected messages carry uid
+                    uid = (raw.get("uid") or (raw.get("_meta") or {}).get("uid"))
+                    if uid is not None and account:
+                        self.store.set_inbound_cursor(
+                            workspace_id,
+                            account_id=str(account.get("id") or ""),
+                            mailbox=str(
+                                account.get("email_address") or account.get("username") or ""
+                            ).lower(),
+                            cursor_kind="imap_uid",
+                            cursor_value=str(int(uid)),
+                        )
+                except Exception as exc:
+                    counts["errors"] += 1
+                    logger.exception("ingest failed")
+                    details.append({"error": str(exc)})
+            return {"workspace_id": workspace_id, **counts, "items": details}
+
+        workspaces: list[str]
+        if workspace_id:
+            workspaces = [str(workspace_id)]
+        else:
+            # Distinct workspaces with campaigns or control
+            rows = self.store._fetchall(
+                "SELECT DISTINCT workspace_id FROM outreach_campaigns WHERE workspace_id != ''"
+            )
+            workspaces = [str(r["workspace_id"]) for r in rows if r.get("workspace_id")]
+
+        ops = get_outreach_ops_store()
+        for ws in workspaces:
+            accounts = resolve_bound_email_accounts(ws, store=self.store, ops=ops)
+            if account:
+                accounts = [account]
+            if not accounts:
+                continue
+            for acc in accounts:
+                mailbox = str(acc.get("email_address") or acc.get("username") or "").lower()
+                account_id = str(acc.get("id") or "")
+                cursor = self.store.get_inbound_cursor(
+                    ws, account_id=account_id, mailbox=mailbox, cursor_kind="imap_uid"
+                )
+                since_uid = None
+                if cursor and cursor.get("cursor_value"):
+                    try:
+                        since_uid = int(cursor["cursor_value"])
+                    except (TypeError, ValueError):
+                        since_uid = None
+                # Ensure gmail_history cursor row exists for future (even without keys)
+                if not self.store.get_inbound_cursor(
+                    ws, account_id=account_id, mailbox=mailbox, cursor_kind="gmail_history"
+                ):
+                    self.store.set_inbound_cursor(
+                        ws,
+                        account_id=account_id,
+                        mailbox=mailbox,
+                        cursor_kind="gmail_history",
+                        cursor_value="",
+                    )
+                try:
+                    fetcher = fetch_fn or fetch_imap_since_uid
+                    fetched = fetcher(acc, folder="INBOX", since_uid=since_uid)
+                except Exception as exc:
+                    counts["errors"] += 1
+                    logger.warning("IMAP fetch failed for %s: %s", account_id, exc)
+                    details.append({"workspace_id": ws, "account_id": account_id, "error": str(exc)})
+                    continue
+                max_uid = since_uid or 0
+                for raw in fetched:
+                    try:
+                        inbound = normalize_from_parsed_imap(
+                            ws, raw, mailbox=mailbox, account_id=account_id
+                        )
+                        result = self.ingest_inbound_normalized(ws, inbound)
+                        counts["scanned"] += 1
+                        st = str(result.get("status") or "")
+                        if result.get("deduped"):
+                            counts["deduped"] += 1
+                        elif st == "matched":
+                            counts["matched"] += 1
+                        elif st == "ambiguous":
+                            counts["ambiguous"] += 1
+                        else:
+                            counts["unmatched"] += 1
+                        details.append(
+                            {
+                                "workspace_id": ws,
+                                "status": st,
+                                "reply_id": (result.get("reply") or {}).get("id"),
+                            }
+                        )
+                        uid = raw.get("uid")
+                        if uid is not None:
+                            max_uid = max(max_uid, int(uid))
+                    except Exception as exc:
+                        counts["errors"] += 1
+                        logger.exception("ingest failed")
+                        details.append({"workspace_id": ws, "error": str(exc)})
+                if max_uid and max_uid > (since_uid or 0):
+                    self.store.set_inbound_cursor(
+                        ws,
+                        account_id=account_id,
+                        mailbox=mailbox,
+                        cursor_kind="imap_uid",
+                        cursor_value=str(max_uid),
+                    )
+
+        return {"workspace_id": workspace_id, **counts, "items": details}
 
     def daily_digest(self, workspace_id: str, *, hours: int = 24) -> dict[str, Any]:
         since = _iso(_utcnow() - timedelta(hours=hours))

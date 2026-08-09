@@ -70,6 +70,8 @@ CREATE TABLE IF NOT EXISTS outreach_approvals (
     draft_body TEXT NOT NULL,
     status TEXT NOT NULL DEFAULT 'pending',
     campaign_id TEXT,
+    kind TEXT DEFAULT 'send',
+    approval_type TEXT,
     created_at TEXT NOT NULL,
     resolved_at TEXT
 );
@@ -132,9 +134,10 @@ class OutreachOpsStore:
                 pass
             self._ensure_message_columns()
             try:
-                from keprix.outreach.store import ensure_delivery_columns
+                from keprix.outreach.store import ensure_delivery_columns, ensure_mailbox_columns
 
                 ensure_delivery_columns(self._conn)
+                ensure_mailbox_columns(self._conn)
             except Exception:
                 pass
 
@@ -461,13 +464,16 @@ class OutreachOpsStore:
     def create_approval(self, workspace_id: str, **fields: Any) -> dict[str, Any]:
         approval_id = str(uuid.uuid4())
         now = _utcnow()
+        kind = str(fields.get("kind") or fields.get("approval_type") or "send")
+        approval_type = str(fields.get("approval_type") or kind)
         with self._lock:
             self._conn.execute(
                 """
                 INSERT INTO outreach_approvals (
                     id, workspace_id, message_id, enrollment_id, lead_id, recipient,
-                    subject, draft_body, status, campaign_id, created_at, resolved_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, NULL)
+                    subject, draft_body, status, campaign_id, kind, approval_type,
+                    created_at, resolved_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, NULL)
                 """,
                 (
                     approval_id,
@@ -479,10 +485,12 @@ class OutreachOpsStore:
                     fields.get("subject"),
                     fields.get("draft_body") or "",
                     fields.get("campaign_id"),
+                    kind,
+                    approval_type,
                     now,
                 ),
             )
-            if fields.get("message_id"):
+            if fields.get("message_id") and kind != "reply_draft":
                 self._conn.execute(
                     """
                     UPDATE outreach_messages

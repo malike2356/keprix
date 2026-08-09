@@ -351,6 +351,44 @@ export async function fetchOutreachReplies(
   );
 }
 
+export async function fetchOutreachReplyReviewQueue(workspaceId = DEFAULT_WORKSPACE) {
+  return parseJson<{ replies: OutreachReply[]; count?: number }>(
+    await ceApi(`/api/outreach/replies/review-queue${qs(workspaceParams(workspaceId))}`),
+    "Failed to load reply review queue",
+  );
+}
+
+export async function postOutreachScanReplies(workspaceId = DEFAULT_WORKSPACE) {
+  return parseJson<{
+    scanned?: number;
+    matched?: number;
+    ambiguous?: number;
+    unmatched?: number;
+    deduped?: number;
+  }>(
+    await ceApi(`/api/outreach/scan-replies${qs(workspaceParams(workspaceId))}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    }),
+    "Failed to scan mailbox replies",
+  );
+}
+
+export async function postOutreachInboundNormalize(
+  body: Record<string, unknown>,
+  workspaceId = DEFAULT_WORKSPACE,
+) {
+  return parseJson<Record<string, unknown>>(
+    await ceApi(`/api/outreach/inbound/normalize${qs(workspaceParams(workspaceId))}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+    "Failed to normalize inbound mail",
+  );
+}
+
 export async function postOutreachInboundReply(
   body: { from_email?: string; fromEmail?: string; subject?: string; body?: string; lead_id?: string },
   workspaceId = DEFAULT_WORKSPACE,
@@ -362,6 +400,34 @@ export async function postOutreachInboundReply(
       body: JSON.stringify(body),
     }),
     "Failed to record inbound reply",
+  );
+}
+
+export async function assignOutreachReply(
+  replyId: string,
+  body: { message_id?: string; lead_id?: string; apply_classify?: boolean },
+  workspaceId = DEFAULT_WORKSPACE,
+) {
+  return parseJson<{ reply?: OutreachReply }>(
+    await ceApi(
+      `/api/outreach/replies/${encodeURIComponent(replyId)}/assign${qs(workspaceParams(workspaceId))}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      },
+    ),
+    "Failed to assign reply",
+  );
+}
+
+export async function dismissOutreachReply(replyId: string, workspaceId = DEFAULT_WORKSPACE) {
+  return parseJson<{ reply?: OutreachReply }>(
+    await ceApi(
+      `/api/outreach/replies/${encodeURIComponent(replyId)}/dismiss${qs(workspaceParams(workspaceId))}`,
+      { method: "POST" },
+    ),
+    "Failed to dismiss reply",
   );
 }
 

@@ -23,8 +23,11 @@ OUTREACH_CRON_JOBS: tuple[dict[str, Any], ...] = (
         "name": "outreach-scan-replies",
         "schedule": "every 2m",
         "prompt": (
-            "Scan for inbound outreach replies. Call tools to classify replies and "
-            "update the pipeline. Prefer outreach_classify_reply for matched leads."
+            "Call the outreach_scan_replies tool for active workspaces. "
+            "It polls bound email accounts, matches inbound mail to outbound "
+            "deliveries, classifies matched replies, parks ambiguous items for "
+            "review, and advances mailbox cursors. Summarize scanned, matched, "
+            "ambiguous, unmatched, and deduped counts. Do not invent replies."
         ),
         "enabled_toolsets": ["outreach"],
     },

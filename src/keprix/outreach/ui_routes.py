@@ -419,13 +419,28 @@ def patch_sequence(
 def list_replies(
     workspace_id: str | None = Query(default=None),
     resolved: int | None = Query(default=None),
+    match_status: str | None = Query(default=None),
+    review_status: str | None = Query(default=None),
     x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
     _user: str = Depends(require_api_auth),
 ) -> dict[str, Any]:
     ws = _workspace(workspace_id, x_workspace_id)
     resolved_flag: bool | None = None if resolved is None else bool(resolved)
-    items = _svc().list_replies(ws, resolved=resolved_flag)
+    items = _svc().list_replies(
+        ws, resolved=resolved_flag, match_status=match_status, review_status=review_status
+    )
     return {"workspace_id": ws, "replies": items, "reviews": items, "count": len(items)}
+
+
+@router.get("/replies/review-queue")
+def list_reply_review_queue(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id)
+    items = _svc().list_review_queue(ws)
+    return {"workspace_id": ws, "replies": items, "count": len(items)}
 
 
 @router.post("/replies/inbound")
@@ -451,6 +466,70 @@ def inbound_reply(
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     return result
+
+
+@router.post("/scan-replies")
+def scan_replies(
+    body: dict[str, Any] | None = None,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    body = body or {}
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id)
+    return _svc().scan_replies(ws)
+
+
+@router.post("/inbound/normalize")
+def inbound_normalize(
+    body: dict[str, Any],
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    """Test/webhook helper: normalize + match + persist inbound mail."""
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id)
+    try:
+        return _svc().ingest_inbound_normalized(ws, body)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/replies/{reply_id}/assign")
+def assign_reply(
+    reply_id: str,
+    body: dict[str, Any],
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id)
+    try:
+        return _svc().assign_inbound_reply(
+            ws,
+            reply_id,
+            message_id=body.get("message_id"),
+            lead_id=body.get("lead_id"),
+            apply_classify=bool(body.get("apply_classify", True)),
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/replies/{reply_id}/dismiss")
+def dismiss_reply(
+    reply_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id)
+    row = _svc().dismiss_inbound_reply(ws, reply_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="reply_not_found")
+    return {"reply": row}
 
 
 @router.post("/replies/{reply_id}/resolve")

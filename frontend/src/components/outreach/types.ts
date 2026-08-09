@@ -102,6 +102,7 @@ export type OutreachReply = {
   leadId?: string | null;
   from_email?: string | null;
   fromEmail?: string | null;
+  from_address?: string | null;
   subject?: string | null;
   body?: string | null;
   body_preview?: string | null;
@@ -109,6 +110,12 @@ export type OutreachReply = {
   classification?: string | null;
   confidence?: number | null;
   status?: string | null;
+  match_status?: string | null;
+  matchStatus?: string | null;
+  review_status?: string | null;
+  reviewStatus?: string | null;
+  provider_message_id?: string | null;
+  matched_message_id?: string | null;
   resolved?: boolean | null;
   note?: string | null;
   suggested_reply?: string | null;

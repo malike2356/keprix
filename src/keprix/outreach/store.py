@@ -169,7 +169,26 @@ CREATE TABLE IF NOT EXISTS outreach_replies (
     classification TEXT,
     confidence REAL,
     resolved INTEGER DEFAULT 0,
+    provider_message_id TEXT,
+    thread_id TEXT,
+    match_status TEXT,
+    matched_message_id TEXT,
+    review_status TEXT,
+    mailbox TEXT,
+    in_reply_to TEXT,
+    attachments_meta_json TEXT,
+    payload_checksum TEXT,
     created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS outreach_inbound_cursors (
+    workspace_id TEXT NOT NULL,
+    account_id TEXT NOT NULL DEFAULT '',
+    mailbox TEXT NOT NULL DEFAULT '',
+    cursor_kind TEXT NOT NULL,
+    cursor_value TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (workspace_id, account_id, mailbox, cursor_kind)
 );
 
 CREATE INDEX IF NOT EXISTS ix_outreach_campaigns_workspace ON outreach_campaigns(workspace_id);
@@ -187,6 +206,11 @@ CREATE INDEX IF NOT EXISTS ix_outreach_provider_events_ws ON outreach_provider_e
 CREATE INDEX IF NOT EXISTS ix_outreach_messages_provider_mid
     ON outreach_messages(workspace_id, provider_message_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_replies_ws ON outreach_replies(workspace_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ix_outreach_replies_provider_mid
+    ON outreach_replies(workspace_id, provider_message_id)
+    WHERE provider_message_id IS NOT NULL AND provider_message_id != '';
+CREATE INDEX IF NOT EXISTS ix_outreach_replies_match ON outreach_replies(workspace_id, match_status);
+CREATE INDEX IF NOT EXISTS ix_outreach_inbound_cursors_ws ON outreach_inbound_cursors(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_steps_ws ON outreach_sequence_steps(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_scheduler_hb_ws ON outreach_scheduler_heartbeats(workspace_id);
 """
@@ -506,6 +530,117 @@ def ensure_delivery_columns(conn) -> None:
         pass
 
 
+def ensure_mailbox_columns(conn) -> None:
+    """Additive inbound mailbox reply columns + cursor table (Prompt 626)."""
+
+    def _cols(table: str) -> set[str]:
+        try:
+            rows = conn.execute(
+                """
+                SELECT column_name AS name
+                FROM information_schema.columns
+                WHERE table_schema = 'public' AND table_name = ?
+                """,
+                (table,),
+            ).fetchall()
+            if rows:
+                names: set[str] = set()
+                for r in rows:
+                    if hasattr(r, "keys"):
+                        names.add(str(r["name"] if "name" in r.keys() else r[0]))
+                    else:
+                        names.add(str(r[0]))
+                return names
+        except Exception:
+            pass
+        try:
+            return {str(r[1]) for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+        except Exception:
+            return set()
+
+    reply_alters = (
+        ("provider_message_id", "TEXT"),
+        ("thread_id", "TEXT"),
+        ("match_status", "TEXT"),
+        ("matched_message_id", "TEXT"),
+        ("review_status", "TEXT"),
+        ("mailbox", "TEXT"),
+        ("in_reply_to", "TEXT"),
+        ("attachments_meta_json", "TEXT"),
+        ("payload_checksum", "TEXT"),
+    )
+    reply_cols = _cols("outreach_replies")
+    for name, ddl in reply_alters:
+        if name not in reply_cols:
+            try:
+                conn.execute(f"ALTER TABLE outreach_replies ADD COLUMN {name} {ddl}")
+            except Exception:
+                pass
+
+    approval_alters = (
+        ("kind", "TEXT DEFAULT 'send'"),
+        ("approval_type", "TEXT"),
+    )
+    appr_cols = _cols("outreach_approvals")
+    for name, ddl in approval_alters:
+        if name not in appr_cols:
+            try:
+                conn.execute(f"ALTER TABLE outreach_approvals ADD COLUMN {name} {ddl}")
+            except Exception:
+                pass
+
+    try:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS outreach_inbound_cursors (
+                workspace_id TEXT NOT NULL,
+                account_id TEXT NOT NULL DEFAULT '',
+                mailbox TEXT NOT NULL DEFAULT '',
+                cursor_kind TEXT NOT NULL,
+                cursor_value TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (workspace_id, account_id, mailbox, cursor_kind)
+            )
+            """
+        )
+    except Exception:
+        pass
+    try:
+        conn.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS ix_outreach_replies_provider_mid
+            ON outreach_replies(workspace_id, provider_message_id)
+            WHERE provider_message_id IS NOT NULL AND provider_message_id != ''
+            """
+        )
+    except Exception:
+        try:
+            conn.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS ix_outreach_replies_provider_mid_pg
+                ON outreach_replies(workspace_id, provider_message_id)
+                """
+            )
+        except Exception:
+            pass
+    try:
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS ix_outreach_replies_match ON outreach_replies(workspace_id, match_status)"
+        )
+    except Exception:
+        pass
+    try:
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS ix_outreach_inbound_cursors_ws ON outreach_inbound_cursors(workspace_id)"
+        )
+    except Exception:
+        pass
+    try:
+        conn.commit()
+    except Exception:
+        pass
+
+
 class OutreachStore:
     def __init__(self, path: Path | None = None) -> None:
         from keprix.crm.durable import resolve_crm_backend
@@ -533,6 +668,10 @@ class OutreachStore:
                 ensure_delivery_columns(self._conn)
             except Exception:
                 pass
+            try:
+                ensure_mailbox_columns(self._conn)
+            except Exception:
+                pass
         else:
             assert self._path is not None
             self._path.parent.mkdir(parents=True, exist_ok=True)
@@ -551,6 +690,10 @@ class OutreachStore:
                 pass
             try:
                 ensure_delivery_columns(self._conn)
+            except Exception:
+                pass
+            try:
+                ensure_mailbox_columns(self._conn)
             except Exception:
                 pass
 
@@ -1441,6 +1584,193 @@ class OutreachStore:
             (workspace_id, provider_message_id),
         )
 
+    def find_messages_by_provider_thread_id(
+        self, workspace_id: str, provider_thread_id: str, *, limit: int = 10
+    ) -> list[dict[str, Any]]:
+        tid = str(provider_thread_id or "").strip()
+        if not tid:
+            return []
+        return self._fetchall(
+            """
+            SELECT * FROM outreach_messages
+            WHERE workspace_id = ? AND provider_thread_id = ?
+            ORDER BY created_at DESC LIMIT ?
+            """,
+            (workspace_id, tid, int(limit)),
+        )
+
+    def find_messages_by_correlation_id(
+        self, workspace_id: str, correlation_id: str, *, limit: int = 10
+    ) -> list[dict[str, Any]]:
+        cid = str(correlation_id or "").strip().lower()
+        if not cid:
+            return []
+        return self._fetchall(
+            """
+            SELECT * FROM outreach_messages
+            WHERE workspace_id = ?
+              AND lower(COALESCE(correlation_id, '')) = ?
+            ORDER BY created_at DESC LIMIT ?
+            """,
+            (workspace_id, cid, int(limit)),
+        )
+
+    def find_recent_outbound_to_address(
+        self,
+        workspace_id: str,
+        to_email: str,
+        *,
+        mailbox: str | None = None,
+        since_iso: str,
+        limit: int = 10,
+    ) -> list[dict[str, Any]]:
+        email = str(to_email or "").strip().lower()
+        if not email:
+            return []
+        mailbox_clause = ""
+        params: list[Any] = [workspace_id, email, since_iso]
+        if mailbox:
+            mailbox_clause = " AND lower(COALESCE(m.mailbox, '')) = ?"
+            params.append(str(mailbox).strip().lower())
+        params.append(int(limit))
+        return self._fetchall(
+            f"""
+            SELECT m.* FROM outreach_messages m
+            JOIN outreach_enrollments e ON e.id = m.enrollment_id
+            JOIN outreach_leads l ON l.id = e.lead_id
+            WHERE m.workspace_id = ?
+              AND lower(COALESCE(l.email, '')) = ?
+              AND m.sent_at IS NOT NULL
+              AND m.sent_at >= ?
+              {mailbox_clause}
+            ORDER BY m.sent_at DESC
+            LIMIT ?
+            """,
+            tuple(params),
+        )
+
+    def get_inbound_cursor(
+        self,
+        workspace_id: str,
+        *,
+        account_id: str = "",
+        mailbox: str = "",
+        cursor_kind: str = "imap_uid",
+    ) -> dict[str, Any] | None:
+        return self._fetchone(
+            """
+            SELECT * FROM outreach_inbound_cursors
+            WHERE workspace_id = ? AND account_id = ? AND mailbox = ? AND cursor_kind = ?
+            """,
+            (workspace_id, account_id or "", mailbox or "", cursor_kind),
+        )
+
+    def set_inbound_cursor(
+        self,
+        workspace_id: str,
+        *,
+        account_id: str = "",
+        mailbox: str = "",
+        cursor_kind: str = "imap_uid",
+        cursor_value: str,
+    ) -> dict[str, Any]:
+        now = _utcnow()
+        with self._lock:
+            existing = self.get_inbound_cursor(
+                workspace_id, account_id=account_id, mailbox=mailbox, cursor_kind=cursor_kind
+            )
+            if existing:
+                self._conn.execute(
+                    """
+                    UPDATE outreach_inbound_cursors
+                    SET cursor_value = ?, updated_at = ?
+                    WHERE workspace_id = ? AND account_id = ? AND mailbox = ? AND cursor_kind = ?
+                    """,
+                    (
+                        str(cursor_value),
+                        now,
+                        workspace_id,
+                        account_id or "",
+                        mailbox or "",
+                        cursor_kind,
+                    ),
+                )
+            else:
+                self._conn.execute(
+                    """
+                    INSERT INTO outreach_inbound_cursors (
+                        workspace_id, account_id, mailbox, cursor_kind, cursor_value, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        workspace_id,
+                        account_id or "",
+                        mailbox or "",
+                        cursor_kind,
+                        str(cursor_value),
+                        now,
+                    ),
+                )
+            self._conn.commit()
+        return self.get_inbound_cursor(
+            workspace_id, account_id=account_id, mailbox=mailbox, cursor_kind=cursor_kind
+        )  # type: ignore[return-value]
+
+    def find_reply_by_provider_message_id(
+        self, workspace_id: str, provider_message_id: str
+    ) -> dict[str, Any] | None:
+        pmid = str(provider_message_id or "").strip()
+        if not pmid:
+            return None
+        return self._fetchone(
+            """
+            SELECT * FROM outreach_replies
+            WHERE workspace_id = ? AND provider_message_id = ?
+            LIMIT 1
+            """,
+            (workspace_id, pmid),
+        )
+
+    def update_reply(self, workspace_id: str, reply_id: str, **fields: Any) -> dict[str, Any] | None:
+        allowed = {
+            "lead_id",
+            "message_id",
+            "from_address",
+            "subject",
+            "body",
+            "classification",
+            "confidence",
+            "resolved",
+            "provider_message_id",
+            "thread_id",
+            "match_status",
+            "matched_message_id",
+            "review_status",
+            "mailbox",
+            "in_reply_to",
+            "attachments_meta_json",
+            "payload_checksum",
+        }
+        updates = {k: v for k, v in fields.items() if k in allowed}
+        if "resolved" in updates:
+            updates["resolved"] = 1 if updates["resolved"] else 0
+        if not updates:
+            return self._fetchone(
+                "SELECT * FROM outreach_replies WHERE id = ? AND workspace_id = ?",
+                (reply_id, workspace_id),
+            )
+        cols = ", ".join(f"{k} = ?" for k in updates)
+        with self._lock:
+            self._conn.execute(
+                f"UPDATE outreach_replies SET {cols} WHERE id = ? AND workspace_id = ?",
+                (*updates.values(), reply_id, workspace_id),
+            )
+            self._conn.commit()
+        return self._fetchone(
+            "SELECT * FROM outreach_replies WHERE id = ? AND workspace_id = ?",
+            (reply_id, workspace_id),
+        )
+
     def list_stuck_delivery_messages(
         self,
         *,
@@ -1586,13 +1916,21 @@ class OutreachStore:
             )
             ws = str((lead or {}).get("workspace_id") or "")
         ws = self._require_workspace(ws)
+        attachments_meta = fields.get("attachments_meta")
+        if attachments_meta is not None and not isinstance(attachments_meta, str):
+            attachments_json = json.dumps(attachments_meta, ensure_ascii=False, default=str)
+        else:
+            attachments_json = fields.get("attachments_meta_json")
         with self._lock:
             self._conn.execute(
                 """
                 INSERT INTO outreach_replies (
                     id, workspace_id, lead_id, message_id, from_address, subject, body,
-                    classification, confidence, resolved, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    classification, confidence, resolved,
+                    provider_message_id, thread_id, match_status, matched_message_id,
+                    review_status, mailbox, in_reply_to, attachments_meta_json,
+                    payload_checksum, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     reply_id,
@@ -1605,6 +1943,15 @@ class OutreachStore:
                     fields.get("classification"),
                     fields.get("confidence"),
                     1 if fields.get("resolved") else 0,
+                    fields.get("provider_message_id"),
+                    fields.get("thread_id"),
+                    fields.get("match_status"),
+                    fields.get("matched_message_id"),
+                    fields.get("review_status"),
+                    fields.get("mailbox"),
+                    fields.get("in_reply_to"),
+                    attachments_json,
+                    fields.get("payload_checksum"),
                     now,
                 ),
             )
