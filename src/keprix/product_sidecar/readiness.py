@@ -79,7 +79,13 @@ def build_product_readiness(product_key: str) -> dict[str, Any]:
 
     evidence_ts = _evidence_mtime()
     connector = dict(pack.connector or {})
-    base_url = str(connector.get("base_url") or connector.get("base_url_env") or "")
+    base_url_env = str(connector.get("base_url_env") or "PROPRENEUR_PRODUCT_API_URL")
+    base_url = str(connector.get("base_url") or "").strip()
+    if not base_url:
+        import os
+
+        base_url = str(os.getenv(base_url_env) or "").strip()
+    connector_configured = bool(base_url) if product_key == "propreneur" else True
 
     crud_ready = live > 0 and not_configured == 0 and degraded == 0
     return {
@@ -123,8 +129,8 @@ def build_product_readiness(product_key: str) -> dict[str, Any]:
             "grants": "Delegated Aiva grant scopes + pack node required_grants",
         },
         "callback_health": {
-            "connector_base_url_env": connector.get("base_url_env") or "PROPRENEUR_PRODUCT_API_URL",
-            "connector_configured": bool(base_url) or product_key != "propreneur",
+            "connector_base_url_env": base_url_env,
+            "connector_configured": connector_configured,
             "host_allowlist": list(connector.get("host_allowlist") or []),
             "guidance": (
                 "Diagnose failed callbacks with correlation_id, Soft Wall approval_id, "
