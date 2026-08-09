@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
-import NextLink from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import type { BuiltAppManifest, BuiltAppNavItem } from "@/components/built-app/types";
 
@@ -39,10 +38,10 @@ export default function BuiltAppHeader({ manifest, activeItem, actions }: BuiltA
           ) : null}
           {actions}
           <Box sx={{ display: "flex", gap: 1 }}>
-            <Button component={NextLink} href="/home" size="small" variant="outlined">
+            <Button component="a" href="/home" size="small" variant="outlined">
               Back to workspace
             </Button>
-            <Button component={NextLink} href="/agent-apps" size="small" variant="text">
+            <Button component="a" href="/agent-apps" size="small" variant="text">
               All apps
             </Button>
           </Box>

@@ -6,7 +6,6 @@ import CardContent from "@mui/material/CardContent";
 import Link from "@mui/material/Link";
 import Skeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import useSWR from "swr";
 import { fetchTasks, type WorkspaceTask } from "@/lib/workspace-api";
 
@@ -69,7 +68,7 @@ export default function TasksWidget() {
           Tasks
         </Typography>
         <Link
-          component={NextLink}
+          component="a"
           href="/tasks"
           variant="caption"
           color="text.secondary"

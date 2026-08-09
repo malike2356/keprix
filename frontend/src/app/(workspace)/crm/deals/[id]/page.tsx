@@ -1,7 +1,6 @@
 "use client";
 
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import CrmDetailEditor from "@/components/crm/CrmDetailEditor";
@@ -24,7 +23,7 @@ export default function CrmDealDetailPage() {
     return (
       <Typography color="text.secondary">
         Deal not found.{" "}
-        <Typography component={Link} href="/crm/deals" color="primary" sx={{ textDecoration: "underline" }}>
+        <Typography component="a" href="/crm/deals" color="primary" sx={{ textDecoration: "underline" }}>
           Back to deals
         </Typography>
       </Typography>

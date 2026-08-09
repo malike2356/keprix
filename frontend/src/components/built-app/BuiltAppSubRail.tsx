@@ -5,7 +5,6 @@ import Chip from "@mui/material/Chip";
 import List from "@mui/material/List";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
-import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import type { BuiltAppNavItem } from "@/components/built-app/types";
 
@@ -38,7 +37,7 @@ export default function BuiltAppSubRail({ items, children }: BuiltAppSubRailProp
             return (
               <ListItemButton
                 key={item.id}
-                component={NextLink}
+                component="a"
                 href={item.href}
                 selected={active}
                 sx={{ borderRadius: 1 }}

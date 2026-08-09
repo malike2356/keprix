@@ -8,7 +8,6 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { IconPlayerPlay } from "@tabler/icons-react";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ceApi } from "@/lib/ce-api";
 import DashboardCard from "@/components/cards/DashboardCard";
@@ -203,7 +202,7 @@ export default function AdminCodingPage() {
               </Button>
               <Button
                 variant="outlined"
-                component={Link}
+                component="a"
                 href={repoPath.trim() ? `/design/preview?path=${encodeURIComponent(repoPath.trim())}` : "/design/preview"}
               >
                 Design preview

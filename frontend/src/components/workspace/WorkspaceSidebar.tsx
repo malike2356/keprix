@@ -13,7 +13,6 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import useSWR from "swr";
@@ -75,7 +74,7 @@ export default function WorkspaceSidebar() {
       <Box sx={{ flexShrink: 0, p: 2 }}>
         <Box sx={{ display: "grid", gap: 0.75, mb: 1.5 }}>
           <Button
-            component={NextLink}
+            component="a"
             href="/home"
             size="small"
             variant="text"
@@ -84,7 +83,7 @@ export default function WorkspaceSidebar() {
             Workspace
           </Button>
           <Button
-            component={NextLink}
+            component="a"
             href="/files"
             size="small"
             variant="text"
@@ -119,7 +118,7 @@ export default function WorkspaceSidebar() {
                   return (
                     <ListItemButton
                       key={session.id}
-                      component={NextLink}
+                      component="a"
                       href={`/chat/${session.id}`}
                       selected={active}
                       sx={{
@@ -168,7 +167,7 @@ export default function WorkspaceSidebar() {
             {user?.username || "User"}
           </Typography>
           {isOwner ? (
-            <Typography component={NextLink} href="/dashboard" variant="caption" color="primary">
+            <Typography component="a" href="/dashboard" variant="caption" color="primary">
               Switch to admin
             </Typography>
           ) : null}

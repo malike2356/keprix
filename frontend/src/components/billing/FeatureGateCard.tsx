@@ -5,7 +5,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import LockIcon from "@mui/icons-material/Lock";
-import NextLink from "next/link";
 
 type Props = {
   title: string;
@@ -26,7 +25,7 @@ export default function FeatureGateCard({
       icon={<LockIcon fontSize="small" />}
       sx={{ alignItems: "flex-start" }}
       action={
-        <Button component={NextLink} href={upgradeHref} size="small" color="inherit">
+        <Button component="a" href={upgradeHref} size="small" color="inherit">
           View plans
         </Button>
       }

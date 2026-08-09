@@ -7,7 +7,6 @@ import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import NextLink from "next/link";
 import DashboardCard from "@/components/cards/DashboardCard";
 import { SkeletonTable } from "@/components/ui/loading";
 import { formatTimeAgo } from "@/lib/time-ago";
@@ -58,7 +57,7 @@ export default function RecentMutations({ rows = [], loading }: RecentMutationsP
                   <TableCell>{row.workspace_id || "default"}</TableCell>
                   <TableCell>{row.requested_at ? formatTimeAgo(row.requested_at) : "-"}</TableCell>
                   <TableCell align="right">
-                    <Button component={NextLink} href={`/admin/mutations?id=${row.id}`} size="small">
+                    <Button component="a" href={`/admin/mutations?id=${row.id}`} size="small">
                       Review
                     </Button>
                   </TableCell>

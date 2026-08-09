@@ -84,10 +84,10 @@ export default function PlaybooksPage() {
         description="Durable workflow graphs with checkpoints, interrupts, and resume."
         actions={
           <>
-            <Button component={Link} href="/playbooks/triggers" variant="outlined">
+            <Button component="a" href="/playbooks/triggers" variant="outlined">
               Triggers
             </Button>
-            <Button component={Link} href="/playbooks/studio/new" variant="outlined" startIcon={<AddIcon />}>
+            <Button component="a" href="/playbooks/studio/new" variant="outlined" startIcon={<AddIcon />}>
               New in Studio
             </Button>
             <Button variant="contained" startIcon={<PlayArrowIcon />} onClick={() => openStart()}>
@@ -163,7 +163,7 @@ export default function PlaybooksPage() {
                     <Chip size="small" color={statusColor(run.status)} label={run.status} />
                   </TableCell>
                   <TableCell align="right">
-                    <Button component={Link} href={`/playbooks/${run.run_id}`} size="small">
+                    <Button component="a" href={`/playbooks/${run.run_id}`} size="small">
                       View
                     </Button>
                   </TableCell>

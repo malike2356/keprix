@@ -8,7 +8,6 @@ import CardContent from "@mui/material/CardContent";
 import Grid from "@mui/material/Grid2";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import useSWR from "swr";
 import CrmSoftWallPanel from "@/components/crm/CrmSoftWallPanel";
 import { CRM_WORKSPACE } from "@/components/crm/types";
@@ -80,7 +79,7 @@ export default function CrmOverviewPage() {
         {workspaceKillOn ? (
           <Alert severity="error" sx={{ mb: 1.5 }}>
             Workspace kill switch is ON (outreach paused).{" "}
-            <Typography component={Link} href="/crm/settings" color="inherit" sx={{ textDecoration: "underline" }}>
+            <Typography component="a" href="/crm/settings" color="inherit" sx={{ textDecoration: "underline" }}>
               Open settings
             </Typography>{" "}
             (resume is Soft Wall gated).
@@ -89,7 +88,7 @@ export default function CrmOverviewPage() {
         {funnel.data?.deliverability_strip?.soft_wall_block_cold_send ? (
           <Alert severity="warning" sx={{ mb: 1.5 }}>
             Deliverability gate active.{" "}
-            <Typography component={Link} href="/crm/deliverability" color="inherit" sx={{ textDecoration: "underline" }}>
+            <Typography component="a" href="/crm/deliverability" color="inherit" sx={{ textDecoration: "underline" }}>
               Open deliverability
             </Typography>
           </Alert>
@@ -150,7 +149,7 @@ export default function CrmOverviewPage() {
           {QUICK_LINKS.map((item) => (
             <Grid key={item.href} size={{ xs: 12, sm: 6, md: 4 }}>
               <Card variant="outlined">
-                <CardActionArea component={Link} href={item.href}>
+                <CardActionArea component="a" href={item.href}>
                   <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
                     <Typography variant="body2" fontWeight={600}>
                       {item.label}

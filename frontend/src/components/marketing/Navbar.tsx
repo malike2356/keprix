@@ -81,7 +81,7 @@ export function Navbar() {
             {NAV_LINKS.map((link) => (
               <Button
                 key={link.label}
-                component={Link}
+                component="a"
                 href={link.href}
                 target={link.href.startsWith("http") ? "_blank" : undefined}
                 rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
@@ -127,7 +127,7 @@ export function Navbar() {
               <ThemeQuickToggle color="inherit" />
             </Box>
             <Button
-              component={Link}
+              component="a"
               href={isAuthed ? "/home" : "/auth/setup"}
               variant="contained"
               size="small"
@@ -176,7 +176,7 @@ export function Navbar() {
           {NAV_LINKS.map((link) => (
             <ListItem key={link.label} disablePadding>
               <ListItemButton
-                component={Link}
+                component="a"
                 href={link.href}
                 target={link.href.startsWith("http") ? "_blank" : undefined}
                 onClick={() => setDrawerOpen(false)}
@@ -206,7 +206,7 @@ export function Navbar() {
         <Divider sx={{ borderColor: colors.divider }} />
         <Box sx={{ p: 2 }}>
           <Button
-            component={Link}
+            component="a"
             href={isAuthed ? "/home" : "/auth/setup"}
             variant="contained"
             fullWidth

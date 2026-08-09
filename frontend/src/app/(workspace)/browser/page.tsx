@@ -11,7 +11,6 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import BrowserSessionPanel from "@/components/browser/BrowserSessionPanel";
@@ -69,7 +68,7 @@ export default function BrowserWorkspacePage() {
         title="Browser"
         description="Session history, step replay, and active harness controls. Profiles stay under settings."
         actions={
-          <Button component={NextLink} href="/settings/browser" variant="outlined" size="small">
+          <Button component="a" href="/settings/browser" variant="outlined" size="small">
             Profile settings
           </Button>
         }

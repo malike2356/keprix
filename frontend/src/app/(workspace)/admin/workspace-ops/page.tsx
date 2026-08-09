@@ -15,7 +15,6 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -160,10 +159,10 @@ export default function WorkspaceOpsPage() {
         breadcrumbs={[{ label: "Admin", href: "/control-center" }, { label: "Workspace ops" }]}
         actions={
           <Stack direction="row" spacing={1}>
-            <Button component={NextLink} href="/workspace/new" size="small" variant="outlined">
+            <Button component="a" href="/workspace/new" size="small" variant="outlined">
               New workspace
             </Button>
-            <Button component={NextLink} href="/tenants" size="small" variant="outlined">
+            <Button component="a" href="/tenants" size="small" variant="outlined">
               Tenants
             </Button>
           </Stack>
@@ -283,22 +282,22 @@ export default function WorkspaceOpsPage() {
             Common admin destinations for the active workspace. These do not change workspace state by themselves.
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            <Button component={NextLink} href="/admin/readiness" size="small" variant="outlined">
+            <Button component="a" href="/admin/readiness" size="small" variant="outlined">
               Readiness
             </Button>
-            <Button component={NextLink} href="/admin/quotas" size="small" variant="outlined">
+            <Button component="a" href="/admin/quotas" size="small" variant="outlined">
               Quotas
             </Button>
-            <Button component={NextLink} href="/admin/feature-flags" size="small" variant="outlined">
+            <Button component="a" href="/admin/feature-flags" size="small" variant="outlined">
               Feature flags
             </Button>
-            <Button component={NextLink} href="/admin/network-egress" size="small" variant="outlined">
+            <Button component="a" href="/admin/network-egress" size="small" variant="outlined">
               Network egress
             </Button>
-            <Button component={NextLink} href="/settings/users" size="small" variant="outlined">
+            <Button component="a" href="/settings/users" size="small" variant="outlined">
               Users
             </Button>
-            <Button component={NextLink} href="/home" size="small" variant="outlined">
+            <Button component="a" href="/home" size="small" variant="outlined">
               Workspace home
             </Button>
           </Stack>

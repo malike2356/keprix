@@ -3,7 +3,6 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 
 export default function BillingDisabledState() {
   return (
@@ -24,7 +23,7 @@ export default function BillingDisabledState() {
         To enable billing for your product, set <code>KEPRIX_BILLING_ENABLED=true</code> and provide a billing config.
       </Typography>
       <Box sx={{ display: "flex", gap: 1, justifyContent: "center", flexWrap: "wrap" }}>
-        <Button component={Link} href="/pricing" variant="outlined">
+        <Button component="a" href="/pricing" variant="outlined">
           View OSS pricing
         </Button>
         <Button

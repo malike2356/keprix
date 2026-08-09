@@ -18,7 +18,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -123,7 +122,7 @@ export default function FleetAdminPage() {
           description="Fleet deploy is available in Enterprise Edition. Community builds keep this surface locked so operators do not see fake instance data."
         />
         <Box sx={{ mt: 2, textAlign: "center" }}>
-          <Button component={NextLink} href="/settings/upgrade" variant="contained">
+          <Button component="a" href="/settings/upgrade" variant="contained">
             View upgrades
           </Button>
         </Box>

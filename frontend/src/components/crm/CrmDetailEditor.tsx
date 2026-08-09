@@ -12,7 +12,6 @@ import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import {
@@ -184,7 +183,7 @@ export function CrmDetailEditor({
         </Alert>
       ) : null}
 
-      <Button size="small" component={Link} href={backHref} sx={{ alignSelf: "flex-start" }}>
+      <Button size="small" component="a" href={backHref} sx={{ alignSelf: "flex-start" }}>
         {backLabel}
       </Button>
 
@@ -331,16 +330,16 @@ export function CrmDetailEditor({
                   DSAR export
                 </Button>
               )}
-              <Button size="small" variant="outlined" component={Link} href="/outreach/approvals">
+              <Button size="small" variant="outlined" component="a" href="/outreach/approvals">
                 Soft Wall inbox
               </Button>
-              <Button size="small" variant="outlined" component={Link} href="/outreach">
+              <Button size="small" variant="outlined" component="a" href="/outreach">
                 Soft Wall outreach
               </Button>
-              <Button size="small" variant="outlined" component={Link} href="/vical">
+              <Button size="small" variant="outlined" component="a" href="/vical">
                 viCal
               </Button>
-              <Button size="small" variant="outlined" component={Link} href="/calendar">
+              <Button size="small" variant="outlined" component="a" href="/calendar">
                 Calendar
               </Button>
             </Stack>

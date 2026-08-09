@@ -3,7 +3,6 @@
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 
 export default function AccountSessionsPage() {
@@ -17,7 +16,7 @@ export default function AccountSessionsPage() {
         This page is being rebuilt. Sign out from other devices by resetting your password if you
         suspect unauthorized access.
       </Alert>
-      <Button component={Link} href="/settings/account" variant="outlined">
+      <Button component="a" href="/settings/account" variant="outlined">
         Back to account
       </Button>
     </Box>

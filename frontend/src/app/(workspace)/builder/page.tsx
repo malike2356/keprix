@@ -13,7 +13,6 @@ import DialogTitle from "@mui/material/DialogTitle";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
@@ -61,12 +60,12 @@ function ProjectCard({
           <Button size="small" variant="contained" onClick={() => onBuild(project)}>
             Build
           </Button>
-          <Button size="small" component={Link} href={`/builder?project=${project.id}`} variant="outlined">
+          <Button size="small" component="a" href={`/builder?project=${project.id}`} variant="outlined">
             Details
           </Button>
           <Button
             size="small"
-            component={Link}
+            component="a"
             href={`/design/preview?path=${encodeURIComponent(project.path)}`}
             variant="outlined"
           >
@@ -152,7 +151,7 @@ export default function BuilderPage() {
         <Button variant="outlined" onClick={() => setScaffoldOpen(true)}>
           New project
         </Button>
-        <Button variant="outlined" component={Link} href="/design/preview">
+        <Button variant="outlined" component="a" href="/design/preview">
           Design preview
         </Button>
       </Box>
@@ -175,7 +174,7 @@ export default function BuilderPage() {
                 <Typography variant="body2">{job.instruction}</Typography>
                 <Chip size="small" label={job.status} />
               </Box>
-              <Button size="small" component={Link} href={`/builder/jobs/${job.id}`} sx={{ mt: 1 }}>
+              <Button size="small" component="a" href={`/builder/jobs/${job.id}`} sx={{ mt: 1 }}>
                 View log
               </Button>
             </CardContent>

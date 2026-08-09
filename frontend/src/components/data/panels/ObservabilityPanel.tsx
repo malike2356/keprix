@@ -213,7 +213,7 @@ export default function ObservabilityPanel() {
           <ToggleButton value="5">5s</ToggleButton>
           <ToggleButton value="15">15s</ToggleButton>
         </ToggleButtonGroup>
-        <Button component={Link} href="/data?tab=usage" size="small" variant="outlined">
+        <Button component="a" href="/data?tab=usage" size="small" variant="outlined">
           LLM usage
         </Button>
       </Stack>
@@ -386,7 +386,7 @@ export default function ObservabilityPanel() {
                             Spans
                           </Button>
                           <Button
-                            component={Link}
+                            component="a"
                             href={`/agent-runtime?trace_id=${encodeURIComponent(id)}`}
                             size="small"
                           >
@@ -434,7 +434,7 @@ export default function ObservabilityPanel() {
                   Export JSON
                 </Button>
                 <Button
-                  component={Link}
+                  component="a"
                   href={`/agent-runtime?trace_id=${encodeURIComponent(traceId(selectedTrace))}`}
                   variant="contained"
                 >

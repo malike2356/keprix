@@ -2,7 +2,6 @@
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import CrmDetailEditor from "@/components/crm/CrmDetailEditor";
@@ -26,7 +25,7 @@ export default function CrmLeadDetailPage() {
     return (
       <Typography color="text.secondary">
         Lead not found.{" "}
-        <Typography component={Link} href="/crm/leads" color="primary" sx={{ textDecoration: "underline" }}>
+        <Typography component="a" href="/crm/leads" color="primary" sx={{ textDecoration: "underline" }}>
           Back to leads
         </Typography>
       </Typography>

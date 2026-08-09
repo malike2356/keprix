@@ -5,7 +5,6 @@ import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import { IconShield } from "@tabler/icons-react";
-import Link from "next/link";
 import useSWR from "swr";
 import { deriveGovernanceSafety } from "@/lib/governance-safety";
 import { fetchGovernanceStatus } from "@/lib/governance-api";
@@ -36,7 +35,7 @@ export default function ScoutSafetyIndicator({ showLabel = true }: ScoutSafetyIn
   return (
     <Tooltip title={view.tooltip}>
       <Box
-        component={Link}
+        component="a"
         href="/settings/governance"
         sx={{
           display: "inline-flex",

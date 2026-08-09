@@ -14,7 +14,6 @@ import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
 import CheckIcon from "@mui/icons-material/Check";
 import { alpha } from "@mui/material/styles";
-import Link from "next/link";
 import useSWR from "swr";
 import SaasPricingPlans from "@/components/marketing/SaasPricingPlans";
 import {
@@ -74,7 +73,7 @@ function OssPricingSection({ c }: { c: ReturnType<typeof getMarketingColors> }) 
           <Typography sx={{ color: c.textSecondary, fontSize: "0.85rem", mb: 3 }}>
             forever
           </Typography>
-          <Button component={Link} href="/auth/setup" variant="contained" fullWidth size="large" sx={{ fontWeight: 700 }}>
+          <Button component="a" href="/auth/setup" variant="contained" fullWidth size="large" sx={{ fontWeight: 700 }}>
             Deploy now
           </Button>
           <List dense sx={{ mt: 3 }}>
@@ -123,7 +122,7 @@ function OssPricingSection({ c }: { c: ReturnType<typeof getMarketingColors> }) 
             a governance provider. Keprix works without one.
           </Typography>
           <Button
-            component={Link}
+            component="a"
             href="/settings/governance"
             variant="outlined"
             fullWidth

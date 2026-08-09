@@ -14,7 +14,6 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import * as React from "react";
-import NextLink from "next/link";
 import useSWR from "swr";
 import FeatureGateCard from "@/components/billing/FeatureGateCard";
 import { getBackendBaseUrl } from "@/lib/ce-api";
@@ -214,7 +213,7 @@ export default function AgentAppAutomate({ appName, app }: Props) {
               Remove schedule
             </Button>
           ) : null}
-          <Button component={NextLink} href="/admin/cron" size="small">
+          <Button component="a" href="/admin/cron" size="small">
             Manage all schedules
           </Button>
         </Stack>

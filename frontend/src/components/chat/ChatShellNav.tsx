@@ -5,7 +5,6 @@ import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import FolderOutlinedIcon from "@mui/icons-material/FolderOutlined";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
-import NextLink from "next/link";
 import { useCESession } from "@/lib/ce-auth";
 
 type ChatShellNavProps = {
@@ -19,11 +18,11 @@ export default function ChatShellNav({ variant = "inline" }: ChatShellNavProps) 
   if (variant === "footer") {
     return (
       <Stack direction="row" spacing={0.5} sx={{ flexWrap: "wrap" }}>
-        <Button component={NextLink} href="/home" size="small" variant="text">
+        <Button component="a" href="/home" size="small" variant="text">
           Workspace
         </Button>
         <Button
-          component={NextLink}
+          component="a"
           href="/files"
           size="small"
           variant="text"
@@ -32,7 +31,7 @@ export default function ChatShellNav({ variant = "inline" }: ChatShellNavProps) 
           Files
         </Button>
         {isOwner ? (
-          <Button component={NextLink} href="/dashboard" size="small" variant="text">
+          <Button component="a" href="/dashboard" size="small" variant="text">
             Admin console
           </Button>
         ) : null}
@@ -43,7 +42,7 @@ export default function ChatShellNav({ variant = "inline" }: ChatShellNavProps) 
   return (
     <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
       <Button
-        component={NextLink}
+        component="a"
         href="/home"
         size="small"
         color="inherit"
@@ -53,7 +52,7 @@ export default function ChatShellNav({ variant = "inline" }: ChatShellNavProps) 
         Workspace
       </Button>
       <Button
-        component={NextLink}
+        component="a"
         href="/files"
         size="small"
         color="inherit"
@@ -64,7 +63,7 @@ export default function ChatShellNav({ variant = "inline" }: ChatShellNavProps) 
       </Button>
       {isOwner ? (
         <Button
-          component={NextLink}
+          component="a"
           href="/dashboard"
           size="small"
           color="inherit"

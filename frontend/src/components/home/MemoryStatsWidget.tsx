@@ -6,7 +6,6 @@ import CardActionArea from "@mui/material/CardActionArea";
 import CardContent from "@mui/material/CardContent";
 import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import useSWR from "swr";
 import { SkeletonBlock } from "@/components/ui/loading";
 import { fetchHomeBrainStats, type HomeBrainStats } from "@/lib/home-api";
@@ -18,7 +17,7 @@ function StatRow({ label, value, href, loading }: {
   loading: boolean;
 }) {
   return (
-    <CardActionArea component={NextLink} href={href}>
+    <CardActionArea component="a" href={href}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 2, py: 1.25 }}>
         <Typography variant="body2" color="text.secondary">
           {label}

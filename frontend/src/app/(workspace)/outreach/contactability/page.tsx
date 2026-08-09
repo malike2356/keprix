@@ -15,7 +15,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -87,7 +86,7 @@ export default function OutreachContactabilityPage() {
       <Typography variant="body2" color="text.secondary">
         Found is not contactable. Person x channel x purpose decisions gate enroll. Deny blocks Soft Wall enroll
         with a reason. See also{" "}
-        <Button component={NextLink} href="/outreach/suppressions" size="small">
+        <Button component="a" href="/outreach/suppressions" size="small">
           Suppressions
         </Button>
         .

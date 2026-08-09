@@ -10,7 +10,6 @@ import Grid from "@mui/material/Grid2";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import dynamic from "next/dynamic";
 import * as React from "react";
 import useSWR from "swr";
@@ -163,7 +162,7 @@ export default function AivaAnalyticsDashboard() {
           {/bearer|authentication required|expired session/i.test(error) ? (
             <>
               {error}.{" "}
-              <Link component={NextLink} href="/auth/login">
+              <Link component="a" href="/auth/login">
                 Sign in
               </Link>{" "}
               and reload this page.
@@ -380,13 +379,13 @@ export default function AivaAnalyticsDashboard() {
                   escalations. For LLM spend detail use LLM usage; for traces use Observability.
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  <Button component={NextLink} href="/data?tab=usage" size="small" variant="outlined">
+                  <Button component="a" href="/data?tab=usage" size="small" variant="outlined">
                     LLM usage
                   </Button>
-                  <Button component={NextLink} href="/data?tab=observability" size="small" variant="outlined">
+                  <Button component="a" href="/data?tab=observability" size="small" variant="outlined">
                     Observability
                   </Button>
-                  <Button component={NextLink} href="/data?tab=analytics" size="small" variant="outlined">
+                  <Button component="a" href="/data?tab=analytics" size="small" variant="outlined">
                     Data analysis notebook
                   </Button>
                 </Stack>
@@ -398,7 +397,7 @@ export default function AivaAnalyticsDashboard() {
 
       <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: "block" }}>
         Looking for CSV/Python charts? That lives under{" "}
-        <Link component={NextLink} href="/data?tab=analytics">
+        <Link component="a" href="/data?tab=analytics">
           Data analysis
         </Link>
         .

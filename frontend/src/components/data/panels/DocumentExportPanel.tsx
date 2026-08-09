@@ -15,7 +15,6 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import {
   createDocumentExport,
@@ -90,7 +89,7 @@ export default function DocumentExportPanel() {
         <Alert severity="success" sx={{ mb: 2 }} onClose={() => setMessage(null)}>
           {message}
           {downloadUrl ? (
-            <Button component={NextLink} href={downloadUrl} size="small" sx={{ ml: 1 }}>
+            <Button component="a" href={downloadUrl} size="small" sx={{ ml: 1 }}>
               Download
             </Button>
           ) : null}
@@ -99,7 +98,7 @@ export default function DocumentExportPanel() {
 
       <Alert severity="info" sx={{ mb: 2 }}>
         Signed/cover exports use `/api/export`. Simple document downloads remain on{" "}
-        <Button component={NextLink} href="/documents" size="small">
+        <Button component="a" href="/documents" size="small">
           Documents
         </Button>
         .

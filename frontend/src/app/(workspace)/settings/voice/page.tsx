@@ -16,7 +16,6 @@ import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
@@ -165,7 +164,7 @@ export default function VoiceSettingsPage() {
         description="Configure speech-to-text for chat dictation. Changes save to config and apply without editing YAML by hand."
         actions={
           <Stack direction="row" spacing={1}>
-            <Button component={NextLink} href="/settings/voice-templates" variant="outlined" size="small">
+            <Button component="a" href="/settings/voice-templates" variant="outlined" size="small">
               Voice templates
             </Button>
             <Button

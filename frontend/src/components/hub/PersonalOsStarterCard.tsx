@@ -7,7 +7,6 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import type { HubPack } from "@/lib/hub-api";
 
 export default function PersonalOsStarterCard({
@@ -38,10 +37,10 @@ export default function PersonalOsStarterCard({
           >
             {pack?.installed ? "Installed" : "Install starter"}
           </Button>
-          <Button component={NextLink} href="/agent-os" variant="outlined">
+          <Button component="a" href="/agent-os" variant="outlined">
             Open Agent OS
           </Button>
-          <Button component={NextLink} href="/agent-os/audit" variant="outlined">
+          <Button component="a" href="/agent-os/audit" variant="outlined">
             Review audit
           </Button>
         </Box>

@@ -25,7 +25,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -630,7 +629,7 @@ export default function AdminQuotasPage() {
         description="Per-workspace usage quotas and rate limits. Product quotas and actor quotas are separate from managed AI billing credits."
         breadcrumbs={[{ label: "Admin", href: "/control-center" }, { label: "Quotas" }]}
         actions={
-          <Button component={NextLink} href="/settings/billing" variant="outlined" size="small">
+          <Button component="a" href="/settings/billing" variant="outlined" size="small">
             Billing
           </Button>
         }

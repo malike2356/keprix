@@ -12,7 +12,6 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { IconPlayerPlay, IconUpload, IconUsers } from "@tabler/icons-react";
-import NextLink from "next/link";
 import { useCallback, useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
@@ -163,13 +162,13 @@ function AgentTeamsPageInner() {
         description="Import CrewAI-style YAML crews, inspect roles and tasks, and run them through the playbook runtime. This provisions agent workflows, not human user accounts."
         actions={
           <Stack direction="row" spacing={1} flexWrap="wrap">
-            <Button component={NextLink} href="/settings/users" size="small" variant="text">
+            <Button component="a" href="/settings/users" size="small" variant="text">
               Workspace users
             </Button>
-            <Button component={NextLink} href="/agent-studio" size="small" variant="outlined">
+            <Button component="a" href="/agent-studio" size="small" variant="outlined">
               Agent Studio
             </Button>
-            <Button component={NextLink} href="/playbooks" size="small" variant="outlined">
+            <Button component="a" href="/playbooks" size="small" variant="outlined">
               Playbooks
             </Button>
           </Stack>
@@ -179,7 +178,7 @@ function AgentTeamsPageInner() {
       <Alert severity="info" sx={{ mb: 0 }}>
         Agent teams are multi-agent automations defined in YAML (`/api/teams`). To onboard people to this
         instance, use{" "}
-        <Button component={NextLink} href="/settings/users" size="small" sx={{ verticalAlign: "baseline", p: 0, minWidth: 0 }}>
+        <Button component="a" href="/settings/users" size="small" sx={{ verticalAlign: "baseline", p: 0, minWidth: 0 }}>
           Workspace users
         </Button>
         .

@@ -6,7 +6,6 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import useSWR from "swr";
 import { CRM_WORKSPACE } from "@/components/crm/types";
 import { fetchCrmJobs } from "@/lib/crm-api";
@@ -21,7 +20,7 @@ export default function CrmJobsPage() {
     <Stack spacing={2}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" flexWrap="wrap" useFlexGap>
         <Typography variant="h6">Jobs</Typography>
-        <Button component={Link} href="/crm/discover" variant="outlined" size="small">
+        <Button component="a" href="/crm/discover" variant="outlined" size="small">
           New discovery
         </Button>
       </Stack>
@@ -62,7 +61,7 @@ export default function CrmJobsPage() {
                     ) : null}
                   </Stack>
                   <Button
-                    component={Link}
+                    component="a"
                     href={`/crm/jobs/${encodeURIComponent(String(job.id))}`}
                     size="small"
                   >

@@ -21,7 +21,6 @@ import {
   type Node,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import CrmNodeInspector from "@/components/crm/visual/CrmNodeInspector";
@@ -155,7 +154,7 @@ export default function CrmRunReplay({ runId }: Props) {
           <Button size="small" onClick={jumpFailure}>
             Jump to failure
           </Button>
-          <Button size="small" component={Link} href={workflowId ? `/crm/workflows/${workflowId}` : "/crm/workflows"}>
+          <Button size="small" component="a" href={workflowId ? `/crm/workflows/${workflowId}` : "/crm/workflows"}>
             Workflow
           </Button>
         </Stack>

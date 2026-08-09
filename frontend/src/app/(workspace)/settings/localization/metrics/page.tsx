@@ -22,7 +22,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
@@ -139,7 +138,7 @@ export default function LocalizationMetricsPage() {
           { label: "Localization metrics" },
         ]}
         actions={
-          <Button component={Link} href="/settings/localization/corrections" size="small">
+          <Button component="a" href="/settings/localization/corrections" size="small">
             Review corrections
           </Button>
         }

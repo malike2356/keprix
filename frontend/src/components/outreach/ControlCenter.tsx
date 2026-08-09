@@ -8,7 +8,6 @@ import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import type { OutreachControlState } from "@/components/outreach/types";
 
 type ControlCenterProps = {
@@ -78,7 +77,7 @@ export function ControlCenter({
             <Button size="small" variant="outlined" disabled={busy || !control} onClick={onTogglePause}>
               {paused ? "Resume outreach" : "Pause outreach"}
             </Button>
-            <Button size="small" variant="outlined" component={Link} href={approvalsHref}>
+            <Button size="small" variant="outlined" component="a" href={approvalsHref}>
               Open Approvals
             </Button>
           </Stack>

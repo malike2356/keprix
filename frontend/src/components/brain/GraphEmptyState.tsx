@@ -5,7 +5,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 
 export default function GraphEmptyState() {
   return (
@@ -28,13 +27,13 @@ export default function GraphEmptyState() {
           Save memories, chat, or add Temporal entities. The graph fills in quietly as your workspace grows.
         </Typography>
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1} justifyContent="center">
-          <Button component={Link} href="/memory" variant="contained" disableElevation>
+          <Button component="a" href="/memory" variant="contained" disableElevation>
             Open Memory
           </Button>
-          <Button component={Link} href="/memory/galaxy" variant="outlined" color="inherit" sx={{ borderColor: "divider" }}>
+          <Button component="a" href="/memory/galaxy" variant="outlined" color="inherit" sx={{ borderColor: "divider" }}>
             Galaxy
           </Button>
-          <Button component={Link} href="/chat" color="inherit">
+          <Button component="a" href="/chat" color="inherit">
             Chat
           </Button>
         </Stack>

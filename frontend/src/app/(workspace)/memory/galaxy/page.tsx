@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import BrainSectionTabs from "@/components/memory/BrainSectionTabs";
@@ -33,7 +32,7 @@ export default function MemoryGalaxyPage() {
         description="Obsidian-style vault graph: live force layout of notes and wiki-links. Click a note to read it."
         actions={
           <Stack direction="row" spacing={1}>
-            <Button component={Link} href="/settings/vault" variant="outlined" size="small" sx={{ textTransform: "none" }}>
+            <Button component="a" href="/settings/vault" variant="outlined" size="small" sx={{ textTransform: "none" }}>
               Vault settings
             </Button>
             <Button onClick={() => mutate()} size="small" sx={{ textTransform: "none" }}>

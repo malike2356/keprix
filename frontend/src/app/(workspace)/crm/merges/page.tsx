@@ -5,7 +5,6 @@ import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -122,7 +121,7 @@ export default function CrmMergesPage() {
                 >
                   Reject
                 </Button>
-                <Button component={Link} href="/crm" size="small">
+                <Button component="a" href="/crm" size="small">
                   Soft Wall panel
                 </Button>
               </Stack>

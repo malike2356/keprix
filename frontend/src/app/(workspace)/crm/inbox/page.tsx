@@ -8,7 +8,6 @@ import Stack from "@mui/material/Stack";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import { CRM_WORKSPACE } from "@/components/crm/types";
@@ -89,7 +88,7 @@ export default function CrmInboxPage() {
                   {item.entity_id ? (
                     <Button
                       size="small"
-                      component={Link}
+                      component="a"
                       href={`/crm/${item.entity_type === "contact" ? "contacts" : "leads"}/${item.entity_id}`}
                     >
                       Open CRM

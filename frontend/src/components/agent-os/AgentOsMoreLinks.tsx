@@ -4,7 +4,6 @@ import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { AGENT_OS_MORE_LINKS } from "@/components/agent-os/AgentOsSubnav";
 
 export default function AgentOsMoreLinks() {
@@ -15,7 +14,7 @@ export default function AgentOsMoreLinks() {
       </Typography>
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
         {AGENT_OS_MORE_LINKS.map((item) => (
-          <Button key={item.href} component={Link} href={item.href} size="small" variant="text">
+          <Button key={item.href} component="a" href={item.href} size="small" variant="text">
             {item.label}
           </Button>
         ))}

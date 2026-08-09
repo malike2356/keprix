@@ -25,7 +25,6 @@ import ImageIcon from "@mui/icons-material/Image";
 import RotateRightIcon from "@mui/icons-material/RotateRight";
 import StarIcon from "@mui/icons-material/Star";
 import TextSnippetOutlinedIcon from "@mui/icons-material/TextSnippetOutlined";
-import NextLink from "next/link";
 import * as React from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
@@ -326,7 +325,7 @@ export default function GalleryPage() {
               hidden
               onChange={(e) => handleFiles(e.target.files)}
             />
-            <Button variant="outlined" component={NextLink} href="/documents">
+            <Button variant="outlined" component="a" href="/documents">
               Documents
             </Button>
             <Button

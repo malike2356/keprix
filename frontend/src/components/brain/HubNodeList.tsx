@@ -6,7 +6,6 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import type { GraphNode } from "@/types/brain-graph";
 import { nodeKindMeta } from "@/components/brain/nodes/node-kinds";
 
@@ -29,7 +28,7 @@ export default function HubNodeList({ nodes, connectionCounts = {} }: Props) {
             const connections = connectionCounts[key] ?? 0;
             return (
               <ListItem key={key} disableGutters secondaryAction={
-                <Button size="small" component={Link} href="/brain/graph">View</Button>
+                <Button size="small" component="a" href="/brain/graph">View</Button>
               }>
                 <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: color, mr: 1.5 }} />
                 <ListItemText

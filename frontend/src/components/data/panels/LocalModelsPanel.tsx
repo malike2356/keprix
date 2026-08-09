@@ -285,7 +285,7 @@ export default function LocalModelsPanel() {
           severity="success"
           sx={{ mb: 2 }}
           action={
-            <Button component={Link} href="/chat" color="inherit" size="small">
+            <Button component="a" href="/chat" color="inherit" size="small">
               Open chat
             </Button>
           }

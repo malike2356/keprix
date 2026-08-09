@@ -19,7 +19,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -102,7 +101,7 @@ export default function AdminNetworkEgressPage() {
         description="Outbound network decisions for agent tool calls. Allowlists are loaded from product policy manifests; this page is the live audit and policy snapshot."
         breadcrumbs={[{ label: "Admin", href: "/control-center" }, { label: "Network egress" }]}
         actions={
-          <Button component={NextLink} href="/admin/tool-acl" size="small" variant="outlined">
+          <Button component="a" href="/admin/tool-acl" size="small" variant="outlined">
             Tool ACL
           </Button>
         }

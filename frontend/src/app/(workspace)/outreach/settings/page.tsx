@@ -12,7 +12,6 @@ import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -80,7 +79,7 @@ export default function OutreachSettingsPage() {
       {workspaceOn ? (
         <Alert severity="error">
           Workspace Soft Wall kill switch is ON. Outbound Soft Wall sends should stop.{" "}
-          <Button component={NextLink} href="/outreach/deliverability" size="small">
+          <Button component="a" href="/outreach/deliverability" size="small">
             Deliverability
           </Button>
         </Alert>

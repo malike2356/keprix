@@ -21,7 +21,6 @@ import ToolSynthesisBreakup from "@/components/admin/ToolSynthesisBreakup";
 import CompoundingMetricsCard from "@/components/mutation/CompoundingMetricsCard";
 import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
-import NextLink from "next/link";
 import {
   fetchChannelStatus,
   fetchConversationDaily,
@@ -63,7 +62,7 @@ export default function AdminDashboardPage() {
         <Alert
           severity="warning"
           action={
-            <Button component={NextLink} href="/admin/mutations?status=staged" color="inherit" size="small">
+            <Button component="a" href="/admin/mutations?status=staged" color="inherit" size="small">
               Review
             </Button>
           }
@@ -78,7 +77,7 @@ export default function AdminDashboardPage() {
         <Typography variant="body2" color="text.secondary">
           Instance operations, usage, tool approvals, memory, and channel health.
         </Typography>
-        <Button component={NextLink} href="/admin/credentials" size="small" startIcon={<IconShieldLock size={16} />} sx={{ mt: 1 }}>
+        <Button component="a" href="/admin/credentials" size="small" startIcon={<IconShieldLock size={16} />} sx={{ mt: 1 }}>
           Credential audit
         </Button>
       </Box>

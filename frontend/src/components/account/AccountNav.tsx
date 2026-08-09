@@ -7,7 +7,6 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
-import NextLink from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 
@@ -66,7 +65,7 @@ export default function AccountNav() {
             key={item.href}
             label={item.label}
             value={item.href}
-            component={NextLink}
+            component="a"
             href={item.href}
           />
         ))}

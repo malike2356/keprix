@@ -15,7 +15,6 @@ import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import { leadIdsOf } from "@/components/outreach/types";
@@ -323,12 +322,12 @@ export default function OutreachListsPage() {
                   audience_hash={preflight.audience_hash}. {preflight.note}
                 </Typography>
                 {(preflight.suppressed?.length || 0) > 0 ? (
-                  <Button component={NextLink} href="/outreach/suppressions" size="small">
+                  <Button component="a" href="/outreach/suppressions" size="small">
                     Fix suppressions
                   </Button>
                 ) : null}
                 {(preflight.contactability_deny?.length || 0) > 0 ? (
-                  <Button component={NextLink} href="/outreach/contactability" size="small">
+                  <Button component="a" href="/outreach/contactability" size="small">
                     Fix contactability
                   </Button>
                 ) : null}

@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 
 export default function BlogPage() {
   return (
@@ -17,7 +16,7 @@ export default function BlogPage() {
         until the dedicated blog launches.
       </Typography>
       <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
-        <Button component={Link} href="/changelog" variant="contained">
+        <Button component="a" href="/changelog" variant="contained">
           Read the changelog
         </Button>
         <Button

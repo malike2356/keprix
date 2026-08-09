@@ -505,7 +505,7 @@ export default function DocsPage() {
             </Typography>
             <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", position: "relative" }}>
               <Button
-                component={Link}
+                component="a"
                 href="/auth/setup"
                 variant="contained"
                 sx={{

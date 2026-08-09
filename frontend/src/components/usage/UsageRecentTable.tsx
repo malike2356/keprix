@@ -9,7 +9,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import DashboardCard from "@/components/cards/DashboardCard";
 import { SkeletonTable } from "@/components/ui/loading";
 import type { UsageEventRow } from "@/lib/usage-api";
@@ -75,7 +74,7 @@ export default function UsageRecentTable({ items, loading, subtitle }: UsageRece
                     </TableCell>
                     <TableCell>
                       {row.session_id ? (
-                        <Link component={NextLink} href={`/chat/${row.session_id}`} underline="hover">
+                        <Link component="a" href={`/chat/${row.session_id}`} underline="hover">
                           {row.session_id.slice(0, 8)}
                         </Link>
                       ) : (

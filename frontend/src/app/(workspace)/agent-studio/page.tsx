@@ -4,7 +4,6 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import AgentCanvas from "@/components/agent-studio/AgentCanvas";
@@ -85,7 +84,7 @@ export default function AgentStudioPage() {
         title="Agent Studio"
         description="Build multi-agent teams, bind MCP tools, define group chat policy, and dry-run playbooks."
         actions={
-          <Button component={Link} href="/agent-apps" size="small" variant="outlined">
+          <Button component="a" href="/agent-apps" size="small" variant="outlined">
             Agent apps
           </Button>
         }

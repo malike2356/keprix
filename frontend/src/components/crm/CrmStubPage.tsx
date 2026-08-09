@@ -4,7 +4,6 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 
 type CrmStubPageProps = {
   title: string;
@@ -26,11 +25,11 @@ export function CrmStubPage({ title, summary, ownerPrompt }: CrmStubPageProps) {
           </Typography>
           <Typography variant="body2">
             Meanwhile use{" "}
-            <Typography component={Link} href="/crm" color="primary" sx={{ textDecoration: "underline" }}>
+            <Typography component="a" href="/crm" color="primary" sx={{ textDecoration: "underline" }}>
               CRM overview
             </Typography>
             , Soft Wall{" "}
-            <Typography component={Link} href="/outreach" color="primary" sx={{ textDecoration: "underline" }}>
+            <Typography component="a" href="/outreach" color="primary" sx={{ textDecoration: "underline" }}>
               outreach
             </Typography>
             , or create records under leads, contacts, accounts, deals, and lists.

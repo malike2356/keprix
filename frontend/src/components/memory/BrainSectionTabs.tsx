@@ -3,7 +3,6 @@
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Box from "@mui/material/Box";
-import Link from "next/link";
 
 type BrainSectionTabsProps = {
   value: "graph" | "galaxy" | "list" | "health";
@@ -36,10 +35,10 @@ export default function BrainSectionTabs({ value }: BrainSectionTabsProps) {
           },
         }}
       >
-        <Tab label="Graph" value="graph" component={Link} href="/brain/graph" />
-        <Tab label="Galaxy" value="galaxy" component={Link} href="/memory/galaxy" />
-        <Tab label="List" value="list" component={Link} href="/memory" />
-        <Tab label="Health" value="health" component={Link} href="/brain/health" />
+        <Tab label="Graph" value="graph" component="a" href="/brain/graph" />
+        <Tab label="Galaxy" value="galaxy" component="a" href="/memory/galaxy" />
+        <Tab label="List" value="list" component="a" href="/memory" />
+        <Tab label="Health" value="health" component="a" href="/brain/health" />
       </Tabs>
     </Box>
   );

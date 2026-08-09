@@ -14,7 +14,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
@@ -122,7 +121,7 @@ export default function A2APage() {
       />
 
       <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
-        <Button component={Link} href="/agent-runtime" size="small" variant="outlined">
+        <Button component="a" href="/agent-runtime" size="small" variant="outlined">
           Agent runtime
         </Button>
         <Chip size="small" label={`${status?.agent_count ?? 0} agents`} />

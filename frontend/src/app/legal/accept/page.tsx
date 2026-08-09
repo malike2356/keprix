@@ -11,7 +11,6 @@ import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import { acceptPolicies, fetchLegalPolicies } from "@/lib/legal-api";
@@ -68,7 +67,7 @@ export default function LegalAcceptPage() {
                 {policy.summary}
               </Typography>
               <Link
-                component={NextLink}
+                component="a"
                 href={policy.full_text_url}
                 target="_blank"
                 rel="noopener noreferrer"

@@ -24,7 +24,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
@@ -91,7 +90,7 @@ export default function ToolAclAdminPage() {
           { label: "Tool ACL" },
         ]}
         actions={
-          <Button component={NextLink} href="/admin/tools" variant="outlined" size="small">
+          <Button component="a" href="/admin/tools" variant="outlined" size="small">
             Generated tools
           </Button>
         }

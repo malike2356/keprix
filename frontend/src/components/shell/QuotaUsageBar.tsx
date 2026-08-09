@@ -2,7 +2,6 @@
 
 import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
-import Link from "next/link";
 import Typography from "@mui/material/Typography";
 import useSWR from "swr";
 import { ceApi } from "@/lib/ce-api";
@@ -44,7 +43,7 @@ export default function QuotaUsageBar() {
   const value = Math.min(100, Math.round(quota.pct * 100));
   return (
     <Box
-      component={Link}
+      component="a"
       href="/admin/quotas"
       sx={{
         display: "block",

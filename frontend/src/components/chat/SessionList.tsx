@@ -13,7 +13,6 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 import ChatShellNav from "@/components/chat/ChatShellNav";
@@ -45,15 +44,15 @@ export default function SessionList({ onNavigate }: SessionListProps) {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
       <Box sx={{ p: 2, flexShrink: 0, borderBottom: 1, borderColor: "divider" }}>
-        <Box component={NextLink} href="/home" sx={{ display: "inline-flex", textDecoration: "none", mb: 1.5 }}>
+        <Box component="a" href="/home" sx={{ display: "inline-flex", textDecoration: "none", mb: 1.5 }}>
           <KeprixLogo size="sm" />
         </Box>
         <Box sx={{ display: "grid", gap: 0.75, mb: 1.5 }}>
-          <Button component={NextLink} href="/home" size="small" variant="text" sx={{ justifyContent: "flex-start" }}>
+          <Button component="a" href="/home" size="small" variant="text" sx={{ justifyContent: "flex-start" }}>
             Workspace
           </Button>
           <Button
-            component={NextLink}
+            component="a"
             href="/files"
             size="small"
             variant="text"
@@ -131,7 +130,7 @@ export default function SessionList({ onNavigate }: SessionListProps) {
                 return (
                   <ListItemButton
                     key={session.id}
-                    component={NextLink}
+                    component="a"
                     href={`/chat/${session.id}`}
                     selected={active}
                     onClick={onNavigate}

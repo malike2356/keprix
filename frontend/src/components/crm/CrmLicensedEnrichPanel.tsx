@@ -14,7 +14,6 @@ import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import StructuredDataView from "@/components/ui/StructuredDataView";
@@ -169,7 +168,7 @@ export default function CrmLicensedEnrichPanel() {
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
               Fill empty lead fields from a licensed enrichment slot. Existing values stay untouched.
               Soft Wall gates every apply. Configure keys under{" "}
-              <Typography component={Link} href="/crm/settings" color="primary" sx={{ textDecoration: "underline" }}>
+              <Typography component="a" href="/crm/settings" color="primary" sx={{ textDecoration: "underline" }}>
                 CRM Settings
               </Typography>
               .

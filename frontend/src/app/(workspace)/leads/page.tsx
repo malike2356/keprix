@@ -9,7 +9,6 @@ import ListItemText from "@mui/material/ListItemText";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -51,10 +50,10 @@ export default function ProductLeadsPage() {
         breadcrumbs={[{ label: "Workspace", href: "/home" }, { label: "Product signups" }]}
         actions={
           <Stack direction="row" spacing={1}>
-            <Button component={NextLink} href="/outreach/leads" size="small" variant="outlined">
+            <Button component="a" href="/outreach/leads" size="small" variant="outlined">
               Outreach leads
             </Button>
-            <Button component={NextLink} href="/crm/leads" size="small" variant="outlined">
+            <Button component="a" href="/crm/leads" size="small" variant="outlined">
               CRM leads
             </Button>
           </Stack>

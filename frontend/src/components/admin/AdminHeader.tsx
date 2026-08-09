@@ -14,7 +14,6 @@ import Toolbar from "@mui/material/Toolbar";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { IconBell, IconMenu2, IconSearch } from "@tabler/icons-react";
-import NextLink from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import * as React from "react";
 import ScoutSafetyIndicator from "@/components/scout/ScoutSafetyIndicator";
@@ -82,14 +81,14 @@ export function AdminHeader({ onMenuClick, onCommandPaletteOpen }: AdminHeaderPr
         </IconButton>
 
         <Breadcrumbs aria-label="breadcrumb" sx={{ display: { xs: "none", sm: "flex" } }}>
-          <Link component={NextLink} underline="hover" color="inherit" href="/dashboard">
+          <Link component="a" underline="hover" color="inherit" href="/dashboard">
             Admin console
           </Link>
           <Typography color="text.primary">{titleFromPath(pathname)}</Typography>
         </Breadcrumbs>
 
         <Button
-          component={NextLink}
+          component="a"
           href="/home"
           size="small"
           variant="text"
@@ -109,7 +108,7 @@ export function AdminHeader({ onMenuClick, onCommandPaletteOpen }: AdminHeaderPr
         <Tooltip title="Pending mutations">
           <IconButton
             color="inherit"
-            component={NextLink}
+            component="a"
             href="/admin/mutations"
             aria-label="Notifications"
           >

@@ -6,7 +6,6 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 
 type Props = {
   gaps: string[];
@@ -26,7 +25,7 @@ export default function CoverageGapList({ gaps, counts = {} }: Props) {
               key={gap}
               disableGutters
               secondaryAction={
-                <Button size="small" component={Link} href="/memory">
+                <Button size="small" component="a" href="/memory">
                   Add memory
                 </Button>
               }

@@ -11,7 +11,6 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import {
@@ -68,7 +67,7 @@ export default function AgentAppEvalsPanel({ appName, evalSuite }: Props) {
         </Button>
         <Button
           size="small"
-          component={Link}
+          component="a"
           href={`/evals?suite=${encodeURIComponent(appName)}`}
         >
           Open global evals

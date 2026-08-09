@@ -8,7 +8,6 @@ import CardContent from "@mui/material/CardContent";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import type { OutreachReply } from "@/components/outreach/types";
@@ -177,7 +176,7 @@ export default function OutreachRepliesPage() {
                   )}
                   <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
                     {leadId ? (
-                      <Button size="small" variant="outlined" component={Link} href={`/outreach/leads/${leadId}`}>
+                      <Button size="small" variant="outlined" component="a" href={`/outreach/leads/${leadId}`}>
                         Open lead
                       </Button>
                     ) : null}

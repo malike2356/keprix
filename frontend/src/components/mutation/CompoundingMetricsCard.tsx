@@ -3,7 +3,6 @@
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress"; // @loading-contract-ignore determinate metrics ring
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import type { CompoundingMetrics } from "@/lib/mutation-api";
 import DashboardCard from "@/components/cards/DashboardCard";
 import { SkeletonBlock } from "@/components/ui/loading";
@@ -36,7 +35,7 @@ export default function CompoundingMetricsCard({
       action={
         compact ? undefined : (
           <Typography
-            component={NextLink}
+            component="a"
             href="/dashboard/mutation"
             variant="body2"
             color="primary"

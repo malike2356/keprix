@@ -11,7 +11,6 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import { SkeletonList } from "@/components/ui/loading";
 import StructuredDataView from "@/components/ui/StructuredDataView";
@@ -107,7 +106,7 @@ export default function EvalCaseResultDrawer({ open, task, suiteName, onClose }:
                 const href = linkForRun(key, runId);
                 if (!href) return null;
                 return (
-                  <Button key={key} component={NextLink} href={href} size="small" variant="outlined">
+                  <Button key={key} component="a" href={href} size="small" variant="outlined">
                     Open {key}
                   </Button>
                 );
@@ -156,7 +155,7 @@ export default function EvalCaseResultDrawer({ open, task, suiteName, onClose }:
 
           {task.trace_id ? (
             <Box sx={{ mt: 2 }}>
-              <Link component={NextLink} href={`/evals?trace=${encodeURIComponent(task.trace_id)}`} variant="body2">
+              <Link component="a" href={`/evals?trace=${encodeURIComponent(task.trace_id)}`} variant="body2">
                 Permalink trace {task.trace_id.slice(0, 8)}
               </Link>
             </Box>

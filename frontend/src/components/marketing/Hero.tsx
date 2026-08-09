@@ -6,7 +6,6 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import { alpha, keyframes } from "@mui/material/styles";
-import Link from "next/link";
 import * as React from "react";
 import { KeprixLogo } from "@/components/shared/KeprixLogo";
 import {
@@ -504,7 +503,7 @@ export function Hero() {
               </Typography>
               <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                 <Button
-                  component={Link}
+                  component="a"
                   href="/download"
                   variant="contained"
                   size="large"

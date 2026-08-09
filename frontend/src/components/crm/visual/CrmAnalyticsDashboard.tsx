@@ -17,7 +17,6 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import { CRM_WORKSPACE } from "@/components/crm/types";
@@ -73,11 +72,11 @@ export default function CrmAnalyticsDashboard() {
           <Typography variant="h6">CRM analytics</Typography>
           <Typography variant="body2" color="text.secondary">
             Decision-grade charts from the semantic layer. Drill into{" "}
-            <Typography component={Link} href="/crm/pipeline" color="primary" variant="body2">
+            <Typography component="a" href="/crm/pipeline" color="primary" variant="body2">
               pipeline
             </Typography>{" "}
             or{" "}
-            <Typography component={Link} href="/crm/leads" color="primary" variant="body2">
+            <Typography component="a" href="/crm/leads" color="primary" variant="body2">
               leads
             </Typography>
             .
@@ -195,7 +194,7 @@ export default function CrmAnalyticsDashboard() {
                 <TableCell align="right">{fmt(step.denominator_prev)}</TableCell>
                 <TableCell>
                   <Typography
-                    component={Link}
+                    component="a"
                     href={`/crm/pipeline?stage=${encodeURIComponent(String(step.step === "replied" ? "engaged" : step.step === "contactable" ? "approved" : step.step))}`}
                     variant="caption"
                     color="primary"

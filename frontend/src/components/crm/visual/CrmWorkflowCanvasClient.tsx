@@ -24,7 +24,6 @@ import {
   type Node,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import CrmNodeInspector from "@/components/crm/visual/CrmNodeInspector";
@@ -328,7 +327,7 @@ function CrmWorkflowCanvasInner({ workflowId }: Props) {
           <Button size="small" onClick={() => void startRun()}>
             Start run
           </Button>
-          <Button size="small" component={Link} href="/crm/workflows">
+          <Button size="small" component="a" href="/crm/workflows">
             Back
           </Button>
         </Stack>

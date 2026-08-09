@@ -6,7 +6,6 @@ import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Container from "@mui/material/Container";
 import InputAdornment from "@mui/material/InputAdornment";
-import Link from "next/link";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
@@ -57,7 +56,7 @@ function FeatureRow({
         </Typography>
         {feature.docsPath ? (
           <Box
-            component={Link}
+            component="a"
             href={docsPageUrl(feature.docsPath)}
             sx={{
               fontSize: "0.75rem",
@@ -279,10 +278,10 @@ export function FeaturesCatalogView() {
             </Typography>
           </Box>
           <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
-            <Button component={Link} href="/#features" variant="outlined" sx={{ textTransform: "none" }}>
+            <Button component="a" href="/#features" variant="outlined" sx={{ textTransform: "none" }}>
               Homepage highlights
             </Button>
-            <Button component={Link} href="/docs" variant="contained" sx={{ textTransform: "none" }}>
+            <Button component="a" href="/docs" variant="contained" sx={{ textTransform: "none" }}>
               Open docs
             </Button>
           </Box>

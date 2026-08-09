@@ -120,7 +120,7 @@ function Panel({
           {title}
         </Typography>
         {href ? (
-          <Button component={Link} href={href} size="small">
+          <Button component="a" href={href} size="small">
             {hrefLabel}
           </Button>
         ) : null}
@@ -162,7 +162,7 @@ export default function AgentOsGlassPage() {
         ]}
         actions={
           <Stack direction="row" spacing={1}>
-            <Button component={Link} href={`/usage?days=${periodDays}`} variant="outlined" size="small">
+            <Button component="a" href={`/usage?days=${periodDays}`} variant="outlined" size="small">
               Full usage
             </Button>
             <Button onClick={() => mutate()} size="small">
@@ -264,7 +264,7 @@ export default function AgentOsGlassPage() {
                   description="Run a content-series workflow, then open Tasks or the action board."
                 />
               ) : null}
-              <Button component={Link} href={data.links.board || "/agent-os"} size="small" sx={{ mt: 1 }}>
+              <Button component="a" href={data.links.board || "/agent-os"} size="small" sx={{ mt: 1 }}>
                 Action board
               </Button>
             </Panel>

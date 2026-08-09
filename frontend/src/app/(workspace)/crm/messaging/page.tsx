@@ -11,7 +11,6 @@ import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import { CRM_WORKSPACE } from "@/components/crm/types";
@@ -178,7 +177,7 @@ export default function CrmMessagingPage() {
       <Typography variant="body2" color="text.secondary">
         WhatsApp/SMS (flag off by default), social API health (scrape refused), and property portal checklist gates.
         Enter tokens and channel flags under{" "}
-        <Typography component={Link} href="/crm/settings#connections" color="primary" sx={{ textDecoration: "underline" }}>
+        <Typography component="a" href="/crm/settings#connections" color="primary" sx={{ textDecoration: "underline" }}>
           /crm/settings Connections
         </Typography>
         . Soft Wall still applies before enable/ack/template/first send.
@@ -203,7 +202,7 @@ export default function CrmMessagingPage() {
             <Button size="small" onClick={() => void enableChannels(false)}>
               Disable workspace
             </Button>
-            <Button size="small" component={Link} href="/crm/contactability">
+            <Button size="small" component="a" href="/crm/contactability">
               Consent / contactability
             </Button>
           </Stack>
@@ -250,7 +249,7 @@ export default function CrmMessagingPage() {
             {social.data?.scrape?.message || "Scrape adapters remain refused."} Use Discover with official API adapters
             or CSV when configured.
           </Typography>
-          <Button size="small" component={Link} href="/crm/discover" sx={{ mt: 1 }}>
+          <Button size="small" component="a" href="/crm/discover" sx={{ mt: 1 }}>
             Open Discover
           </Button>
         </CardContent>

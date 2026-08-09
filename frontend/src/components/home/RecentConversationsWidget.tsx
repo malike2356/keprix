@@ -6,7 +6,6 @@ import CardActionArea from "@mui/material/CardActionArea";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import Link from "@mui/material/Link";
-import NextLink from "next/link";
 import useSWR from "swr";
 import { SkeletonText } from "@/components/ui/loading";
 import { fetchConversations, type WorkspaceSession } from "@/lib/workspace-api";
@@ -27,7 +26,7 @@ function relativeTime(iso?: string): string {
 function ConversationCard({ session }: { session: WorkspaceSession }) {
   return (
     <Card variant="outlined" sx={{ mb: 1.5 }}>
-      <CardActionArea component={NextLink} href={`/chat/${session.id}`}>
+      <CardActionArea component="a" href={`/chat/${session.id}`}>
         <CardContent sx={{ py: 1.5, px: 2, "&:last-child": { pb: 1.5 } }}>
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 1 }}>
             <Typography
@@ -94,7 +93,7 @@ export default function RecentConversationsWidget() {
           Recent chats
         </Typography>
         <Link
-          component={NextLink}
+          component="a"
           href="/chat"
           variant="caption"
           color="text.secondary"

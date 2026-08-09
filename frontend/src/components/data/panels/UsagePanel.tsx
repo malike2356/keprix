@@ -193,7 +193,7 @@ export default function UsagePanel() {
         >
           Export JSON
         </Button>
-        <Button component={Link} href="/data?tab=observability" size="small" variant="text">
+        <Button component="a" href="/data?tab=observability" size="small" variant="text">
           Observability
         </Button>
       </Stack>
@@ -321,7 +321,7 @@ export default function UsagePanel() {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Usage appears after you send messages in chat or run agent workflows.
           </Typography>
-          <Button component={Link} href="/chat" variant="contained">
+          <Button component="a" href="/chat" variant="contained">
             Open chat
           </Button>
         </Box>

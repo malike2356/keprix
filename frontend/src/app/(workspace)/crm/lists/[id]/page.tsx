@@ -79,7 +79,7 @@ export default function CrmListDetailPage() {
     return (
       <Typography color="text.secondary">
         List not found.{" "}
-        <Typography component={Link} href="/crm/lists" color="primary" sx={{ textDecoration: "underline" }}>
+        <Typography component="a" href="/crm/lists" color="primary" sx={{ textDecoration: "underline" }}>
           Back to lists
         </Typography>
       </Typography>
@@ -212,7 +212,7 @@ export default function CrmListDetailPage() {
         </Alert>
       ) : null}
 
-      <Button size="small" component={Link} href="/crm/lists" sx={{ alignSelf: "flex-start" }}>
+      <Button size="small" component="a" href="/crm/lists" sx={{ alignSelf: "flex-start" }}>
         All lists
       </Button>
 
@@ -252,10 +252,10 @@ export default function CrmListDetailPage() {
               <Button size="small" variant="outlined" disabled={busy} onClick={() => setEnrollOpen(true)}>
                 Enroll
               </Button>
-              <Button size="small" component={Link} href="/crm/deliverability">
+              <Button size="small" component="a" href="/crm/deliverability">
                 Sender readiness
               </Button>
-              <Button size="small" component={Link} href="/crm/settings">
+              <Button size="small" component="a" href="/crm/settings">
                 Kill switches
               </Button>
             </Stack>

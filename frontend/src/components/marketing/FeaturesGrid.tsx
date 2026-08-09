@@ -15,7 +15,6 @@ import CodeIcon from "@mui/icons-material/Code";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import ExtensionIcon from "@mui/icons-material/Extension";
 import LockIcon from "@mui/icons-material/Lock";
-import Link from "next/link";
 import {
   MARKETING_EYEBROW_SX,
   MARKETING_HEADING_SX,
@@ -40,7 +39,6 @@ const HIGHLIGHT_ICONS = {
   sidecar: ExtensionIcon,
   vault: LockIcon,
 } as const;
-
 
 function GlowCard({
   children,
@@ -298,7 +296,7 @@ export function FeaturesGrid() {
         <ScrollReveal delay={0.2}>
           <Box sx={{ mt: 6, textAlign: "center" }}>
             <Button
-              component={Link}
+              component="a"
               href="/features"
               variant="outlined"
               size="large"

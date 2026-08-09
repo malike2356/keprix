@@ -7,7 +7,6 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -95,7 +94,7 @@ export default function MilestonesPanel() {
               </Typography>
             ))}
           </Stack>
-          <Button component={Link} href="/agent-os/onboarding" size="small" sx={{ mt: 1 }}>
+          <Button component="a" href="/agent-os/onboarding" size="small" sx={{ mt: 1 }}>
             Open checklist
           </Button>
         </Paper>

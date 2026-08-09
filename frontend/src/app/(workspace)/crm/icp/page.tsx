@@ -7,7 +7,6 @@ import CardContent from "@mui/material/CardContent";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import StructuredDataView from "@/components/ui/StructuredDataView";
@@ -129,7 +128,7 @@ export default function CrmIcpPage() {
     <Stack spacing={2}>
       <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" spacing={1}>
         <BoxTitle />
-        <Button size="small" component={Link} href="/crm/discover">
+        <Button size="small" component="a" href="/crm/discover">
           Discover with ICP
         </Button>
       </Stack>

@@ -10,7 +10,6 @@ import TextField from "@mui/material/TextField";
 import Toolbar from "@mui/material/Toolbar";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import ModelSelector from "@/components/chat/ModelSelector";
 import ChatShellNav from "@/components/chat/ChatShellNav";
@@ -110,7 +109,7 @@ export default function WorkspaceHeader({ sessionId, title = "New conversation" 
         </Tooltip>
         {sessionId ? (
           <Tooltip title="Open in admin">
-            <IconButton component={NextLink} href={`/dashboard/conversations`}>
+            <IconButton component="a" href={`/dashboard/conversations`}>
               <AdminPanelSettingsIcon />
             </IconButton>
           </Tooltip>

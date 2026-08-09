@@ -17,7 +17,6 @@ import ListItemText from "@mui/material/ListItemText";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import {
   createResearchProject,
@@ -94,7 +93,7 @@ export default function ResearchProjectList({ selectedId, onSelect, onCreated }:
                 secondaryTypographyProps={{ noWrap: true }}
               />
               <IconButton
-                component={Link}
+                component="a"
                 href={`/research/projects/${project.project_id}`}
                 size="small"
                 aria-label="Open project page"

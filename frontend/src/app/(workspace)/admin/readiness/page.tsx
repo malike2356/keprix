@@ -24,7 +24,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -205,7 +204,7 @@ export default function AdminReadinessPage() {
         breadcrumbs={[{ label: "Admin", href: "/control-center" }, { label: "Readiness" }]}
         actions={
           <Stack direction="row" spacing={1}>
-            <Button component={NextLink} href="/admin/backup" size="small" variant="outlined">
+            <Button component="a" href="/admin/backup" size="small" variant="outlined">
               Backups
             </Button>
             <Button size="small" variant="contained" onClick={() => setConfirmBackup(true)}>
@@ -353,7 +352,7 @@ export default function AdminReadinessPage() {
                           <TableCell>
                             {check.fix_path ? (
                               <Button
-                                component={NextLink}
+                                component="a"
                                 href={check.fix_path}
                                 size="small"
                                 onClick={(e) => e.stopPropagation()}

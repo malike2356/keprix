@@ -31,7 +31,6 @@ import TranslateIcon from "@mui/icons-material/Translate";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import MicIcon from "@mui/icons-material/Mic";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
@@ -271,7 +270,7 @@ export default function SettingsPage() {
             </Typography>
           </CardContent>
           <CardActions sx={{ pt: 0 }}>
-            <Button component={NextLink} href="/developer" size="small" startIcon={<KeyIcon />}>
+            <Button component="a" href="/developer" size="small" startIcon={<KeyIcon />}>
               Manage API keys
             </Button>
           </CardActions>
@@ -314,7 +313,7 @@ export default function SettingsPage() {
             {visibleCards.map((card, index) => (
               <React.Fragment key={card.href}>
                 {index > 0 ? <Divider component="li" /> : null}
-                <ListItemButton component={NextLink} href={card.href} sx={{ py: 1.25 }}>
+                <ListItemButton component="a" href={card.href} sx={{ py: 1.25 }}>
                   <ListItemIcon sx={{ minWidth: 40 }}>{card.icon}</ListItemIcon>
                   <ListItemText
                     primary={card.title}
@@ -352,7 +351,7 @@ export default function SettingsPage() {
                   </Typography>
                 </CardContent>
                 <CardActions>
-                  <Button component={NextLink} href={card.href} size="small">
+                  <Button component="a" href={card.href} size="small">
                     Open
                   </Button>
                 </CardActions>

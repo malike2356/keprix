@@ -5,7 +5,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { IconLayoutDashboard, IconPlus } from "@tabler/icons-react";
-import NextLink from "next/link";
 import { useCESession } from "@/lib/ce-auth";
 
 function getGreeting(): string {
@@ -55,7 +54,7 @@ export default function GreetingBar() {
       </Box>
       <Box sx={{ display: "flex", flexShrink: 0, gap: 1, alignItems: "center" }}>
         <Button
-          component={NextLink}
+          component="a"
           href="/dashboard"
           variant="outlined"
           size="medium"
@@ -64,7 +63,7 @@ export default function GreetingBar() {
           Dashboard
         </Button>
         <Button
-          component={NextLink}
+          component="a"
           href="/chat"
           variant="contained"
           size="medium"

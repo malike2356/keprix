@@ -14,7 +14,6 @@ import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
 import CheckIcon from "@mui/icons-material/Check";
 import { alpha } from "@mui/material/styles";
-import Link from "next/link";
 import * as React from "react";
 import type { BillingInterval } from "@/components/billing/billing-types";
 import type { BillingPlan } from "@/lib/billing-api";
@@ -118,7 +117,7 @@ export default function SaasPricingPlans({ plans, trialDays }: SaasPricingPlansP
                   {free ? "forever" : price?.interval ? `per ${price.interval}` : ""}
                 </Typography>
                 <Button
-                  component={Link}
+                  component="a"
                   href={ctaHref}
                   variant={highlight ? "contained" : "outlined"}
                   fullWidth

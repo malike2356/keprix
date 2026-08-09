@@ -6,7 +6,6 @@ import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import * as React from "react";
 import PageHeader from "@/components/ui/PageHeader";
@@ -225,7 +224,7 @@ export default function ResearchProjectPage() {
 
 function ButtonLink({ href }: { href: string }) {
   return (
-    <Typography component={Link} href={href} variant="body2">
+    <Typography component="a" href={href} variant="body2">
       Open research workspace
     </Typography>
   );

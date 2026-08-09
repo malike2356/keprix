@@ -15,7 +15,6 @@ import Typography from "@mui/material/Typography";
 import CloseIcon from "@mui/icons-material/Close";
 import ReplayIcon from "@mui/icons-material/Replay";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import StructuredDataView from "@/components/ui/StructuredDataView";
@@ -141,7 +140,7 @@ export default function AgentAppRunHistory({ appName, onRerun }: Props) {
                     ) : null}
                     <Button
                       size="small"
-                      component={Link}
+                      component="a"
                       href={`/agent-runtime?source=agent_app&app=${encodeURIComponent(appName)}&trace_id=${encodeURIComponent(run.trace_id)}`}
                       startIcon={<OpenInNewIcon />}
                     >

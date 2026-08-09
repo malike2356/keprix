@@ -31,7 +31,6 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import StorageOutlinedIcon from "@mui/icons-material/StorageOutlined";
 import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
-import NextLink from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { useRequireAdmin } from "@/lib/ce-auth";
@@ -690,10 +689,10 @@ export default function FileBrowserPage() {
             >
               Refresh
             </Button>
-            <Button size="small" component={NextLink} href="/documents" variant="text">
+            <Button size="small" component="a" href="/documents" variant="text">
               Documents
             </Button>
-            <Button size="small" component={NextLink} href="/home" variant="text">
+            <Button size="small" component="a" href="/home" variant="text">
               Home
             </Button>
           </Stack>

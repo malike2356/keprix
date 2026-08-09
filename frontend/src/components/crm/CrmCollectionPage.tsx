@@ -7,7 +7,6 @@ import CardContent from "@mui/material/CardContent";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import CrmEntityTable from "@/components/crm/CrmEntityTable";
@@ -192,7 +191,7 @@ export function CrmCollectionPage({
         <Button size="small" variant="outlined" color="error" disabled={busy || selected.size === 0} onClick={() => void bulkDelete()}>
           Delete selected
         </Button>
-        <Button size="small" variant="outlined" component={Link} href="/outreach" disabled={selected.size === 0}>
+        <Button size="small" variant="outlined" component="a" href="/outreach" disabled={selected.size === 0}>
           Enroll via Soft Wall
         </Button>
       </Stack>

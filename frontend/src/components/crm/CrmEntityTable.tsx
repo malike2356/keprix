@@ -12,7 +12,6 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import {
   companyLabel,
   displayName,
@@ -92,7 +91,7 @@ export function CrmEntityTable({
                 ) : null}
                 <TableCell>
                   <Typography
-                    component={Link}
+                    component="a"
                     href={hrefFor(row)}
                     variant="body2"
                     fontWeight={600}

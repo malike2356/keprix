@@ -9,7 +9,6 @@ import Slider from "@mui/material/Slider";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
-import NextLink from "next/link";
 import * as React from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import { ceApi } from "@/lib/ce-api";
@@ -73,7 +72,7 @@ export default function SelfImprovementSettingsPage() {
           { label: "Self-improvement" },
         ]}
         actions={
-          <Button component={NextLink} href="/agent-os/improvements" variant="outlined" size="small">
+          <Button component="a" href="/agent-os/improvements" variant="outlined" size="small">
             Review improvement proposals
           </Button>
         }

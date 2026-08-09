@@ -10,7 +10,6 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import StructuredDataView from "@/components/ui/StructuredDataView";
@@ -63,7 +62,7 @@ export default function ProxyOpsPanel() {
         <Button size="small" color="warning" disabled={busy} onClick={() => setConfirm(!(status.data?.cordon?.enabled))}>
           Soft Wall cordon {status.data?.cordon?.enabled ? "off" : "on"}
         </Button>
-        <Button component={NextLink} href="/vault/setup" size="small" variant="outlined">
+        <Button component="a" href="/vault/setup" size="small" variant="outlined">
           Vault setup
         </Button>
       </Stack>

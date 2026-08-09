@@ -2,7 +2,6 @@
 
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import type { ReactNode } from "react";
 import DashboardCard from "@/components/cards/DashboardCard";
 import { SkeletonBlock } from "@/components/ui/loading";
@@ -83,7 +82,7 @@ export default function StatCard({
   if (href) {
     return (
       <Box
-        component={NextLink}
+        component="a"
         href={href}
         sx={{ textDecoration: "none", color: "inherit", display: "block" }}
       >

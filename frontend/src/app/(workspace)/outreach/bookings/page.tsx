@@ -170,7 +170,7 @@ export default function OutreachBookingsPage() {
                       {start ? ` · ${new Date(start).toLocaleString()}` : ""}
                     </Typography>
                     {leadRef ? (
-                      <Button size="small" component={Link} href={`/outreach/leads/${leadRef}`}>
+                      <Button size="small" component="a" href={`/outreach/leads/${leadRef}`}>
                         Open lead
                       </Button>
                     ) : null}

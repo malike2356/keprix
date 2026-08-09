@@ -12,7 +12,6 @@ import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import DashboardCard from "@/components/cards/DashboardCard";
 import { SkeletonTable } from "@/components/ui/loading";
@@ -103,7 +102,7 @@ export default function UsageAdminEventLog({
                       </TableCell>
                       <TableCell>
                         {row.session_id ? (
-                          <Link component={NextLink} href={`/chat/${row.session_id}`} underline="hover">
+                          <Link component="a" href={`/chat/${row.session_id}`} underline="hover">
                             {row.session_id.slice(0, 8)}
                           </Link>
                         ) : (

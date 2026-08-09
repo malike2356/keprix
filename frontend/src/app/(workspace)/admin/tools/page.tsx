@@ -14,7 +14,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import { IconCheck, IconTrash, IconTools, IconX } from "@tabler/icons-react";
-import NextLink from "next/link";
 import { useCallback, useState } from "react";
 import useSWR from "swr";
 import DashboardCard from "@/components/cards/DashboardCard";
@@ -163,7 +162,7 @@ export default function AdminToolsPage() {
             sandbox checks before you approve them for use. Delete removes the proposal and any installed files.
           </Typography>
         </Box>
-        <Button component={NextLink} href="/dashboard/tools" variant="outlined" size="small">
+        <Button component="a" href="/dashboard/tools" variant="outlined" size="small">
           Open full tool library
         </Button>
       </Box>
@@ -212,7 +211,7 @@ export default function AdminToolsPage() {
         subtitle="Sandboxed tools waiting for your decision"
         action={
           pending.length ? (
-            <Button component={NextLink} href="/dashboard/mutation" size="small" variant="text">
+            <Button component="a" href="/dashboard/mutation" size="small" variant="text">
               View mutation queue
             </Button>
           ) : null

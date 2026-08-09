@@ -13,7 +13,6 @@ import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import useSWR from "swr";
@@ -265,7 +264,7 @@ export default function CrmDiscoverPage() {
               <Button type="submit" variant="contained" disabled={busy}>
                 {busy ? "Running..." : "Run discovery"}
               </Button>
-              <Button component={Link} href="/crm/jobs" variant="outlined">
+              <Button component="a" href="/crm/jobs" variant="outlined">
                 Job history
               </Button>
             </Stack>

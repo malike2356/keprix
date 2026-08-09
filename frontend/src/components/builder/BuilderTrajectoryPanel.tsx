@@ -9,7 +9,6 @@ import StepContent from "@mui/material/StepContent";
 import StepLabel from "@mui/material/StepLabel";
 import Stepper from "@mui/material/Stepper";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import DiffViewer from "@/components/mutation/DiffViewer";
 import type { BuilderPatchStep } from "@/lib/builder-api";
@@ -54,7 +53,7 @@ export default function BuilderTrajectoryPanel({
           severity="warning"
           sx={{ mb: 2 }}
           action={
-            <Button component={NextLink} href={approvalHref} size="small" color="inherit">
+            <Button component="a" href={approvalHref} size="small" color="inherit">
               Review mutation
             </Button>
           }

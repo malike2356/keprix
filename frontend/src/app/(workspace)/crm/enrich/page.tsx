@@ -22,7 +22,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import { useSearchParams } from "next/navigation";
 import * as React from "react";
 import {
@@ -359,13 +358,13 @@ export default function CrmEnrichPage() {
         ]}
         actions={
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            <Button component={NextLink} href="/crm/settings" size="small" variant="outlined">
+            <Button component="a" href="/crm/settings" size="small" variant="outlined">
               Provider keys
             </Button>
-            <Button component={NextLink} href="/crm/jobs" size="small" variant="outlined">
+            <Button component="a" href="/crm/jobs" size="small" variant="outlined">
               Jobs
             </Button>
-            <Button component={NextLink} href="/crm/lists" size="small" variant="outlined">
+            <Button component="a" href="/crm/lists" size="small" variant="outlined">
               Lists
             </Button>
           </Stack>
@@ -699,17 +698,17 @@ export default function CrmEnrichPage() {
                 {listLink ? (
                   <Typography variant="body2">
                     Resulting list:{" "}
-                    <Link component={NextLink} href={listLink}>
+                    <Link component="a" href={listLink}>
                       {listLink}
                     </Link>
                     {" · "}
-                    <Link component={NextLink} href="/crm/leads">
+                    <Link component="a" href="/crm/leads">
                       View leads
                     </Link>
                   </Typography>
                 ) : job.status === "applied" ? (
                   <Typography variant="body2">
-                    <Link component={NextLink} href="/crm/leads">
+                    <Link component="a" href="/crm/leads">
                       View leads
                     </Link>
                   </Typography>
@@ -741,7 +740,7 @@ export default function CrmEnrichPage() {
                 Reopen a job to continue mapping, Soft Wall, or download.
               </Typography>
             </Box>
-            <Button size="small" component={NextLink} href="/crm/jobs" variant="text">
+            <Button size="small" component="a" href="/crm/jobs" variant="text">
               All CRM jobs
             </Button>
           </Stack>
@@ -771,7 +770,7 @@ export default function CrmEnrichPage() {
                       </TableCell>
                       <TableCell>{String(item.sheet_type || "generic")}</TableCell>
                       <TableCell align="right">
-                        <Link component={NextLink} href={`/crm/enrich?job=${item.id}`} underline="hover">
+                        <Link component="a" href={`/crm/enrich?job=${item.id}`} underline="hover">
                           Open
                         </Link>
                       </TableCell>

@@ -11,7 +11,6 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import { AGENT_OS_HUB_HOME } from "@/components/agent-os/AgentOsSubnav";
@@ -137,7 +136,7 @@ export default function AgentOsOnboardingPage() {
         ]}
         actions={
           <Stack direction="row" spacing={1}>
-            <Button component={Link} href="/agent-os/onboard" variant="outlined" size="small">
+            <Button component="a" href="/agent-os/onboard" variant="outlined" size="small">
               Onboard interview
             </Button>
             <Button href="/docs/features/agent-os-overview" variant="outlined" size="small">

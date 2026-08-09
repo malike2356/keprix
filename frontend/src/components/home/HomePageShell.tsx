@@ -6,7 +6,6 @@ import CardActionArea from "@mui/material/CardActionArea";
 import CardContent from "@mui/material/CardContent";
 import Grid from "@mui/material/Grid2";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import useSWR from "swr";
 import GreetingBar from "@/components/home/GreetingBar";
 import RecentConversationsWidget from "@/components/home/RecentConversationsWidget";
@@ -60,7 +59,7 @@ export default function HomePageShell() {
       <Box sx={{ display: "grid", gap: 1.5, gridTemplateColumns: { xs: "1fr", md: "repeat(3, minmax(0, 1fr))" }, mb: 3 }}>
         {QUICK_LINKS.map((link) => (
           <Card key={link.href} variant="outlined">
-            <CardActionArea component={NextLink} href={link.href} sx={{ height: "100%" }}>
+            <CardActionArea component="a" href={link.href} sx={{ height: "100%" }}>
               <CardContent>
                 <Typography variant="subtitle2" fontWeight={600} gutterBottom>
                   {link.title}

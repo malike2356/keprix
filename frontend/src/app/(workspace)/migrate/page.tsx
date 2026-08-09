@@ -17,7 +17,6 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import {
@@ -96,7 +95,7 @@ export default function MigratePage() {
         description="Import memory, skills, and archives from Hermes, OpenClaw, or Markdown notes."
         actions={
           manifest ? (
-            <Button component={Link} href="/migrate/preview" variant="outlined">
+            <Button component="a" href="/migrate/preview" variant="outlined">
               Open preview page
             </Button>
           ) : null

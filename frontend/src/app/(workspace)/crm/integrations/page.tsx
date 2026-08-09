@@ -11,7 +11,6 @@ import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import StructuredDataView from "@/components/ui/StructuredDataView";
@@ -111,11 +110,11 @@ export default function CrmIntegrationsPage() {
       <Typography variant="body2" color="text.secondary">
         HubSpot / Salesforce / Pipedrive / GHL adapters. Missing API keys show not_configured. CSV always works.
         Configure tokens under{" "}
-        <Typography component={Link} href="/crm/settings#connections" color="primary" sx={{ textDecoration: "underline" }}>
+        <Typography component="a" href="/crm/settings#connections" color="primary" sx={{ textDecoration: "underline" }}>
           /crm/settings Connections
         </Typography>
         . Soft Wall gates apply. Field mappings:{" "}
-        <Typography component={Link} href="/docs" color="primary" sx={{ textDecoration: "underline" }}>
+        <Typography component="a" href="/docs" color="primary" sx={{ textDecoration: "underline" }}>
           docs/features/crm-integrations.md
         </Typography>
         .

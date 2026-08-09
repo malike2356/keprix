@@ -23,7 +23,6 @@ import Typography from "@mui/material/Typography";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import MemoryIcon from "@mui/icons-material/Memory";
-import NextLink from "next/link";
 import * as React from "react";
 import BrainSectionTabs from "@/components/memory/BrainSectionTabs";
 import PageHeader from "@/components/ui/PageHeader";
@@ -259,7 +258,7 @@ export default function MemoryPage() {
         description="Typed facts, recall, Temporal graph, belief revision, and dreaming."
         actions={
           <>
-            <Button component={NextLink} href="/brain/graphiti" variant="outlined" size="small" sx={{ textTransform: "none" }}>
+            <Button component="a" href="/brain/graphiti" variant="outlined" size="small" sx={{ textTransform: "none" }}>
               Graphiti
             </Button>
             <Button variant="outlined" size="small" onClick={() => void exportMemories()} sx={{ textTransform: "none" }}>
@@ -383,7 +382,7 @@ export default function MemoryPage() {
         <Stack spacing={2}>
           <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
             <Typography variant="subtitle2">Entities</Typography>
-            <Button component={NextLink} href="/brain/graph?kinds=memory,entity,session" size="small" variant="outlined">
+            <Button component="a" href="/brain/graph?kinds=memory,entity,session" size="small" variant="outlined">
               Open unified Brain graph
             </Button>
           </Stack>
@@ -397,7 +396,7 @@ export default function MemoryPage() {
                   <TableCell align="right">
                     <Button
                       size="small"
-                      component={NextLink}
+                      component="a"
                       href={`/brain/graph?kind=entity&id=${encodeURIComponent(String(entity.id))}`}
                     >
                       Open in Brain

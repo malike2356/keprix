@@ -14,7 +14,6 @@ import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import ControlCenter from "@/components/outreach/ControlCenter";
@@ -430,10 +429,10 @@ export default function OutreachOverviewPage() {
                 </Typography>
               </Box>
               <Stack direction="row" spacing={1}>
-                <Button size="small" variant="outlined" component={Link} href="/outreach/campaigns">
+                <Button size="small" variant="outlined" component="a" href="/outreach/campaigns">
                   Edit campaigns
                 </Button>
-                <Button size="small" variant="outlined" component={Link} href="/outreach/sequences">
+                <Button size="small" variant="outlined" component="a" href="/outreach/sequences">
                   Edit sequences
                 </Button>
               </Stack>
@@ -472,7 +471,7 @@ export default function OutreachOverviewPage() {
           {QUICK_LINKS.map((item) => (
             <Grid key={item.href} size={{ xs: 12, sm: 6, md: 4 }}>
               <Card variant="outlined">
-                <CardActionArea component={Link} href={item.href}>
+                <CardActionArea component="a" href={item.href}>
                   <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
                     <Typography variant="body2" fontWeight={600}>
                       {item.label}

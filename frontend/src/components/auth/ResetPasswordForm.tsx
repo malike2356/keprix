@@ -5,7 +5,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { resetPasswordWithToken } from "@/lib/account-api";
@@ -87,7 +86,7 @@ export default function ResetPasswordForm() {
       <Button type="submit" variant="contained" size="large" disabled={submitting}>
         {submitting ? "Saving..." : "Reset password"}
       </Button>
-      <Button component={NextLink} href="/auth/forgot-password" variant="text">
+      <Button component="a" href="/auth/forgot-password" variant="text">
         Request a new link
       </Button>
     </Box>

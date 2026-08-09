@@ -26,7 +26,6 @@ import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -249,7 +248,7 @@ export default function AdminFeatureFlagsPage() {
         breadcrumbs={[{ label: "Admin", href: "/control-center" }, { label: "Feature flags" }]}
         actions={
           <Stack direction="row" spacing={1}>
-            <Button component={NextLink} href="/settings/modules" variant="outlined" size="small">
+            <Button component="a" href="/settings/modules" variant="outlined" size="small">
               Modules
             </Button>
             <Button

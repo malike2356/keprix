@@ -6,7 +6,6 @@ import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import { alpha } from "@mui/material/styles";
-import Link from "next/link";
 import {
   MARKETING_EYEBROW_SX,
   MARKETING_HEADING_SX,
@@ -141,7 +140,7 @@ export function CTABand() {
           </Typography>
           <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap" }}>
             <Button
-              component={Link}
+              component="a"
               href="/download"
               variant="contained"
               size="large"
@@ -157,7 +156,7 @@ export function CTABand() {
               Install Community
             </Button>
             <Button
-              component={Link}
+              component="a"
               href="/docs"
               variant="outlined"
               size="large"

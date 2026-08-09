@@ -12,7 +12,6 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -48,7 +47,7 @@ export default function CodeAgentSessionsPage() {
         description="Operator view of /api/code-agent sessions (distinct from /admin/coding ladder)."
         breadcrumbs={[{ label: "Admin", href: "/control-center" }, { label: "Code-agent" }]}
         actions={
-          <Button component={NextLink} href="/admin/coding" size="small" variant="outlined">
+          <Button component="a" href="/admin/coding" size="small" variant="outlined">
             Coding ladder
           </Button>
         }

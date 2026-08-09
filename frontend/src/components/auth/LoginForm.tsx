@@ -6,7 +6,6 @@ import Button from "@mui/material/Button";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import TextField from "@mui/material/TextField";
-import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { fetchAuthConfig, fetchSsoProviders, sendEmailOtp, ssoStartUrl, verifyEmailOtpLogin } from "@/lib/account-api";
@@ -222,10 +221,10 @@ export default function LoginForm({ returnTo = "/home" }: { returnTo?: string })
       ) : null}
       {step === "credentials" ? (
         <>
-          <Button component={NextLink} href="/auth/forgot-password" variant="text">
+          <Button component="a" href="/auth/forgot-password" variant="text">
             Forgot password?
           </Button>
-          <Button component={NextLink} href="/auth/setup" variant="text">
+          <Button component="a" href="/auth/setup" variant="text">
             First time? Set up your instance
           </Button>
         </>

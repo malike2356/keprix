@@ -12,7 +12,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import MutationQualityBadge from "@/components/mutation/MutationQualityBadge";
 import { SkeletonTable } from "@/components/ui/loading";
@@ -145,7 +144,7 @@ export default function MutationHistoryTable({
                   />
                 </TableCell>
                 <TableCell align="right">
-                  <Button component={NextLink} href={`/dashboard/mutation/${item.id}`} size="small">
+                  <Button component="a" href={`/dashboard/mutation/${item.id}`} size="small">
                     View
                   </Button>
                 </TableCell>

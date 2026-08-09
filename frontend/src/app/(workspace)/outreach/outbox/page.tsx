@@ -14,7 +14,6 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -90,7 +89,7 @@ export default function OutreachOutboxPage() {
             ))}
           </Select>
         </FormControl>
-        <Button component={NextLink} href="/outreach/approvals" size="small">
+        <Button component="a" href="/outreach/approvals" size="small">
           Approvals
         </Button>
       </Stack>
@@ -129,7 +128,7 @@ export default function OutreachOutboxPage() {
                     <TableCell>
                       {row.entity_type ? (
                         <Button
-                          component={NextLink}
+                          component="a"
                           href={
                             row.entity_type === "lead"
                               ? `/outreach/leads/${row.entity_id}`

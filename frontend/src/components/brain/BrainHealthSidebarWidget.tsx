@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { healthScoreColor } from "@/types/brain-health";
 import { useBrainHealth } from "@/hooks/useBrainHealth";
 
@@ -16,7 +15,7 @@ export default function BrainHealthSidebarWidget() {
   return (
     <Box sx={{ px: 1, py: 1.5, borderTop: 1, borderColor: "divider" }}>
       <Stack
-        component={Link}
+        component="a"
         href="/brain/health"
         spacing={0.75}
         sx={{ textDecoration: "none", color: "inherit", px: 1.5 }}

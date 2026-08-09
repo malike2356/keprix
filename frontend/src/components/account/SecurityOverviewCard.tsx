@@ -6,7 +6,6 @@ import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 
 type SecurityOverviewCardProps = {
   title: string;
@@ -25,7 +24,7 @@ export default function SecurityOverviewCard({
 }: SecurityOverviewCardProps) {
   return (
     <Card variant="outlined" sx={{ height: "100%" }}>
-      <CardActionArea component={NextLink} href={href} sx={{ height: "100%" }}>
+      <CardActionArea component="a" href={href} sx={{ height: "100%" }}>
         <CardContent>
           <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
             <Typography variant="subtitle1">{title}</Typography>

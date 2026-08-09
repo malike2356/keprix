@@ -29,7 +29,6 @@ import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
-import NextLink from "next/link";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
 import { SkeletonList } from "@/components/ui/loading";
@@ -620,7 +619,7 @@ export default function McpAdminPage() {
         ]}
         actions={
           <Stack direction="row" spacing={1}>
-            <Button component={NextLink} href="/integrations" variant="outlined">
+            <Button component="a" href="/integrations" variant="outlined">
               Marketplace view
             </Button>
             {tab === 0 ? (
@@ -646,11 +645,11 @@ export default function McpAdminPage() {
           for RAG search when you do not need live MCP tools on every message.
         </Typography>
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-          <Button component={NextLink} href="/skills" size="small" variant="outlined">
+          <Button component="a" href="/skills" size="small" variant="outlined">
             Skills hub (notion, trello)
           </Button>
           <Button
-            component={NextLink}
+            component="a"
             href="/rag-pipeline?source=notion"
             size="small"
             variant="outlined"
@@ -688,7 +687,7 @@ export default function McpAdminPage() {
               ) : null}
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                 <Button
-                  component={NextLink}
+                  component="a"
                   href={n8nDocsHref}
                   size="small"
                   variant="text"
@@ -698,7 +697,7 @@ export default function McpAdminPage() {
                   Sidecar docs
                 </Button>
                 <Button
-                  component={NextLink}
+                  component="a"
                   href={n8nImportHref}
                   size="small"
                   variant="text"
@@ -898,7 +897,7 @@ export default function McpAdminPage() {
                           <Button
                             size="small"
                             variant="outlined"
-                            component={NextLink}
+                            component="a"
                             href="/rag-pipeline?source=notion"
                           >
                             Index for search

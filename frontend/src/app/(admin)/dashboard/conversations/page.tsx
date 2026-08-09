@@ -12,7 +12,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import DashboardCard from "@/components/cards/DashboardCard";
@@ -89,7 +88,7 @@ export default function ConversationsPage() {
                     <TableCell>{formatTimeAgo(row.updated_at || row.created_at)}</TableCell>
                     <TableCell align="right">
                       <Button
-                        component={NextLink}
+                        component="a"
                         href={`/chat/${row.id}`}
                         size="small"
                         startIcon={<IconExternalLink size={16} stroke={1.75} />}

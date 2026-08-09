@@ -25,7 +25,6 @@ import CloseIcon from "@mui/icons-material/Close";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PersonIcon from "@mui/icons-material/Person";
 import SearchIcon from "@mui/icons-material/Search";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import CompaniesHouseKeyForm from "@/components/companies-house/CompaniesHouseKeyForm";
@@ -198,7 +197,7 @@ function ProfilePanel({
 
       {profile.public_url ? (
         <Button
-          component={Link}
+          component="a"
           href={profile.public_url}
           target="_blank"
           rel="noreferrer"
@@ -504,11 +503,11 @@ export default function CompaniesHouseWorkspace({
       />
       <CompaniesHouseKeyForm status={status} onSaved={async () => { await mutateStatus(); }} />
       {embedded ? (
-        <Button component={NextLink} href="/companies-house" size="small" variant="outlined">
+        <Button component="a" href="/companies-house" size="small" variant="outlined">
           Full browser
         </Button>
       ) : (
-        <Button component={NextLink} href="/settings/companies-house" size="small" variant="outlined">
+        <Button component="a" href="/settings/companies-house" size="small" variant="outlined">
           Settings
         </Button>
       )}

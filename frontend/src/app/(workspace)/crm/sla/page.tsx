@@ -7,7 +7,6 @@ import CardContent from "@mui/material/CardContent";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import { CRM_WORKSPACE } from "@/components/crm/types";
@@ -81,7 +80,7 @@ function Bucket({
                   </Typography>
                 </Stack>
                 <Stack direction="row" spacing={1}>
-                  <Button size="small" component={Link} href={recordHref(row)}>
+                  <Button size="small" component="a" href={recordHref(row)}>
                     Open
                   </Button>
                   {actionLabel && onAction ? (

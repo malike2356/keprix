@@ -9,7 +9,6 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import useSWR from "swr";
@@ -73,7 +72,7 @@ export default function VoiceTemplateUploadPage() {
         title="Upload voice template"
         description="16 kHz, 16-bit mono WAV, 0.5 to 30 seconds. Recorded by a native speaker."
         actions={
-          <Button component={Link} href="/settings/voice-templates" size="small">
+          <Button component="a" href="/settings/voice-templates" size="small">
             Back to templates
           </Button>
         }
@@ -162,7 +161,7 @@ export default function VoiceTemplateUploadPage() {
           <Button type="submit" variant="contained" disabled={submitting}>
             {submitting ? "Uploading..." : "Submit for review"}
           </Button>
-          <Button component={Link} href="/settings/voice-templates">
+          <Button component="a" href="/settings/voice-templates">
             Cancel
           </Button>
         </Box>

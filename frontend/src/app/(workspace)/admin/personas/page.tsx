@@ -13,7 +13,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -94,10 +93,10 @@ export default function PersonasInventoryPage() {
         breadcrumbs={[{ label: "Admin", href: "/control-center" }, { label: "Personas" }]}
         actions={
           <Stack direction="row" spacing={1}>
-            <Button component={NextLink} href="/admin/typed-agents" size="small" variant="outlined">
+            <Button component="a" href="/admin/typed-agents" size="small" variant="outlined">
               Typed agents
             </Button>
-            <Button component={NextLink} href="/settings/modules" size="small" variant="outlined">
+            <Button component="a" href="/settings/modules" size="small" variant="outlined">
               Modules
             </Button>
           </Stack>

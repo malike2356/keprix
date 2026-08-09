@@ -12,7 +12,6 @@ import ListItemText from "@mui/material/ListItemText";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
-import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import * as React from "react";
 import KeprixLogo from "@/components/shared/KeprixLogo";
@@ -49,7 +48,7 @@ export function AdminSidebar({
   const content = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
       <Box sx={{ flexShrink: 0, px: collapsed ? 1 : 2.5, py: 2, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Box component={NextLink} href="/home" sx={{ textDecoration: "none", color: "inherit", minWidth: 0 }}>
+        <Box component="a" href="/home" sx={{ textDecoration: "none", color: "inherit", minWidth: 0 }}>
           <KeprixLogo variant={collapsed ? "icon" : "full"} size="md" />
         </Box>
         <IconButton size="small" onClick={onToggleCollapsed} sx={{ display: { xs: "none", md: "inline-flex" } }}>
@@ -79,7 +78,7 @@ export function AdminSidebar({
             const badge = entry.badgeKey === "pendingMutations" && pendingCount > 0 ? pendingCount : null;
             const button = (
               <ListItemButton
-                component={NextLink}
+                component="a"
                 href={entry.href}
                 selected={active}
                 onClick={onMobileClose}

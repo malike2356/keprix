@@ -5,7 +5,6 @@ import Chip from "@mui/material/Chip";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import { fetchAdminTools, type AdminTool } from "@/lib/admin-workspace-api";
 import type { StudioNode, StudioNodeData } from "@/lib/playbook-studio/canvas-types";
@@ -55,7 +54,7 @@ export default function NodeInspector({ node, onUpdate }: Props) {
       />
       {node.data.connector_id ? (
         <Chip
-          component={Link}
+          component="a"
           href={`/integrations?id=${encodeURIComponent(node.data.connector_id)}`}
           clickable
           label={`Connector: ${node.data.connector_id}`}

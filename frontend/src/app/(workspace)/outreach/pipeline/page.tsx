@@ -12,7 +12,6 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import { PIPELINE_STAGES, pipelineLabel, type OutreachLead } from "@/components/outreach/types";
@@ -56,10 +55,10 @@ export default function OutreachPipelinePage() {
       ) : null}
 
       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
-        <Button size="small" variant="outlined" component={Link} href="/outreach/replies">
+        <Button size="small" variant="outlined" component="a" href="/outreach/replies">
           Reply queue
         </Button>
-        <Button size="small" variant="outlined" component={Link} href="/outreach/bookings">
+        <Button size="small" variant="outlined" component="a" href="/outreach/bookings">
           Bookings
         </Button>
         {(["total", "contacted", "replied", "booked", "won", "lost", "follow_up"] as const).map((key) => (
@@ -108,7 +107,7 @@ export default function OutreachPipelinePage() {
                           sx={{ border: 1, borderColor: "divider", borderRadius: 1, p: 1 }}
                         >
                           <Typography
-                            component={Link}
+                            component="a"
                             href={`/outreach/leads/${lead.id}`}
                             variant="body2"
                             fontWeight={600}

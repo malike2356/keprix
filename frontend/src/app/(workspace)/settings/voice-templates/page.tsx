@@ -16,7 +16,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
@@ -154,7 +153,7 @@ export default function VoiceTemplatesSettingsPage() {
         title="Voice templates"
         description="Pre-recorded phrases for common agent responses; TTS fills in dynamic content when needed."
         actions={
-          <Button component={Link} href="/settings/voice-templates/upload" variant="contained">
+          <Button component="a" href="/settings/voice-templates/upload" variant="contained">
             Upload template
           </Button>
         }
@@ -277,7 +276,7 @@ export default function VoiceTemplatesSettingsPage() {
                     <TableCell>{item.recorded_by || "-"}</TableCell>
                     <TableCell>
                       <Button
-                        component={Link}
+                        component="a"
                         href={`/settings/voice-templates/${item.id}`}
                         size="small"
                         onClick={() => mutateTemplates()}

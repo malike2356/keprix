@@ -17,7 +17,6 @@ import {
   IconSettings,
   IconShield,
 } from "@tabler/icons-react";
-import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
@@ -145,7 +144,7 @@ function NotificationCard({
             <Button
               size="small"
               variant="outlined"
-              component={NextLink}
+              component="a"
               href={item.href}
               onClick={(event) => {
                 event.stopPropagation();
@@ -211,7 +210,7 @@ export default function NotificationsPage() {
         actions={
           <Stack direction="row" spacing={1} flexWrap="wrap">
             <Button
-              component={NextLink}
+              component="a"
               href="/settings/notifications"
               size="small"
               variant="outlined"

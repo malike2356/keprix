@@ -17,7 +17,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import useSWR from "swr";
@@ -448,7 +447,7 @@ export default function VideoIngestPanel() {
               )}
 
               <Stack direction="row" spacing={1}>
-                <Button component={Link} href={analyzeHref(job)} variant="contained">
+                <Button component="a" href={analyzeHref(job)} variant="contained">
                   Open in chat
                 </Button>
               </Stack>

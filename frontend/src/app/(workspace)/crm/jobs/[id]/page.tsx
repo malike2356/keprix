@@ -6,7 +6,6 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import * as React from "react";
 import useSWR from "swr";
@@ -59,10 +58,10 @@ export default function CrmJobDetailPage() {
   return (
     <Stack spacing={2}>
       <Stack direction="row" spacing={1} alignItems="center">
-        <Button component={Link} href="/crm/jobs" size="small">
+        <Button component="a" href="/crm/jobs" size="small">
           Back to jobs
         </Button>
-        <Button component={Link} href="/crm/discover" size="small" variant="outlined">
+        <Button component="a" href="/crm/discover" size="small" variant="outlined">
           Discover
         </Button>
       </Stack>
@@ -119,7 +118,7 @@ export default function CrmJobDetailPage() {
               <Typography variant="body2" sx={{ mb: 1.5 }}>
                 Draft list:{" "}
                 <Typography
-                  component={Link}
+                  component="a"
                   href={`/crm/lists/${encodeURIComponent(String(job.list_id))}`}
                   color="primary"
                   sx={{ textDecoration: "underline" }}

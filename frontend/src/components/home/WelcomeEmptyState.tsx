@@ -5,7 +5,6 @@ import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import { createConversation } from "@/lib/workspace-api";
 
@@ -46,10 +45,10 @@ export default function WelcomeEmptyState() {
       </Typography>
 
       <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} sx={{ mb: 4 }}>
-        <Button component={NextLink} href="/chat" variant="contained" size="large">
+        <Button component="a" href="/chat" variant="contained" size="large">
           Start a session
         </Button>
-        <Button component={NextLink} href="/files" variant="outlined" size="large">
+        <Button component="a" href="/files" variant="outlined" size="large">
           Open files
         </Button>
       </Stack>

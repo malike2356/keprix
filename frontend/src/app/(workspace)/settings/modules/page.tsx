@@ -12,7 +12,6 @@ import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import DashboardCard from "@/components/cards/DashboardCard";
@@ -93,7 +92,7 @@ export default function SettingsModulesPage() {
         <Chip label={`CLI / API ${data?.counts.cli_api ?? "-"}`} />
         <Chip variant="outlined" label={`Total ${data?.counts.total ?? "-"}`} />
         <Box sx={{ flex: 1 }} />
-        <Button component={Link} href="/developer/module-inventory" size="small" variant="text">
+        <Button component="a" href="/developer/module-inventory" size="small" variant="text">
           Developer inventory
         </Button>
       </Stack>
@@ -191,7 +190,7 @@ function ModuleRow({ module }: { module: GuiModule }) {
       <Box sx={{ display: "flex", gap: 1, justifyContent: { xs: "stretch", md: "flex-end" } }}>
         {href ? (
           <Button
-            component={Link}
+            component="a"
             href={href}
             variant={status === "available" ? "contained" : "outlined"}
             size="small"

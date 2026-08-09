@@ -16,7 +16,6 @@ import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
 import * as React from "react";
-import NextLink from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import PageHeader from "@/components/ui/PageHeader";
 import { SkeletonDetailPanel } from "@/components/ui/loading";
@@ -187,7 +186,7 @@ export default function ContactDetailPage() {
             <Button
               startIcon={<CalendarMonthIcon />}
               variant="outlined"
-              component={NextLink}
+              component="a"
               href={`/vical?guest=${encodeURIComponent(email || contact.display_name)}`}
             >
               Schedule
@@ -361,7 +360,7 @@ export default function ContactDetailPage() {
                     {item.at ? ` · ${new Date(item.at).toLocaleString()}` : ""}
                   </Typography>
                   {item.href ? (
-                    <Button size="small" component={NextLink} href={item.href} sx={{ mt: 0.5, px: 0 }}>
+                    <Button size="small" component="a" href={item.href} sx={{ mt: 0.5, px: 0 }}>
                       Open
                     </Button>
                   ) : null}

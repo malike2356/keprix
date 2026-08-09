@@ -5,7 +5,6 @@ import Button from "@mui/material/Button";
 import ListItemText from "@mui/material/ListItemText";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import { SkeletonList } from "@/components/ui/loading";
@@ -68,7 +67,7 @@ export default function BrainSessionPicker({ onSelect, disabled = false }: Props
             />
           </MenuItem>
         ))}
-        <MenuItem component={Link} href="/chat" onClick={() => setAnchor(null)}>
+        <MenuItem component="a" href="/chat" onClick={() => setAnchor(null)}>
           View all sessions
         </MenuItem>
       </Menu>

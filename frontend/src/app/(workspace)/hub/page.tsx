@@ -10,7 +10,6 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
-import NextLink from "next/link";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
 import PersonalOsStarterCard from "@/components/hub/PersonalOsStarterCard";
@@ -86,7 +85,7 @@ export default function HubPage() {
         title="Hub"
         description="Install skill packs, app templates, and connectors with manifest checks and rollback."
         actions={
-          <Button component={NextLink} href="/integrations" variant="outlined">
+          <Button component="a" href="/integrations" variant="outlined">
             Browse all integrations
           </Button>
         }
@@ -101,7 +100,7 @@ export default function HubPage() {
               Install ready-made workflows or ship your own apps.
             </Typography>
           </Box>
-          <Button component={NextLink} href="/agent-apps" variant="contained">
+          <Button component="a" href="/agent-apps" variant="contained">
             Open Agent Apps
           </Button>
         </CardContent>

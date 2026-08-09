@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import type { ReactNode } from "react";
 
 type Crumb = { label: string; href?: string };
@@ -25,7 +24,7 @@ export default function PageHeader({ title, description, breadcrumbs, actions }:
             crumb.href ? (
               <Link
                 key={`${crumb.label}-${index}`}
-                component={NextLink}
+                component="a"
                 href={crumb.href}
                 underline="hover"
                 color="inherit"

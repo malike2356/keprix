@@ -17,7 +17,6 @@ import Typography from "@mui/material/Typography";
 import ContactsIcon from "@mui/icons-material/Contacts";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
-import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import PageHeader from "@/components/ui/PageHeader";
@@ -149,10 +148,10 @@ export default function ContactsPage() {
             <Button variant="contained" onClick={() => setCreateOpen(true)}>
               Add contact
             </Button>
-            <Button component={NextLink} href="/contacts/sync" variant="outlined">
+            <Button component="a" href="/contacts/sync" variant="outlined">
               Sync settings
             </Button>
-            <Button component={NextLink} href="/contacts/preferences" variant="outlined">
+            <Button component="a" href="/contacts/preferences" variant="outlined">
               Preferences
             </Button>
           </Stack>
@@ -214,7 +213,7 @@ export default function ContactsPage() {
                   return (
                     <ListItemButton
                       key={contact.id}
-                      component={NextLink}
+                      component="a"
                       href={`/contacts/${contact.id}`}
                       sx={{ border: 1, borderColor: "divider", borderRadius: 1, mb: 0.5 }}
                     >

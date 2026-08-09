@@ -7,7 +7,6 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import * as React from "react";
 import useSWR from "swr";
@@ -292,7 +291,7 @@ export default function EvalsPage() {
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 {item.description}
               </Typography>
-              <Button component={Link} href={item.href} size="small" sx={{ mt: 2 }}>
+              <Button component="a" href={item.href} size="small" sx={{ mt: 2 }}>
                 Open
               </Button>
             </CardContent>

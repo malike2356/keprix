@@ -6,7 +6,6 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import DashboardCard from "@/components/cards/DashboardCard";
 import { SkeletonBlock } from "@/components/ui/loading";
 import type { ChannelStatus } from "@/lib/admin-dashboard-api";
@@ -38,7 +37,7 @@ export default function ChannelHealthStrip({ channels = [], loading }: ChannelHe
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
             No channels connected yet.
           </Typography>
-          <Button component={NextLink} href="/admin/channels" size="small" variant="outlined">
+          <Button component="a" href="/admin/channels" size="small" variant="outlined">
             Configure channels
           </Button>
         </Box>
@@ -58,7 +57,7 @@ export default function ChannelHealthStrip({ channels = [], loading }: ChannelHe
                     : "No recent messages"}
                 </Typography>
               </Box>
-              <Button component={NextLink} href={channel.configure_href} size="small" variant="outlined">
+              <Button component="a" href={channel.configure_href} size="small" variant="outlined">
                 Configure
               </Button>
             </CardContent>

@@ -3,7 +3,6 @@
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import CompaniesHouseKeyForm from "@/components/companies-house/CompaniesHouseKeyForm";
@@ -24,7 +23,7 @@ export default function CompaniesHouseSettingsPage() {
           { label: "Companies House" },
         ]}
         actions={
-          <Button component={NextLink} href="/companies-house" variant="outlined">
+          <Button component="a" href="/companies-house" variant="outlined">
             Open search
           </Button>
         }

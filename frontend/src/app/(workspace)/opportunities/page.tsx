@@ -5,7 +5,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import OpportunityCreatePanel from "@/components/opportunity/OpportunityCreatePanel";
 import OpportunityStatusBadge from "@/components/opportunity/OpportunityStatusBadge";
@@ -43,7 +42,7 @@ export default function OpportunitiesPage() {
           </Typography>
         </Box>
         <Stack direction="row" spacing={1}>
-          <Button component={NextLink} href="/crm/deals" size="small" variant="outlined">
+          <Button component="a" href="/crm/deals" size="small" variant="outlined">
             Sales deals
           </Button>
           <Button size="small" onClick={load}>
@@ -53,7 +52,7 @@ export default function OpportunitiesPage() {
       </Stack>
       <Alert severity="info" sx={{ mb: 2 }}>
         Looking for Soft Wall / CRM sales pipeline? Use{" "}
-        <Button component={NextLink} href="/crm/deals" size="small">
+        <Button component="a" href="/crm/deals" size="small">
           CRM deals
         </Button>{" "}
         or outreach sequences.
@@ -70,7 +69,7 @@ export default function OpportunitiesPage() {
               rows.map((row) => (
                 <Box
                   key={row.opportunity_id}
-                  component={NextLink}
+                  component="a"
                   href={`/opportunities/${row.opportunity_id}`}
                   sx={{
                     display: "block",

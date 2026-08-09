@@ -8,7 +8,6 @@ import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid2";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import { CRM_WORKSPACE } from "@/components/crm/types";
@@ -79,7 +78,7 @@ export default function CrmOpsCentre() {
                       {String(a.label)}
                     </Typography>
                     {a.href ? (
-                      <Typography component={Link} href={String(a.href)} variant="caption" color="primary">
+                      <Typography component="a" href={String(a.href)} variant="caption" color="primary">
                         Open evidence
                       </Typography>
                     ) : null}
@@ -103,7 +102,7 @@ export default function CrmOpsCentre() {
               </Typography>
             ) : (
               listOrEmpty(panels.active_runs).map((r) => (
-                <Typography key={String(r.id)} component={Link} href={String(r.href)} display="block" variant="body2" color="primary">
+                <Typography key={String(r.id)} component="a" href={String(r.href)} display="block" variant="body2" color="primary">
                   {String(r.id)} · {String(r.status)}
                 </Typography>
               ))
@@ -118,7 +117,7 @@ export default function CrmOpsCentre() {
               </Typography>
             ) : (
               listOrEmpty(panels.waiting_approvals).map((a) => (
-                <Typography key={String(a.id)} component={Link} href={String(a.href || "/crm")} display="block" variant="body2" color="primary">
+                <Typography key={String(a.id)} component="a" href={String(a.href || "/crm")} display="block" variant="body2" color="primary">
                   {String(a.subject || a.id)}
                 </Typography>
               ))
@@ -133,7 +132,7 @@ export default function CrmOpsCentre() {
               </Typography>
             ) : (
               listOrEmpty(panels.failed_nodes).map((n) => (
-                <Typography key={`${n.run_id}-${n.node_id}`} component={Link} href={String(n.href)} display="block" variant="body2" color="primary">
+                <Typography key={`${n.run_id}-${n.node_id}`} component="a" href={String(n.href)} display="block" variant="body2" color="primary">
                   {String(n.label || n.node_id)} ({String(n.run_id)})
                 </Typography>
               ))
@@ -145,7 +144,7 @@ export default function CrmOpsCentre() {
             <Typography variant="body2">
               Block cold send: {String((panels.deliverability_guardrails as { block_cold_send?: boolean } | undefined)?.block_cold_send ?? false)}
             </Typography>
-            <Typography component={Link} href="/crm/deliverability" variant="caption" color="primary">
+            <Typography component="a" href="/crm/deliverability" variant="caption" color="primary">
               Open deliverability
             </Typography>
           </Panel>
@@ -163,7 +162,7 @@ export default function CrmOpsCentre() {
                 </Typography>
               ))
             )}
-            <Typography component={Link} href="/crm/settings" variant="caption" color="primary">
+            <Typography component="a" href="/crm/settings" variant="caption" color="primary">
               Settings
             </Typography>
           </Panel>
@@ -173,7 +172,7 @@ export default function CrmOpsCentre() {
             <Typography variant="body2" color="text.secondary">
               Replies: {listOrEmpty(panels.new_replies).length} · Takeover: {listOrEmpty(panels.human_takeover).length}
             </Typography>
-            <Typography component={Link} href="/crm/inbox" variant="caption" color="primary">
+            <Typography component="a" href="/crm/inbox" variant="caption" color="primary">
               Open inbox
             </Typography>
           </Panel>

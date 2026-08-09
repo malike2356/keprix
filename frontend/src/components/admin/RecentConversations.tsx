@@ -8,7 +8,6 @@ import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import DashboardCard from "@/components/cards/DashboardCard";
 import { SkeletonChart } from "@/components/ui/loading";
 import { formatTimeAgo } from "@/lib/time-ago";
@@ -33,7 +32,7 @@ export default function RecentConversations({ rows = [], loading }: RecentConver
           {rows.map((row) => (
             <ListItem key={row.id} disablePadding>
               <ListItemButton
-                component={NextLink}
+                component="a"
                 href={`/admin/conversations?id=${row.id}`}
                 sx={{ px: 0, borderRadius: 1 }}
               >

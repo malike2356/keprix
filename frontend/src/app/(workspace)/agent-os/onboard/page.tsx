@@ -9,7 +9,6 @@ import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import { AGENT_OS_HUB_HOME } from "@/components/agent-os/AgentOsSubnav";
 import ErrorState from "@/components/ui/ErrorState";
@@ -129,7 +128,7 @@ export default function AgentOsOnboardPage() {
           { label: "Onboard interview" },
         ]}
         actions={
-          <Button component={Link} href="/agent-os/onboarding" variant="outlined" size="small">
+          <Button component="a" href="/agent-os/onboarding" variant="outlined" size="small">
             Activation checklist
           </Button>
         }

@@ -9,7 +9,6 @@ import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import InstallButton from "@/components/integrations/InstallButton";
 import type { ConnectorCatalogItem } from "@/lib/integrations-api";
@@ -57,13 +56,13 @@ export default function ConnectorDetailDrawer({
               Open in Playbook Studio
             </Button>
             {connector.auth_pattern === "mcp" ? (
-              <Button component={Link} href="/admin/mcp" variant="text">
+              <Button component="a" href="/admin/mcp" variant="text">
                 Configure MCP
               </Button>
             ) : null}
             {connector.docs_url ? (
               <Button
-                component={Link}
+                component="a"
                 href={connector.docs_url}
                 variant="text"
                 startIcon={<OpenInNewIcon />}

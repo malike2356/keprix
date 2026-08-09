@@ -16,7 +16,6 @@ import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import useSWR from "swr";
@@ -159,7 +158,7 @@ export default function CrmPipelineBoard() {
           <Typography variant="h6">Pipeline board</Typography>
           <Typography variant="body2" color="text.secondary">
             Canonical CRM stages with Soft Wall gates. Tables remain at{" "}
-            <Typography component={Link} href="/crm/leads" color="primary" variant="body2">
+            <Typography component="a" href="/crm/leads" color="primary" variant="body2">
               /crm/leads
             </Typography>
             .
@@ -382,13 +381,13 @@ export default function CrmPipelineBoard() {
                 Fit / engagement: {String(selected.fit_score ?? "-")} / {String(selected.engagement_score ?? "-")}
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                <Button size="small" component={Link} href={selected.deep_links?.record || `/crm/leads/${selected.id}`}>
+                <Button size="small" component="a" href={selected.deep_links?.record || `/crm/leads/${selected.id}`}>
                   Full record
                 </Button>
-                <Button size="small" component={Link} href="/crm">
+                <Button size="small" component="a" href="/crm">
                   Approvals
                 </Button>
-                <Button size="small" component={Link} href="/crm/analytics">
+                <Button size="small" component="a" href="/crm/analytics">
                   Analytics
                 </Button>
               </Stack>

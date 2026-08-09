@@ -26,7 +26,6 @@ import { AGENT_OS_HUB_HOME } from "@/components/agent-os/AgentOsSubnav";
 import ErrorState from "@/components/ui/ErrorState";
 import PageHeader from "@/components/ui/PageHeader";
 import { ceApi } from "@/lib/ce-api";
-import Link from "next/link";
 import Stack from "@mui/material/Stack";
 
 type BoardAction = {
@@ -151,16 +150,16 @@ export default function AgentOsActionBoardPage() {
         ]}
         actions={
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            <Button component={Link} href="/agent-os/glass" variant="outlined" size="small">
+            <Button component="a" href="/agent-os/glass" variant="outlined" size="small">
               Glass
             </Button>
-            <Button component={Link} href="/agent-os/onboarding" variant="outlined" size="small">
+            <Button component="a" href="/agent-os/onboarding" variant="outlined" size="small">
               Onboarding
             </Button>
-            <Button component={Link} href="/usage" variant="outlined" size="small">
+            <Button component="a" href="/usage" variant="outlined" size="small">
               Usage
             </Button>
-            <Button component={Link} href="/agent-os/runs" variant="outlined" size="small">
+            <Button component="a" href="/agent-os/runs" variant="outlined" size="small">
               Run ledger
             </Button>
           </Stack>

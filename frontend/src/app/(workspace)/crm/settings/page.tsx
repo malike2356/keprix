@@ -10,7 +10,6 @@ import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import { CRM_WORKSPACE } from "@/components/crm/types";
@@ -401,22 +400,22 @@ export default function CrmSettingsPage() {
           <Typography variant="body2" color="text.secondary">
             {String(policy?.policy_version || "")}: {String(policy?.note || "")}
           </Typography>
-          <Button size="small" component={Link} href="/crm/deliverability" sx={{ mt: 1 }}>
+          <Button size="small" component="a" href="/crm/deliverability" sx={{ mt: 1 }}>
             Sender readiness
           </Button>
-          <Button size="small" component={Link} href="/crm/suppressions" sx={{ ml: 1, mt: 1 }}>
+          <Button size="small" component="a" href="/crm/suppressions" sx={{ ml: 1, mt: 1 }}>
             Suppressions
           </Button>
-          <Button size="small" component={Link} href="/crm/data-quality" sx={{ ml: 1, mt: 1 }}>
+          <Button size="small" component="a" href="/crm/data-quality" sx={{ ml: 1, mt: 1 }}>
             Data quality
           </Button>
-          <Button size="small" component={Link} href="/crm/messaging" sx={{ ml: 1, mt: 1 }}>
+          <Button size="small" component="a" href="/crm/messaging" sx={{ ml: 1, mt: 1 }}>
             Messaging / portals
           </Button>
-          <Button size="small" component={Link} href="/crm/integrations" sx={{ ml: 1, mt: 1 }}>
+          <Button size="small" component="a" href="/crm/integrations" sx={{ ml: 1, mt: 1 }}>
             Integrations
           </Button>
-          <Button size="small" component={Link} href="/crm/attribution" sx={{ ml: 1, mt: 1 }}>
+          <Button size="small" component="a" href="/crm/attribution" sx={{ ml: 1, mt: 1 }}>
             Attribution
           </Button>
         </CardContent>

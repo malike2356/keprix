@@ -10,7 +10,6 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import * as React from "react";
 import useSWR from "swr";
@@ -88,7 +87,7 @@ export default function OutreachLeadDetailPage() {
     return (
       <Typography color="text.secondary">
         Lead not found.{" "}
-        <Typography component={Link} href="/outreach/leads" color="primary" sx={{ textDecoration: "underline" }}>
+        <Typography component="a" href="/outreach/leads" color="primary" sx={{ textDecoration: "underline" }}>
           Back
         </Typography>
       </Typography>
@@ -108,7 +107,7 @@ export default function OutreachLeadDetailPage() {
         </Alert>
       ) : null}
 
-      <Button size="small" component={Link} href="/outreach/leads" sx={{ alignSelf: "flex-start" }}>
+      <Button size="small" component="a" href="/outreach/leads" sx={{ alignSelf: "flex-start" }}>
         All leads
       </Button>
 

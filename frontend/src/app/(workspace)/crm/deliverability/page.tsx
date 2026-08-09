@@ -6,7 +6,6 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import useSWR from "swr";
 import { CRM_WORKSPACE } from "@/components/crm/types";
 import { fetchCrmDeliverability } from "@/lib/crm-api";
@@ -51,7 +50,7 @@ export default function CrmDeliverabilityPage() {
           ))}
         </CardContent>
       </Card>
-      <Button size="small" component={Link} href="/crm/settings">
+      <Button size="small" component="a" href="/crm/settings">
         Kill switches and cadence
       </Button>
     </Stack>

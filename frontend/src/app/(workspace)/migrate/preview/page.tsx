@@ -6,7 +6,6 @@ import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
@@ -22,7 +21,7 @@ export default function MigratePreviewPage() {
         title="Migration history"
         description="Past agent migrations for this workspace."
         actions={
-          <Button component={Link} href="/migrate" variant="contained">
+          <Button component="a" href="/migrate" variant="contained">
             New migration
           </Button>
         }

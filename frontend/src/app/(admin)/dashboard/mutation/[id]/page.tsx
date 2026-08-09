@@ -4,7 +4,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import dynamic from "next/dynamic";
 import PageContainer from "@/components/shared/PageContainer";
@@ -126,7 +125,7 @@ export default function MutationDetailPage({ params }: MutationDetailPageProps) 
         {source ? <CodeBlock language="python" content={source} /> : null}
         {diff ? <DiffViewer diff={diff} /> : null}
 
-        <Button component={NextLink} href="/dashboard/mutation" variant="outlined">
+        <Button component="a" href="/dashboard/mutation" variant="outlined">
           Back to governance
         </Button>
       </Box>

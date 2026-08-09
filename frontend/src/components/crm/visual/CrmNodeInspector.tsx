@@ -8,7 +8,6 @@ import Stack from "@mui/material/Stack";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import StructuredDataView from "@/components/ui/StructuredDataView";
@@ -115,7 +114,7 @@ export default function CrmNodeInspector({ workflowId, nodeId, mode = "design", 
           <Stack spacing={0.5}>
             {Object.entries((insp.data?.links as Record<string, string | null>) || {}).map(([k, href]) =>
               href ? (
-                <Typography key={k} component={Link} href={href} variant="caption" color="primary">
+                <Typography key={k} component="a" href={href} variant="caption" color="primary">
                   {k}: {href}
                 </Typography>
               ) : null,

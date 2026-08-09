@@ -4,7 +4,6 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
-import NextLink from "next/link";
 import { useParams } from "next/navigation";
 import BuiltAppLayout from "@/components/built-app/BuiltAppLayout";
 import { SkeletonList } from "@/components/ui/loading";
@@ -24,7 +23,7 @@ export default function BuiltAppRouteLayout({ children }: { children: React.Reac
       <Stack spacing={2}>
         <Alert severity="error">{error instanceof Error ? error.message : "Built app not found"}</Alert>
         <Box>
-          <Button component={NextLink} href="/home" variant="outlined">
+          <Button component="a" href="/home" variant="outlined">
             Back to workspace
           </Button>
         </Box>

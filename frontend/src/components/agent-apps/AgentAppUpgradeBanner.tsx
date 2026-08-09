@@ -6,7 +6,6 @@ import Button from "@mui/material/Button";
 import LinearProgress from "@mui/material/LinearProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import useSWR from "swr";
 import { fetchAgentAppUsage, type AgentAppUsage } from "@/lib/agent-apps-api";
 
@@ -39,7 +38,7 @@ export default function AgentAppUpgradeBanner({ compact = false }: Props) {
       <Alert
         severity="warning"
         action={
-          <Button component={NextLink} href="/pricing" size="small" color="inherit">
+          <Button component="a" href="/pricing" size="small" color="inherit">
             Upgrade
           </Button>
         }
@@ -53,7 +52,7 @@ export default function AgentAppUpgradeBanner({ compact = false }: Props) {
     <Alert
       severity="warning"
       action={
-        <Button component={NextLink} href="/pricing" size="small" color="inherit">
+        <Button component="a" href="/pricing" size="small" color="inherit">
           View plans
         </Button>
       }

@@ -8,7 +8,6 @@ import CardContent from "@mui/material/CardContent";
 import Rating from "@mui/material/Rating";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
 import useSWR from "swr";
@@ -109,7 +108,7 @@ export default function VoiceTemplateDetailPage() {
         title="Voice template review"
         description={`${template.category_id} · ${template.language_code}`}
         actions={
-          <Button component={Link} href="/settings/voice-templates" size="small">
+          <Button component="a" href="/settings/voice-templates" size="small">
             Back to templates
           </Button>
         }

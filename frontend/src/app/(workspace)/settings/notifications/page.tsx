@@ -9,7 +9,6 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
@@ -83,7 +82,7 @@ export default function NotificationPreferencesPage() {
           { label: "Notifications" },
         ]}
         actions={
-          <Button component={Link} href="/notifications" size="small">
+          <Button component="a" href="/notifications" size="small">
             Open inbox
           </Button>
         }

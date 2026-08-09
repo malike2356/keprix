@@ -6,7 +6,6 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import { CRM_WORKSPACE } from "@/components/crm/types";
@@ -56,7 +55,7 @@ export default function CrmWorkflowsPage() {
                   enrolls {String(wf.enroll_count ?? 0)} · steps {Array.isArray(wf.steps) ? wf.steps.length : 0}
                 </Typography>
                 <Stack direction="row" spacing={1} sx={{ mt: 1 }} flexWrap="wrap" useFlexGap>
-                  <Button size="small" variant="contained" component={Link} href={`/crm/workflows/${wf.id}`}>
+                  <Button size="small" variant="contained" component="a" href={`/crm/workflows/${wf.id}`}>
                     Open canvas
                   </Button>
                   <Button size="small" onClick={() => void setStatus(String(wf.id), "active")}>
@@ -68,7 +67,7 @@ export default function CrmWorkflowsPage() {
                   <Button size="small" onClick={() => void setStatus(String(wf.id), "draft")}>
                     Draft
                   </Button>
-                  <Button size="small" component={Link} href={String(wf.deep_link || "/outreach")}>
+                  <Button size="small" component="a" href={String(wf.deep_link || "/outreach")}>
                     Soft Wall sequence
                   </Button>
                 </Stack>

@@ -28,7 +28,6 @@ import {
   IconPlayerPlay,
   IconWebhook,
 } from "@tabler/icons-react";
-import NextLink from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 import StatCard from "@/components/admin/StatCard";
@@ -267,7 +266,7 @@ export default function DeveloperPage() {
         actions={
           <Stack direction="row" spacing={1} flexWrap="wrap">
             <Button
-              component={NextLink}
+              component="a"
               href="/developer/sdk"
               variant="outlined"
               size="small"
@@ -276,7 +275,7 @@ export default function DeveloperPage() {
               TypeScript SDK
             </Button>
             <Button
-              component={NextLink}
+              component="a"
               href="/api/docs"
               variant="contained"
               size="small"
@@ -302,7 +301,7 @@ export default function DeveloperPage() {
           {isBillingGateError(actionError) ? (
             <>
               This feature requires <strong>{billingGateFeatureName(actionError) || "a higher plan"}</strong>.{" "}
-              <Button component={NextLink} href="/settings/billing" size="small" sx={{ ml: 0.5 }}>
+              <Button component="a" href="/settings/billing" size="small" sx={{ ml: 0.5 }}>
                 View plans
               </Button>
             </>
@@ -383,7 +382,7 @@ export default function DeveloperPage() {
                   Open the interactive explorer or download the OpenAPI spec.
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  <Button component={NextLink} href="/api/docs" variant="outlined" size="small">
+                  <Button component="a" href="/api/docs" variant="outlined" size="small">
                     Open explorer
                   </Button>
                   <Button component="a" href={openapiUrl} target="_blank" rel="noreferrer" variant="text" size="small">
@@ -403,7 +402,7 @@ export default function DeveloperPage() {
                     title={link.title}
                     subtitle={link.description}
                     action={
-                      <Button component={NextLink} href={link.href} size="small" endIcon={<IconExternalLink size={14} />}>
+                      <Button component="a" href={link.href} size="small" endIcon={<IconExternalLink size={14} />}>
                         Open
                       </Button>
                     }

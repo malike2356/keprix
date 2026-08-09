@@ -19,7 +19,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import AgentOsSubnav from "@/components/agent-os/AgentOsSubnav";
@@ -86,7 +85,7 @@ export default function ImprovementsPage() {
           { label: "Improvements" },
         ]}
         actions={
-          <Button component={NextLink} href="/settings/agent/self-improvement" variant="outlined" size="small">
+          <Button component="a" href="/settings/agent/self-improvement" variant="outlined" size="small">
             Self-improvement settings
           </Button>
         }

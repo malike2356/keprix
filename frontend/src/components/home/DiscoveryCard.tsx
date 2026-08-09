@@ -8,7 +8,6 @@ import CardContent from "@mui/material/CardContent";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import { IconX } from "@tabler/icons-react";
-import NextLink from "next/link";
 
 const DISMISS_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -115,7 +114,7 @@ export default function DiscoveryCard({ conversationCount, memoryCount, toolCoun
             {trigger.body}
           </Typography>
           <Button
-            component={NextLink}
+            component="a"
             href={trigger.actionHref}
             variant="outlined"
             size="small"

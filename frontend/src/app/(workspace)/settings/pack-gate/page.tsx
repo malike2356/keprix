@@ -16,7 +16,6 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
-import Link from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
@@ -59,7 +58,7 @@ function RecordsTable({ title, records }: { title: string; records: PackGateReco
                 <TableCell>{record.status}</TableCell>
                 <TableCell>{record.requested_at?.slice(0, 19) || "-"}</TableCell>
                 <TableCell>
-                  <Button component={Link} href={`/packs/${record.pack_id}/gate?record=${record.id}`} size="small">
+                  <Button component="a" href={`/packs/${record.pack_id}/gate?record=${record.id}`} size="small">
                     Open
                   </Button>
                 </TableCell>

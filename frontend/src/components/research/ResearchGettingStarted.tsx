@@ -8,7 +8,6 @@ import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
 import Stepper from "@mui/material/Stepper";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 
 type Props = {
@@ -64,7 +63,7 @@ export default function ResearchGettingStarted({
           {current === 1 ? (
             <Typography variant="body2">
               Use <strong>Statistical analysis</strong> below for PSPP or jamovi, or open{" "}
-              <Link component={NextLink} href="/analytics">
+              <Link component="a" href="/analytics">
                 Quick analytics
               </Link>{" "}
               for charts.

@@ -4,7 +4,6 @@ import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
-import NextLink from "next/link";
 import { usePathname } from "next/navigation";
 import { activeNavItem } from "@/lib/built-app-manifest";
 import type { BuiltAppManifest } from "@/components/built-app/types";
@@ -26,7 +25,7 @@ export default function BuiltAppSectionNav({ manifest }: BuiltAppSectionNavProps
         {items.map((item) => (
           <Tab
             key={item.id}
-            component={NextLink}
+            component="a"
             href={item.href}
             value={item.href}
             label={

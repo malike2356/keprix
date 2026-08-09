@@ -18,7 +18,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -130,10 +129,10 @@ export default function JobsQueuePanel() {
         <Button size="small" onClick={() => void jobs.mutate()}>
           Refresh
         </Button>
-        <Button component={NextLink} href="/admin/cron" size="small" variant="outlined">
+        <Button component="a" href="/admin/cron" size="small" variant="outlined">
           Cron jobs
         </Button>
-        <Button component={NextLink} href="/crm/jobs" size="small" variant="outlined">
+        <Button component="a" href="/crm/jobs" size="small" variant="outlined">
           CRM discovery jobs
         </Button>
       </Stack>
@@ -182,7 +181,7 @@ export default function JobsQueuePanel() {
                   <TableCell align="right">
                     <Stack direction="row" spacing={1} justifyContent="flex-end">
                       {related ? (
-                        <Button component={NextLink} href={related} size="small">
+                        <Button component="a" href={related} size="small">
                           Open
                         </Button>
                       ) : null}

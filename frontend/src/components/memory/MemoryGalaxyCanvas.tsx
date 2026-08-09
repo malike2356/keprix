@@ -20,7 +20,6 @@ import {
   type SimulationLinkDatum,
   type SimulationNodeDatum,
 } from "d3-force";
-import Link from "next/link";
 import * as React from "react";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
@@ -533,7 +532,7 @@ function GalaxyInner({ graph, loading }: Props) {
           </Box>
         ) : null}
         <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-          <Button component={Link} href="/settings/vault" size="small" variant="outlined" sx={{ textTransform: "none" }}>
+          <Button component="a" href="/settings/vault" size="small" variant="outlined" sx={{ textTransform: "none" }}>
             Vault settings
           </Button>
           <Button size="small" onClick={() => setSelectedPath(null)} sx={{ textTransform: "none" }}>

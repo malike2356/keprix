@@ -24,7 +24,6 @@ import Typography from "@mui/material/Typography";
 import FolderIcon from "@mui/icons-material/Folder";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
-import NextLink from "next/link";
 import * as React from "react";
 import DocumentAgentPanel from "@/components/documents/DocumentAgentPanel";
 import IndexManagerPanel from "@/components/documents/IndexManagerPanel";
@@ -604,7 +603,7 @@ export default function DocumentsPage() {
                     <Button variant="outlined" onClick={() => void handleExport("pdf")}>
                       Export PDF
                     </Button>
-                    <Button variant="outlined" component={NextLink} href="/data?tab=export">
+                    <Button variant="outlined" component="a" href="/data?tab=export">
                       Cover / signatory export
                     </Button>
                     <Button variant="outlined" onClick={() => void handleShare()}>

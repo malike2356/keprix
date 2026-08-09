@@ -3,7 +3,6 @@
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Stack from "@mui/material/Stack";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const ITEMS = [
@@ -43,7 +42,7 @@ export default function AgentOsSubnav() {
             key={item.id}
             label={item.label}
             value={item.id}
-            component={Link}
+            component="a"
             href={item.href}
             sx={{ minHeight: 44 }}
           />
