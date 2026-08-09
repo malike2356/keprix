@@ -8,6 +8,11 @@ import time
 import uuid
 from typing import Any
 
+from keprix.product_sidecar.control_plane import (
+    ApprovalStore,
+    ExecutionReceiptStore,
+    IdempotencyLedger,
+)
 from keprix.product_sidecar.persistence import DurableJsonStore
 
 
@@ -178,6 +183,16 @@ class EventStore:
         event_id = str(envelope.get("id") or "")
         if not event_id:
             raise ValueError("event id required")
+        # Echo suppression: skip Propreneur events caused by a Keprix mutation.
+        causation = str(envelope.get("causation_id") or envelope.get("caused_by") or "")
+        if causation.startswith("keprix:") or envelope.get("echo_of_keprix_mutation"):
+            return {
+                "accepted": True,
+                "deduped": True,
+                "echo_suppressed": True,
+                "id": event_id,
+                "causation_id": causation,
+            }
         key = (product, deployment, event_id)
         with self._lock:
             if key in self._seen:
@@ -186,12 +201,27 @@ class EventStore:
             row = dict(envelope)
             row.setdefault("seq", self._cursor + 1)
             row.setdefault("ingested_at", time.time())
+            row.setdefault("acked", False)
             self._events.append(row)
             self._cursor += 1
             if self._durable:
                 self._durable.put(event_id, row)
                 self._durable.set_meta("cursor", self._cursor)
             return {"accepted": True, "deduped": False, "id": event_id, "seq": row["seq"]}
+
+    def ack(self, event_id: str, *, product: str = "") -> dict[str, Any]:
+        with self._lock:
+            for event in self._events:
+                if str(event.get("id") or "") != event_id:
+                    continue
+                if product and event.get("product") != product and event.get("source") != product:
+                    continue
+                event["acked"] = True
+                event["acked_at"] = time.time()
+                if self._durable:
+                    self._durable.put(event_id, event)
+                return {"acked": True, "id": event_id, "seq": event.get("seq")}
+            return {"acked": False, "id": event_id, "error": "not_found"}
 
     def list_for_product(self, product: str) -> list[dict[str, Any]]:
         with self._lock:
@@ -215,86 +245,6 @@ class EventStore:
                     break
             next_cursor = rows[-1]["seq"] if rows else cursor
             return {"events": rows, "cursor": next_cursor, "product": product}
-
-
-class ApprovalStore:
-    def __init__(self) -> None:
-        self._lock = threading.RLock()
-        self._items: dict[str, dict[str, Any]] = {}
-
-    def reset_for_tests(self) -> None:
-        with self._lock:
-            self._items.clear()
-
-    def request(
-        self,
-        *,
-        product: str,
-        workspace_id: str,
-        node_key: str,
-        input_hash: str,
-        reason: str,
-        deep_link: str,
-        ttl_seconds: int = 3600,
-    ) -> dict[str, Any]:
-        approval_id = f"appr_{uuid.uuid4().hex[:12]}"
-        row = {
-            "approval_id": approval_id,
-            "product": product,
-            "workspace_id": workspace_id,
-            "node_key": node_key,
-            "input_hash": input_hash,
-            "reason": reason,
-            "deep_link": deep_link,
-            "status": "pending",
-            "created_at": time.time(),
-            "expires_at": time.time() + ttl_seconds,
-            "decision": None,
-        }
-        with self._lock:
-            self._items[approval_id] = row
-            return dict(row)
-
-    def get(self, approval_id: str) -> dict[str, Any] | None:
-        with self._lock:
-            row = self._items.get(approval_id)
-            return dict(row) if row else None
-
-    def decide(
-        self,
-        approval_id: str,
-        *,
-        workspace_id: str,
-        approved: bool,
-        actor_id: str,
-        input_hash: str | None = None,
-    ) -> dict[str, Any]:
-        with self._lock:
-            row = self._items.get(approval_id)
-            if not row or row["workspace_id"] != workspace_id:
-                raise KeyError("approval_not_found")
-            if time.time() > float(row["expires_at"]):
-                row["status"] = "expired"
-                raise ValueError("approval_expired")
-            if input_hash and input_hash != row["input_hash"]:
-                raise ValueError("approval_stale_hash")
-            if row["status"] == "approved" and approved:
-                return dict(row)  # idempotent
-            if row["status"] == "rejected" and not approved:
-                return dict(row)
-            row["status"] = "approved" if approved else "rejected"
-            row["decision"] = {"actor_id": actor_id, "at": time.time(), "approved": approved}
-            return dict(row)
-
-    def is_approved(self, approval_id: str, *, workspace_id: str, input_hash: str) -> bool:
-        row = self.get(approval_id)
-        if not row or row["workspace_id"] != workspace_id:
-            return False
-        if row["status"] != "approved":
-            return False
-        if time.time() > float(row["expires_at"]):
-            return False
-        return row["input_hash"] == input_hash
 
 
 class ShadowStore:
@@ -487,7 +437,9 @@ def input_hash(payload: dict[str, Any]) -> str:
 
 _JOBS = JobStore()
 _EVENTS = EventStore()
-_APPROVALS = ApprovalStore()
+_APPROVALS = ApprovalStore(durable=True)
+_IDEMPOTENCY = IdempotencyLedger(durable=True)
+_RECEIPTS = ExecutionReceiptStore(durable=True)
 _SHADOW = ShadowStore()
 _CIRCUIT = CircuitBreaker()
 _KILLS = KillSwitchBoard()
@@ -504,6 +456,14 @@ def get_event_store() -> EventStore:
 
 def get_approval_store() -> ApprovalStore:
     return _APPROVALS
+
+
+def get_idempotency_ledger() -> IdempotencyLedger:
+    return _IDEMPOTENCY
+
+
+def get_receipt_store() -> ExecutionReceiptStore:
+    return _RECEIPTS
 
 
 def get_shadow_store() -> ShadowStore:
@@ -523,13 +483,15 @@ def get_memory_store() -> EphemeralMemory:
 
 
 def reset_all_sidecar_state_for_tests() -> None:
-    global _JOBS, _EVENTS, _APPROVALS, _SHADOW, _CIRCUIT, _KILLS, _MEMORY
+    global _JOBS, _EVENTS, _APPROVALS, _IDEMPOTENCY, _RECEIPTS, _SHADOW, _CIRCUIT, _KILLS, _MEMORY
     _JOBS.reset_for_tests()
     _EVENTS.reset_for_tests()
     # Recreate durable-backed stores so KEPRIX_DATA_DIR changes take effect
     _JOBS = JobStore(durable=True)
     _EVENTS = EventStore(durable=True)
-    _APPROVALS = ApprovalStore()
+    _APPROVALS = ApprovalStore(durable=True)
+    _IDEMPOTENCY = IdempotencyLedger(durable=True)
+    _RECEIPTS = ExecutionReceiptStore(durable=True)
     _SHADOW = ShadowStore()
     _CIRCUIT = CircuitBreaker()
     _KILLS = KillSwitchBoard()

@@ -12,11 +12,12 @@ from tools.registry import (
 
 def test_tools_contract_loads() -> None:
     raw = load_tools_contract()
-    assert raw["version"] == "1.0.0"
+    assert raw["version"] == "1.3.0"
     names = list_tool_names()
-    assert "propreneur-get-portfolio" in names
+    assert "propreneur_properties_get" in names
+    assert "propreneur-get-portfolio" in names  # kebab alias until removal window
     assert "propreneur-propose-financial-log" in names
-
+    assert raw.get("canonical_contract") == "propreneur-agent-capabilities"
 
 def test_rejects_wrong_expected_version() -> None:
     with pytest.raises(PropreneurContractVersionError):

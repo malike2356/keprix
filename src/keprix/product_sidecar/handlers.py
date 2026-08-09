@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 def _deep_link(product: str, kind: str, approval_id: str) -> str:
     if product == "aiva":
         return f"/aiva/soft-wall?approval_id={approval_id}&kind={kind}"
+    if product == "propreneur":
+        return f"/propreneur/soft-wall?approval_id={approval_id}&kind={kind}"
     return f"/crm/soft-wall?approval_id={approval_id}&kind={kind}"
 
 
@@ -234,7 +236,17 @@ async def _require_soft_wall(
         return {"error": "denied", "code": "denied", "reason": "outbound_kill"}
 
     approval_id = str(payload.get("approval_id") or "").strip()
-    ih = input_hash({k: v for k, v in payload.items() if k != "approval_id"})
+    # Soft Wall digests business input only; control/retry keys must not fork approvals.
+    control_keys = {
+        "approval_id",
+        "approval_token",
+        "idempotency_key",
+        "correlation_id",
+        "etag",
+        "if_match",
+        "tool_call_id",
+    }
+    ih = input_hash({k: v for k, v in payload.items() if k not in control_keys})
     if approval_id and get_approval_store().is_approved(
         approval_id, workspace_id=ctx.workspace_id, input_hash=ih
     ):
@@ -247,9 +259,13 @@ async def _require_soft_wall(
         input_hash=ih,
         reason=f"Soft Wall required for {node_key}",
         deep_link="",
+        actor_id=ctx.actor_id,
+        correlation_id=ctx.correlation_id,
+        conversation_id=ctx.session_id,
     )
     deep = _deep_link(ctx.product, node_key, row["approval_id"])
-    row["deep_link"] = deep
+    if row.get("deep_link") != deep:
+        row["deep_link"] = deep
     return {
         "error": "soft_wall_required",
         "code": "soft_wall_required",
@@ -526,6 +542,11 @@ HANDLERS: dict[str, Handler] = {
     "social.oauth.publish": handle_not_configured,
     "ops.engine.probe": handle_ops_probe,
 }
+
+# Propreneur domain CRUD (prompts 639-640): every HTTP-backed pack node.
+from keprix.product_sidecar.packs.propreneur_ops import register_propreneur_handlers  # noqa: E402
+
+register_propreneur_handlers(HANDLERS)
 
 
 async def handle_pack_ping(ctx: RequestContext, payload: dict[str, Any]) -> dict[str, Any]:

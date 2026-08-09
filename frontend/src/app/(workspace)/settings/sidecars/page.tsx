@@ -300,8 +300,17 @@ export default function SidecarsSettingsPage() {
     <Box>
       <PageHeader
         title="Sidecars"
-        description="Pair product projects with the Keprix Universal Sidecar, check health, and manage kill switches."
+        description="Pair product projects with the Keprix Universal Sidecar, check health, and manage kill switches. Propreneur pack CRUD readiness is a separate surface."
       />
+
+      <Alert severity="info" sx={{ mb: 2 }}>
+        Universal Sidecar project health is connectivity only. For Propreneur live or Soft Wall
+        CRUD readiness, open{" "}
+        <Button component="a" href="/settings/sidecars/propreneur" size="small" sx={{ textTransform: "none" }}>
+          Propreneur pack readiness
+        </Button>
+        .
+      </Alert>
 
       {error ? (
         <Alert severity="warning" sx={{ mb: 2 }}>

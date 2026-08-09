@@ -42,6 +42,25 @@ def shared_bootstrap_token() -> str:
     )
 
 
+def shared_compat_enabled() -> bool:
+    """Compatibility shared bearer can be disabled after exchange credentials are proven."""
+    for key in (
+        "KEPRIX_DISABLE_SHARED_COMPAT_TOKEN",
+        "KEPRIX_PRODUCT_SIDECAR_DISABLE_SHARED_TOKEN",
+        "CARINA_KEPRIX_DISABLE_SHARED_TOKEN",
+    ):
+        raw = os.environ.get(key, "").strip().lower()
+        if raw in {"1", "true", "yes", "on"}:
+            return False
+    return True
+
+
+def shared_compat_token_usable() -> str:
+    if not shared_compat_enabled():
+        return ""
+    return shared_bootstrap_token()
+
+
 @dataclass
 class SidecarToken:
     jti: str
@@ -204,7 +223,8 @@ class TokenService:
         if not auth.lower().startswith("bearer "):
             raise ValueError(ErrorCode.DENIED.value)
         token_raw = auth[7:].strip()
-        bootstrap = shared_bootstrap_token()
+        bootstrap = shared_compat_token_usable()
+        raw_shared = shared_bootstrap_token()
         if bootstrap and hmac.compare_digest(token_raw, bootstrap):
             # Deprecated compat mode: broad grants for migration.
             self._audit_event("compat_shared_token", product=product, correlation_id=correlation_id)
@@ -219,6 +239,17 @@ class TokenService:
                 token_mode="shared_compat",
                 audience=required_audience,
             )
+        if (
+            not shared_compat_enabled()
+            and raw_shared
+            and hmac.compare_digest(token_raw, raw_shared)
+        ):
+            self._audit_event(
+                "compat_shared_token_disabled",
+                product=product,
+                correlation_id=correlation_id,
+            )
+            raise ValueError(ErrorCode.DENIED.value)
         parsed = self.parse(token_raw, consume_once=consume_once)
         family_ok = parsed.product == product or (
             product == "aiva" and parsed.product in {"aiva", "carina"}

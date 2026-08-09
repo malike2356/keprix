@@ -22,7 +22,7 @@
 | Repo / root | Branch | SHA | Notes |
 | --- | --- | --- | --- |
 | keprix/ | | | Product pack + foundation only |
-| propreneur/propreneur-v2/ | | | Bridge / routes / migrations only |
+| propreneur/ | | | Canonical Propreneur root (not propreneur-v2) |
 | Contabo deployed SHA | | | Must match push |
 
 Never rsync a dirty workstation tree. Never ship `.env`, credentials, logs,
@@ -65,18 +65,29 @@ cd /opt/lampp/htdocs/verlox/keprix
 python -m pytest tests/product_sidecar/test_propreneur_pack.py tests/product_sidecar/test_sidecar_foundation.py -q --tb=short
 
 # Propreneur (fill exact filters used for the RC)
-cd /opt/lampp/htdocs/verlox/propreneur/propreneur-v2
+cd /opt/lampp/htdocs/verlox/propreneur
 php artisan test --filter=Keprix
 ```
 
 ## Expected smoke
 
 - [ ] Keprix `/v1/products/propreneur/health` 200
-- [ ] Capabilities list includes property/contact/tenancy/deal/task/note/ask_portfolio
+- [ ] `/v1/products/propreneur/readiness` reports operation counts (connectivity != CRUD readiness)
+- [ ] Capabilities list includes property/contact/tenancy/deal and Soft Wall gated writes
+- [ ] Live/approval_required nodes match matrix; forbidden stay intentionally_forbidden
+- [ ] Health `capability_honesty` is `ok` or `partial_fail_closed` (not false live)
+- [ ] Operator UI `/settings/sidecars/propreneur` loads readiness
 - [ ] Provision dry_run plans without mutation
 - [ ] Cross-product compose denied
 - [ ] Disabling Keprix restores native Propreneur engine path
 - [ ] Contabo: https://carinaai.uk/ returns 200 after deploy
+
+## Honesty note (2026-08-09, prompts 636-643)
+
+Engine connectivity and Aiva v1 domain CRUD (live reads + Soft Wall writes) are built. Safe full CRUD is domain API access under Soft Wall, not raw DB, hard delete, or proxy. Sign RC only when readiness, matrix, and evidence agree.
+
+Gap report (history): `docs/architecture/propreneur-crud-remediation-gap-report.md`
+Evidence: `docs/architecture/propreneur-e2e-evidence.v1.json`
 
 ## Classification report (attach)
 

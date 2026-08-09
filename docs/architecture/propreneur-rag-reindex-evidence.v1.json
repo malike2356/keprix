@@ -1,0 +1,15 @@
+{
+  "prompt": 643,
+  "self_doc_paths_present": 61,
+  "self_doc_paths_missing": [],
+  "generated_docs": 44,
+  "propreneur_pack_doc_chars": 1159,
+  "retrieval_queries_covered_in_curated_docs": [
+    "Can Keprix perform Propreneur CRUD?",
+    "What requires approval?",
+    "What is forbidden?",
+    "How to diagnose a failed callback?",
+    "Which runtime is source of truth?"
+  ],
+  "note": "Do not commit vector stores or tenant RAG indexes. Reindex via: keprix memory index-self"
+}

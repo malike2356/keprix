@@ -1,7 +1,12 @@
-"""Propreneur product pack node catalog for the shared product_sidecar registry."""
+"""Propreneur product pack node catalog for the shared product_sidecar registry.
+
+Nodes are generated from the canonical agent capabilities contract (prompt 637).
+Regenerate: bash keprix/scripts/regen-propreneur-agent-contract.sh
+"""
 
 from __future__ import annotations
 
+from keprix.product_sidecar.generated import load_propreneur_pack_nodes
 from keprix.product_sidecar.types import CapabilityNode, NodeStatus, RiskClass
 
 _RISK = {
@@ -15,67 +20,48 @@ _RISK = {
 
 _STATUS = {
     "live": NodeStatus.LIVE,
+    "approval_required": NodeStatus.APPROVAL_REQUIRED,
+    "proposal_only": NodeStatus.PROPOSAL_ONLY,
+    "intentionally_forbidden": NodeStatus.INTENTIONALLY_FORBIDDEN,
     "stub": NodeStatus.STUB,
     "not_configured": NodeStatus.NOT_CONFIGURED,
     "disabled": NodeStatus.DISABLED,
     "degraded": NodeStatus.DEGRADED,
 }
 
-# UK property MIS capability surface. Reads and mutates call Propreneur HTTP tools.
-# soft_wall=True for mutate / destructive / propose. No outbound unless messaging.
-_SPECS: list[tuple[str, str, str, str, str, bool]] = [
-    # key, title, domain, risk, status, soft_wall
-    ("property_search", "Property search", "property", "read", "live", False),
-    ("property_get", "Property get", "property", "read", "live", False),
-    ("property_create", "Property create", "property", "mutate", "live", True),
-    ("property_update", "Property update", "property", "mutate", "live", True),
-    ("property_archive", "Property archive", "property", "destructive", "live", True),
-    ("contact_search", "Contact search", "contact", "read", "live", False),
-    ("contact_get", "Contact get", "contact", "read", "live", False),
-    ("contact_create", "Contact create", "contact", "mutate", "live", True),
-    ("contact_update", "Contact update", "contact", "mutate", "live", True),
-    ("tenancy_search", "Tenancy search", "tenancy", "read", "live", False),
-    ("tenancy_get", "Tenancy get", "tenancy", "read", "live", False),
-    ("tenancy_create", "Tenancy create", "tenancy", "mutate", "live", True),
-    ("tenancy_update", "Tenancy update", "tenancy", "mutate", "live", True),
-    ("deal_search", "Deal search", "deal", "read", "live", False),
-    ("deal_get", "Deal get", "deal", "read", "live", False),
-    ("deal_propose", "Deal propose", "deal", "propose", "live", True),
-    ("compliance_get", "Compliance get", "compliance", "read", "live", False),
-    ("compliance_propose", "Compliance propose", "compliance", "high_risk", "live", True),
-    ("maintenance_search", "Maintenance search", "maintenance", "read", "live", False),
-    ("maintenance_propose", "Maintenance propose", "maintenance", "propose", "live", True),
-    ("expense_propose", "Expense propose", "finance", "high_risk", "live", True),
-    ("financial_log_propose", "Financial log propose", "finance", "high_risk", "live", True),
-    ("team_invite_propose", "Team invite propose", "access", "high_risk", "live", True),
-    ("task_create", "Task create", "ops", "mutate", "live", True),
-    ("note_create", "Note create", "ops", "mutate", "live", True),
-    ("ask_portfolio", "Ask portfolio", "portfolio", "read", "live", False),
-    ("sync_health", "Sync health", "sync", "read", "live", False),
-]
-
 
 def build_propreneur_nodes() -> dict[str, CapabilityNode]:
+    catalog = load_propreneur_pack_nodes()
     nodes: dict[str, CapabilityNode] = {}
-    for key, title, domain, risk, status, soft_wall in _SPECS:
+    for item in catalog.get("nodes") or []:
+        key = str(item["key"])
+        risk = str(item.get("risk") or "read")
+        status = str(item.get("status") or "not_configured")
+        soft_wall = bool(item.get("soft_wall"))
         nodes[key] = CapabilityNode(
             key=key,
             version="1.0.0",
-            title=title,
+            title=str(item.get("title") or key),
             product="propreneur",
-            domain=domain,
+            domain=str(item.get("domain") or "general"),
             risk=_RISK[risk],
-            status=_STATUS[status],
-            required_grants=(f"node:{key}",),
+            status=_STATUS.get(status, NodeStatus.NOT_CONFIGURED),
+            required_grants=tuple(item.get("required_grants") or (f"node:{key}",)),
             entitlements=("propreneur",),
             soft_wall=soft_wall,
             sync=True,
             input_schema={"type": "object"},
             output_schema={"type": "object"},
-            idempotent=key.endswith("_get") or key.endswith("_search") or key == "ask_portfolio",
+            idempotent=bool(item.get("idempotent")),
             operator_guidance=(
                 "UK property MIS pack; Propreneur remains authorization and data authority. "
-                "Mutate, destructive, and propose nodes require soft-wall approval."
+                "Mutate, destructive, and propose nodes require soft-wall approval. "
+                f"Canonical operation_id={item.get('operation_id') or 'n/a'}. "
+                f"Declared agent status={status}. "
+                "Permanent delete, raw DB, privilege changes, payment posting, and "
+                "legal submission stay guarded or intentionally forbidden."
             ),
         )
+    if not nodes:
+        raise RuntimeError("generated Propreneur pack nodes catalog is empty")
     return nodes

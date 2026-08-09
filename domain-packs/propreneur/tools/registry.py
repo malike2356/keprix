@@ -9,7 +9,7 @@ from typing import Any
 _PACK_ROOT = Path(__file__).resolve().parents[1]
 _TOOLS_CONTRACT = _PACK_ROOT / "contracts" / "propreneur-aiva-tools.v1.json"
 _RISK_CONTRACT = _PACK_ROOT / "contracts" / "propreneur-action-risk.v1.json"
-_EXPECTED_TOOLS_VERSION = "1.0.0"
+_EXPECTED_TOOLS_VERSION = "1.3.0"
 
 
 class PropreneurContractVersionError(ValueError):

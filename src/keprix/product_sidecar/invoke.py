@@ -87,6 +87,14 @@ async def invoke_node(
             "guidance": node.operator_guidance,
         }
 
+    if node.status == NodeStatus.INTENTIONALLY_FORBIDDEN:
+        raise InvokeError(
+            ErrorCode.DENIED.value,
+            "intentionally forbidden for agent CRUD",
+            http_status=403,
+            extra={"node": node_key},
+        )
+
     if node.status == NodeStatus.DISABLED:
         raise InvokeError(ErrorCode.DENIED.value, "node disabled")
 
@@ -140,6 +148,14 @@ async def invoke_node(
     # Handlers are shared carina implementations
     handler = HANDLERS.get(node_key)
     if handler is None:
+        if node.status == NodeStatus.PROPOSAL_ONLY:
+            return {
+                "error": "proposal_only",
+                "code": "proposal_only",
+                "node": node_key,
+                "guidance": node.operator_guidance
+                or "Use Soft Wall proposal / review queue; direct mutate is not agent-callable.",
+            }
         raise InvokeError(ErrorCode.UNKNOWN_NODE.value, f"no handler for {node_key}", http_status=501)
 
     # Ensure handler context product family is carina for shared impl

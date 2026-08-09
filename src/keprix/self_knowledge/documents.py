@@ -992,6 +992,62 @@ def _parity_guide_documents() -> list[KnowledgeDocument]:
     return docs
 
 
+def _propreneur_product_pack_document() -> KnowledgeDocument:
+    """Generated honesty for Propreneur product-pack CRUD (prompt 643)."""
+    try:
+        from keprix.product_sidecar.readiness import build_product_readiness
+
+        ready = build_product_readiness("propreneur")
+        ops = ready.get("operation_counts") or {}
+        honesty = (ready.get("pack_readiness") or {}).get("capability_honesty")
+        contract = (ready.get("pack_readiness") or {}).get("contract_version")
+    except Exception:
+        ready = {}
+        ops = {}
+        honesty = "unavailable"
+        contract = "unknown"
+
+    content = f"""\
+# Propreneur product-pack capabilities (generated)
+
+Source of truth: Propreneur Laravel domain services via /api/aiva/v1.
+Keprix Soft Wall + product pack is the invoke plane, not a second CRM.
+
+## Live readiness snapshot
+
+- capability_honesty: {honesty}
+- contract_version: {contract}
+- live: {ops.get("live", 0)}
+- approval_required: {ops.get("approval_required", 0)}
+- proposal_only: {ops.get("proposal_only", 0)}
+- not_configured: {ops.get("not_configured", 0)}
+- intentionally_forbidden: {ops.get("intentionally_forbidden", 0)}
+- executable (live + approval_required): {ops.get("executable", 0)}
+
+## Operator surfaces
+
+- UI: /settings/sidecars/propreneur
+- API: GET /v1/products/propreneur/readiness
+- Note: Universal Sidecar connectivity is not CRUD readiness.
+
+## Agent Q&A
+
+- Can Keprix perform Propreneur CRUD? Yes for live reads and Soft Wall writes on contracted nodes.
+- What requires approval? approval_required create/update/archive/cancel operations.
+- What is forbidden? hard delete, document binary vault, payment post, outbound send, generic proxy.
+- Failed callback diagnosis: correlation_id, Soft Wall approval_id, circuit, grants, Host, If-Match.
+- Safe full CRUD means domain API access under Soft Wall, not raw database access.
+
+Curated detail: docs/self-knowledge/propreneur-product-pack-honesty.md
+"""
+    return KnowledgeDocument(
+        source_id="propreneur_product_pack",
+        title="Propreneur Product Pack Capabilities",
+        content=content,
+        category="capabilities",
+    )
+
+
 def generate_all_documents() -> list[KnowledgeDocument]:
     """Return all self-knowledge documents."""
     docs: list[KnowledgeDocument] = [
@@ -1009,6 +1065,7 @@ def generate_all_documents() -> list[KnowledgeDocument]:
         _security_document(),
         _self_knowledge_document(),
         _capability_mesh_document(),
+        _propreneur_product_pack_document(),
     ]
     # Add navigation group documents
     docs.extend(_nav_documents())

@@ -195,42 +195,31 @@ def build_fleetz_pack() -> ProductPackManifest:
 
 
 def _propreneur_connector() -> dict[str, Any]:
+    from keprix.product_sidecar.generated import load_propreneur_connector_routes
+
+    generated = load_propreneur_connector_routes()
     return {
-        "base_url_env": "PROPRENEUR_PRODUCT_API_URL",
+        "base_url_env": generated.get("base_url_env") or "PROPRENEUR_PRODUCT_API_URL",
         "host_allowlist": [
             "127.0.0.1",
             "localhost",
             "propreneur.local",
             "*.propreneur.test",
         ],
-        "routes": [
-            {"method": "GET", "path": "/api/keprix/v1/health", "purpose": "liveness"},
-            {"method": "GET", "path": "/api/keprix/v1/capabilities", "purpose": "negotiate"},
-            {"method": "POST", "path": "/api/keprix/v1/token/exchange", "purpose": "identity"},
-            {"method": "GET", "path": "/api/keprix/v1/context", "purpose": "context_slice"},
-            {"method": "GET", "path": "/api/carina/tools", "purpose": "compat_catalog"},
-            {
-                "method": "POST",
-                "path": "/api/carina/tools/{toolName}",
-                "purpose": "compat_execute",
-                "approval_required": True,
-                "idempotency": True,
-            },
-            {
-                "method": "POST",
-                "path": "/api/keprix/v1/events/ack",
-                "purpose": "event_ack",
-                "idempotency": True,
-            },
-        ],
-        "default_deny": True,
-        "no_sql": True,
-        "no_ui_scrape": True,
+        "routes": list(generated.get("routes") or []),
+        "default_deny": bool(generated.get("default_deny", True)),
+        "no_sql": bool(generated.get("no_sql", True)),
+        "no_ui_scrape": bool(generated.get("no_ui_scrape", True)),
+        "generated_from": generated.get("generated_from"),
+        "generated_version": generated.get("version"),
     }
 
 
 def build_propreneur_pack() -> ProductPackManifest:
-    nodes = build_propreneur_nodes()
+    from keprix.product_sidecar.honesty import apply_fail_closed_statuses
+
+    connector = _propreneur_connector()
+    nodes = apply_fail_closed_statuses(build_propreneur_nodes(), connector=connector)
     payload = {"product": "propreneur", "nodes": sorted(nodes.keys()), "version": "0.1.0"}
     return ProductPackManifest(
         product_key="propreneur",
@@ -242,13 +231,15 @@ def build_propreneur_pack() -> ProductPackManifest:
         enabled=True,
         checksum=_checksum(payload),
         signature="propreneur-dev",
-        connector=_propreneur_connector(),
+        connector=connector,
         policies={
             "soft_wall_bus": "product",
             "cross_product": "deny",
             "timezone": "Europe/London",
             "currency": "GBP",
             "locale": "en-GB",
+            "crud_remediation": True,
+            "capability_honesty": "fail_closed",
         },
         memory_namespace="product:propreneur",
         playbooks=(
@@ -475,13 +466,29 @@ class ProductPackRegistry:
 
     def health(self, product_key: str) -> dict[str, Any]:
         pack = self.require(product_key)
+        counts = pack.node_status_counts()
+        live = int(counts.get("live", 0) or 0)
+        approval_required = int(counts.get("approval_required", 0) or 0)
+        not_configured = int(counts.get("not_configured", 0) or 0)
+        degraded = int(counts.get("degraded", 0) or 0)
+        executable = live + approval_required
+        honesty = "ok"
+        if product_key == "propreneur" and (not_configured or degraded or executable == 0):
+            honesty = "fail_closed_remediation"
         return {
             "product": product_key,
             "enabled": pack.enabled,
             "version": pack.version,
             "contract_version": pack.contract_version,
             "checksum": pack.checksum,
-            "node_counts": pack.node_status_counts(),
+            "node_counts": counts,
+            "capability_honesty": honesty,
+            # Full agent CRUD: every remaining gap is explicit (proposal/forbidden), not silent.
+            "crud_complete": (
+                executable > 0
+                and degraded == 0
+                and not_configured == 0
+            ),
             "lkg_version": (self._lkg.get(product_key).version if product_key in self._lkg else None),
         }
 

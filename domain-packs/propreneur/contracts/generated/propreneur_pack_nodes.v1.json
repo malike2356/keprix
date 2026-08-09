@@ -1,0 +1,934 @@
+{
+  "generated_from": "propreneur-agent-capabilities",
+  "version": "1.3.0",
+  "nodes": [
+    {
+      "key": "appointment_cancel",
+      "title": "Appointment cancel",
+      "domain": "appointment",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_appointments_cancel",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/appointments/{appointmentId}/cancel",
+      "required_grants": [
+        "node:appointment_cancel"
+      ],
+      "handler_binding": "propreneur_ops:appointment_cancel",
+      "idempotent": false
+    },
+    {
+      "key": "appointment_get",
+      "title": "Appointment get",
+      "domain": "appointment",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_appointments_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/appointments/{appointmentId}",
+      "required_grants": [
+        "node:appointment_get"
+      ],
+      "handler_binding": "propreneur_ops:appointment_get",
+      "idempotent": true
+    },
+    {
+      "key": "appointment_search",
+      "title": "Appointment search",
+      "domain": "appointment",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_appointments_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/appointments",
+      "required_grants": [
+        "node:appointment_search"
+      ],
+      "handler_binding": "propreneur_ops:appointment_search",
+      "idempotent": true
+    },
+    {
+      "key": "ask_portfolio",
+      "title": "Ask portfolio",
+      "domain": "portfolio",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_properties_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/properties",
+      "required_grants": [
+        "node:ask_portfolio"
+      ],
+      "handler_binding": "propreneur_ops:ask_portfolio",
+      "idempotent": true
+    },
+    {
+      "key": "compliance_get",
+      "title": "Compliance get",
+      "domain": "compliance",
+      "risk": "read",
+      "status": "proposal_only",
+      "soft_wall": false,
+      "operation_id": "propreneur_compliance_get",
+      "http_method": "",
+      "http_path": "",
+      "required_grants": [
+        "node:compliance_get"
+      ],
+      "handler_binding": null,
+      "idempotent": true
+    },
+    {
+      "key": "compliance_propose",
+      "title": "Compliance propose",
+      "domain": "compliance",
+      "risk": "high_risk",
+      "status": "proposal_only",
+      "soft_wall": true,
+      "operation_id": "propreneur_compliance_propose",
+      "http_method": "",
+      "http_path": "",
+      "required_grants": [
+        "node:compliance_propose"
+      ],
+      "handler_binding": null,
+      "idempotent": false
+    },
+    {
+      "key": "contact_archive",
+      "title": "Contact archive",
+      "domain": "contact",
+      "risk": "destructive",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_contacts_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/contacts/{contactId}",
+      "required_grants": [
+        "node:contact_archive"
+      ],
+      "handler_binding": "propreneur_ops:contact_archive",
+      "idempotent": false
+    },
+    {
+      "key": "contact_create",
+      "title": "Contact create",
+      "domain": "contact",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_contacts_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/contacts",
+      "required_grants": [
+        "node:contact_create"
+      ],
+      "handler_binding": "propreneur_ops:contact_create",
+      "idempotent": false
+    },
+    {
+      "key": "contact_get",
+      "title": "Contact get",
+      "domain": "contact",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_contacts_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/contacts/{contactId}",
+      "required_grants": [
+        "node:contact_get"
+      ],
+      "handler_binding": "propreneur_ops:contact_get",
+      "idempotent": true
+    },
+    {
+      "key": "contact_search",
+      "title": "Contact search",
+      "domain": "contact",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_contacts_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/contacts",
+      "required_grants": [
+        "node:contact_search"
+      ],
+      "handler_binding": "propreneur_ops:contact_search",
+      "idempotent": true
+    },
+    {
+      "key": "contact_update",
+      "title": "Contact update",
+      "domain": "contact",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_contacts_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/contacts/{contactId}",
+      "required_grants": [
+        "node:contact_update"
+      ],
+      "handler_binding": "propreneur_ops:contact_update",
+      "idempotent": false
+    },
+    {
+      "key": "deal_archive",
+      "title": "Deal archive",
+      "domain": "deal",
+      "risk": "destructive",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_deals_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/deals/{dealId}",
+      "required_grants": [
+        "node:deal_archive"
+      ],
+      "handler_binding": "propreneur_ops:deal_archive",
+      "idempotent": false
+    },
+    {
+      "key": "deal_create",
+      "title": "Deal create",
+      "domain": "deal",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_deals_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/deals",
+      "required_grants": [
+        "node:deal_create"
+      ],
+      "handler_binding": "propreneur_ops:deal_create",
+      "idempotent": false
+    },
+    {
+      "key": "deal_get",
+      "title": "Deal get",
+      "domain": "deal",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_deals_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/deals/{dealId}",
+      "required_grants": [
+        "node:deal_get"
+      ],
+      "handler_binding": "propreneur_ops:deal_get",
+      "idempotent": true
+    },
+    {
+      "key": "deal_propose",
+      "title": "Deal propose",
+      "domain": "deal",
+      "risk": "propose",
+      "status": "proposal_only",
+      "soft_wall": true,
+      "operation_id": "propreneur_deals_propose",
+      "http_method": "",
+      "http_path": "",
+      "required_grants": [
+        "node:deal_propose"
+      ],
+      "handler_binding": null,
+      "idempotent": false
+    },
+    {
+      "key": "deal_search",
+      "title": "Deal search",
+      "domain": "deal",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_deals_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/deals",
+      "required_grants": [
+        "node:deal_search"
+      ],
+      "handler_binding": "propreneur_ops:deal_search",
+      "idempotent": true
+    },
+    {
+      "key": "deal_update",
+      "title": "Deal update",
+      "domain": "deal",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_deals_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/deals/{dealId}",
+      "required_grants": [
+        "node:deal_update"
+      ],
+      "handler_binding": "propreneur_ops:deal_update",
+      "idempotent": false
+    },
+    {
+      "key": "document_get",
+      "title": "Document metadata get",
+      "domain": "document",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_documents_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/documents/{documentId}",
+      "required_grants": [
+        "node:document_get"
+      ],
+      "handler_binding": "propreneur_ops:document_get",
+      "idempotent": true
+    },
+    {
+      "key": "document_search",
+      "title": "Document metadata search",
+      "domain": "document",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_documents_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/documents",
+      "required_grants": [
+        "node:document_search"
+      ],
+      "handler_binding": "propreneur_ops:document_search",
+      "idempotent": true
+    },
+    {
+      "key": "expense_get",
+      "title": "Expense get",
+      "domain": "finance",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_expenses_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/expenses/{expenseId}",
+      "required_grants": [
+        "node:expense_get"
+      ],
+      "handler_binding": "propreneur_ops:expense_get",
+      "idempotent": true
+    },
+    {
+      "key": "expense_propose",
+      "title": "Expense propose",
+      "domain": "finance",
+      "risk": "high_risk",
+      "status": "proposal_only",
+      "soft_wall": true,
+      "operation_id": "propreneur_expenses_propose",
+      "http_method": "",
+      "http_path": "",
+      "required_grants": [
+        "node:expense_propose"
+      ],
+      "handler_binding": null,
+      "idempotent": false
+    },
+    {
+      "key": "expense_search",
+      "title": "Expense search",
+      "domain": "finance",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_expenses_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/expenses",
+      "required_grants": [
+        "node:expense_search"
+      ],
+      "handler_binding": "propreneur_ops:expense_search",
+      "idempotent": true
+    },
+    {
+      "key": "financial_log_propose",
+      "title": "Financial log propose",
+      "domain": "finance",
+      "risk": "high_risk",
+      "status": "proposal_only",
+      "soft_wall": true,
+      "operation_id": "propreneur_finance_log_propose",
+      "http_method": "",
+      "http_path": "",
+      "required_grants": [
+        "node:financial_log_propose"
+      ],
+      "handler_binding": null,
+      "idempotent": false
+    },
+    {
+      "key": "maintenance_archive",
+      "title": "Maintenance archive",
+      "domain": "maintenance",
+      "risk": "destructive",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_maintenance_tickets_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/maintenance-tickets/{ticketId}",
+      "required_grants": [
+        "node:maintenance_archive"
+      ],
+      "handler_binding": "propreneur_ops:maintenance_archive",
+      "idempotent": false
+    },
+    {
+      "key": "maintenance_create",
+      "title": "Maintenance create",
+      "domain": "maintenance",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_maintenance_tickets_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/maintenance-tickets",
+      "required_grants": [
+        "node:maintenance_create"
+      ],
+      "handler_binding": "propreneur_ops:maintenance_create",
+      "idempotent": false
+    },
+    {
+      "key": "maintenance_get",
+      "title": "Maintenance get",
+      "domain": "maintenance",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_maintenance_tickets_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/maintenance-tickets/{ticketId}",
+      "required_grants": [
+        "node:maintenance_get"
+      ],
+      "handler_binding": "propreneur_ops:maintenance_get",
+      "idempotent": true
+    },
+    {
+      "key": "maintenance_propose",
+      "title": "Maintenance propose",
+      "domain": "maintenance",
+      "risk": "propose",
+      "status": "proposal_only",
+      "soft_wall": true,
+      "operation_id": "propreneur_maintenance_propose",
+      "http_method": "",
+      "http_path": "",
+      "required_grants": [
+        "node:maintenance_propose"
+      ],
+      "handler_binding": null,
+      "idempotent": false
+    },
+    {
+      "key": "maintenance_search",
+      "title": "Maintenance search",
+      "domain": "maintenance",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_maintenance_tickets_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/maintenance-tickets",
+      "required_grants": [
+        "node:maintenance_search"
+      ],
+      "handler_binding": "propreneur_ops:maintenance_search",
+      "idempotent": true
+    },
+    {
+      "key": "maintenance_update",
+      "title": "Maintenance update",
+      "domain": "maintenance",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_maintenance_tickets_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/maintenance-tickets/{ticketId}",
+      "required_grants": [
+        "node:maintenance_update"
+      ],
+      "handler_binding": "propreneur_ops:maintenance_update",
+      "idempotent": false
+    },
+    {
+      "key": "note_create",
+      "title": "Note create",
+      "domain": "ops",
+      "risk": "mutate",
+      "status": "not_configured",
+      "soft_wall": true,
+      "operation_id": "propreneur_notes_create",
+      "http_method": "",
+      "http_path": "",
+      "required_grants": [
+        "node:note_create"
+      ],
+      "handler_binding": null,
+      "idempotent": false
+    },
+    {
+      "key": "owner_archive",
+      "title": "Owner archive",
+      "domain": "owner",
+      "risk": "destructive",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_owners_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/owners/{contactId}",
+      "required_grants": [
+        "node:owner_archive"
+      ],
+      "handler_binding": "propreneur_ops:owner_archive",
+      "idempotent": false
+    },
+    {
+      "key": "owner_create",
+      "title": "Owner create",
+      "domain": "owner",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_owners_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/owners",
+      "required_grants": [
+        "node:owner_create"
+      ],
+      "handler_binding": "propreneur_ops:owner_create",
+      "idempotent": false
+    },
+    {
+      "key": "owner_get",
+      "title": "Owner get",
+      "domain": "owner",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_owners_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/owners/{contactId}",
+      "required_grants": [
+        "node:owner_get"
+      ],
+      "handler_binding": "propreneur_ops:owner_get",
+      "idempotent": true
+    },
+    {
+      "key": "owner_search",
+      "title": "Owner search",
+      "domain": "owner",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_owners_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/owners",
+      "required_grants": [
+        "node:owner_search"
+      ],
+      "handler_binding": "propreneur_ops:owner_search",
+      "idempotent": true
+    },
+    {
+      "key": "owner_update",
+      "title": "Owner update",
+      "domain": "owner",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_owners_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/owners/{contactId}",
+      "required_grants": [
+        "node:owner_update"
+      ],
+      "handler_binding": "propreneur_ops:owner_update",
+      "idempotent": false
+    },
+    {
+      "key": "project_archive",
+      "title": "Project archive",
+      "domain": "project",
+      "risk": "destructive",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_projects_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/projects/{projectId}",
+      "required_grants": [
+        "node:project_archive"
+      ],
+      "handler_binding": "propreneur_ops:project_archive",
+      "idempotent": false
+    },
+    {
+      "key": "project_create",
+      "title": "Project create",
+      "domain": "project",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_projects_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/projects",
+      "required_grants": [
+        "node:project_create"
+      ],
+      "handler_binding": "propreneur_ops:project_create",
+      "idempotent": false
+    },
+    {
+      "key": "project_get",
+      "title": "Project get",
+      "domain": "project",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_projects_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/projects/{projectId}",
+      "required_grants": [
+        "node:project_get"
+      ],
+      "handler_binding": "propreneur_ops:project_get",
+      "idempotent": true
+    },
+    {
+      "key": "project_search",
+      "title": "Project search",
+      "domain": "project",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_projects_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/projects",
+      "required_grants": [
+        "node:project_search"
+      ],
+      "handler_binding": "propreneur_ops:project_search",
+      "idempotent": true
+    },
+    {
+      "key": "project_update",
+      "title": "Project update",
+      "domain": "project",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_projects_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/projects/{projectId}",
+      "required_grants": [
+        "node:project_update"
+      ],
+      "handler_binding": "propreneur_ops:project_update",
+      "idempotent": false
+    },
+    {
+      "key": "property_archive",
+      "title": "Property archive",
+      "domain": "property",
+      "risk": "destructive",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_properties_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/properties/{propertyId}",
+      "required_grants": [
+        "node:property_archive"
+      ],
+      "handler_binding": "propreneur_ops:property_archive",
+      "idempotent": false
+    },
+    {
+      "key": "property_create",
+      "title": "Property create",
+      "domain": "property",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_properties_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/properties",
+      "required_grants": [
+        "node:property_create"
+      ],
+      "handler_binding": "propreneur_ops:property_create",
+      "idempotent": false
+    },
+    {
+      "key": "property_get",
+      "title": "Property get",
+      "domain": "property",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_properties_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/properties/{propertyId}",
+      "required_grants": [
+        "node:property_get"
+      ],
+      "handler_binding": "propreneur_ops:property_get",
+      "idempotent": true
+    },
+    {
+      "key": "property_search",
+      "title": "Property search",
+      "domain": "property",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_properties_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/properties",
+      "required_grants": [
+        "node:property_search"
+      ],
+      "handler_binding": "propreneur_ops:ask_portfolio",
+      "idempotent": true
+    },
+    {
+      "key": "property_update",
+      "title": "Property update",
+      "domain": "property",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_properties_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/properties/{propertyId}",
+      "required_grants": [
+        "node:property_update"
+      ],
+      "handler_binding": "propreneur_ops:property_update",
+      "idempotent": false
+    },
+    {
+      "key": "sourcing_archive",
+      "title": "Sourcing lead archive",
+      "domain": "sourcing",
+      "risk": "destructive",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_sourcing_leads_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/sourcing-leads/{leadId}",
+      "required_grants": [
+        "node:sourcing_archive"
+      ],
+      "handler_binding": "propreneur_ops:sourcing_archive",
+      "idempotent": false
+    },
+    {
+      "key": "sourcing_create",
+      "title": "Sourcing lead create",
+      "domain": "sourcing",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_sourcing_leads_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/sourcing-leads",
+      "required_grants": [
+        "node:sourcing_create"
+      ],
+      "handler_binding": "propreneur_ops:sourcing_create",
+      "idempotent": false
+    },
+    {
+      "key": "sourcing_get",
+      "title": "Sourcing lead get",
+      "domain": "sourcing",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_sourcing_leads_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/sourcing-leads/{leadId}",
+      "required_grants": [
+        "node:sourcing_get"
+      ],
+      "handler_binding": "propreneur_ops:sourcing_get",
+      "idempotent": true
+    },
+    {
+      "key": "sourcing_search",
+      "title": "Sourcing lead search",
+      "domain": "sourcing",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_sourcing_leads_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/sourcing-leads",
+      "required_grants": [
+        "node:sourcing_search"
+      ],
+      "handler_binding": "propreneur_ops:sourcing_search",
+      "idempotent": true
+    },
+    {
+      "key": "sourcing_update",
+      "title": "Sourcing lead update",
+      "domain": "sourcing",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_sourcing_leads_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/sourcing-leads/{leadId}",
+      "required_grants": [
+        "node:sourcing_update"
+      ],
+      "handler_binding": "propreneur_ops:sourcing_update",
+      "idempotent": false
+    },
+    {
+      "key": "sync_health",
+      "title": "Sync health",
+      "domain": "sync",
+      "risk": "read",
+      "status": "not_configured",
+      "soft_wall": false,
+      "operation_id": "propreneur_sync_health",
+      "http_method": "",
+      "http_path": "",
+      "required_grants": [
+        "node:sync_health"
+      ],
+      "handler_binding": null,
+      "idempotent": false
+    },
+    {
+      "key": "task_create",
+      "title": "Task create",
+      "domain": "ops",
+      "risk": "mutate",
+      "status": "not_configured",
+      "soft_wall": true,
+      "operation_id": "propreneur_tasks_create",
+      "http_method": "",
+      "http_path": "",
+      "required_grants": [
+        "node:task_create"
+      ],
+      "handler_binding": null,
+      "idempotent": false
+    },
+    {
+      "key": "team_invite_propose",
+      "title": "Team invite propose",
+      "domain": "access",
+      "risk": "high_risk",
+      "status": "proposal_only",
+      "soft_wall": true,
+      "operation_id": "propreneur_team_invite_propose",
+      "http_method": "",
+      "http_path": "",
+      "required_grants": [
+        "node:team_invite_propose"
+      ],
+      "handler_binding": null,
+      "idempotent": false
+    },
+    {
+      "key": "tenancy_archive",
+      "title": "Tenancy archive",
+      "domain": "tenancy",
+      "risk": "destructive",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_tenancies_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/tenancies/{tenancyId}",
+      "required_grants": [
+        "node:tenancy_archive"
+      ],
+      "handler_binding": "propreneur_ops:tenancy_archive",
+      "idempotent": false
+    },
+    {
+      "key": "tenancy_create",
+      "title": "Tenancy create",
+      "domain": "tenancy",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_tenancies_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/tenancies",
+      "required_grants": [
+        "node:tenancy_create"
+      ],
+      "handler_binding": "propreneur_ops:tenancy_create",
+      "idempotent": false
+    },
+    {
+      "key": "tenancy_get",
+      "title": "Tenancy get",
+      "domain": "tenancy",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_tenancies_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/tenancies/{tenancyId}",
+      "required_grants": [
+        "node:tenancy_get"
+      ],
+      "handler_binding": "propreneur_ops:tenancy_get",
+      "idempotent": true
+    },
+    {
+      "key": "tenancy_search",
+      "title": "Tenancy search",
+      "domain": "tenancy",
+      "risk": "read",
+      "status": "live",
+      "soft_wall": false,
+      "operation_id": "propreneur_tenancies_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/tenancies",
+      "required_grants": [
+        "node:tenancy_search"
+      ],
+      "handler_binding": "propreneur_ops:tenancy_search",
+      "idempotent": true
+    },
+    {
+      "key": "tenancy_update",
+      "title": "Tenancy update",
+      "domain": "tenancy",
+      "risk": "mutate",
+      "status": "approval_required",
+      "soft_wall": true,
+      "operation_id": "propreneur_tenancies_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/tenancies/{tenancyId}",
+      "required_grants": [
+        "node:tenancy_update"
+      ],
+      "handler_binding": "propreneur_ops:tenancy_update",
+      "idempotent": false
+    }
+  ]
+}

@@ -38,6 +38,10 @@ const nextConfig: NextConfig = {
         destination: `${base}/sidecar/:path*`,
       },
       {
+        source: "/v1/products/:path*",
+        destination: `${base}/v1/products/:path*`,
+      },
+      {
         source: "/carina/:path*",
         destination: `${base}/carina/:path*`,
       },

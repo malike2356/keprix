@@ -1,0 +1,724 @@
+{
+  "contract": "propreneur-e2e-evidence",
+  "version": "1.0.0",
+  "generated_at": "2026-08-09T19:43:19Z",
+  "prompt": "642",
+  "fixtures": "/tmp/propreneur-e2e-fixtures.json",
+  "suites": {
+    "propreneur_pest": {
+      "ok": true,
+      "failed": 0
+    },
+    "keprix_pytest": {
+      "ok": true,
+      "failed": 0
+    }
+  },
+  "security_tests": [
+    "pest:AivaV1SecurityFailClosedTest::denies cross-tenant property access",
+    "pest:AivaV1SecurityFailClosedTest::denies privilege escalation when read_only",
+    "pest:AivaV1SecurityFailClosedTest::rejects forged actor headers",
+    "pest:AivaV1SecurityFailClosedTest::blocks mutations with HTTP 423",
+    "pest:AivaV1SecurityFailClosedTest::rejects expired or revoked grant tokens",
+    "pytest:test_cross_tenant_get_fails_closed",
+    "pytest:test_ssrf_circuit_and_emergency_disable_fail_closed",
+    "pytest:test_soft_wall_bypass_and_forged_identity_stripped"
+  ],
+  "capability_count": 48,
+  "capabilities": [
+    {
+      "key": "appointment_cancel",
+      "status": "approval_required",
+      "domain": "appointment",
+      "operation_id": "propreneur_appointments_cancel",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/appointments/{appointmentId}/cancel",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "appointment_get",
+      "status": "live",
+      "domain": "appointment",
+      "operation_id": "propreneur_appointments_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/appointments/{appointmentId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "appointment_search",
+      "status": "live",
+      "domain": "appointment",
+      "operation_id": "propreneur_appointments_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/appointments",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "ask_portfolio",
+      "status": "live",
+      "domain": "portfolio",
+      "operation_id": "propreneur_properties_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/properties",
+      "tests": [
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "contact_archive",
+      "status": "approval_required",
+      "domain": "contact",
+      "operation_id": "propreneur_contacts_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/contacts/{contactId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1SecurityFailClosedTest::isolates second-role grant",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "contact_create",
+      "status": "approval_required",
+      "domain": "contact",
+      "operation_id": "propreneur_contacts_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/contacts",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1SecurityFailClosedTest::isolates second-role grant",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "contact_get",
+      "status": "live",
+      "domain": "contact",
+      "operation_id": "propreneur_contacts_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/contacts/{contactId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1SecurityFailClosedTest::isolates second-role grant",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "contact_search",
+      "status": "live",
+      "domain": "contact",
+      "operation_id": "propreneur_contacts_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/contacts",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1SecurityFailClosedTest::isolates second-role grant",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "contact_update",
+      "status": "approval_required",
+      "domain": "contact",
+      "operation_id": "propreneur_contacts_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/contacts/{contactId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1SecurityFailClosedTest::isolates second-role grant",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "deal_archive",
+      "status": "approval_required",
+      "domain": "deal",
+      "operation_id": "propreneur_deals_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/deals/{dealId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "deal_create",
+      "status": "approval_required",
+      "domain": "deal",
+      "operation_id": "propreneur_deals_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/deals",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "deal_get",
+      "status": "live",
+      "domain": "deal",
+      "operation_id": "propreneur_deals_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/deals/{dealId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "deal_search",
+      "status": "live",
+      "domain": "deal",
+      "operation_id": "propreneur_deals_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/deals",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "deal_update",
+      "status": "approval_required",
+      "domain": "deal",
+      "operation_id": "propreneur_deals_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/deals/{dealId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "document_get",
+      "status": "live",
+      "domain": "document",
+      "operation_id": "propreneur_documents_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/documents/{documentId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "document_search",
+      "status": "live",
+      "domain": "document",
+      "operation_id": "propreneur_documents_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/documents",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "expense_get",
+      "status": "live",
+      "domain": "finance",
+      "operation_id": "propreneur_expenses_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/expenses/{expenseId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::covers finance proposal Soft Wall",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "expense_search",
+      "status": "live",
+      "domain": "finance",
+      "operation_id": "propreneur_expenses_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/expenses",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::covers finance proposal Soft Wall",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "maintenance_archive",
+      "status": "approval_required",
+      "domain": "maintenance",
+      "operation_id": "propreneur_maintenance_tickets_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/maintenance-tickets/{ticketId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "maintenance_create",
+      "status": "approval_required",
+      "domain": "maintenance",
+      "operation_id": "propreneur_maintenance_tickets_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/maintenance-tickets",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "maintenance_get",
+      "status": "live",
+      "domain": "maintenance",
+      "operation_id": "propreneur_maintenance_tickets_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/maintenance-tickets/{ticketId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "maintenance_search",
+      "status": "live",
+      "domain": "maintenance",
+      "operation_id": "propreneur_maintenance_tickets_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/maintenance-tickets",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "maintenance_update",
+      "status": "approval_required",
+      "domain": "maintenance",
+      "operation_id": "propreneur_maintenance_tickets_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/maintenance-tickets/{ticketId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "owner_archive",
+      "status": "approval_required",
+      "domain": "owner",
+      "operation_id": "propreneur_owners_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/owners/{contactId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "owner_create",
+      "status": "approval_required",
+      "domain": "owner",
+      "operation_id": "propreneur_owners_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/owners",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "owner_get",
+      "status": "live",
+      "domain": "owner",
+      "operation_id": "propreneur_owners_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/owners/{contactId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "owner_search",
+      "status": "live",
+      "domain": "owner",
+      "operation_id": "propreneur_owners_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/owners",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "owner_update",
+      "status": "approval_required",
+      "domain": "owner",
+      "operation_id": "propreneur_owners_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/owners/{contactId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "project_archive",
+      "status": "approval_required",
+      "domain": "project",
+      "operation_id": "propreneur_projects_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/projects/{projectId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "project_create",
+      "status": "approval_required",
+      "domain": "project",
+      "operation_id": "propreneur_projects_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/projects",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "project_get",
+      "status": "live",
+      "domain": "project",
+      "operation_id": "propreneur_projects_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/projects/{projectId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "project_search",
+      "status": "live",
+      "domain": "project",
+      "operation_id": "propreneur_projects_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/projects",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "project_update",
+      "status": "approval_required",
+      "domain": "project",
+      "operation_id": "propreneur_projects_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/projects/{projectId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "property_archive",
+      "status": "approval_required",
+      "domain": "property",
+      "operation_id": "propreneur_properties_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/properties/{propertyId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1ApiTest::enforces tenant isolation",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "property_create",
+      "status": "approval_required",
+      "domain": "property",
+      "operation_id": "propreneur_properties_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/properties",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1ApiTest::enforces tenant isolation",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "property_get",
+      "status": "live",
+      "domain": "property",
+      "operation_id": "propreneur_properties_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/properties/{propertyId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1ApiTest::enforces tenant isolation",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "property_search",
+      "status": "live",
+      "domain": "property",
+      "operation_id": "propreneur_properties_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/properties",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1ApiTest::enforces tenant isolation",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "property_update",
+      "status": "approval_required",
+      "domain": "property",
+      "operation_id": "propreneur_properties_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/properties/{propertyId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1ApiTest::enforces tenant isolation",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "sourcing_archive",
+      "status": "approval_required",
+      "domain": "sourcing",
+      "operation_id": "propreneur_sourcing_leads_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/sourcing-leads/{leadId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "sourcing_create",
+      "status": "approval_required",
+      "domain": "sourcing",
+      "operation_id": "propreneur_sourcing_leads_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/sourcing-leads",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "sourcing_get",
+      "status": "live",
+      "domain": "sourcing",
+      "operation_id": "propreneur_sourcing_leads_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/sourcing-leads/{leadId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "sourcing_search",
+      "status": "live",
+      "domain": "sourcing",
+      "operation_id": "propreneur_sourcing_leads_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/sourcing-leads",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "sourcing_update",
+      "status": "approval_required",
+      "domain": "sourcing",
+      "operation_id": "propreneur_sourcing_leads_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/sourcing-leads/{leadId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "tenancy_archive",
+      "status": "approval_required",
+      "domain": "tenancy",
+      "operation_id": "propreneur_tenancies_archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/tenancies/{tenancyId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1ApiTest::covers tenancy project sourcing",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "tenancy_create",
+      "status": "approval_required",
+      "domain": "tenancy",
+      "operation_id": "propreneur_tenancies_create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/tenancies",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1ApiTest::covers tenancy project sourcing",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "tenancy_get",
+      "status": "live",
+      "domain": "tenancy",
+      "operation_id": "propreneur_tenancies_get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/tenancies/{tenancyId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1ApiTest::covers tenancy project sourcing",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "tenancy_search",
+      "status": "live",
+      "domain": "tenancy",
+      "operation_id": "propreneur_tenancies_list",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/tenancies",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1ApiTest::covers tenancy project sourcing",
+        "pytest:test_live_capability_inventory_nonempty"
+      ],
+      "suite_green": true
+    },
+    {
+      "key": "tenancy_update",
+      "status": "approval_required",
+      "domain": "tenancy",
+      "operation_id": "propreneur_tenancies_update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/tenancies/{tenancyId}",
+      "tests": [
+        "pest:AivaV1E2eCrudMatrixTest::runs create-read-update-archive matrix",
+        "pest:AivaV1ApiTest::covers tenancy project sourcing",
+        "pytest:test_live_capability_inventory_nonempty",
+        "pytest:test_soft_wall_bypass_and_forged_identity_stripped",
+        "pytest:test_property_crud_via_pack_invoke_and_chat_adapter"
+      ],
+      "suite_green": true
+    }
+  ],
+  "verdict": "GREEN"
+}

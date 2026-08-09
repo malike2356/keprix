@@ -1,0 +1,424 @@
+{
+  "generated_from": "propreneur-agent-capabilities",
+  "version": "1.3.0",
+  "base_url_env": "PROPRENEUR_PRODUCT_API_URL",
+  "default_deny": true,
+  "no_sql": true,
+  "no_ui_scrape": true,
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/appointments",
+      "purpose": "aiva_v1:propreneur_appointments_list",
+      "operation_id": "propreneur_appointments_list",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/appointments/{appointmentId}",
+      "purpose": "aiva_v1:propreneur_appointments_get",
+      "operation_id": "propreneur_appointments_get",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/aiva/v1/appointments/{appointmentId}/cancel",
+      "purpose": "aiva_v1:propreneur_appointments_cancel",
+      "operation_id": "propreneur_appointments_cancel",
+      "approval_required": true,
+      "idempotency": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/contacts",
+      "purpose": "aiva_v1:propreneur_contacts_list",
+      "operation_id": "propreneur_contacts_list",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/aiva/v1/contacts",
+      "purpose": "aiva_v1:propreneur_contacts_create",
+      "operation_id": "propreneur_contacts_create",
+      "approval_required": true,
+      "idempotency": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/aiva/v1/contacts/{contactId}",
+      "purpose": "aiva_v1:propreneur_contacts_archive",
+      "operation_id": "propreneur_contacts_archive",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/contacts/{contactId}",
+      "purpose": "aiva_v1:propreneur_contacts_get",
+      "operation_id": "propreneur_contacts_get",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/aiva/v1/contacts/{contactId}",
+      "purpose": "aiva_v1:propreneur_contacts_update",
+      "operation_id": "propreneur_contacts_update",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/deals",
+      "purpose": "aiva_v1:propreneur_deals_list",
+      "operation_id": "propreneur_deals_list",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/aiva/v1/deals",
+      "purpose": "aiva_v1:propreneur_deals_create",
+      "operation_id": "propreneur_deals_create",
+      "approval_required": true,
+      "idempotency": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/aiva/v1/deals/{dealId}",
+      "purpose": "aiva_v1:propreneur_deals_archive",
+      "operation_id": "propreneur_deals_archive",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/deals/{dealId}",
+      "purpose": "aiva_v1:propreneur_deals_get",
+      "operation_id": "propreneur_deals_get",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/aiva/v1/deals/{dealId}",
+      "purpose": "aiva_v1:propreneur_deals_update",
+      "operation_id": "propreneur_deals_update",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/documents",
+      "purpose": "aiva_v1:propreneur_documents_list",
+      "operation_id": "propreneur_documents_list",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/documents/{documentId}",
+      "purpose": "aiva_v1:propreneur_documents_get",
+      "operation_id": "propreneur_documents_get",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/expenses",
+      "purpose": "aiva_v1:propreneur_expenses_list",
+      "operation_id": "propreneur_expenses_list",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/expenses/{expenseId}",
+      "purpose": "aiva_v1:propreneur_expenses_get",
+      "operation_id": "propreneur_expenses_get",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/maintenance-tickets",
+      "purpose": "aiva_v1:propreneur_maintenance_tickets_list",
+      "operation_id": "propreneur_maintenance_tickets_list",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/aiva/v1/maintenance-tickets",
+      "purpose": "aiva_v1:propreneur_maintenance_tickets_create",
+      "operation_id": "propreneur_maintenance_tickets_create",
+      "approval_required": true,
+      "idempotency": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/aiva/v1/maintenance-tickets/{ticketId}",
+      "purpose": "aiva_v1:propreneur_maintenance_tickets_archive",
+      "operation_id": "propreneur_maintenance_tickets_archive",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/maintenance-tickets/{ticketId}",
+      "purpose": "aiva_v1:propreneur_maintenance_tickets_get",
+      "operation_id": "propreneur_maintenance_tickets_get",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/aiva/v1/maintenance-tickets/{ticketId}",
+      "purpose": "aiva_v1:propreneur_maintenance_tickets_update",
+      "operation_id": "propreneur_maintenance_tickets_update",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/owners",
+      "purpose": "aiva_v1:propreneur_owners_list",
+      "operation_id": "propreneur_owners_list",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/aiva/v1/owners",
+      "purpose": "aiva_v1:propreneur_owners_create",
+      "operation_id": "propreneur_owners_create",
+      "approval_required": true,
+      "idempotency": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/aiva/v1/owners/{contactId}",
+      "purpose": "aiva_v1:propreneur_owners_archive",
+      "operation_id": "propreneur_owners_archive",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/owners/{contactId}",
+      "purpose": "aiva_v1:propreneur_owners_get",
+      "operation_id": "propreneur_owners_get",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/aiva/v1/owners/{contactId}",
+      "purpose": "aiva_v1:propreneur_owners_update",
+      "operation_id": "propreneur_owners_update",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/projects",
+      "purpose": "aiva_v1:propreneur_projects_list",
+      "operation_id": "propreneur_projects_list",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/aiva/v1/projects",
+      "purpose": "aiva_v1:propreneur_projects_create",
+      "operation_id": "propreneur_projects_create",
+      "approval_required": true,
+      "idempotency": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/aiva/v1/projects/{projectId}",
+      "purpose": "aiva_v1:propreneur_projects_archive",
+      "operation_id": "propreneur_projects_archive",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/projects/{projectId}",
+      "purpose": "aiva_v1:propreneur_projects_get",
+      "operation_id": "propreneur_projects_get",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/aiva/v1/projects/{projectId}",
+      "purpose": "aiva_v1:propreneur_projects_update",
+      "operation_id": "propreneur_projects_update",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/properties",
+      "purpose": "aiva_v1:propreneur_properties_list",
+      "operation_id": "propreneur_properties_list",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/aiva/v1/properties",
+      "purpose": "aiva_v1:propreneur_properties_create",
+      "operation_id": "propreneur_properties_create",
+      "approval_required": true,
+      "idempotency": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/aiva/v1/properties/{propertyId}",
+      "purpose": "aiva_v1:propreneur_properties_archive",
+      "operation_id": "propreneur_properties_archive",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/properties/{propertyId}",
+      "purpose": "aiva_v1:propreneur_properties_get",
+      "operation_id": "propreneur_properties_get",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/aiva/v1/properties/{propertyId}",
+      "purpose": "aiva_v1:propreneur_properties_update",
+      "operation_id": "propreneur_properties_update",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/sourcing-leads",
+      "purpose": "aiva_v1:propreneur_sourcing_leads_list",
+      "operation_id": "propreneur_sourcing_leads_list",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/aiva/v1/sourcing-leads",
+      "purpose": "aiva_v1:propreneur_sourcing_leads_create",
+      "operation_id": "propreneur_sourcing_leads_create",
+      "approval_required": true,
+      "idempotency": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/aiva/v1/sourcing-leads/{leadId}",
+      "purpose": "aiva_v1:propreneur_sourcing_leads_archive",
+      "operation_id": "propreneur_sourcing_leads_archive",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/sourcing-leads/{leadId}",
+      "purpose": "aiva_v1:propreneur_sourcing_leads_get",
+      "operation_id": "propreneur_sourcing_leads_get",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/aiva/v1/sourcing-leads/{leadId}",
+      "purpose": "aiva_v1:propreneur_sourcing_leads_update",
+      "operation_id": "propreneur_sourcing_leads_update",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/tenancies",
+      "purpose": "aiva_v1:propreneur_tenancies_list",
+      "operation_id": "propreneur_tenancies_list",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "POST",
+      "path": "/api/aiva/v1/tenancies",
+      "purpose": "aiva_v1:propreneur_tenancies_create",
+      "operation_id": "propreneur_tenancies_create",
+      "approval_required": true,
+      "idempotency": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/aiva/v1/tenancies/{tenancyId}",
+      "purpose": "aiva_v1:propreneur_tenancies_archive",
+      "operation_id": "propreneur_tenancies_archive",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/aiva/v1/tenancies/{tenancyId}",
+      "purpose": "aiva_v1:propreneur_tenancies_get",
+      "operation_id": "propreneur_tenancies_get",
+      "approval_required": false,
+      "idempotency": false
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/aiva/v1/tenancies/{tenancyId}",
+      "purpose": "aiva_v1:propreneur_tenancies_update",
+      "operation_id": "propreneur_tenancies_update",
+      "approval_required": true,
+      "idempotency": false
+    },
+    {
+      "method": "GET",
+      "path": "/api/carina/tools",
+      "purpose": "compat_catalog"
+    },
+    {
+      "method": "POST",
+      "path": "/api/carina/tools/{toolName}",
+      "purpose": "compat_execute",
+      "approval_required": true,
+      "idempotency": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/keprix/v1/capabilities",
+      "purpose": "negotiate"
+    },
+    {
+      "method": "GET",
+      "path": "/api/keprix/v1/context",
+      "purpose": "context_slice"
+    },
+    {
+      "method": "POST",
+      "path": "/api/keprix/v1/events/ack",
+      "purpose": "event_ack",
+      "idempotency": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/keprix/v1/health",
+      "purpose": "liveness"
+    },
+    {
+      "method": "POST",
+      "path": "/api/keprix/v1/token/exchange",
+      "purpose": "identity"
+    }
+  ]
+}

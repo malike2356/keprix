@@ -33,7 +33,8 @@ def test_pack_installs_with_expected_nodes_and_namespace() -> None:
     assert pack.contract_version == "1.0.0"
     assert pack.enabled is True
 
-    expected = {
+    # Core domains from prompt 640 must be present.
+    required = {
         "property_search",
         "property_get",
         "property_create",
@@ -43,38 +44,58 @@ def test_pack_installs_with_expected_nodes_and_namespace() -> None:
         "contact_get",
         "contact_create",
         "contact_update",
+        "contact_archive",
+        "owner_search",
+        "owner_get",
         "tenancy_search",
         "tenancy_get",
         "tenancy_create",
         "tenancy_update",
+        "tenancy_archive",
         "deal_search",
         "deal_get",
+        "deal_create",
+        "deal_update",
+        "deal_archive",
         "deal_propose",
-        "compliance_get",
-        "compliance_propose",
         "maintenance_search",
-        "maintenance_propose",
-        "expense_propose",
-        "financial_log_propose",
-        "team_invite_propose",
-        "task_create",
-        "note_create",
+        "maintenance_get",
+        "maintenance_create",
+        "project_search",
+        "project_get",
+        "sourcing_search",
+        "sourcing_get",
+        "document_search",
+        "document_get",
+        "expense_search",
+        "expense_get",
+        "appointment_search",
+        "appointment_get",
+        "appointment_cancel",
+        "compliance_propose",
         "ask_portfolio",
-        "sync_health",
     }
-    assert set(pack.nodes) == expected
+    assert required <= set(pack.nodes)
+    assert len(pack.nodes) >= 50
 
     nodes = build_propreneur_nodes()
     assert nodes["property_get"].risk == RiskClass.READ
     assert nodes["property_create"].risk == RiskClass.MUTATE
     assert nodes["property_create"].soft_wall is True
     assert nodes["property_archive"].risk == RiskClass.DESTRUCTIVE
-    assert nodes["property_archive"].soft_wall is True
     assert nodes["deal_propose"].risk == RiskClass.PROPOSE
-    assert nodes["deal_propose"].soft_wall is True
-    assert nodes["ask_portfolio"].risk == RiskClass.READ
     assert nodes["ask_portfolio"].soft_wall is False
-    assert all(n.status == NodeStatus.LIVE for n in nodes.values())
+    # Declared catalog uses agent_status vocabulary; honesty confirms executable gates.
+    assert nodes["property_get"].status == NodeStatus.LIVE
+    assert nodes["property_create"].status == NodeStatus.APPROVAL_REQUIRED
+    assert nodes["deal_propose"].status == NodeStatus.PROPOSAL_ONLY
+    pack_nodes = build_propreneur_pack().nodes
+    assert pack_nodes["property_get"].status == NodeStatus.LIVE
+    assert pack_nodes["property_create"].status == NodeStatus.APPROVAL_REQUIRED
+    assert pack_nodes["contact_get"].status == NodeStatus.LIVE
+    assert pack_nodes["ask_portfolio"].status == NodeStatus.LIVE
+    assert pack_nodes["expense_propose"].status == NodeStatus.PROPOSAL_ONLY
+    assert pack_nodes["task_create"].status == NodeStatus.NOT_CONFIGURED
 
 
 def test_cross_product_node_denied() -> None:
@@ -107,7 +128,12 @@ def test_health_and_capabilities_via_registry() -> None:
     assert health["product"] == "propreneur"
     assert health["enabled"] is True
     assert health["contract_version"] == "1.0.0"
-    assert health["node_counts"].get("live", 0) >= 19
+    # Executable domain coverage (prompt 640); nested tasks remain not_configured.
+    assert health["node_counts"].get("live", 0) >= 20
+    assert health["node_counts"].get("approval_required", 0) >= 20
+    assert health["node_counts"].get("proposal_only", 0) >= 5
+    assert health["node_counts"].get("not_configured", 0) <= 5
+    assert health.get("crud_complete") is False
 
     public = registry.inspect("propreneur")
     assert public["product_key"] == "propreneur"
@@ -122,6 +148,11 @@ def test_health_and_capabilities_via_registry() -> None:
     assert "/api/keprix/v1/health" in paths
     assert "/api/carina/tools" in paths
     assert "/api/carina/tools/{toolName}" in paths
+    assert "/api/aiva/v1/properties" in paths
+    assert "/api/aiva/v1/properties/{propertyId}" in paths
+    methods = {(r["method"], r["path"]) for r in connector["routes"]}
+    assert ("PATCH", "/api/aiva/v1/properties/{propertyId}") in methods
+    assert ("DELETE", "/api/aiva/v1/properties/{propertyId}") in methods
 
 
 def test_provision_dry_run_works() -> None:

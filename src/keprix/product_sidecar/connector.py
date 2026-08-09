@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import ipaddress
 import os
+import re
 import socket
 from typing import Any, Protocol
-from urllib.parse import urljoin, urlparse
+from urllib.parse import quote, urljoin, urlparse
 
 import httpx
 
-ALLOWED_METHODS = frozenset({"GET", "POST"})
+# Manifest may declare any of these; undeclared method+path pairs still deny.
+ALLOWED_METHODS = frozenset({"GET", "POST", "PATCH", "PUT", "DELETE"})
 BLOCKED_HOST_LITERALS = frozenset(
     {
         "metadata.google.internal",
@@ -18,6 +20,7 @@ BLOCKED_HOST_LITERALS = frozenset(
         "169.254.169.254",
     }
 )
+_PATH_PARAM_RE = re.compile(r"\{([A-Za-z0-9_]+)\}")
 
 
 class ConnectorDenied(Exception):
@@ -50,6 +53,32 @@ class ProductConnector(Protocol):
     async def ack_event(self, event_id: str) -> dict[str, Any]: ...
 
     async def delete_subject(self, subject_id: str) -> dict[str, Any]: ...
+
+
+def declared_path_params(template: str) -> list[str]:
+    return _PATH_PARAM_RE.findall(template or "")
+
+
+def substitute_path(template: str, path_params: dict[str, Any] | None = None) -> str:
+    """Substitute and URL-encode declared path params; reject missing/unexpected."""
+    params = dict(path_params or {})
+    declared = set(declared_path_params(template))
+    provided = set(params.keys())
+    missing = declared - provided
+    unexpected = provided - declared
+    if missing:
+        raise ConnectorDenied(f"missing_path_params:{','.join(sorted(missing))}")
+    if unexpected:
+        raise ConnectorDenied(f"unexpected_path_params:{','.join(sorted(unexpected))}")
+    path = template
+    for key in declared:
+        encoded = quote(str(params[key]), safe="")
+        if encoded == "":
+            raise ConnectorDenied(f"empty_path_param:{key}")
+        path = path.replace("{" + key + "}", encoded)
+    if "{" in path and "}" in path:
+        raise ConnectorDenied("unresolved_path_params")
+    return path
 
 
 def _is_private_ip(host: str) -> bool:
@@ -101,7 +130,6 @@ def assert_safe_url(url: str, *, host_allowlist: list[str] | None = None) -> str
     allow = list(host_allowlist or [])
     if allow and not _host_allowlisted(host, allow):
         raise ConnectorDenied("host_not_allowlisted")
-    # Resolve and reject link-local/metadata even if DNS returns them
     try:
         infos = socket.getaddrinfo(host, parsed.port or 80, type=socket.SOCK_STREAM)
     except socket.gaierror as exc:
@@ -111,7 +139,6 @@ def assert_safe_url(url: str, *, host_allowlist: list[str] | None = None) -> str
         ip = sockaddr[0]
         if ip in {"169.254.169.254", "::ffff:169.254.169.254"}:
             raise ConnectorDenied("ssrf_metadata")
-        # Production egress: only allowlisted hosts; loopback OK for fixtures
         if (
             allow
             and host not in {"127.0.0.1", "localhost"}
@@ -140,6 +167,15 @@ class ProductApiConnector:
         self._idempotent_results: dict[str, dict[str, Any]] = {}
         self._circuit_failures = 0
         self._circuit_open = False
+        self.last_response_headers: dict[str, str] = {}
+
+    def reset_circuit(self) -> None:
+        self._circuit_failures = 0
+        self._circuit_open = False
+
+    @property
+    def circuit_open(self) -> bool:
+        return self._circuit_open
 
     def _match(self, method: str, path: str) -> dict[str, Any] | None:
         method_u = method.upper()
@@ -159,6 +195,8 @@ class ProductApiConnector:
             return False
         for t, p in zip(t_parts, p_parts):
             if t.startswith("{") and t.endswith("}"):
+                if not p:
+                    return False
                 continue
             if t != p:
                 return False
@@ -172,6 +210,8 @@ class ProductApiConnector:
             raise ConnectorDenied("undeclared_or_forbidden")
         if "://" in path or path.startswith("//"):
             raise ConnectorDenied("absolute_url_forbidden")
+        if "select " in lowered or " drop " in lowered or ";" in path:
+            raise ConnectorDenied("sql_forbidden")
         matched = self._match(method, path)
         if matched is None:
             raise ConnectorDenied("undeclared_route")
@@ -180,6 +220,8 @@ class ProductApiConnector:
     def operation_route(self, operation: str) -> dict[str, Any]:
         for route in self.routes:
             if str(route.get("purpose") or "") == operation or str(route.get("key") or "") == operation:
+                return route
+            if str(route.get("operation_id") or "") == operation:
                 return route
         raise ConnectorDenied("undeclared_operation")
 
@@ -210,10 +252,15 @@ class ProductApiConnector:
         headers: dict[str, str] | None = None,
         json_body: dict[str, Any] | None = None,
         idempotency_key: str = "",
+        path_template: str | None = None,
+        path_params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         if self._circuit_open:
             raise ConnectorDenied("circuit_open")
-        route = self.assert_allowed(method, path)
+        resolved_path = path
+        if path_template is not None:
+            resolved_path = substitute_path(path_template, path_params)
+        route = self.assert_allowed(method, resolved_path)
         if idempotency_key and route.get("idempotency") and idempotency_key in self._idempotent_results:
             return dict(self._idempotent_results[idempotency_key])
 
@@ -221,7 +268,7 @@ class ProductApiConnector:
             result = {
                 "ok": True,
                 "fixture": True,
-                "path": path,
+                "path": resolved_path,
                 "method": method.upper(),
                 "body": json_body or {},
             }
@@ -229,13 +276,19 @@ class ProductApiConnector:
                 self._idempotent_results[idempotency_key] = dict(result)
             return result
 
-        url = urljoin(self.base_url + "/", path.lstrip("/"))
+        url = urljoin(self.base_url + "/", resolved_path.lstrip("/"))
         assert_safe_url(url, host_allowlist=self.host_allowlist)
         try:
             async with httpx.AsyncClient(timeout=15.0, follow_redirects=False) as client:
-                res = await client.request(method.upper(), url, headers=headers or {}, json=json_body)
+                res = await client.request(
+                    method.upper(),
+                    url,
+                    headers=headers or {},
+                    json=json_body if method.upper() != "GET" else None,
+                )
                 if res.is_redirect:
                     raise ConnectorDenied("redirect_blocked")
+                self.last_response_headers = {k.lower(): v for k, v in res.headers.items()}
                 res.raise_for_status()
                 if len(res.content) > 1_000_000:
                     raise ConnectorDenied("response_too_large")
@@ -252,7 +305,32 @@ class ProductApiConnector:
             self._circuit_failures += 1
             if self._circuit_failures >= 5:
                 self._circuit_open = True
+            # Preserve upstream status for fail-closed proofs when available.
+            status = getattr(getattr(exc, "response", None), "status_code", None)
+            if status is not None:
+                raise ConnectorDenied(f"upstream_error:{type(exc).__name__}:{status}") from exc
             raise ConnectorDenied(f"upstream_error:{type(exc).__name__}") from exc
+
+    async def call_manifest(
+        self,
+        *,
+        method: str,
+        path_template: str,
+        path_params: dict[str, Any] | None = None,
+        json_body: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        """Invoke a generated manifest route with encoded path params."""
+        return await self.call(
+            method,
+            path_template,
+            path_template=path_template,
+            path_params=path_params,
+            json_body=json_body,
+            headers=headers,
+            idempotency_key=idempotency_key,
+        )
 
     async def health(self) -> dict[str, Any]:
         return await self.call("GET", "/api/keprix/v1/health")
@@ -269,9 +347,8 @@ class ProductApiConnector:
 
     async def projected_read(self, operation: str, **params: Any) -> dict[str, Any]:
         route = self.operation_route(operation)
-        path = str(route["path"])
-        for key, value in params.items():
-            path = path.replace("{" + key + "}", str(value))
+        template = str(route["path"])
+        path = substitute_path(template, params)
         return await self.call(str(route["method"]), path)
 
     async def preview(self, operation: str, body: dict[str, Any]) -> dict[str, Any]:
@@ -283,11 +360,19 @@ class ProductApiConnector:
         body: dict[str, Any],
         *,
         idempotency_key: str = "",
+        path_params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         route = self.operation_route(operation)
+        template = str(route["path"])
+        declared = set(declared_path_params(template))
+        params = dict(path_params or {})
+        if not params and declared:
+            params = {k: body[k] for k in declared if k in body}
+            body = {k: v for k, v in body.items() if k not in declared}
+        path = substitute_path(template, params) if declared else template
         return await self.call(
             str(route["method"]),
-            str(route["path"]),
+            path,
             json_body=body,
             idempotency_key=idempotency_key,
         )
@@ -301,33 +386,69 @@ class ProductApiConnector:
         )
 
     async def delete_subject(self, subject_id: str) -> dict[str, Any]:
+        # Generic undeclared deletion stays forbidden; use archive()/call_manifest for DELETE.
         raise ConnectorDenied("deletion_not_declared")
+
+    async def archive(
+        self,
+        *,
+        path_template: str,
+        path_params: dict[str, Any],
+        headers: dict[str, str] | None = None,
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        """DELETE (product-approved archive) against a declared manifest route."""
+        return await self.call_manifest(
+            method="DELETE",
+            path_template=path_template,
+            path_params=path_params,
+            headers=headers,
+            idempotency_key=idempotency_key,
+        )
 
 
 class FakeProductConnector(ProductApiConnector):
     """In-memory product API fixture reused by pack conformance suites."""
 
-    def __init__(self, *, product_key: str = "fixture") -> None:
+    def __init__(
+        self,
+        *,
+        product_key: str = "fixture",
+        extra_routes: list[dict[str, Any]] | None = None,
+    ) -> None:
+        routes: list[dict[str, Any]] = [
+            {"method": "GET", "path": "/api/keprix/v1/health", "purpose": "liveness"},
+            {"method": "GET", "path": "/api/keprix/v1/capabilities", "purpose": "negotiate"},
+            {"method": "POST", "path": "/api/keprix/v1/token/exchange", "purpose": "identity"},
+            {"method": "GET", "path": "/api/keprix/v1/context", "purpose": "context_slice"},
+            {
+                "method": "POST",
+                "path": "/api/keprix/v1/events/ack",
+                "purpose": "event_ack",
+                "idempotency": True,
+            },
+            {
+                "method": "POST",
+                "path": "/api/keprix/v1/actions/ping",
+                "purpose": "fixture_action",
+                "idempotency": True,
+            },
+            {
+                "method": "PATCH",
+                "path": "/api/aiva/v1/properties/{propertyId}",
+                "purpose": "fixture_patch",
+            },
+            {
+                "method": "DELETE",
+                "path": "/api/aiva/v1/properties/{propertyId}",
+                "purpose": "fixture_archive",
+            },
+        ]
+        if extra_routes:
+            routes.extend(list(extra_routes))
         super().__init__(
             base_url="",
-            routes=[
-                {"method": "GET", "path": "/api/keprix/v1/health", "purpose": "liveness"},
-                {"method": "GET", "path": "/api/keprix/v1/capabilities", "purpose": "negotiate"},
-                {"method": "POST", "path": "/api/keprix/v1/token/exchange", "purpose": "identity"},
-                {"method": "GET", "path": "/api/keprix/v1/context", "purpose": "context_slice"},
-                {
-                    "method": "POST",
-                    "path": "/api/keprix/v1/events/ack",
-                    "purpose": "event_ack",
-                    "idempotency": True,
-                },
-                {
-                    "method": "POST",
-                    "path": "/api/keprix/v1/actions/ping",
-                    "purpose": "fixture_action",
-                    "idempotency": True,
-                },
-            ],
+            routes=routes,
             host_allowlist=["127.0.0.1", "localhost"],
         )
         self.product_key = product_key
@@ -341,32 +462,53 @@ class FakeProductConnector(ProductApiConnector):
         headers: dict[str, str] | None = None,
         json_body: dict[str, Any] | None = None,
         idempotency_key: str = "",
+        path_template: str | None = None,
+        path_params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        route = self.assert_allowed(method, path)
+        resolved = path
+        if path_template is not None:
+            resolved = substitute_path(path_template, path_params)
+        route = self.assert_allowed(method, resolved)
         if idempotency_key and route.get("idempotency") and idempotency_key in self._idempotent_results:
             cached = dict(self._idempotent_results[idempotency_key])
             cached["idempotent_replay"] = True
             return cached
-        if path.endswith("/health"):
+        if resolved.endswith("/health"):
             result = {"ok": True, "product": self.product_key}
-        elif path.endswith("/capabilities"):
+        elif resolved.endswith("/capabilities"):
             result = {"product": self.product_key, "grants": ["ping"], "version": "1.0.0"}
-        elif path.endswith("/context"):
+        elif resolved.endswith("/context"):
             result = {
                 "workspace_id": "ws-fixture",
                 "product": self.product_key,
                 "password": "should-strip",
                 "plan": "fixture",
             }
-        elif path.endswith("/actions/ping"):
+        elif resolved.endswith("/actions/ping"):
             result = {"ok": True, "echo": (json_body or {}).get("message", "pong")}
-            self.actions.append({"path": path, "body": json_body, "idempotency_key": idempotency_key})
-        elif path.endswith("/events/ack"):
+            self.actions.append({"path": resolved, "body": json_body, "idempotency_key": idempotency_key})
+        elif resolved.endswith("/events/ack"):
             result = {"acked": True, "event_id": (json_body or {}).get("event_id")}
-        elif path.endswith("/token/exchange"):
+        elif resolved.endswith("/token/exchange"):
             result = {"access_token": "fixture-token", "expires_in": 300}
         else:
-            result = {"ok": True, "fixture": True, "path": path}
+            result = {
+                "ok": True,
+                "fixture": True,
+                "path": resolved,
+                "method": method.upper(),
+                "body": json_body or {},
+                "headers": dict(headers or {}),
+            }
+            self.actions.append(
+                {
+                    "path": resolved,
+                    "method": method.upper(),
+                    "body": json_body,
+                    "headers": dict(headers or {}),
+                    "idempotency_key": idempotency_key,
+                }
+            )
         if idempotency_key and route.get("idempotency"):
             self._idempotent_results[idempotency_key] = dict(result)
         return result

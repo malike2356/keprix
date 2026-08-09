@@ -118,6 +118,7 @@ NAV_ITEMS: list[dict[str, Any]] = [
     {"id": "playbook-triggers", "label": "Triggers", "href": "/playbooks/triggers", "group": "automations", "icon": "schedule"},
     {"id": "integrations", "label": "Integrations", "href": "/integrations", "group": "automations", "icon": "extension"},
     {"id": "sidecars", "label": "Sidecars", "href": "/settings/sidecars", "group": "automations", "icon": "extension"},
+    {"id": "propreneur-sidecar", "label": "Propreneur pack", "href": "/settings/sidecars/propreneur", "group": "automations", "icon": "extension"},
     {"id": "cron", "label": "Cron Jobs", "href": "/admin/cron", "group": "automations", "icon": "schedule"},
     {"id": "mcp", "label": "MCP Servers", "href": "/admin/mcp", "group": "automations", "icon": "extension"},
     {"id": "browser-adoption", "label": "Browser", "href": "/browser", "group": "automations", "icon": "extension"},

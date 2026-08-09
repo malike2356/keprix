@@ -26,6 +26,7 @@ class HttpToolSpec:
     endpoint: str
     auth_header: str = ""
     parameters: dict[str, Any] = field(default_factory=dict)
+    trusted: Any | None = None  # TrustedExecutionContext | None
 
 
 @dataclass
@@ -69,15 +70,27 @@ class CarinaToolRegistry:
         endpoint: str,
         auth_header: str = "",
         schema: dict[str, Any] | None = None,
+        trusted: Any | None = None,
     ) -> None:
         self._http_tools[name] = HttpToolSpec(
             name=name,
             endpoint=endpoint,
             auth_header=auth_header or "",
             parameters=schema or {},
+            trusted=trusted,
         )
         if name not in self._schemas:
-            self.register_schema(name, name, schema or {"type": "object", "properties": {}})
+            # Model-visible schema must never include identity/control fields.
+            safe_schema = schema or {"type": "object", "properties": {}}
+            if isinstance(safe_schema, dict):
+                props = dict(safe_schema.get("properties") or {})
+                from keprix.product_sidecar.trusted_context import IDENTITY_BODY_KEYS
+
+                for key in list(props.keys()):
+                    if key in IDENTITY_BODY_KEYS:
+                        props.pop(key, None)
+                safe_schema = {**safe_schema, "properties": props}
+            self.register_schema(name, name, safe_schema if isinstance(safe_schema, dict) else {})
 
     def openai_tools(self) -> list[dict[str, Any]]:
         return list(self._schemas.values())
@@ -102,7 +115,45 @@ class CarinaToolRegistry:
                 result = await result
             return _stringify_tool_result(result)
 
+        from keprix.product_sidecar.packs.propreneur_ops import (
+            execute_propreneur_node,
+            request_context_from_trusted,
+            resolve_pack_node,
+        )
+        from keprix.product_sidecar.trusted_context import (
+            TrustedExecutionContext,
+            merge_trusted_callback_body,
+            strip_identity_from_model_args,
+        )
+
+        # Property CRUD (and aliases) share the pack adapter with /invoke.
+        node_key = resolve_pack_node(name)
         spec = self._http_tools.get(name)
+        if node_key is not None:
+            if spec is None or not isinstance(spec.trusted, TrustedExecutionContext):
+                return json.dumps(
+                    {
+                        "success": False,
+                        "status": "failed",
+                        "error": {
+                            "code": "trusted_context_required",
+                            "message": f"{node_key} requires trusted carina_tools binding",
+                            "retryable": False,
+                        },
+                        "data": None,
+                        "correlation_id": "",
+                        "node": node_key,
+                    }
+                )
+            ctx = request_context_from_trusted(spec.trusted)
+            result = await execute_propreneur_node(
+                ctx,
+                node_key,
+                arguments,
+                trusted=spec.trusted,
+            )
+            return _stringify_tool_result(result)
+
         if spec is None:
             raise CarinaToolNotRegistered(name)
 
@@ -110,18 +161,33 @@ class CarinaToolRegistry:
         if spec.auth_header:
             headers["Authorization"] = spec.auth_header
 
+        if isinstance(spec.trusted, TrustedExecutionContext):
+            payload = merge_trusted_callback_body(arguments, spec.trusted)
+            headers.update(spec.trusted.to_headers())
+        else:
+            # Fail closed for product HTTP tools: never forward model-supplied identity alone.
+            payload = strip_identity_from_model_args(arguments)
+
         client = self._http_client
         owns_client = client is None
         if owns_client:
             client = httpx.AsyncClient(timeout=20.0)
         assert client is not None
         try:
-            response = await client.post(spec.endpoint, json=arguments, headers=headers)
+            response = await client.post(spec.endpoint, json=payload, headers=headers)
             text = response.text
             if response.status_code >= 400:
                 return json.dumps(
                     {
-                        "error": f"Carina tool HTTP {response.status_code}",
+                        "success": False,
+                        "status": "failed",
+                        "error": {
+                            "code": f"http_{response.status_code}",
+                            "message": f"Carina tool HTTP {response.status_code}",
+                            "retryable": response.status_code >= 500,
+                        },
+                        "data": None,
+                        "correlation_id": headers.get("X-Correlation-Id") or "",
                         "tool": name,
                         "body": text[:4000],
                     }
@@ -239,6 +305,7 @@ class CarinaAgentBridge:
         confidence: float | None = None,
         force_escalate: bool = False,
         escalation_enabled: bool = True,
+        correlation_id: str | None = None,
     ) -> dict[str, Any]:
         if not workspace_id:
             raise ValueError("workspace_id is required")
@@ -246,6 +313,7 @@ class CarinaAgentBridge:
         resolved_session = session_id or f"sess_{uuid.uuid4().hex[:12]}"
         scout_guard = scout if scout is not None else self.scout
         product_key = str(product or "").strip().lower() or None
+        corr = str(correlation_id or "").strip() or f"corr_{uuid.uuid4().hex[:12]}"
         registry = CarinaToolRegistry(
             native_dispatch=self.tool_registry._native_dispatch,
             http_client=self.tool_registry._http_client,
@@ -261,6 +329,8 @@ class CarinaAgentBridge:
                 tool_def.get("parameters") or {"type": "object", "properties": {}},
             )
 
+        from keprix.product_sidecar.trusted_context import trusted_context_from_carina_tool
+
         for tool_def in carina_tools or []:
             name = str(tool_def.get("name") or "").strip()
             endpoint = str(tool_def.get("http_endpoint") or "").strip()
@@ -269,11 +339,28 @@ class CarinaAgentBridge:
             schema = tool_def.get("parameters") or registry._schemas.get(name, {}).get("function", {}).get(
                 "parameters", {}
             )
+            trusted = trusted_context_from_carina_tool(
+                tool_def if isinstance(tool_def, dict) else {},
+                fallback_workspace_id=workspace_id,
+                fallback_product=product_key or "propreneur",
+                fallback_correlation_id=corr,
+            )
+            if not trusted.workspace_id:
+                raise ValueError(f"trusted workspace_id missing for tool {name}")
+            if trusted.workspace_id != workspace_id:
+                # Prevent cross-tenant callback binding at registration time.
+                raise ValueError(
+                    f"trusted workspace mismatch for tool {name}: "
+                    f"{trusted.workspace_id} != {workspace_id}"
+                )
+            if not trusted.actor_id:
+                raise ValueError(f"trusted actor_id missing for tool {name}")
             registry.register_http_tool(
                 name=name,
                 endpoint=endpoint,
                 auth_header=str(tool_def.get("auth_header") or ""),
                 schema=schema if isinstance(schema, dict) else {},
+                trusted=trusted,
             )
 
         effective_system = system_prompt or ""
@@ -363,6 +450,7 @@ class CarinaAgentBridge:
         openai_tools = registry.openai_tools()
         usage_total = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
         last_turn: LlmTurn | None = None
+        actions: list[dict[str, Any]] = []
 
         for _ in range(self.max_iterations):
             if scout is not None:
@@ -387,6 +475,7 @@ class CarinaAgentBridge:
                         "finish_reason": "error",
                         "session_id": session_id,
                         "usage": usage_total,
+                        "actions": list(actions),
                         "error": "scout_prompt_blocked",
                         "scout": {
                             "verdict": filtered.verdict,
@@ -416,6 +505,7 @@ class CarinaAgentBridge:
                 }
                 conversation.append(assistant_msg)
 
+                batch_terminal: dict[str, Any] | None = None
                 for call in turn.tool_calls:
                     if scout is not None and scout.check_kill(workspace_id).active:
                         return _scout_suspended_response(session_id, usage_total)
@@ -429,7 +519,15 @@ class CarinaAgentBridge:
                     except CarinaToolNotRegistered:
                         raise
                     except Exception as exc:
-                        result_text = json.dumps({"error": str(exc), "tool": name})
+                        result_text = json.dumps(
+                            {
+                                "success": False,
+                                "status": "failed",
+                                "error": {"code": "tool_exception", "message": str(exc), "retryable": False},
+                                "data": None,
+                                "tool": name,
+                            }
+                        )
                     try:
                         from keprix.aiva_analytics.metrics import record_tool_call
 
@@ -452,6 +550,15 @@ class CarinaAgentBridge:
                             tool_result=result_text,
                         )
 
+                    outcome = _classify_tool_result(result_text)
+                    action_row = {
+                        "tool": name,
+                        "tool_call_id": call_id,
+                        "status": outcome["status"],
+                        "success": outcome["success"],
+                        "result": outcome.get("payload"),
+                    }
+                    actions.append(action_row)
                     conversation.append(
                         {
                             "role": "tool",
@@ -459,6 +566,31 @@ class CarinaAgentBridge:
                             "content": result_text,
                         }
                     )
+                    if batch_terminal is None and outcome["status"] in {
+                        "awaiting_approval",
+                        "failed",
+                        "denied",
+                        "not_configured",
+                    }:
+                        batch_terminal = outcome
+
+                # Do not let the model narrate pending/failed/denied as completed.
+                if batch_terminal is not None:
+                    honest = _honest_assistant_message(batch_terminal["status"])
+                    conversation.append({"role": "assistant", "content": honest})
+                    await self.session_store.save(
+                        workspace_id, session_id, _persistable_messages(conversation)
+                    )
+                    self._schedule_aiva_compaction(product, workspace_id, session_id)
+                    return {
+                        "message": {"role": "assistant", "content": honest},
+                        "tool_calls": [],
+                        "finish_reason": batch_terminal["status"],
+                        "session_id": session_id,
+                        "usage": usage_total,
+                        "actions": list(actions),
+                        "pending": batch_terminal["status"] == "awaiting_approval",
+                    }
                 continue
 
             conversation.append({"role": "assistant", "content": turn.content or ""})
@@ -506,6 +638,7 @@ class CarinaAgentBridge:
                     "finish_reason": "escalated",
                     "session_id": session_id,
                     "usage": usage_total,
+                    "actions": list(actions),
                     "escalation": {
                         "id": (escalation_meta.get("escalation") or {}).get("id"),
                         "confidence": escalation_meta.get("confidence"),
@@ -524,6 +657,7 @@ class CarinaAgentBridge:
                 "finish_reason": turn.finish_reason or "stop",
                 "session_id": session_id,
                 "usage": usage_total,
+                "actions": list(actions),
             }
 
         # Hit max iterations while still producing tool calls: surface them.
@@ -540,8 +674,9 @@ class CarinaAgentBridge:
             "finish_reason": "tool_calls" if tool_calls else "stop",
             "session_id": session_id,
             "usage": usage_total,
-                "error": "max_iterations",
-            }
+            "actions": list(actions),
+            "error": "max_iterations",
+        }
 
     def _schedule_aiva_compaction(
         self,
@@ -587,6 +722,51 @@ def _stringify_tool_result(result: Any) -> str:
         return json.dumps(result)
     except TypeError:
         return str(result)
+
+
+def _classify_tool_result(result_text: str) -> dict[str, Any]:
+    """Map tool JSON into a terminal status used by the agent honesty gate."""
+    try:
+        payload = json.loads(result_text) if result_text else {}
+    except Exception:
+        return {"status": "completed", "success": True, "payload": result_text}
+
+    if not isinstance(payload, dict):
+        return {"status": "completed", "success": True, "payload": payload}
+
+    status = str(payload.get("status") or "").strip().lower()
+    err = payload.get("error")
+    if isinstance(err, dict):
+        code = str(payload.get("code") or err.get("code") or "").strip().lower()
+    else:
+        code = str(payload.get("code") or err or "").strip().lower()
+
+    if status in {"awaiting_approval", "failed", "denied", "not_configured", "completed"}:
+        success = status == "completed" and payload.get("success") is not False
+        return {"status": status, "success": success, "payload": payload}
+
+    if code in {"soft_wall_required"} or payload.get("approval_id"):
+        return {"status": "awaiting_approval", "success": False, "payload": payload}
+    if code in {"denied", "missing_grant", "cross_product"} or status == "denied":
+        return {"status": "denied", "success": False, "payload": payload}
+    if code in {"not_configured"}:
+        return {"status": "not_configured", "success": False, "payload": payload}
+    if payload.get("success") is False or code or payload.get("error"):
+        return {"status": "failed", "success": False, "payload": payload}
+    return {"status": "completed", "success": True, "payload": payload}
+
+
+def _honest_assistant_message(status: str) -> str:
+    if status == "awaiting_approval":
+        return (
+            "This action requires Soft Wall approval and is pending. "
+            "It has not been completed yet."
+        )
+    if status == "denied":
+        return "The operation was denied and was not completed."
+    if status == "not_configured":
+        return "This capability is not configured yet and was not completed."
+    return "The operation failed and was not completed."
 
 
 def _provider_chain(model: str, overrides: list[tuple[str, str]] | None) -> list[tuple[str, str]]:

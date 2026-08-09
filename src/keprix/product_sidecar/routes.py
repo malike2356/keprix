@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from keprix.product_sidecar.auth import get_token_service, grants_for_product
 from keprix.product_sidecar.invoke import InvokeError, invoke_node
 from keprix.product_sidecar.registry import get_product_pack_registry
+from keprix.product_sidecar.control_plane import detect_projection_drift
 from keprix.product_sidecar.state import (
     get_approval_store,
     get_circuit,
@@ -18,6 +19,7 @@ from keprix.product_sidecar.state import (
     get_job_store,
     get_kill_switches,
     get_memory_store,
+    get_receipt_store,
     get_shadow_store,
     input_hash,
 )
@@ -62,6 +64,8 @@ class EventEnvelope(BaseModel):
     deployment: str = "local"
     data: dict[str, Any] = Field(default_factory=dict)
     sensitivity: str = "internal"
+    causation_id: str | None = None
+    echo_of_keprix_mutation: bool = False
 
 
 class ApprovalDecision(BaseModel):
@@ -69,6 +73,17 @@ class ApprovalDecision(BaseModel):
     workspace_id: str
     actor_id: str
     input_hash: str | None = None
+
+
+class ApprovalLifecycleBody(BaseModel):
+    workspace_id: str
+    actor_id: str = "operator"
+
+
+class DriftCompareBody(BaseModel):
+    workspace_id: str
+    contract_records: list[dict[str, Any]] = Field(default_factory=list)
+    projected_records: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class TokenExchangeBody(BaseModel):
@@ -117,9 +132,10 @@ def _auth_ctx(
 @router.get("/{product_key}/health")
 async def product_health(product_key: str) -> dict[str, Any]:
     _product_or_404(product_key)
-    pack = get_product_pack_registry().get(product_key)
-    if pack is None:
-        raise HTTPException(status_code=404, detail="pack missing")
+    from keprix.product_sidecar.readiness import build_product_readiness
+
+    readiness = build_product_readiness(product_key)
+    pack = get_product_pack_registry().require(product_key)
     kills = get_kill_switches()
     return {
         "status": "ok" if pack.enabled else "disabled",
@@ -127,12 +143,53 @@ async def product_health(product_key: str) -> dict[str, Any]:
         "pack_version": pack.version,
         "contract_version": pack.contract_version,
         "enabled": pack.enabled,
-        "node_counts": pack.node_status_counts(),
-        "circuit": get_circuit().state(),
+        "node_counts": readiness["node_counts"],
+        "operation_counts": readiness["operation_counts"],
+        "capability_honesty": readiness["pack_readiness"]["capability_honesty"],
+        "crud_complete": readiness["pack_readiness"]["crud_complete"],
+        "circuit": readiness["circuit"],
         "force_carina": kills.force_carina,
         "outbound_kill": kills.outbound_kill,
         "shared_token_compat": "deprecated",
         "wrapper_of": pack.wrapper_of,
+        "pending_approvals": readiness["pending_approvals"]["count"],
+        "event_lag_seconds": readiness["event_lag"]["lag_seconds"],
+        "note": readiness["note"],
+        "readiness": readiness,
+    }
+
+
+@router.get("/{product_key}/readiness")
+async def product_readiness(product_key: str) -> dict[str, Any]:
+    """Full operator readiness (connectivity is not CRUD readiness)."""
+    _product_or_404(product_key)
+    from keprix.product_sidecar.readiness import build_product_readiness
+
+    return build_product_readiness(product_key)
+
+
+@router.get("/{product_key}/metrics")
+async def metrics(product_key: str) -> dict[str, Any]:
+    _product_or_404(product_key)
+    from keprix.product_sidecar.readiness import build_product_readiness
+
+    readiness = build_product_readiness(product_key)
+    kills = get_kill_switches()
+    return {
+        "product": product_key,
+        "enabled": readiness["pack_readiness"]["enabled"],
+        "node_counts": readiness["node_counts"],
+        "operation_counts": readiness["operation_counts"],
+        "circuit": readiness["circuit"],
+        "pending_approvals": readiness["pending_approvals"]["count"],
+        "event_lag": readiness["event_lag"],
+        "last_successful_canary": readiness["last_successful_canary"],
+        "shadow_global": kills.shadow_enabled_global,
+        "primary_workspaces": sorted(kills.primary_workspaces),
+        "force_carina": kills.force_carina,
+        "outbound_kill": kills.outbound_kill,
+        "crud_complete": readiness["pack_readiness"]["crud_complete"],
+        "capability_honesty": readiness["pack_readiness"]["capability_honesty"],
     }
 
 
@@ -403,19 +460,112 @@ async def approval_decision(
     return {"approval": row}
 
 
-@router.get("/{product_key}/metrics")
-async def metrics(product_key: str) -> dict[str, Any]:
+@router.post("/{product_key}/approvals/{approval_id}/revoke")
+async def approval_revoke(
+    product_key: str,
+    approval_id: str,
+    body: ApprovalLifecycleBody,
+    request: Request,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
     _product_or_404(product_key)
-    pack = get_product_pack_registry().require(product_key)
-    kills = get_kill_switches()
+    _auth_ctx(request, product_key, authorization, _correlation(request, None))
+    try:
+        row = get_approval_store().revoke(
+            approval_id,
+            workspace_id=body.workspace_id,
+            actor_id=body.actor_id,
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="approval not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail={"error": str(exc), "code": "denied"}) from exc
+    return {"approval": row}
+
+
+@router.post("/{product_key}/approvals/{approval_id}/expire")
+async def approval_expire(
+    product_key: str,
+    approval_id: str,
+    body: ApprovalLifecycleBody,
+    request: Request,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    _product_or_404(product_key)
+    _auth_ctx(request, product_key, authorization, _correlation(request, None))
+    try:
+        row = get_approval_store().expire(approval_id, workspace_id=body.workspace_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="approval not found") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=409, detail={"error": str(exc), "code": "denied"}) from exc
+    return {"approval": row}
+
+
+@router.get("/{product_key}/approvals/{approval_id}")
+async def approval_status(
+    product_key: str,
+    approval_id: str,
+    workspace_id: str,
+    request: Request,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Soft Wall status used by /propreneur/soft-wall deep links."""
+    _product_or_404(product_key)
+    ctx = _auth_ctx(request, product_key, authorization, _correlation(request, None))
+    if ctx.workspace_id and ctx.workspace_id != workspace_id and "*" not in ctx.grants:
+        raise HTTPException(status_code=403, detail={"code": "denied"})
+    row = get_approval_store().get(approval_id)
+    if not row or row.get("workspace_id") != workspace_id:
+        raise HTTPException(status_code=404, detail="approval not found")
+    return {"approval": row}
+
+
+@router.post("/{product_key}/events/{event_id}/ack")
+async def ack_event(
+    product_key: str,
+    event_id: str,
+    request: Request,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    _product_or_404(product_key)
+    _auth_ctx(request, product_key, authorization, _correlation(request, None))
+    return get_event_store().ack(event_id, product=product_key)
+
+
+@router.post("/{product_key}/projections/drift")
+async def projection_drift(
+    product_key: str,
+    body: DriftCompareBody,
+    request: Request,
+    authorization: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Report-only drift detection; never silently overwrites Propreneur."""
+    _product_or_404(product_key)
+    _auth_ctx(request, product_key, authorization, _correlation(request, None))
+    return detect_projection_drift(
+        product=product_key,
+        workspace_id=body.workspace_id,
+        contract_records=body.contract_records,
+        projected_records=body.projected_records,
+    )
+
+
+@router.get("/{product_key}/receipts")
+async def list_receipts(
+    product_key: str,
+    workspace_id: str,
+    request: Request,
+    authorization: str | None = Header(default=None),
+    limit: int = 50,
+) -> dict[str, Any]:
+    _product_or_404(product_key)
+    ctx = _auth_ctx(request, product_key, authorization, _correlation(request, None))
+    if ctx.workspace_id and ctx.workspace_id != workspace_id and "*" not in ctx.grants:
+        raise HTTPException(status_code=403, detail={"code": "denied"})
     return {
-        "product": product_key,
-        "enabled": pack.enabled,
-        "node_counts": pack.node_status_counts(),
-        "circuit": get_circuit().state(),
-        "shadow_global": kills.shadow_enabled_global,
-        "primary_workspaces": sorted(kills.primary_workspaces),
-        "force_carina": kills.force_carina,
+        "workspace_id": workspace_id,
+        "receipts": get_receipt_store().list_for_workspace(workspace_id, limit=limit),
     }
 
 

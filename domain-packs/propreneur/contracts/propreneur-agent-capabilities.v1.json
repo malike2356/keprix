@@ -1,0 +1,2152 @@
+{
+  "contract": "propreneur-agent-capabilities",
+  "version": "1.3.0",
+  "compatible_versions": [
+    "1.0.0",
+    "1.1.0",
+    "1.2.0",
+    "1.3.0"
+  ],
+  "product": "propreneur",
+  "canonical": true,
+  "generator": "keprix/scripts/generate_propreneur_agent_contract.py",
+  "authority": "This file is the canonical Propreneur agent capability contract. OpenAPI, tool twins, pack nodes, connector route declarations, and coverage matrices are generated or drift-gated from it.",
+  "openapi_source": "propreneur/docs/aiva/openapi-aiva-v1.yaml",
+  "overlay_source": "keprix/domain-packs/propreneur/contracts/overlays/propreneur-capabilities-overlay.v1.json",
+  "result_envelope": "propreneur_result_envelope.v1",
+  "compatibility": {
+    "tools_contract_version": "1.3.0",
+    "compatible_versions": [
+      "1.0.0",
+      "1.1.0",
+      "1.2.0",
+      "1.3.0"
+    ],
+    "bridge_kebab_removal_window": "2026-11-09",
+    "bridge_kebab_policy": "Kebab bridge tool names remain aliases until the removal window. Agents should prefer stable operation_id / propreneur_* names. After 2026-11-09, kebab names may be removed from discoverable catalogues unless an owner extends the window."
+  },
+  "operation_count": 69,
+  "operations": [
+    {
+      "operation_id": "propreneur_appointments_cancel",
+      "domain": "appointment",
+      "action": "cancel",
+      "title": "Appointment cancel",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/appointments/{appointmentId}/cancel",
+      "path_parameters": [
+        "appointmentId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "appointment_cancel"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "carina:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "Idempotency-Key required",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:appointment_cancel"
+      ],
+      "handler_binding": "propreneur_ops:appointment_cancel",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_appointments_create",
+      "domain": "appointment",
+      "action": "create",
+      "title": "Appointment create",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [],
+      "bridge_aliases": [],
+      "required_scope": "carina:write",
+      "risk_class": "mutate",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "op:propreneur_appointments_create"
+      ],
+      "handler_binding": null,
+      "status": "not_configured",
+      "surface": "pending",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": "Create/reschedule stay on the viCal booking flow until a typed Aiva route ships."
+    },
+    {
+      "operation_id": "propreneur_appointments_get",
+      "domain": "appointment",
+      "action": "get",
+      "title": "Appointment get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/appointments/{appointmentId}",
+      "path_parameters": [
+        "appointmentId"
+      ],
+      "request_body": null,
+      "pack_nodes": [
+        "appointment_get"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "carina:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:appointment_get"
+      ],
+      "handler_binding": "propreneur_ops:appointment_get",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_appointments_list",
+      "domain": "appointment",
+      "action": "list",
+      "title": "Appointment search",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/appointments",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "appointment_search"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "carina:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:appointment_search"
+      ],
+      "handler_binding": "propreneur_ops:appointment_search",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_communications_send",
+      "domain": "communications",
+      "action": "send",
+      "title": "Send communication",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [],
+      "bridge_aliases": [],
+      "required_scope": "communications:send",
+      "risk_class": "outbound",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "op:propreneur_communications_send"
+      ],
+      "handler_binding": null,
+      "status": "intentionally_forbidden",
+      "surface": "forbidden",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": "Send stays consent/suppression/approval controlled outside agent CRUD."
+    },
+    {
+      "operation_id": "propreneur_compliance_get",
+      "domain": "compliance",
+      "action": "get",
+      "title": "Get compliance",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "compliance_get"
+      ],
+      "bridge_aliases": [
+        "propreneur-get-compliance"
+      ],
+      "required_scope": "compliance:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:compliance_get"
+      ],
+      "handler_binding": null,
+      "status": "proposal_only",
+      "surface": "bridge_read",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": "Bridge read only until a dedicated Aiva compliance catalogue ships."
+    },
+    {
+      "operation_id": "propreneur_compliance_propose",
+      "domain": "compliance",
+      "action": "propose",
+      "title": "Propose compliance update",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "compliance_propose"
+      ],
+      "bridge_aliases": [
+        "propreneur-propose-compliance-update"
+      ],
+      "required_scope": "compliance:propose",
+      "risk_class": "high_risk",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:compliance_propose"
+      ],
+      "handler_binding": null,
+      "status": "proposal_only",
+      "surface": "bridge_propose",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_contacts_archive",
+      "domain": "contact",
+      "action": "archive",
+      "title": "Contact archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/contacts/{contactId}",
+      "path_parameters": [
+        "contactId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "contact_archive"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:write",
+      "risk_class": "destructive",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:contact_archive"
+      ],
+      "handler_binding": "propreneur_ops:contact_archive",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_contacts_create",
+      "domain": "contact",
+      "action": "create",
+      "title": "Contact create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/contacts",
+      "path_parameters": [],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "contact_create"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "Idempotency-Key required",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:contact_create"
+      ],
+      "handler_binding": "propreneur_ops:contact_create",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_contacts_get",
+      "domain": "contact",
+      "action": "get",
+      "title": "Contact get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/contacts/{contactId}",
+      "path_parameters": [
+        "contactId"
+      ],
+      "request_body": null,
+      "pack_nodes": [
+        "contact_get"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:contact_get"
+      ],
+      "handler_binding": "propreneur_ops:contact_get",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_contacts_list",
+      "domain": "contact",
+      "action": "list",
+      "title": "Contact search",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/contacts",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "contact_search"
+      ],
+      "bridge_aliases": [
+        "propreneur-get-contacts"
+      ],
+      "required_scope": "crm:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:contact_search"
+      ],
+      "handler_binding": "propreneur_ops:contact_search",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_contacts_propose",
+      "domain": "contact",
+      "action": "propose",
+      "title": "Propose contact",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [],
+      "bridge_aliases": [
+        "propreneur-propose-contact"
+      ],
+      "required_scope": "crm:propose",
+      "risk_class": "propose",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "op:propreneur_contacts_propose"
+      ],
+      "handler_binding": null,
+      "status": "proposal_only",
+      "surface": "bridge_propose",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": "Prefer contact_create when grant scopes allow; proposal remains for elevated review."
+    },
+    {
+      "operation_id": "propreneur_contacts_update",
+      "domain": "contact",
+      "action": "update",
+      "title": "Contact update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/contacts/{contactId}",
+      "path_parameters": [
+        "contactId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "contact_update"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:contact_update"
+      ],
+      "handler_binding": "propreneur_ops:contact_update",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_deals_archive",
+      "domain": "deal",
+      "action": "archive",
+      "title": "Deal archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/deals/{dealId}",
+      "path_parameters": [
+        "dealId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "deal_archive"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "deals:write",
+      "risk_class": "destructive",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:deal_archive"
+      ],
+      "handler_binding": "propreneur_ops:deal_archive",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_deals_create",
+      "domain": "deal",
+      "action": "create",
+      "title": "Deal create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/deals",
+      "path_parameters": [],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "deal_create"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "deals:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "Idempotency-Key required",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:deal_create"
+      ],
+      "handler_binding": "propreneur_ops:deal_create",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_deals_get",
+      "domain": "deal",
+      "action": "get",
+      "title": "Deal get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/deals/{dealId}",
+      "path_parameters": [
+        "dealId"
+      ],
+      "request_body": null,
+      "pack_nodes": [
+        "deal_get"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "deals:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:deal_get"
+      ],
+      "handler_binding": "propreneur_ops:deal_get",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_deals_list",
+      "domain": "deal",
+      "action": "list",
+      "title": "Deal search",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/deals",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "deal_search"
+      ],
+      "bridge_aliases": [
+        "propreneur-get-deals"
+      ],
+      "required_scope": "deals:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:deal_search"
+      ],
+      "handler_binding": "propreneur_ops:deal_search",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_deals_propose",
+      "domain": "deal",
+      "action": "propose",
+      "title": "Propose deal",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "deal_propose"
+      ],
+      "bridge_aliases": [
+        "propreneur-propose-deal"
+      ],
+      "required_scope": "deals:propose",
+      "risk_class": "propose",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:deal_propose"
+      ],
+      "handler_binding": null,
+      "status": "proposal_only",
+      "surface": "bridge_propose",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_deals_update",
+      "domain": "deal",
+      "action": "update",
+      "title": "Deal update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/deals/{dealId}",
+      "path_parameters": [
+        "dealId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "deal_update"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "deals:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:deal_update"
+      ],
+      "handler_binding": "propreneur_ops:deal_update",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_documents_download",
+      "domain": "document",
+      "action": "download",
+      "title": "Document binary download",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [],
+      "bridge_aliases": [],
+      "required_scope": "documents:read",
+      "risk_class": "high_risk",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "op:propreneur_documents_download"
+      ],
+      "handler_binding": null,
+      "status": "intentionally_forbidden",
+      "surface": "forbidden",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": "Binary download handoff is not agent-callable in v1."
+    },
+    {
+      "operation_id": "propreneur_documents_get",
+      "domain": "document",
+      "action": "get",
+      "title": "Document metadata get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/documents/{documentId}",
+      "path_parameters": [
+        "documentId"
+      ],
+      "request_body": null,
+      "pack_nodes": [
+        "document_get"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "documents:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:document_get"
+      ],
+      "handler_binding": "propreneur_ops:document_get",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_documents_list",
+      "domain": "document",
+      "action": "list",
+      "title": "Document metadata search",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/documents",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "document_search"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "documents:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:document_search"
+      ],
+      "handler_binding": "propreneur_ops:document_search",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_documents_upload",
+      "domain": "document",
+      "action": "upload",
+      "title": "Document binary upload",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [],
+      "bridge_aliases": [],
+      "required_scope": "documents:write",
+      "risk_class": "high_risk",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "op:propreneur_documents_upload"
+      ],
+      "handler_binding": null,
+      "status": "intentionally_forbidden",
+      "surface": "forbidden",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": "Binary vault upload stays in the protected UI pipeline."
+    },
+    {
+      "operation_id": "propreneur_expenses_get",
+      "domain": "finance",
+      "action": "get",
+      "title": "Expense get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/expenses/{expenseId}",
+      "path_parameters": [
+        "expenseId"
+      ],
+      "request_body": null,
+      "pack_nodes": [
+        "expense_get"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "accounting:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:expense_get"
+      ],
+      "handler_binding": "propreneur_ops:expense_get",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_expenses_list",
+      "domain": "finance",
+      "action": "list",
+      "title": "Expense search",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/expenses",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "expense_search"
+      ],
+      "bridge_aliases": [
+        "propreneur-get-expenses"
+      ],
+      "required_scope": "accounting:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:expense_search"
+      ],
+      "handler_binding": "propreneur_ops:expense_search",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_expenses_propose",
+      "domain": "finance",
+      "action": "propose",
+      "title": "Propose expense",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "expense_propose"
+      ],
+      "bridge_aliases": [
+        "propreneur-propose-expense"
+      ],
+      "required_scope": "accounting:propose",
+      "risk_class": "high_risk",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:expense_propose"
+      ],
+      "handler_binding": null,
+      "status": "proposal_only",
+      "surface": "bridge_propose",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_finance_log_propose",
+      "domain": "finance",
+      "action": "propose",
+      "title": "Propose financial log",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "financial_log_propose"
+      ],
+      "bridge_aliases": [
+        "propreneur-propose-financial-log"
+      ],
+      "required_scope": "accounting:propose",
+      "risk_class": "high_risk",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:financial_log_propose"
+      ],
+      "handler_binding": null,
+      "status": "proposal_only",
+      "surface": "bridge_propose",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_finance_payment_post",
+      "domain": "finance",
+      "action": "post_payment",
+      "title": "Post payment",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [],
+      "bridge_aliases": [],
+      "required_scope": "accounting:post",
+      "risk_class": "high_risk",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "op:propreneur_finance_payment_post"
+      ],
+      "handler_binding": null,
+      "status": "intentionally_forbidden",
+      "surface": "forbidden",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": "Payment posting and irreversible accounting stay owner-controlled."
+    },
+    {
+      "operation_id": "propreneur_hard_delete",
+      "domain": "ops",
+      "action": "hard_delete",
+      "title": "Permanent delete",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [],
+      "bridge_aliases": [],
+      "required_scope": "admin:delete",
+      "risk_class": "destructive",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "op:propreneur_hard_delete"
+      ],
+      "handler_binding": null,
+      "status": "intentionally_forbidden",
+      "surface": "forbidden",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": "Permanent deletion is never agent-callable; soft archive only."
+    },
+    {
+      "operation_id": "propreneur_maintenance_propose",
+      "domain": "maintenance",
+      "action": "propose",
+      "title": "Propose maintenance",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "maintenance_propose"
+      ],
+      "bridge_aliases": [
+        "propreneur-propose-maintenance"
+      ],
+      "required_scope": "maintenance:propose",
+      "risk_class": "propose",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:maintenance_propose"
+      ],
+      "handler_binding": null,
+      "status": "proposal_only",
+      "surface": "bridge_propose",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_maintenance_tickets_archive",
+      "domain": "maintenance",
+      "action": "archive",
+      "title": "Maintenance archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/maintenance-tickets/{ticketId}",
+      "path_parameters": [
+        "ticketId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "maintenance_archive"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "maintenance:write",
+      "risk_class": "destructive",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:maintenance_archive"
+      ],
+      "handler_binding": "propreneur_ops:maintenance_archive",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_maintenance_tickets_create",
+      "domain": "maintenance",
+      "action": "create",
+      "title": "Maintenance create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/maintenance-tickets",
+      "path_parameters": [],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "maintenance_create"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "maintenance:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "Idempotency-Key required",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:maintenance_create"
+      ],
+      "handler_binding": "propreneur_ops:maintenance_create",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_maintenance_tickets_get",
+      "domain": "maintenance",
+      "action": "get",
+      "title": "Maintenance get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/maintenance-tickets/{ticketId}",
+      "path_parameters": [
+        "ticketId"
+      ],
+      "request_body": null,
+      "pack_nodes": [
+        "maintenance_get"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "maintenance:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:maintenance_get"
+      ],
+      "handler_binding": "propreneur_ops:maintenance_get",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_maintenance_tickets_list",
+      "domain": "maintenance",
+      "action": "list",
+      "title": "Maintenance search",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/maintenance-tickets",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "maintenance_search"
+      ],
+      "bridge_aliases": [
+        "propreneur-get-maintenance-requests"
+      ],
+      "required_scope": "maintenance:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:maintenance_search"
+      ],
+      "handler_binding": "propreneur_ops:maintenance_search",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_maintenance_tickets_update",
+      "domain": "maintenance",
+      "action": "update",
+      "title": "Maintenance update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/maintenance-tickets/{ticketId}",
+      "path_parameters": [
+        "ticketId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "maintenance_update"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "maintenance:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:maintenance_update"
+      ],
+      "handler_binding": "propreneur_ops:maintenance_update",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_notes_create",
+      "domain": "ops",
+      "action": "create",
+      "title": "Note create",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "note_create"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "carina:write",
+      "risk_class": "mutate",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:note_create"
+      ],
+      "handler_binding": null,
+      "status": "not_configured",
+      "surface": "pack_pending_http",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_owners_archive",
+      "domain": "owner",
+      "action": "archive",
+      "title": "Owner archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/owners/{contactId}",
+      "path_parameters": [
+        "contactId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "owner_archive"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:write",
+      "risk_class": "destructive",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:owner_archive"
+      ],
+      "handler_binding": "propreneur_ops:owner_archive",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_owners_create",
+      "domain": "owner",
+      "action": "create",
+      "title": "Owner create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/owners",
+      "path_parameters": [],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "owner_create"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "Idempotency-Key required",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:owner_create"
+      ],
+      "handler_binding": "propreneur_ops:owner_create",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_owners_get",
+      "domain": "owner",
+      "action": "get",
+      "title": "Owner get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/owners/{contactId}",
+      "path_parameters": [
+        "contactId"
+      ],
+      "request_body": null,
+      "pack_nodes": [
+        "owner_get"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:owner_get"
+      ],
+      "handler_binding": "propreneur_ops:owner_get",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_owners_list",
+      "domain": "owner",
+      "action": "list",
+      "title": "Owner search",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/owners",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "owner_search"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:owner_search"
+      ],
+      "handler_binding": "propreneur_ops:owner_search",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_owners_update",
+      "domain": "owner",
+      "action": "update",
+      "title": "Owner update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/owners/{contactId}",
+      "path_parameters": [
+        "contactId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "owner_update"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:owner_update"
+      ],
+      "handler_binding": "propreneur_ops:owner_update",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_projects_archive",
+      "domain": "project",
+      "action": "archive",
+      "title": "Project archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/projects/{projectId}",
+      "path_parameters": [
+        "projectId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "project_archive"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "carina:write",
+      "risk_class": "destructive",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:project_archive"
+      ],
+      "handler_binding": "propreneur_ops:project_archive",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_projects_create",
+      "domain": "project",
+      "action": "create",
+      "title": "Project create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/projects",
+      "path_parameters": [],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "project_create"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "carina:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "Idempotency-Key required",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:project_create"
+      ],
+      "handler_binding": "propreneur_ops:project_create",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_projects_get",
+      "domain": "project",
+      "action": "get",
+      "title": "Project get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/projects/{projectId}",
+      "path_parameters": [
+        "projectId"
+      ],
+      "request_body": null,
+      "pack_nodes": [
+        "project_get"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "carina:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:project_get"
+      ],
+      "handler_binding": "propreneur_ops:project_get",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_projects_list",
+      "domain": "project",
+      "action": "list",
+      "title": "Project search",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/projects",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "project_search"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "carina:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:project_search"
+      ],
+      "handler_binding": "propreneur_ops:project_search",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_projects_update",
+      "domain": "project",
+      "action": "update",
+      "title": "Project update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/projects/{projectId}",
+      "path_parameters": [
+        "projectId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "project_update"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "carina:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:project_update"
+      ],
+      "handler_binding": "propreneur_ops:project_update",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_properties_archive",
+      "domain": "property",
+      "action": "archive",
+      "title": "Property archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/properties/{propertyId}",
+      "path_parameters": [
+        "propertyId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "property_archive"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "properties:write",
+      "risk_class": "destructive",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:property_archive"
+      ],
+      "handler_binding": "propreneur_ops:property_archive",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_properties_create",
+      "domain": "property",
+      "action": "create",
+      "title": "Property create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/properties",
+      "path_parameters": [],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "property_create"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "properties:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "Idempotency-Key required",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:property_create"
+      ],
+      "handler_binding": "propreneur_ops:property_create",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_properties_get",
+      "domain": "property",
+      "action": "get",
+      "title": "Property get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/properties/{propertyId}",
+      "path_parameters": [
+        "propertyId"
+      ],
+      "request_body": null,
+      "pack_nodes": [
+        "property_get"
+      ],
+      "bridge_aliases": [
+        "propreneur-get-property"
+      ],
+      "required_scope": "properties:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:property_get"
+      ],
+      "handler_binding": "propreneur_ops:property_get",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_properties_list",
+      "domain": "portfolio",
+      "action": "list",
+      "title": "Ask portfolio",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/properties",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "ask_portfolio",
+        "property_search"
+      ],
+      "bridge_aliases": [
+        "propreneur-get-portfolio"
+      ],
+      "required_scope": "properties:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:ask_portfolio",
+        "node:property_search"
+      ],
+      "handler_binding": "propreneur_ops:ask_portfolio",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_properties_update",
+      "domain": "property",
+      "action": "update",
+      "title": "Property update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/properties/{propertyId}",
+      "path_parameters": [
+        "propertyId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "property_update"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "properties:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:property_update"
+      ],
+      "handler_binding": "propreneur_ops:property_update",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_proxy",
+      "domain": "proxy",
+      "action": "proxy",
+      "title": "Propreneur proxy",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [],
+      "bridge_aliases": [
+        "propreneur-proxy"
+      ],
+      "required_scope": "carina:proxy",
+      "risk_class": "high_risk",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "op:propreneur_proxy"
+      ],
+      "handler_binding": null,
+      "status": "intentionally_forbidden",
+      "surface": "bridge_utility",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": "Generic proxy is forbidden for agent CRUD; use typed Aiva v1 operations."
+    },
+    {
+      "operation_id": "propreneur_rent_payments_list",
+      "domain": "finance",
+      "action": "list",
+      "title": "List rent payments",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [],
+      "bridge_aliases": [
+        "propreneur-get-rent-payments"
+      ],
+      "required_scope": "accounting:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "op:propreneur_rent_payments_list"
+      ],
+      "handler_binding": null,
+      "status": "not_configured",
+      "surface": "bridge_read",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_reports_export",
+      "domain": "reports",
+      "action": "export",
+      "title": "Reports export",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [],
+      "bridge_aliases": [],
+      "required_scope": "reports:export",
+      "risk_class": "high_risk",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "op:propreneur_reports_export"
+      ],
+      "handler_binding": null,
+      "status": "not_configured",
+      "surface": "pending",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": "Scoped export jobs remain pending; no agent route yet."
+    },
+    {
+      "operation_id": "propreneur_settings_propose",
+      "domain": "settings",
+      "action": "propose",
+      "title": "Propose setting",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [],
+      "bridge_aliases": [
+        "propreneur-propose-setting"
+      ],
+      "required_scope": "settings:propose",
+      "risk_class": "high_risk",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "op:propreneur_settings_propose"
+      ],
+      "handler_binding": null,
+      "status": "proposal_only",
+      "surface": "bridge_propose",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_sourcing_leads_archive",
+      "domain": "sourcing",
+      "action": "archive",
+      "title": "Sourcing lead archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/sourcing-leads/{leadId}",
+      "path_parameters": [
+        "leadId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "sourcing_archive"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:write",
+      "risk_class": "destructive",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:sourcing_archive"
+      ],
+      "handler_binding": "propreneur_ops:sourcing_archive",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_sourcing_leads_create",
+      "domain": "sourcing",
+      "action": "create",
+      "title": "Sourcing lead create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/sourcing-leads",
+      "path_parameters": [],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "sourcing_create"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "Idempotency-Key required",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:sourcing_create"
+      ],
+      "handler_binding": "propreneur_ops:sourcing_create",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_sourcing_leads_get",
+      "domain": "sourcing",
+      "action": "get",
+      "title": "Sourcing lead get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/sourcing-leads/{leadId}",
+      "path_parameters": [
+        "leadId"
+      ],
+      "request_body": null,
+      "pack_nodes": [
+        "sourcing_get"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:sourcing_get"
+      ],
+      "handler_binding": "propreneur_ops:sourcing_get",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_sourcing_leads_list",
+      "domain": "sourcing",
+      "action": "list",
+      "title": "Sourcing lead search",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/sourcing-leads",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "sourcing_search"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:sourcing_search"
+      ],
+      "handler_binding": "propreneur_ops:sourcing_search",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_sourcing_leads_update",
+      "domain": "sourcing",
+      "action": "update",
+      "title": "Sourcing lead update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/sourcing-leads/{leadId}",
+      "path_parameters": [
+        "leadId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "sourcing_update"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "crm:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:sourcing_update"
+      ],
+      "handler_binding": "propreneur_ops:sourcing_update",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_sync_health",
+      "domain": "sync",
+      "action": "health",
+      "title": "Sync health",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "sync_health"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "carina:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:sync_health"
+      ],
+      "handler_binding": null,
+      "status": "not_configured",
+      "surface": "pack_utility",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_tasks_create",
+      "domain": "ops",
+      "action": "create",
+      "title": "Task create",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "task_create"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "carina:write",
+      "risk_class": "mutate",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:task_create"
+      ],
+      "handler_binding": null,
+      "status": "not_configured",
+      "surface": "pack_pending_http",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": "Nested project tasks remain UI/service-bound until a typed route exists."
+    },
+    {
+      "operation_id": "propreneur_team_invite_propose",
+      "domain": "access",
+      "action": "propose",
+      "title": "Propose team invite",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "team_invite_propose"
+      ],
+      "bridge_aliases": [
+        "propreneur-propose-team-invite"
+      ],
+      "required_scope": "management:propose",
+      "risk_class": "high_risk",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:team_invite_propose"
+      ],
+      "handler_binding": null,
+      "status": "proposal_only",
+      "surface": "bridge_propose",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_tenancies_archive",
+      "domain": "tenancy",
+      "action": "archive",
+      "title": "Tenancy archive",
+      "http_method": "DELETE",
+      "http_path": "/api/aiva/v1/tenancies/{tenancyId}",
+      "path_parameters": [
+        "tenancyId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "tenancy_archive"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "properties:write",
+      "risk_class": "destructive",
+      "approval": "soft_wall",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:tenancy_archive"
+      ],
+      "handler_binding": "propreneur_ops:tenancy_archive",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_tenancies_create",
+      "domain": "tenancy",
+      "action": "create",
+      "title": "Tenancy create",
+      "http_method": "POST",
+      "http_path": "/api/aiva/v1/tenancies",
+      "path_parameters": [],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "tenancy_create"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "properties:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "Idempotency-Key required",
+      "concurrency": "n/a",
+      "soft_wall": true,
+      "required_grants": [
+        "node:tenancy_create"
+      ],
+      "handler_binding": "propreneur_ops:tenancy_create",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_tenancies_get",
+      "domain": "tenancy",
+      "action": "get",
+      "title": "Tenancy get",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/tenancies/{tenancyId}",
+      "path_parameters": [
+        "tenancyId"
+      ],
+      "request_body": null,
+      "pack_nodes": [
+        "tenancy_get"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "properties:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:tenancy_get"
+      ],
+      "handler_binding": "propreneur_ops:tenancy_get",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_tenancies_list",
+      "domain": "tenancy",
+      "action": "list",
+      "title": "Tenancy search",
+      "http_method": "GET",
+      "http_path": "/api/aiva/v1/tenancies",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [
+        "tenancy_search"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "properties:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "node:tenancy_search"
+      ],
+      "handler_binding": "propreneur_ops:tenancy_search",
+      "status": "live",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_tenancies_update",
+      "domain": "tenancy",
+      "action": "update",
+      "title": "Tenancy update",
+      "http_method": "PATCH",
+      "http_path": "/api/aiva/v1/tenancies/{tenancyId}",
+      "path_parameters": [
+        "tenancyId"
+      ],
+      "request_body": {
+        "content_type": "application/json"
+      },
+      "pack_nodes": [
+        "tenancy_update"
+      ],
+      "bridge_aliases": [],
+      "required_scope": "properties:write",
+      "risk_class": "mutate",
+      "approval": "policy_by_path",
+      "idempotency": "n/a",
+      "concurrency": "If-Match recommended",
+      "soft_wall": true,
+      "required_grants": [
+        "node:tenancy_update"
+      ],
+      "handler_binding": "propreneur_ops:tenancy_update",
+      "status": "approval_required",
+      "surface": "openapi_aiva_v1",
+      "product_api_ready": true,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    },
+    {
+      "operation_id": "propreneur_workspace_open",
+      "domain": "workspace",
+      "action": "open",
+      "title": "Open workspace",
+      "http_method": "",
+      "http_path": "",
+      "path_parameters": [],
+      "request_body": null,
+      "pack_nodes": [],
+      "bridge_aliases": [
+        "propreneur-open-workspace"
+      ],
+      "required_scope": "carina:read",
+      "risk_class": "read",
+      "approval": "none",
+      "idempotency": "n/a",
+      "concurrency": "n/a",
+      "soft_wall": false,
+      "required_grants": [
+        "op:propreneur_workspace_open"
+      ],
+      "handler_binding": null,
+      "status": "not_configured",
+      "surface": "bridge_utility",
+      "product_api_ready": false,
+      "result_envelope": "propreneur_result_envelope.v1",
+      "notes": ""
+    }
+  ]
+}

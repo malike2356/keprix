@@ -9,6 +9,9 @@ from typing import Any
 
 class NodeStatus(str, Enum):
     LIVE = "live"
+    APPROVAL_REQUIRED = "approval_required"
+    PROPOSAL_ONLY = "proposal_only"
+    INTENTIONALLY_FORBIDDEN = "intentionally_forbidden"
     STUB = "stub"
     NOT_CONFIGURED = "not_configured"
     DISABLED = "disabled"

@@ -112,8 +112,9 @@ def _auth(token: str) -> dict[str, str]:
 
 
 def _payload(**overrides: Any) -> dict[str, Any]:
+    workspace_id = str(overrides.get("workspace_id") or "ws_abc123")
     body = {
-        "workspace_id": "ws_abc123",
+        "workspace_id": workspace_id,
         "session_id": "sess_xyz789",
         "model": "deepseek-v4-pro",
         "temperature": 0.7,
@@ -134,10 +135,19 @@ def _payload(**overrides: Any) -> dict[str, Any]:
                 "name": "search_contacts",
                 "http_endpoint": "http://carina:80/api/carina/tools/search_contacts",
                 "auth_header": "Bearer carina-shared",
+                "workspace_id": workspace_id,
+                "user_id": "42",
+                "conversation_id": "99",
+                "correlation_id": "corr_test",
             }
         ],
     }
     body.update(overrides)
+    # Keep trusted callback metadata aligned with the request workspace.
+    if "carina_tools" not in overrides:
+        for tool in body.get("carina_tools") or []:
+            if isinstance(tool, dict):
+                tool["workspace_id"] = body["workspace_id"]
     return body
 
 
@@ -172,8 +182,80 @@ def test_carina_http_tool_routing(client: TestClient, shared_token: str) -> None
     assert len(client.app.state.test_calls) == 2
     http_calls = client.app.state.http_client.calls
     assert len(http_calls) == 1
-    assert http_calls[0]["json"] == {"query": "Portsmouth"}
+    payload = http_calls[0]["json"]
+    assert payload["query"] == "Portsmouth"
+    assert payload["workspace_id"] == "ws_abc123"
+    assert str(payload["user_id"]) == "42"
+    assert str(payload["conversation_id"]) == "99"
+    assert payload["correlation_id"] == "corr_test"
+    headers = http_calls[0]["headers"]
+    assert headers.get("X-Keprix-Trusted-Workspace-Id") == "ws_abc123"
+    assert headers.get("X-Keprix-Trusted-Actor-Id") == "42"
 
+
+def test_model_cannot_redirect_callback_to_other_tenant(
+    client: TestClient, shared_token: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Even if the model emits workspace_id for tenant B, trusted A wins."""
+    store = SessionStore()
+    http_client = _StubHttpClient()
+
+    async def fake_complete(**kwargs: Any) -> LlmTurn:
+        if getattr(fake_complete, "done", False):
+            return LlmTurn(
+                content="done",
+                tool_calls=[],
+                finish_reason="stop",
+                usage={"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+            )
+        fake_complete.done = True  # type: ignore[attr-defined]
+        tools = kwargs.get("tools") or []
+        tool_names = {
+            (t.get("function") or {}).get("name")
+            for t in tools
+            if isinstance(t, dict)
+        }
+        if "search_contacts" in tool_names:
+            return LlmTurn(
+                content=None,
+                tool_calls=[
+                    {
+                        "id": "call_hijack",
+                        "type": "function",
+                        "function": {
+                            "name": "search_contacts",
+                            "arguments": json.dumps(
+                                {"query": "x", "workspace_id": "tenant-B-evil", "user_id": "999"}
+                            ),
+                        },
+                    }
+                ],
+                finish_reason="tool_calls",
+                usage={"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+            )
+        return LlmTurn(
+            content="done",
+            tool_calls=[],
+            finish_reason="stop",
+            usage={"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+        )
+
+    bridge = CarinaAgentBridge(
+        tool_registry=CarinaToolRegistry(http_client=http_client),  # type: ignore[arg-type]
+        provider_pool=ProviderPool(complete_fn=fake_complete, fallbacks=[]),
+        session_store=store,
+    )
+    monkeypatch.setattr(carina_agent_routes, "bridge", bridge)
+    app = FastAPI()
+    app.include_router(carina_agent_routes.router)
+    local = TestClient(app)
+    response = local.post("/carina/agent/run", headers=_auth(shared_token), json=_payload())
+    assert response.status_code == 200
+    assert len(http_client.calls) == 1
+    body = http_client.calls[0]["json"]
+    assert body["workspace_id"] == "ws_abc123"
+    assert str(body["user_id"]) == "42"
+    assert "tenant-B-evil" not in str(body)
 
 def test_session_persists_across_calls(client: TestClient, shared_token: str) -> None:
     first = client.post("/carina/agent/run", headers=_auth(shared_token), json=_payload())
@@ -348,6 +430,8 @@ def test_native_tool_preferred_over_http(monkeypatch: pytest.MonkeyPatch) -> Non
                     "name": "native_echo",
                     "http_endpoint": "http://carina/should-not-call",
                     "auth_header": "Bearer x",
+                    "workspace_id": "ws_1",
+                    "user_id": "1",
                 }
             ],
         )

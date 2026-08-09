@@ -14,11 +14,15 @@ high-risk approval digests.
 - `docs/propreneur-aiva-capability-guidance.md`
 - `docs/propreneur-event-catalogue.md`
 - `docs/propreneur-conflict-rules.md`
+- Capability honesty self-doc: `keprix/docs/self-knowledge/propreneur-product-pack-honesty.md`
+- Operator readiness: `GET /v1/products/propreneur/readiness`
 
 ## Product sidecar nodes
 
 Node catalog lives in `src/keprix/product_sidecar/packs/propreneur.py` and is
-registered by `ProductPackRegistry`.
+registered by `ProductPackRegistry`. HTTP-backed CRUD handlers live in
+`packs/propreneur_ops.py`. Propreneur remains source of truth at
+`/opt/lampp/htdocs/verlox/propreneur`.
 
 ## Local check
 

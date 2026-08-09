@@ -1,0 +1,85 @@
+{
+  "schema": "propreneur_result_envelope.v1",
+  "version": "1.0.0",
+  "description": "Standard agent/product result envelope for Propreneur operations. Path parameters are never mixed into the request body schema.",
+  "fields": {
+    "success": {
+      "type": "boolean",
+      "required": true
+    },
+    "data": {
+      "type": [
+        "object",
+        "array",
+        "null"
+      ],
+      "required": true
+    },
+    "error": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "required": true,
+      "properties": {
+        "code": "string",
+        "message": "string",
+        "retryable": "boolean"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "awaiting_approval",
+        "accepted",
+        "completed",
+        "partially_completed",
+        "failed",
+        "not_configured"
+      ],
+      "required": true
+    },
+    "correlation_id": {
+      "type": "string",
+      "required": true
+    },
+    "idempotency": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "key": "string",
+        "state": "fresh|replayed|conflict|n/a"
+      }
+    },
+    "approval": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "state": "not_required|pending|approved|rejected",
+        "approval_id": "string",
+        "digest": "string"
+      }
+    },
+    "audit_reference": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "retry": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "safe": "boolean",
+        "guidance": "string"
+      }
+    }
+  }
+}

@@ -13,7 +13,21 @@ async def app(scope, receive, send):  # type: ignore[no-untyped-def]
         return
     path = scope.get("path") or "/"
     if path in {"/", "/health"}:
-        body = json.dumps({"ok": True, "product": "propreneur", "status": "live"}).encode()
+        # Process is up; agent CRUD remains under remediation (prompt 636).
+        body = json.dumps(
+            {
+                "ok": True,
+                "product": "propreneur",
+                "status": "degraded",
+                "capability_honesty": "fail_closed_remediation",
+                "crud_complete": False,
+                "note": (
+                    "Domain-pack process healthy; complete agent CRUD is under "
+                    "remediation. Pack product_sidecar nodes are not_configured "
+                    "until handlers, connector routes, and behavioral tests exist."
+                ),
+            }
+        ).encode()
         status = 200
     elif path == "/propreneur/capabilities":
         contract = load_tools_contract()
@@ -22,6 +36,8 @@ async def app(scope, receive, send):  # type: ignore[no-untyped-def]
                 "product": "propreneur",
                 "contract_version": contract["version"],
                 "tools": list_tool_names(),
+                "capability_honesty": "fail_closed_remediation",
+                "crud_complete": False,
             }
         ).encode()
         status = 200
