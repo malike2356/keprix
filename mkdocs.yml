@@ -150,6 +150,9 @@ nav:
       - Upstream adoption policy: architecture/upstream-adoption-policy.md
       - Keprix solidness report: architecture/keprix-solidness-report.md
       - Keprix agent parity report: architecture/keprix-agent-parity-report.md
+      - Agentic CRM gap map: architecture/agentic-crm-gap-map.md
+      - Standalone lead/outreach matrix (620): architecture/standalone-lead-outreach-capability-matrix.md
+      - Standalone lead/outreach contract (620): architecture/standalone-lead-outreach-contract.md
       - Public GTM sign-off: architecture/public-gtm-signoff.md
       - Public GTM gap map: architecture/public-gtm-gap-map.md
   - Automations:

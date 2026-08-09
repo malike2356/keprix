@@ -1,0 +1,166 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://keprixai.com/schemas/standalone-lead-outreach/contract.schema.json",
+  "title": "KeprixStandaloneLeadOutreachContract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_version", "workspace_id", "entities", "stages", "events"],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "workspace_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actor_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "correlation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Account",
+          "Lead",
+          "Contact",
+          "Deal",
+          "Activity",
+          "List",
+          "ListMembership",
+          "EnrichmentJob",
+          "ConsentRecord",
+          "SuppressionEntry",
+          "DiscoveryJob",
+          "OutboxRecord",
+          "Campaign",
+          "Sequence",
+          "SequenceStep",
+          "Enrollment",
+          "OutboundMessage",
+          "InboundReply",
+          "Booking",
+          "Approval",
+          "ProviderEvent",
+          "AttributionRecord"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "stages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["forward", "terminal"],
+      "properties": {
+        "forward": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "discovered",
+              "enriched",
+              "listed",
+              "approved",
+              "enrolled",
+              "contacted",
+              "engaged",
+              "qualified",
+              "booked",
+              "customer",
+              "paying"
+            ]
+          }
+        },
+        "terminal": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["suppressed", "bounced", "do_not_contact", "lost"]
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "lead.upserted",
+          "lead.stage_changed",
+          "list.enrolled",
+          "approval.requested",
+          "approval.resolved",
+          "message.queued",
+          "message.sent",
+          "message.failed",
+          "provider.bounce",
+          "provider.complaint",
+          "provider.delivered",
+          "reply.ingested",
+          "booking.offered",
+          "booking.confirmed",
+          "suppression.applied",
+          "merge.applied"
+        ]
+      }
+    },
+    "provider_event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "event_type",
+        "provider_message_id",
+        "recipient",
+        "occurred_at",
+        "workspace_id",
+        "idempotency_key"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": ["ses", "sendgrid", "mailgun", "smtp", "other"]
+        },
+        "event_type": {
+          "type": "string",
+          "enum": ["delivered", "bounce", "complaint", "open", "click", "rejected"]
+        },
+        "provider_message_id": { "type": "string" },
+        "recipient": { "type": "string" },
+        "occurred_at": { "type": "string", "format": "date-time" },
+        "raw_ref": { "type": "string" },
+        "workspace_id": { "type": "string" },
+        "idempotency_key": { "type": "string" }
+      }
+    },
+    "error_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "not_configured",
+          "soft_wall_required",
+          "suppressed",
+          "workspace_mismatch",
+          "idempotent_replay",
+          "dry_run",
+          "unsupported_format"
+        ]
+      }
+    },
+    "standalone_outreach_ready": {
+      "type": "boolean",
+      "description": "Must remain false until Prompt 628 sign-off."
+    }
+  }
+}
