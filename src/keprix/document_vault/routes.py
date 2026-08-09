@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, File, Header, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Body, Depends, File, Header, HTTPException, Query, Request, UploadFile
 from fastapi.responses import Response
 
 from keprix.auth.dependencies import get_current_user
@@ -413,6 +413,205 @@ def generate_pdf_route(
             item_id,
             actor_id=_uid(user),
             parent_id=body.get("parent_id"),
+        )
+    except VaultError as exc:
+        _raise(exc)
+        raise
+
+
+def _google():
+    from keprix.document_vault.google.service import GoogleDriveVaultService
+
+    return GoogleDriveVaultService()
+
+
+@router.get("/google/status")
+def google_status(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return _google().status(ws)
+
+
+@router.post("/google/connect")
+def google_connect(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    try:
+        return _google().begin_connect(
+            ws,
+            user_id=_uid(user),
+            mode=str(body.get("mode") or "outbound_only"),
+            redirect_uri=body.get("redirect_uri"),
+        )
+    except VaultError as exc:
+        _raise(exc)
+        raise
+
+
+@router.post("/google/callback")
+def google_callback(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Complete OAuth using exchanged tokens (bridge or test harness)."""
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    try:
+        return _google().complete_connect(
+            ws,
+            user_id=_uid(user),
+            access_token=str(body.get("access_token") or ""),
+            refresh_token=str(body.get("refresh_token") or ""),
+            account_email=body.get("account_email"),
+            scopes=body.get("scopes"),
+            mode=body.get("mode"),
+            expires_at=body.get("expires_at"),
+        )
+    except VaultError as exc:
+        _raise(exc)
+        raise
+
+
+@router.post("/google/configure")
+def google_configure(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    try:
+        return _google().configure_root(
+            ws,
+            root_folder_id=str(body.get("root_folder_id") or ""),
+            root_folder_name=body.get("root_folder_name"),
+            mode=body.get("mode"),
+            enable_shared_drives=bool(body.get("enable_shared_drives")),
+        )
+    except VaultError as exc:
+        _raise(exc)
+        raise
+
+
+@router.post("/google/sync")
+def google_sync(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    try:
+        return _google().sync_now(
+            ws,
+            source=str(body.get("source") or "manual"),
+            actor_id=_uid(user),
+            direction=str(body.get("direction") or "inbound"),
+            item_id=body.get("item_id"),
+        )
+    except VaultError as exc:
+        _raise(exc)
+        raise
+
+
+@router.get("/google/conflicts")
+def google_conflicts(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return _google().list_conflicts(ws)
+
+
+@router.post("/google/conflicts/{item_id}/resolve")
+def google_resolve_conflict(
+    item_id: str,
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    try:
+        return _google().resolve_conflict(
+            ws,
+            item_id,
+            choice=str(body.get("choice") or "keep_both"),
+            actor_id=_uid(user),
+        )
+    except VaultError as exc:
+        _raise(exc)
+        raise
+
+
+@router.post("/google/disconnect")
+def google_disconnect(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    return _google().disconnect(ws)
+
+
+@router.post("/google/watch/renew")
+def google_watch_renew(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    try:
+        return _google().renew_watch(ws)
+    except VaultError as exc:
+        _raise(exc)
+        raise
+
+
+@router.post("/google/refresh")
+def google_refresh(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    try:
+        return _google().refresh_grant(ws)
+    except VaultError as exc:
+        _raise(exc)
+        raise
+
+
+@router.post("/google/webhook")
+async def google_webhook(request: Request) -> dict[str, Any]:
+    """Google Drive changes notification wakeup (no OAuth bearer)."""
+    headers = {str(k).lower(): str(v) for k, v in request.headers.items()}
+    channel_id = headers.get("x-goog-channel-id") or ""
+    resource_id = headers.get("x-goog-resource-id") or ""
+    token = headers.get("x-goog-channel-token") or ""
+    message_number = headers.get("x-goog-message-number")
+    resource_state = headers.get("x-goog-resource-state")
+    if not channel_id:
+        raise HTTPException(status_code=400, detail={"error_code": "invalid_notification"})
+    try:
+        return _google().handle_webhook(
+            channel_id=channel_id,
+            resource_id=resource_id,
+            channel_token=token,
+            message_number=message_number,
+            resource_state=resource_state,
         )
     except VaultError as exc:
         _raise(exc)

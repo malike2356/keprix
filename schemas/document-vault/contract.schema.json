@@ -98,7 +98,9 @@
         "KEPRIX_DOCUMENT_VAULT_ENABLED",
         "KEPRIX_DOCUMENT_VAULT_MIGRATE",
         "KEPRIX_DOCUMENT_VAULT_CUTOVER",
-        "KEPRIX_DOCUMENT_VAULT_HOST_FS_BRIDGE"
+        "KEPRIX_DOCUMENT_VAULT_HOST_FS_BRIDGE",
+        "KEPRIX_DOCUMENT_VAULT_GOOGLE_SYNC",
+        "KEPRIX_DOCUMENT_VAULT_GOOGLE_SHARED_DRIVES"
       ],
       "properties": {
         "KEPRIX_DOCUMENT_VAULT_ENABLED": {
@@ -117,6 +119,15 @@
           "type": "boolean",
           "const": false,
           "description": "Must stay false. Admin host filesystem is never the tenant vault."
+        },
+        "KEPRIX_DOCUMENT_VAULT_GOOGLE_SYNC": {
+          "type": "boolean",
+          "description": "Optional Google Drive OAuth sync (Prompt 649). Local CE works when false."
+        },
+        "KEPRIX_DOCUMENT_VAULT_GOOGLE_SHARED_DRIVES": {
+          "type": "boolean",
+          "const": false,
+          "description": "Shared Drives gated until dedicated flags, corpora, permissions, and tests exist."
         }
       }
     },

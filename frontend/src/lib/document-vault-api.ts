@@ -214,3 +214,46 @@ export async function fetchVaultFormats(): Promise<unknown> {
     "Failed to load formats",
   );
 }
+
+export async function fetchGoogleDriveStatus(): Promise<Record<string, unknown>> {
+  return parseJson(
+    await ceApi("/api/document-vault/google/status", { headers: workspaceHeader() }),
+    "Failed to load Google Drive status",
+  );
+}
+
+export async function syncGoogleDrive(body?: {
+  direction?: string;
+  item_id?: string;
+  source?: string;
+}): Promise<Record<string, unknown>> {
+  return parseJson(
+    await ceApi("/api/document-vault/google/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...workspaceHeader() },
+      body: JSON.stringify(body || { direction: "inbound", source: "manual" }),
+    }),
+    "Failed to sync Google Drive",
+  );
+}
+
+export async function fetchGoogleDriveConflicts(): Promise<{ conflicts: unknown[] }> {
+  return parseJson(
+    await ceApi("/api/document-vault/google/conflicts", { headers: workspaceHeader() }),
+    "Failed to load conflicts",
+  );
+}
+
+export async function resolveGoogleDriveConflict(
+  itemId: string,
+  choice: "keep_local" | "keep_remote" | "keep_both",
+): Promise<Record<string, unknown>> {
+  return parseJson(
+    await ceApi(`/api/document-vault/google/conflicts/${encodeURIComponent(itemId)}/resolve`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...workspaceHeader() },
+      body: JSON.stringify({ choice }),
+    }),
+    "Failed to resolve conflict",
+  );
+}

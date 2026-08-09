@@ -48,12 +48,16 @@ import {
   classifyVaultError,
   createVaultItem,
   exportVaultItem,
+  fetchGoogleDriveConflicts,
+  fetchGoogleDriveStatus,
   getVaultContent,
   importVaultFile,
   listVaultItems,
   moveVaultItem,
   patchVaultItem,
+  resolveGoogleDriveConflict,
   restoreVaultItem,
+  syncGoogleDrive,
   trashVaultItem,
   type VaultErrorState,
   type VaultItem,
@@ -135,6 +139,8 @@ export default function DocumentVaultExplorer({ showHostFsLink = false }: Explor
   );
   const [dragOver, setDragOver] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
+  const [driveStatus, setDriveStatus] = React.useState<Record<string, unknown> | null>(null);
+  const [conflictCount, setConflictCount] = React.useState(0);
   const uploadRef = React.useRef<HTMLInputElement | null>(null);
   const dragSnapshot = React.useRef<VaultItem[] | null>(null);
 
@@ -166,6 +172,25 @@ export default function DocumentVaultExplorer({ showHostFsLink = false }: Explor
   React.useEffect(() => {
     void load();
   }, [load]);
+
+  const refreshDrive = React.useCallback(async () => {
+    try {
+      const status = await fetchGoogleDriveStatus();
+      setDriveStatus(status);
+      if (status.connected) {
+        const conflicts = await fetchGoogleDriveConflicts();
+        setConflictCount((conflicts.conflicts || []).length);
+      } else {
+        setConflictCount(0);
+      }
+    } catch {
+      setDriveStatus(null);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    void refreshDrive();
+  }, [refreshDrive]);
 
   const openFolder = (item: VaultItem) => {
     if (item.kind !== "folder") return;
@@ -457,6 +482,39 @@ export default function DocumentVaultExplorer({ showHostFsLink = false }: Explor
         >
           Trash
         </Button>
+        <Button
+          size="small"
+          variant="outlined"
+          disabled={busy}
+          onClick={() => {
+            void (async () => {
+              setBusy(true);
+              try {
+                await syncGoogleDrive({ direction: "inbound", source: "manual" });
+                setMessage("Google Drive sync finished.");
+                await refreshDrive();
+                await load();
+              } catch (err) {
+                setErrorState(classifyVaultError(err));
+                setErrorDetail(err instanceof Error ? err.message : "Sync failed");
+              } finally {
+                setBusy(false);
+              }
+            })();
+          }}
+        >
+          Sync Drive
+        </Button>
+        <Chip
+          size="small"
+          label={
+            driveStatus?.connected
+              ? `Drive: ${String(driveStatus.mode || "connected")}${conflictCount ? ` · ${conflictCount} conflicts` : ""}`
+              : "Drive: not connected"
+          }
+          color={conflictCount ? "warning" : driveStatus?.connected ? "success" : "default"}
+          variant="outlined"
+        />
         <ToggleButtonGroup
           size="small"
           exclusive
@@ -473,6 +531,31 @@ export default function DocumentVaultExplorer({ showHostFsLink = false }: Explor
         </ToggleButtonGroup>
         <Chip size="small" label="Tenant Vault" color="primary" variant="outlined" />
       </Stack>
+
+      {conflictCount > 0 ? (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {conflictCount} Google Drive conflict(s). Both versions are preserved. Resolve via API
+          choice keep_local / keep_remote / keep_both (UI resolve uses keep_both by default).
+          <Button
+            size="small"
+            sx={{ ml: 1 }}
+            onClick={() => {
+              void (async () => {
+                const payload = await fetchGoogleDriveConflicts();
+                const first = (payload.conflicts || [])[0] as { item_id?: string } | undefined;
+                if (first?.item_id) {
+                  await resolveGoogleDriveConflict(first.item_id, "keep_both");
+                  setMessage("Conflict marked keep_both.");
+                  await refreshDrive();
+                  await load();
+                }
+              })();
+            }}
+          >
+            Keep both (first)
+          </Button>
+        </Alert>
+      ) : null}
 
       <Breadcrumbs sx={{ mb: 2 }} aria-label="Vault breadcrumbs">
         {crumbs.map((crumb, index) =>

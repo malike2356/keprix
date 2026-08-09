@@ -43,7 +43,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | Desktop file tree | OUT_OF_SCOPE | Host/project FS via `/api/fs`; vault tab is separate tenant UI |
 | Desktop Document Vault tab | REAL | Right sidebar mode toggle; tenant API only |
 | TUI recent file actions | PARTIAL | Host/path open_file remains |
-| TUI Document Vault | REAL | Palette + `/vault` slash; browse/CRUD/export/sync note |
+| TUI Document Vault | REAL | Palette + `/vault` slash; browse/CRUD/export; `/vault sync` status (649) |
 | Agent file tools | PARTIAL | `file_tools`, `vault_tools`; vault tools arrive in 650 |
 | Channel gateway document cache | PARTIAL | `gateway/platforms/base.py` cache; 651 |
 | Canonical Document Vault service | REAL | `document_vault.store` + `service` + `/api/document-vault/*` (646); flags default off |
@@ -52,7 +52,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | Migration (workspace docs / knowledge vault) | REAL | Idempotent writers gated by `KEPRIX_DOCUMENT_VAULT_MIGRATE` |
 | Format engines / PDF pipeline | REAL | Registry + safety + engines; PDF artifact revision-linked; CE MD/HTML/TXT/CSV/PDF |
 | Document Vault UI explorer | REAL | Web explorer + desktop vault tab + TUI `/vault` (648) |
-| Google Drive OAuth sync/push | MISSING | Prompt 649 |
+| Google Drive OAuth sync/push | REAL | Encrypted grants + reconciler + webhook/poll (649); Shared Drives gated |
 | Vault Soft Wall agent policy | MISSING | Prompt 650 |
 | Channel / Telegram vault ops | MISSING | Prompt 651 |
 | Search/RAG/security ops | PARTIAL | Existing indexes; 652 consolidates |
@@ -66,7 +66,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | 646 | Canonical tree storage, revisions, migration writers; **COMPLETED** |
 | 647 | Format engines, import/export, PDF; **COMPLETED** |
 | 648 | Web, desktop, TUI explorer; **COMPLETED** |
-| 649 | Google Drive OAuth sync and push |
+| 649 | Google Drive OAuth sync and push; **COMPLETED** |
 | 650 | Agent tools, policy, approvals |
 | 651 | Channel and Telegram vault operations |
 | 652 | Search, RAG, security, operations |

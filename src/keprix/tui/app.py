@@ -1119,10 +1119,27 @@ class KeprixTuiApp(App):
                 self._log_system(f"Export markdown bytes={len(data)} (tenant vault; not host path)")
                 return
             if op in {"sync", "sync_status"}:
-                self._log_system(
-                    "Document Vault sync: Google Drive OAuth/push arrives in prompt 649. "
-                    "Local vault CRUD is available now."
-                )
+                try:
+                    from keprix.document_vault.google.service import GoogleDriveVaultService
+
+                    status = GoogleDriveVaultService().status(
+                        os.environ.get("KEPRIX_WORKSPACE_ID")
+                        or os.environ.get("X_WORKSPACE_ID")
+                        or "default"
+                    )
+                    connected = status.get("connected")
+                    mode = status.get("mode") or "n/a"
+                    last = status.get("last_sync_at") or "never"
+                    err = status.get("last_error") or ""
+                    webhook = "https webhook" if status.get("webhook_configured") else "local poll/manual"
+                    self._log_system(
+                        "Document Vault Google Drive sync\n"
+                        f"connected={connected} mode={mode} last_sync={last} transport={webhook}\n"
+                        f"{err or 'Local vault works without Google.'}\n"
+                        "Shared Drives are gated. Use web UI /api/document-vault/google/* for connect/sync."
+                    )
+                except Exception as exc:
+                    self._log_system(f"Document Vault sync status unavailable: {exc}")
                 return
             if op == "host":
                 self._log_system(

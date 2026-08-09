@@ -772,6 +772,279 @@ class DocumentVaultStore:
                 (workspace_id, max(1, min(limit, 500))),
             )
 
+    def upsert_provider_mapping(
+        self,
+        workspace_id: str,
+        item_id: str,
+        *,
+        provider: str,
+        provider_item_id: str,
+        provider_revision: str | None = None,
+        content_authority: str = "google",
+        conflict_state: str | None = None,
+        metadata: dict[str, Any] | None = None,
+        ) -> dict[str, Any]:
+        with self._lock:
+            existing = self._fetchone(
+                """
+                SELECT * FROM document_vault_provider_mappings
+                WHERE workspace_id = ? AND provider = ? AND provider_item_id = ?
+                """,
+                (workspace_id, provider, provider_item_id),
+            )
+            now = _utcnow()
+            if existing:
+                self._execute(
+                    """
+                    UPDATE document_vault_provider_mappings
+                    SET item_id = ?, provider_revision = ?, content_authority = ?,
+                        last_synced_at = ?, conflict_state = ?, metadata_json = ?
+                    WHERE id = ?
+                    """,
+                    (
+                        item_id,
+                        provider_revision,
+                        content_authority,
+                        now,
+                        conflict_state,
+                        _json_dumps(metadata or {}),
+                        existing["id"],
+                    ),
+                )
+                self._commit()
+                row = self._fetchone(
+                    "SELECT * FROM document_vault_provider_mappings WHERE id = ?",
+                    (existing["id"],),
+                )
+            else:
+                mid = str(uuid.uuid4())
+                self._execute(
+                    """
+                    INSERT INTO document_vault_provider_mappings (
+                        id, workspace_id, item_id, provider, provider_item_id,
+                        provider_revision, content_authority, last_synced_at,
+                        conflict_state, metadata_json
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        mid,
+                        workspace_id,
+                        item_id,
+                        provider,
+                        provider_item_id,
+                        provider_revision,
+                        content_authority,
+                        now,
+                        conflict_state,
+                        _json_dumps(metadata or {}),
+                    ),
+                )
+                self._commit()
+                row = self._fetchone(
+                    "SELECT * FROM document_vault_provider_mappings WHERE id = ?",
+                    (mid,),
+                )
+        out = dict(row or {})
+        out["metadata"] = _json_loads(out.pop("metadata_json", "{}"))
+        return out
+
+    def get_provider_mapping_by_provider_id(
+        self,
+        workspace_id: str,
+        provider: str,
+        provider_item_id: str,
+    ) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._fetchone(
+                """
+                SELECT * FROM document_vault_provider_mappings
+                WHERE workspace_id = ? AND provider = ? AND provider_item_id = ?
+                """,
+                (workspace_id, provider, provider_item_id),
+            )
+        if not row:
+            return None
+        out = dict(row)
+        out["metadata"] = _json_loads(out.pop("metadata_json", "{}"))
+        return out
+
+    def get_provider_mapping_for_item(
+        self,
+        workspace_id: str,
+        item_id: str,
+        provider: str,
+    ) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._fetchone(
+                """
+                SELECT * FROM document_vault_provider_mappings
+                WHERE workspace_id = ? AND item_id = ? AND provider = ?
+                """,
+                (workspace_id, item_id, provider),
+            )
+        if not row:
+            return None
+        out = dict(row)
+        out["metadata"] = _json_loads(out.pop("metadata_json", "{}"))
+        return out
+
+    def list_conflicts(self, workspace_id: str) -> list[dict[str, Any]]:
+        with self._lock:
+            rows = self._fetchall(
+                """
+                SELECT * FROM document_vault_provider_mappings
+                WHERE workspace_id = ? AND conflict_state IS NOT NULL AND conflict_state != ''
+                ORDER BY last_synced_at DESC
+                """,
+                (workspace_id,),
+            )
+        out = []
+        for row in rows:
+            item = dict(row)
+            item["metadata"] = _json_loads(item.pop("metadata_json", "{}"))
+            out.append(item)
+        return out
+
+    def get_drive_connection(self, workspace_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._fetchone(
+                "SELECT * FROM document_vault_drive_connections WHERE workspace_id = ?",
+                (workspace_id,),
+            )
+        if not row:
+            return None
+        out = dict(row)
+        out["connected"] = bool(out.get("connected"))
+        out["shared_drives_enabled"] = bool(out.get("shared_drives_enabled"))
+        out["scopes"] = _json_loads(out.pop("scopes_json", "[]"), default=[])
+        # Never expose ciphertext via casual callers; service strips it.
+        return out
+
+    def upsert_drive_connection(self, workspace_id: str, **fields: Any) -> dict[str, Any]:
+        with self._lock:
+            existing = self._fetchone(
+                "SELECT * FROM document_vault_drive_connections WHERE workspace_id = ?",
+                (workspace_id,),
+            )
+            now = _utcnow()
+            if not existing:
+                self._execute(
+                    """
+                    INSERT INTO document_vault_drive_connections (
+                        workspace_id, user_id, mode, root_folder_id, root_folder_name,
+                        vault_root_item_id, page_token, channel_id, resource_id,
+                        channel_expires_at, verification_token_hash, grant_ciphertext,
+                        scopes_json, account_email, shared_drives_enabled, connected,
+                        last_sync_at, last_error, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, NULL, NULL, ?)
+                    """,
+                    (
+                        workspace_id,
+                        str(fields.get("user_id") or "default"),
+                        str(fields.get("mode") or "two_way"),
+                        fields.get("root_folder_id"),
+                        fields.get("root_folder_name"),
+                        fields.get("vault_root_item_id"),
+                        fields.get("page_token"),
+                        fields.get("channel_id"),
+                        fields.get("resource_id"),
+                        fields.get("channel_expires_at"),
+                        str(fields.get("verification_token_hash") or ""),
+                        fields.get("grant_ciphertext"),
+                        _json_dumps(fields.get("scopes") or []),
+                        fields.get("account_email"),
+                        now,
+                    ),
+                )
+            self._commit()
+        return self.update_drive_connection(workspace_id, **fields)
+
+    def update_drive_connection(self, workspace_id: str, **fields: Any) -> dict[str, Any]:
+        allowed = {
+            "user_id",
+            "mode",
+            "root_folder_id",
+            "root_folder_name",
+            "vault_root_item_id",
+            "page_token",
+            "channel_id",
+            "resource_id",
+            "channel_expires_at",
+            "verification_token_hash",
+            "grant_ciphertext",
+            "account_email",
+            "last_sync_at",
+            "last_error",
+        }
+        with self._lock:
+            existing = self._fetchone(
+                "SELECT * FROM document_vault_drive_connections WHERE workspace_id = ?",
+                (workspace_id,),
+            )
+            if not existing:
+                raise VaultError("not_found", "drive connection missing")
+            sets: list[str] = []
+            params: list[Any] = []
+            for key, value in fields.items():
+                if key == "scopes":
+                    sets.append("scopes_json = ?")
+                    params.append(_json_dumps(value or []))
+                elif key == "connected":
+                    sets.append("connected = ?")
+                    params.append(1 if value else 0)
+                elif key == "shared_drives_enabled":
+                    # Shared Drives stay forced off until dedicated flags/tests exist.
+                    sets.append("shared_drives_enabled = ?")
+                    params.append(0)
+                elif key in allowed:
+                    sets.append(f"{key} = ?")
+                    params.append(value)
+            if sets:
+                sets.append("updated_at = ?")
+                params.append(_utcnow())
+                params.append(workspace_id)
+                self._execute(
+                    f"UPDATE document_vault_drive_connections SET {', '.join(sets)} WHERE workspace_id = ?",
+                    tuple(params),
+                )
+                self._commit()
+        return self.get_drive_connection(workspace_id) or {}
+
+    def delete_drive_connection(self, workspace_id: str) -> None:
+        with self._lock:
+            self._execute(
+                "DELETE FROM document_vault_drive_connections WHERE workspace_id = ?",
+                (workspace_id,),
+            )
+            self._execute(
+                "DELETE FROM document_vault_drive_notifications WHERE workspace_id = ?",
+                (workspace_id,),
+            )
+            self._commit()
+
+    def seen_drive_notification(self, workspace_id: str, notification_id: str) -> bool:
+        with self._lock:
+            row = self._fetchone(
+                """
+                SELECT id FROM document_vault_drive_notifications
+                WHERE workspace_id = ? AND notification_id = ?
+                """,
+                (workspace_id, notification_id),
+            )
+        return row is not None
+
+    def record_drive_notification(self, workspace_id: str, notification_id: str) -> None:
+        with self._lock:
+            self._execute(
+                """
+                INSERT OR IGNORE INTO document_vault_drive_notifications (
+                    id, workspace_id, notification_id, created_at
+                ) VALUES (?, ?, ?, ?)
+                """,
+                (str(uuid.uuid4()), workspace_id, notification_id, _utcnow()),
+            )
+            self._commit()
+
 
 def _split_sql(script: str) -> list[str]:
     parts: list[str] = []
@@ -826,7 +1099,6 @@ def get_document_vault_store() -> DocumentVaultStore:
             except Exception:
                 _STORE = DocumentVaultStore(backend="sqlite")
         return _STORE
-
 
 def reset_document_vault_store_for_tests(path: Path | str) -> DocumentVaultStore:
     global _STORE
