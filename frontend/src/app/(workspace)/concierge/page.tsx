@@ -14,14 +14,24 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import {
+  addCaseNote,
+  createKnowledge,
   fetchConciergeProfile,
+  fetchCustomerCase,
+  fetchCustomerCases,
+  fetchKnowledge,
   fetchPreview,
   fetchReadiness,
   publishConcierge,
+  releaseSession,
   saveStep1,
   saveStep2,
+  setKnowledgePublishState,
+  takeoverSession,
   unpublishConcierge,
   type ConciergeProfile,
+  type CustomerCase,
+  type KnowledgeSource,
   type Readiness,
 } from "@/lib/concierge-api";
 
@@ -70,6 +80,14 @@ export default function ConciergePage() {
   const [embedUrl, setEmbedUrl] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
+  const [sources, setSources] = React.useState<KnowledgeSource[]>([]);
+  const [kbTitle, setKbTitle] = React.useState("");
+  const [kbContent, setKbContent] = React.useState("");
+  const [cases, setCases] = React.useState<CustomerCase[]>([]);
+  const [selectedCaseId, setSelectedCaseId] = React.useState<string | null>(null);
+  const [caseNotes, setCaseNotes] = React.useState<Array<{ id: string; body: string }>>([]);
+  const [noteDraft, setNoteDraft] = React.useState("");
+  const [casesNote, setCasesNote] = React.useState<string | null>(null);
 
   const load = React.useCallback(async () => {
     setError(null);
@@ -251,7 +269,7 @@ export default function ConciergePage() {
                 label="Knowledge source IDs (comma-separated)"
                 value={knowledgeIds}
                 onChange={(e) => setKnowledgeIds(e.target.value)}
-                helperText="Published knowledge only; full enforcement lands in later prompts"
+                helperText="IDs of published business sources (manage under Knowledge tab)"
                 fullWidth
               />
               <Button variant="contained" disabled={busy} onClick={() => void onSaveStep1()}>
@@ -350,10 +368,215 @@ export default function ConciergePage() {
             </Typography>
           </Box>
         </Stack>
+      ) : tab === 3 ? (
+        <Stack spacing={2} sx={{ maxWidth: 720 }}>
+          <Alert severity="info">
+            Tenant published business knowledge only. This is not the Keprix product self-support corpus.
+          </Alert>
+          <TextField label="Title" value={kbTitle} onChange={(e) => setKbTitle(e.target.value)} fullWidth />
+          <TextField
+            label="Content"
+            value={kbContent}
+            onChange={(e) => setKbContent(e.target.value)}
+            fullWidth
+            multiline
+            minRows={4}
+          />
+          <Button
+            variant="contained"
+            disabled={busy || !kbTitle.trim() || !kbContent.trim()}
+            onClick={() => {
+              void (async () => {
+                setBusy(true);
+                setError(null);
+                try {
+                  await createKnowledge({
+                    personaId,
+                    title: kbTitle.trim(),
+                    content: kbContent.trim(),
+                    type: "faq",
+                    attachToProfile: true,
+                  });
+                  setKbTitle("");
+                  setKbContent("");
+                  const kb = await fetchKnowledge(personaId);
+                  setSources(kb.sources);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Knowledge save failed");
+                } finally {
+                  setBusy(false);
+                }
+              })();
+            }}
+          >
+            Save draft source
+          </Button>
+          <Button
+            variant="outlined"
+            disabled={busy}
+            onClick={() => {
+              void (async () => {
+                try {
+                  const kb = await fetchKnowledge(personaId);
+                  setSources(kb.sources);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Knowledge load failed");
+                }
+              })();
+            }}
+          >
+            Refresh sources
+          </Button>
+          <Stack spacing={1}>
+            {sources.map((s) => (
+              <Box key={s.id} sx={{ border: "1px solid", borderColor: "divider", p: 1.5, borderRadius: 1 }}>
+                <Typography variant="subtitle2">
+                  {s.title} · {s.publishState} · rev {s.revision}
+                </Typography>
+                <Typography variant="body2" sx={{ whiteSpace: "pre-wrap" }}>
+                  {s.content.slice(0, 240)}
+                </Typography>
+                <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                  {s.publishState !== "published" ? (
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        void (async () => {
+                          await setKnowledgePublishState(s.id, "published");
+                          setSources((await fetchKnowledge(personaId)).sources);
+                        })();
+                      }}
+                    >
+                      Publish
+                    </Button>
+                  ) : (
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        void (async () => {
+                          await setKnowledgePublishState(s.id, "archived");
+                          setSources((await fetchKnowledge(personaId)).sources);
+                        })();
+                      }}
+                    >
+                      Archive
+                    </Button>
+                  )}
+                </Stack>
+              </Box>
+            ))}
+            {!sources.length ? <Typography variant="body2">No knowledge sources yet.</Typography> : null}
+          </Stack>
+        </Stack>
+      ) : tab === 1 ? (
+        <Stack spacing={2} sx={{ maxWidth: 800 }}>
+          <Alert severity="warning">
+            Customer support cases for your visitors ({casesNote || "tenant_customer_support"}). Keprix product-support tickets
+            stay under /api/support and must not be mixed here.
+          </Alert>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              void (async () => {
+                try {
+                  const data = await fetchCustomerCases(personaId);
+                  setCases(data.cases);
+                  setCasesNote(`${data.scope} (not ${data.productSupportScope})`);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Cases load failed");
+                }
+              })();
+            }}
+          >
+            Refresh cases
+          </Button>
+          <Stack spacing={1}>
+            {cases.map((c) => (
+              <Box key={c.id} sx={{ border: "1px solid", borderColor: "divider", p: 1.5, borderRadius: 1 }}>
+                <Typography variant="subtitle2">
+                  {c.subject} · {c.status} · {c.priority}
+                </Typography>
+                <Typography variant="caption" display="block">
+                  scope={c.scope} · session={c.audienceSessionId || "n/a"}
+                </Typography>
+                <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      void (async () => {
+                        setSelectedCaseId(c.id);
+                        const detail = await fetchCustomerCase(c.id);
+                        setCaseNotes(detail.internalNotes.map((n) => ({ id: n.id, body: n.body })));
+                      })();
+                    }}
+                  >
+                    Open
+                  </Button>
+                  {c.audienceSessionId ? (
+                    <>
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          void takeoverSession(c.audienceSessionId as string);
+                        }}
+                      >
+                        Takeover
+                      </Button>
+                      <Button
+                        size="small"
+                        onClick={() => {
+                          void releaseSession(c.audienceSessionId as string);
+                        }}
+                      >
+                        Release to AI
+                      </Button>
+                    </>
+                  ) : null}
+                </Stack>
+              </Box>
+            ))}
+            {!cases.length ? <Typography variant="body2">No customer cases yet.</Typography> : null}
+          </Stack>
+          {selectedCaseId ? (
+            <Box sx={{ border: "1px solid", borderColor: "divider", p: 2, borderRadius: 1 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Internal notes (owner only) · case {selectedCaseId}
+              </Typography>
+              {caseNotes.map((n) => (
+                <Typography key={n.id} variant="body2" sx={{ mb: 1 }}>
+                  {n.body}
+                </Typography>
+              ))}
+              <TextField
+                label="Add internal note"
+                value={noteDraft}
+                onChange={(e) => setNoteDraft(e.target.value)}
+                fullWidth
+                multiline
+                minRows={2}
+              />
+              <Button
+                sx={{ mt: 1 }}
+                variant="contained"
+                disabled={!noteDraft.trim()}
+                onClick={() => {
+                  void (async () => {
+                    await addCaseNote(selectedCaseId, noteDraft.trim());
+                    setNoteDraft("");
+                    const detail = await fetchCustomerCase(selectedCaseId);
+                    setCaseNotes(detail.internalNotes.map((n) => ({ id: n.id, body: n.body })));
+                  })();
+                }}
+              >
+                Save note
+              </Button>
+            </Box>
+          ) : null}
+        </Stack>
       ) : (
         <Alert severity="info">
-          {TABS[tab]} will receive external customer data after the setup wizard publishes a concierge. viCal bookings, CRM, and
-          outreach remain in their own areas.
+          {TABS[tab]} will receive more operator controls in later prompts. viCal bookings, CRM, and outreach remain in their own
+          areas.
         </Alert>
       )}
     </Box>

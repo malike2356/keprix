@@ -72,8 +72,8 @@ Tests assert these gap codes: `zoom_meeting_create`, `durable_notification_deliv
 
 | Status | Path | Note |
 | --- | --- | --- |
-| REUSABLE | `src/keprix/support/*` | Operator tickets, handoff helpers |
-| INCOMPLETE | External customer cases | Must not reuse operator auth as visitor (631) |
+| REUSABLE | `src/keprix/support/*` | Operator product-support tickets only |
+| ADDED (631) | `customer_concierge/{support_cases,handoff,published_knowledge,visitor_turn}.py` | Tenant customer cases + published KB; scope≠product support |
 
 ### 8. Gateway / Channel Shield / phone
 
@@ -81,7 +81,7 @@ Tests assert these gap codes: `zoom_meeting_create`, `durable_notification_deliv
 | --- | --- | --- |
 | REUSABLE | `src/keprix/channel_shield/*` | Web embed adapter, ingest pipeline |
 | REUSABLE | Phone receptionist / ECHO persona | Closest product persona; not published concierge |
-| MISSING | Audience session principal + deny-by-default tools (630) | |
+| ADDED (630) | `customer_concierge/audience/*` | Audience session principal + deny-by-default tools |
 
 ### 9. Vault / knowledge / durable stores
 
@@ -113,7 +113,7 @@ Helper: `src/keprix/customer_concierge/scope.py`.
 | Prompt | Extends |
 | --- | --- |
 | 630 | Audience principal + tool policy (**COMPLETED**) |
-| 631 | Published knowledge + external support/handoff |
+| 631 | Published knowledge + external support/handoff (**COMPLETED**) |
 | 632 | Booking saga + Zoom create |
 | 633 | Calendar invitations + reconciliation |
 | 634 | Operator inbox / CRM / channels UI |

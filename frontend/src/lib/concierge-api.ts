@@ -140,3 +140,85 @@ export function sendPublicMessage(
     { method: "POST", body: JSON.stringify({ text }) },
   );
 }
+
+export type KnowledgeSource = {
+  id: string;
+  title: string;
+  content: string;
+  type: string;
+  publishState: string;
+  revision: number;
+  language: string;
+};
+
+export type CustomerCase = {
+  id: string;
+  subject: string;
+  status: string;
+  priority: string;
+  scope: string;
+  audienceSessionId: string | null;
+  createdAt: string;
+};
+
+export function fetchKnowledge(personaId = "default") {
+  return jsonFetch<{
+    sources: KnowledgeSource[];
+    attachedSourceIds: string[];
+    scope: string;
+    notProductSupportCorpus: boolean;
+  }>(`${API}/knowledge?personaId=${encodeURIComponent(personaId)}`);
+}
+
+export function createKnowledge(body: Record<string, unknown>) {
+  return jsonFetch<{ ok: boolean; source: KnowledgeSource }>(`${API}/knowledge`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export function setKnowledgePublishState(sourceId: string, publishState: string) {
+  return jsonFetch<{ ok: boolean; source: KnowledgeSource }>(
+    `${API}/knowledge/${encodeURIComponent(sourceId)}/publish-state`,
+    { method: "POST", body: JSON.stringify({ publishState }) },
+  );
+}
+
+export function fetchCustomerCases(personaId = "default") {
+  return jsonFetch<{
+    cases: CustomerCase[];
+    scope: string;
+    productSupportScope: string;
+    note: string;
+  }>(`${API}/cases?personaId=${encodeURIComponent(personaId)}`);
+}
+
+export function fetchCustomerCase(caseId: string) {
+  return jsonFetch<{
+    case: CustomerCase;
+    internalNotes: Array<{ id: string; body: string; visibility: string }>;
+    events: Array<{ eventType: string; detail: string | null }>;
+    scope: string;
+  }>(`${API}/cases/${encodeURIComponent(caseId)}`);
+}
+
+export function addCaseNote(caseId: string, body: string) {
+  return jsonFetch<{ ok: boolean; note: { id: string; visibility: string } }>(
+    `${API}/cases/${encodeURIComponent(caseId)}/notes`,
+    { method: "POST", body: JSON.stringify({ body }) },
+  );
+}
+
+export function takeoverSession(sessionId: string) {
+  return jsonFetch<{ ok: boolean; liveTakeover: boolean }>(
+    `${API}/sessions/${encodeURIComponent(sessionId)}/takeover`,
+    { method: "POST" },
+  );
+}
+
+export function releaseSession(sessionId: string) {
+  return jsonFetch<{ ok: boolean; status: string }>(
+    `${API}/sessions/${encodeURIComponent(sessionId)}/release`,
+    { method: "POST" },
+  );
+}

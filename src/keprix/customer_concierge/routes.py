@@ -18,19 +18,27 @@ from keprix.customer_concierge.audience.ingress import (
     open_audience_session,
     resume_audience_session,
 )
-from keprix.customer_concierge.audience.retrieval_guard import (
-    forbidden_storage_access,
-    sanitize_visitor_text,
-)
+from keprix.customer_concierge.audience.retrieval_guard import forbidden_storage_access
 from keprix.customer_concierge.audience.store import get_audience_store
 from keprix.customer_concierge.capability_health import evaluate_capability_health
+from keprix.customer_concierge.handoff import operator_takeover, release_to_ai, request_handoff
 from keprix.customer_concierge.prompt_overlay import (
     build_concierge_persona_overlay,
     ensure_prompt_layer_registered,
     set_concierge_prompt_context,
 )
+from keprix.customer_concierge.published_knowledge import (
+    get_knowledge_store,
+    profile_policy,
+)
 from keprix.customer_concierge.readiness import evaluate_readiness
 from keprix.customer_concierge.store import get_concierge_store
+from keprix.customer_concierge.support_cases import (
+    PRODUCT_SUPPORT_SCOPE,
+    SCOPE as CUSTOMER_SUPPORT_SCOPE,
+    get_support_case_store,
+)
+from keprix.customer_concierge.visitor_turn import run_visitor_turn
 from keprix.customer_concierge.widget import public_widget_embed, public_widget_status
 
 router = APIRouter(prefix="/api/customer-concierge", tags=["customer-concierge"])
@@ -304,6 +312,313 @@ async def sign_embed(
     return {"ok": True, "token": token, "nonce": nonce, "exp": exp}
 
 
+@router.get("/knowledge")
+async def list_knowledge(
+    persona_id: str = Query(default="default", alias="personaId"),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    rows = get_knowledge_store().list_sources(ws, persona_id)
+    profile = get_concierge_store().get(ws, persona_id)
+    return {
+        "workspaceId": ws,
+        "personaId": persona_id,
+        "sources": rows,
+        "attachedSourceIds": list(profile.knowledge_source_ids) if profile else [],
+        "scope": "tenant_customer_knowledge",
+        "notProductSupportCorpus": True,
+    }
+
+
+@router.post("/knowledge")
+async def upsert_knowledge(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    persona_id = str(body.get("personaId") or body.get("persona_id") or "default")
+    title = str(body.get("title") or "").strip()
+    content = str(body.get("content") or "").strip()
+    if not title or not content:
+        raise HTTPException(status_code=400, detail={"error_code": "title_and_content_required"})
+    row = get_knowledge_store().upsert_source(
+        workspace_id=ws,
+        persona_id=persona_id,
+        title=title,
+        content=content,
+        source_type=str(body.get("type") or "faq"),
+        language=str(body.get("language") or "en"),
+        source_id=body.get("id"),
+        created_by=_uid(user),
+    )
+    attach = bool(body.get("attachToProfile", True))
+    if attach:
+        store = get_concierge_store()
+        profile = store.get(ws, persona_id)
+        if profile:
+            ids = list(profile.knowledge_source_ids)
+            if row["id"] not in ids:
+                ids.append(row["id"])
+                store.upsert_step1(
+                    workspace_id=ws,
+                    persona_id=persona_id,
+                    persona_name=profile.persona_name or "Concierge",
+                    greeting_message=profile.greeting_message or "Hi",
+                    business_name=profile.business_name or "",
+                    business_description=profile.business_description or "",
+                    escalation_email=profile.escalation_email or "",
+                    knowledge_source_ids=ids,
+                )
+    return {"ok": True, "source": row}
+
+
+@router.post("/knowledge/{source_id}/publish-state")
+async def set_knowledge_publish_state(
+    source_id: str,
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    state = str(body.get("publishState") or body.get("publish_state") or "").strip()
+    if state not in {"draft", "published", "archived"}:
+        raise HTTPException(status_code=400, detail={"error_code": "invalid_publish_state"})
+    row = get_knowledge_store().set_publish_state(
+        workspace_id=ws,
+        source_id=source_id,
+        publish_state=state,  # type: ignore[arg-type]
+        created_by=_uid(user),
+    )
+    if not row:
+        raise HTTPException(status_code=404, detail={"error_code": "source_not_found"})
+    return {"ok": True, "source": row}
+
+
+@router.get("/knowledge/{source_id}/revisions")
+async def knowledge_revisions(
+    source_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return {"sourceId": source_id, "revisions": get_knowledge_store().list_revisions(ws, source_id)}
+
+
+@router.patch("/policy")
+async def patch_policy(
+    body: dict[str, Any] = Body(default_factory=dict),
+    persona_id: str = Query(default="default", alias="personaId"),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    store = get_concierge_store()
+    profile = store.get(ws, persona_id)
+    if not profile:
+        raise HTTPException(status_code=404, detail={"error_code": "profile_not_found"})
+    channels = dict(profile.channel_config or {})
+    policy = dict(channels.get("policy") or {})
+    for key in (
+        "languages",
+        "confidenceThreshold",
+        "sensitiveIntents",
+        "slaFirstResponseMinutes",
+        "slaResolutionMinutes",
+        "contactCapture",
+        "bookingEnabled",
+    ):
+        if key in body:
+            policy[key] = body[key]
+    channels["policy"] = policy
+    updated = store.upsert_step2(
+        workspace_id=ws,
+        persona_id=persona_id,
+        channels=channels,
+        business_hours=profile.business_hours or {"timezone": "UTC", "windows": []},
+        calendar_provider=profile.calendar_provider,
+        conferencing_provider=profile.conferencing_provider,
+        calendar_connected=profile.calendar_connected,
+        conferencing_connected=profile.conferencing_connected,
+        meeting_types=[
+            m if isinstance(m, dict) else m.to_dict()
+            for m in (profile.channel_config or {}).get("meetingTypes") or []
+        ],
+        ics_fallback_ok=profile.ics_fallback_ok,
+    )
+    return {"ok": True, "policy": profile_policy(updated), "profile": updated.to_dict()}
+
+
+@router.get("/cases")
+async def list_customer_cases(
+    persona_id: str = Query(default="default", alias="personaId"),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    rows = get_support_case_store().list_cases(ws, persona_id=persona_id)
+    return {
+        "workspaceId": ws,
+        "personaId": persona_id,
+        "cases": rows,
+        "scope": CUSTOMER_SUPPORT_SCOPE,
+        "productSupportScope": PRODUCT_SUPPORT_SCOPE,
+        "note": "These are tenant customer-support cases, not Keprix product-support tickets at /api/support",
+    }
+
+
+@router.get("/cases/{case_id}")
+async def get_customer_case(
+    case_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    case = get_support_case_store().get_case(ws, case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail={"error_code": "case_not_found"})
+    notes = get_support_case_store().list_internal_notes(ws, case_id=case_id)
+    events = get_support_case_store().list_events(ws, case_id)
+    return {"case": case, "internalNotes": notes, "events": events, "scope": CUSTOMER_SUPPORT_SCOPE}
+
+
+@router.post("/cases/{case_id}/status")
+async def set_case_status(
+    case_id: str,
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    status = str(body.get("status") or "")
+    if status not in {"open", "pending_customer", "pending_operator", "resolved", "closed"}:
+        raise HTTPException(status_code=400, detail={"error_code": "invalid_status"})
+    case = get_support_case_store().transition(
+        workspace_id=ws,
+        case_id=case_id,
+        status=status,  # type: ignore[arg-type]
+        actor_type="operator",
+        actor_id=_uid(user),
+    )
+    if not case:
+        raise HTTPException(status_code=404, detail={"error_code": "case_not_found"})
+    return {"ok": True, "case": case}
+
+
+@router.post("/cases/{case_id}/notes")
+async def add_case_note(
+    case_id: str,
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    case = get_support_case_store().get_case(ws, case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail={"error_code": "case_not_found"})
+    note_body = str(body.get("body") or "").strip()
+    if not note_body:
+        raise HTTPException(status_code=400, detail={"error_code": "body_required"})
+    note = get_support_case_store().add_internal_note(
+        workspace_id=ws,
+        persona_id=str(case["personaId"]),
+        body=note_body,
+        author_user_id=_uid(user),
+        case_id=case_id,
+        audience_session_id=case.get("audienceSessionId"),
+    )
+    return {"ok": True, "note": note, "visibility": "owner_only"}
+
+
+@router.post("/sessions/{session_id}/handoff")
+async def operator_request_handoff(
+    session_id: str,
+    body: dict[str, Any] = Body(default_factory=dict),
+    persona_id: str = Query(default="default", alias="personaId"),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    result = request_handoff(
+        workspace_id=ws,
+        persona_id=persona_id,
+        audience_session_id=session_id,
+        reason=str(body.get("reason") or "Operator requested handoff"),
+        channel=str(body.get("channel") or "web"),
+        conversation_summary=body.get("summary"),
+    )
+    if not result.get("ok"):
+        raise HTTPException(status_code=404, detail=result)
+    return result
+
+
+@router.post("/sessions/{session_id}/takeover")
+async def session_takeover(
+    session_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    result = operator_takeover(
+        workspace_id=ws,
+        audience_session_id=session_id,
+        operator_user_id=_uid(user),
+    )
+    if not result.get("ok"):
+        raise HTTPException(status_code=404, detail=result)
+    return result
+
+
+@router.post("/sessions/{session_id}/release")
+async def session_release(
+    session_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    result = release_to_ai(
+        workspace_id=ws,
+        audience_session_id=session_id,
+        operator_user_id=_uid(user),
+    )
+    if not result.get("ok"):
+        raise HTTPException(status_code=404, detail=result)
+    return result
+
+
+@router.get("/sessions/{session_id}/messages")
+async def session_messages(
+    session_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    messages = get_support_case_store().list_messages(ws, session_id)
+    notes = get_support_case_store().list_internal_notes(ws)
+    # Internal notes are included only on operator routes
+    session_notes = [n for n in notes if n.get("audienceSessionId") == session_id]
+    return {
+        "sessionId": session_id,
+        "messages": messages,
+        "internalNotes": session_notes,
+        "internalNotesVisibility": "owner_only",
+    }
+
+
 @public_router.get("/{workspace_id}/{persona_id}/status")
 async def public_status(workspace_id: str, persona_id: str) -> dict[str, Any]:
     profile = get_concierge_store().get(workspace_id, persona_id)
@@ -411,7 +726,7 @@ async def public_session_message(
             raise HTTPException(status_code=429, detail={"error_code": "rate_limited", **rate})
 
     # Optional tool attempt from client/agent loop: deny-by-default
-    tool_name = str(body.get("tool") or body.get("toolName") or "").strip()
+    tool_name = str(body.get("tool") or body.get("toolName") or "").strip() or None
     if tool_name:
         if get_audience_context() is None:
             raise HTTPException(
@@ -431,23 +746,26 @@ async def public_session_message(
 
     profile = get_concierge_store().get(workspace_id, persona_id)
     text = str(body.get("text") or "").strip()
-    sanitized = sanitize_visitor_text(text)
-    reply = profile.greeting_message if not text else (
-        f"Thanks for your message. A team member can help further via {profile.escalation_email}."
-        if profile
-        else "Thanks for your message."
+    tool_args = body.get("toolArgs") or body.get("args") or {}
+    if not isinstance(tool_args, dict):
+        tool_args = {}
+    turn = run_visitor_turn(
+        workspace_id=workspace_id,
+        persona_id=persona_id,
+        session_id=session_id,
+        text=text,
+        tool_name=tool_name,
+        tool_args=tool_args,
     )
-    if sanitized["suspicious"]:
-        reply = (
-            "I can help with published business questions and bookings. "
-            "I cannot access private workspace tools or files."
-        )
+    if not turn.get("ok"):
+        raise HTTPException(status_code=403, detail=turn)
+    # Never expose internal notes on public responses
+    turn.pop("internalNotes", None)
     return {
-        "ok": True,
+        **turn,
         "sessionId": session_id,
-        "reply": reply,
         "published": bool(profile and profile.published),
         "workspaceMember": False,
         "principal": "audience_session",
-        "injectionSuspicious": sanitized["suspicious"],
+        "internalNotesVisible": False,
     }

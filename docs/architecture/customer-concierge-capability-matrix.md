@@ -20,7 +20,8 @@ Honesty rule: URL templates, in-memory outboxes, and operator-auth support route
 | Google calendar projection | PARTIAL | Workspace calendar bridge; no concierge saga |
 | Microsoft calendar | MISSING | Not live |
 | Outbound delivery proof | MISSING | `vical/notifications.py` in-memory outbox |
-| External customer support | MISSING | `support/routes.py` operator-auth |
+| External customer support | REAL | Prompt 631; `customer_concierge/support_cases.py` (not `/api/support`) |
+| Published business knowledge | REAL | Prompt 631; `published_knowledge.py` publish_state + citations |
 | Audience session principal | REAL | Prompt 630; `customer_concierge/audience/*` deny-by-default tools |
 | Channel Shield web path | PARTIAL | Embed HMAC + origin allowlist; gateway adapter still broader |
 | Carina runtime dependency | OUT_OF_SCOPE | Forbidden; static import scan |

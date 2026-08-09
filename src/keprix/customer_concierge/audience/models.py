@@ -64,6 +64,10 @@ class AudienceSession:
     expires_at: str
     last_active_at: str
     created_at: str
+    active_support_case_id: str | None = None
+    handed_off_at: str | None = None
+    operator_user_id: str | None = None
+    conversation_summary: str | None = None
     # Never a workspace member
     principal: str = "audience_session"
 
@@ -86,6 +90,10 @@ class AudienceSession:
             "expiresAt": d["expires_at"],
             "lastActiveAt": d["last_active_at"],
             "createdAt": d["created_at"],
+            "activeSupportCaseId": d["active_support_case_id"],
+            "handedOffAt": d["handed_off_at"],
+            "operatorUserId": d["operator_user_id"],
+            "conversationSummary": d["conversation_summary"],
             "principal": "audience_session",
             "actorType": "audience",
             "workspaceMember": False,

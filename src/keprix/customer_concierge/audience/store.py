@@ -50,7 +50,11 @@ CREATE TABLE IF NOT EXISTS audience_sessions (
     status TEXT NOT NULL DEFAULT 'active',
     expires_at TEXT NOT NULL,
     last_active_at TEXT NOT NULL,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    active_support_case_id TEXT,
+    handed_off_at TEXT,
+    operator_user_id TEXT,
+    conversation_summary TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_audience_sessions_ws
@@ -101,9 +105,68 @@ class AudienceStore:
         self._conn.row_factory = sqlite3.Row
         with self._conn:
             self._conn.executescript(_SCHEMA)
+            self._migrate_session_columns()
+
+    def _migrate_session_columns(self) -> None:
+        cur = self._conn.execute("PRAGMA table_info(audience_sessions)")
+        cols = {str(r[1]) for r in cur.fetchall()}
+        alters = []
+        if "active_support_case_id" not in cols:
+            alters.append("ALTER TABLE audience_sessions ADD COLUMN active_support_case_id TEXT")
+        if "handed_off_at" not in cols:
+            alters.append("ALTER TABLE audience_sessions ADD COLUMN handed_off_at TEXT")
+        if "operator_user_id" not in cols:
+            alters.append("ALTER TABLE audience_sessions ADD COLUMN operator_user_id TEXT")
+        if "conversation_summary" not in cols:
+            alters.append("ALTER TABLE audience_sessions ADD COLUMN conversation_summary TEXT")
+        for stmt in alters:
+            self._conn.execute(stmt)
+        if alters:
+            self._conn.commit()
 
     def close(self) -> None:
         self._conn.close()
+
+    def mark_handed_off(
+        self,
+        *,
+        workspace_id: str,
+        session_id: str,
+        case_id: str | None,
+        summary: str | None,
+        handed_off_at: str | None = None,
+    ) -> AudienceSession | None:
+        now = _now()
+        with self._conn:
+            self._conn.execute(
+                """
+                UPDATE audience_sessions SET
+                  status='handed_off',
+                  active_support_case_id=COALESCE(?, active_support_case_id),
+                  conversation_summary=COALESCE(?, conversation_summary),
+                  handed_off_at=COALESCE(handed_off_at, ?),
+                  last_active_at=?
+                WHERE workspace_id=? AND id=?
+                """,
+                (case_id, summary, handed_off_at or now, now, workspace_id, session_id),
+            )
+        return self.get_session(workspace_id, session_id)
+
+    def set_operator(
+        self, *, workspace_id: str, session_id: str, operator_user_id: str | None
+    ) -> AudienceSession | None:
+        now = _now()
+        status = "handed_off" if operator_user_id else "active"
+        with self._conn:
+            self._conn.execute(
+                """
+                UPDATE audience_sessions SET
+                  operator_user_id=?, status=?, last_active_at=?
+                WHERE workspace_id=? AND id=?
+                """,
+                (operator_user_id, status, now, workspace_id, session_id),
+            )
+        return self.get_session(workspace_id, session_id)
 
     def upsert_identity(
         self,
@@ -458,6 +521,7 @@ class AudienceStore:
     def _map_session(row: sqlite3.Row | None) -> AudienceSession | None:
         if not row:
             return None
+        keys = row.keys()
         return AudienceSession(
             id=str(row["id"]),
             workspace_id=str(row["workspace_id"]),
@@ -475,6 +539,14 @@ class AudienceStore:
             expires_at=str(row["expires_at"]),
             last_active_at=str(row["last_active_at"]),
             created_at=str(row["created_at"]),
+            active_support_case_id=row["active_support_case_id"]
+            if "active_support_case_id" in keys
+            else None,
+            handed_off_at=row["handed_off_at"] if "handed_off_at" in keys else None,
+            operator_user_id=row["operator_user_id"] if "operator_user_id" in keys else None,
+            conversation_summary=row["conversation_summary"]
+            if "conversation_summary" in keys
+            else None,
         )
 
 

@@ -29,6 +29,16 @@ When published, `build_concierge_persona_overlay` injects business name, descrip
 - Capability matrix: `docs/architecture/customer-concierge-capability-matrix.md`
 - Health API: `GET /api/customer-concierge/capability-health` (honest `not_configured`; `ready=false` until managed booking exists)
 
+## Published knowledge, customer cases, handoff (Prompt 631)
+
+- Tenant knowledge store with `draft` / `published` / `archived` + revisions (`published_knowledge.py`)
+- Visitors only receive grounded answers from **published** sources attached to the persona
+- Low confidence and sensitive intents auto-escalate via handoff + customer support case
+- Customer cases live under `/api/customer-concierge/cases` with scope `tenant_customer_support` (never `/api/support` product tickets)
+- Internal notes are owner-only; public widget responses set `internalNotesVisible: false`
+- Operator UI: Knowledge and Conversations tabs on `/concierge`
+- Tests: `tests/customer_concierge/test_knowledge_support_631.py`
+
 ## Audience principal (Prompt 630)
 
 External visitors use a durable `audience_session` principal (not a workspace member or API operator).
