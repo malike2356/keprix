@@ -25,6 +25,8 @@ class SagaDeps:
     ledger: SagaLedger | None = None
     store: VicalStore | None = None
     lifecycle: BookingLifecycle | None = None
+    calendar_deps: Any | None = None
+    skip_calendar: bool = False
 
 
 def _aware(value: datetime) -> datetime:
@@ -289,6 +291,47 @@ def book_with_saga(
             detail="explicit_meeting_url",
         )
 
+    calendar_projection: dict[str, Any] | None = None
+    if booking.status == "confirmed" and not deps.skip_calendar:
+        from keprix.vical.calendar.sync_booking import CalendarSyncDeps, project_booking_calendar
+
+        cal_deps = deps.calendar_deps
+        if cal_deps is None:
+            cal_deps = CalendarSyncDeps(ledger=ledger)
+        elif getattr(cal_deps, "ledger", None) is None:
+            cal_deps.ledger = ledger
+        calendar_projection = project_booking_calendar(
+            booking,
+            workspace_id=ws,
+            event_type_name=et.name,
+            deps=cal_deps,
+        )
+        if calendar_projection.get("actionRequired"):
+            action_required = True
+            booking = store.update_booking(
+                user_id,
+                booking.id,
+                metadata={
+                    **(booking.metadata or {}),
+                    "action_required": True,
+                    "actionRequiredReason": (
+                        (calendar_projection.get("result") or {}).get("errorCode")
+                        or "calendar_projection"
+                    ),
+                    "calendarProvider": calendar_projection.get("provider"),
+                },
+            )
+        else:
+            booking = store.update_booking(
+                user_id,
+                booking.id,
+                metadata={
+                    **(booking.metadata or {}),
+                    "calendarProvider": calendar_projection.get("provider"),
+                    "calendarProjectionId": (calendar_projection.get("projection") or {}).get("id"),
+                },
+            )
+
     ledger.release_hold(ws, hold["id"])
     booking = store.get_booking(user_id, booking.id) or booking
     ops = ledger.list_provider_operations(ws, booking.id)
@@ -301,6 +344,8 @@ def book_with_saga(
         "providerOperations": ops,
         "actionRequired": action_required
         or bool((booking.metadata or {}).get("action_required")),
+        "calendar": calendar_projection,
+        "invitation": (calendar_projection or {}).get("invitation"),
     }
 
 
@@ -342,11 +387,25 @@ def cancel_with_saga(
             response=result.to_public_dict(),
             error_code=result.error_code,
         )
+    calendar_cancel: dict[str, Any] | None = None
+    if not deps.skip_calendar:
+        from keprix.vical.calendar.reconcile import compensate_calendar_delete
+
+        google = None
+        if deps.calendar_deps is not None:
+            google = getattr(deps.calendar_deps, "google", None)
+        calendar_cancel = compensate_calendar_delete(
+            workspace_id=ws,
+            user_id=user_id,
+            booking_id=booking_id,
+            google=google,
+        )
     cancelled = life.cancel(user_id, booking_id)
     return {
         "booking": cancelled,
         "publicBooking": to_public_booking_view(cancelled.to_dict()),
         "reason": reason,
+        "calendar": calendar_cancel,
     }
 
 
@@ -395,9 +454,24 @@ def reschedule_with_saga(
             response=result.to_public_dict(),
             error_code=result.error_code,
         )
+    calendar_projection: dict[str, Any] | None = None
+    if not deps.skip_calendar:
+        from keprix.vical.calendar.sync_booking import CalendarSyncDeps, project_booking_calendar
+
+        cal_deps = deps.calendar_deps or CalendarSyncDeps(ledger=ledger)
+        if getattr(cal_deps, "ledger", None) is None:
+            cal_deps.ledger = ledger
+        # Re-project (update path via create_event idempotency / ICS rewrite)
+        calendar_projection = project_booking_calendar(
+            booking,
+            workspace_id=ws,
+            deps=cal_deps,
+        )
     return {
         "booking": booking,
         "publicBooking": to_public_booking_view(booking.to_dict()),
+        "calendar": calendar_projection,
+        "invitation": (calendar_projection or {}).get("invitation"),
     }
 
 

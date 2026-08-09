@@ -13,7 +13,7 @@ This table names exact modules to extend. Do not build parallel booking or CRM s
 | Claim | Evidence path | Why it fails managed Concierge v1 |
 | --- | --- | --- |
 | Meeting URL templates = Zoom booking | `src/keprix/vical/conferencing/fallback.py` (`resolve_meeting_url`) | Historical gap code `zoom_meeting_create`; templates remain unmanaged fallback after 632 managed Zoom adapter |
-| In-memory notification outbox = delivery | `src/keprix/vical/notifications.py` (`_OUTBOX`) | Process-local list; not durable; not proof of delivery |
+| In-memory notification outbox = delivery | `src/keprix/vical/notifications.py` | Closed in 633: durable `vical_notification_outbox` + evidence ids; process-local `_OUTBOX` is test mirror only |
 | Operator support API = external customer support | `src/keprix/support/routes.py` (`require_api_auth`) | Authenticated operator surface; no audience principal or visitor ticket API |
 
 Tests assert these gap codes: `zoom_meeting_create`, `durable_notification_delivery`, `external_customer_support_api`.
@@ -58,8 +58,8 @@ Tests assert these gap codes: `zoom_meeting_create`, `durable_notification_deliv
 | Status | Path | Note |
 | --- | --- | --- |
 | REUSABLE | `src/keprix/workspace/routes/calendar_routes.py`, `calendar_sync.py` | Sources + sync presets |
-| INCOMPLETE | Soft-fail / unknown invitation projection | Must not leave `confirmed` without usable projection (633) |
-| MISSING | Microsoft Graph calendar write | |
+| ADDED (633) | `src/keprix/vical/calendar/*` | Adapters, projection store, durable outbox, Google webhook reconcile |
+| PARTIAL | Microsoft Graph live OAuth store | Adapter injectable; CE uses ICS when not configured |
 
 ### 6. CRM / outreach
 

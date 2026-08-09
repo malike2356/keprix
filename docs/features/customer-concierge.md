@@ -39,6 +39,16 @@ When published, `build_concierge_persona_overlay` injects business name, descrip
 - CE: labelled static URL + ICS fallback when Zoom is not configured
 - Tests: `tests/customer_concierge/test_booking_saga_zoom_632.py`
 
+## Calendar invitations and reconciliation (Prompt 633)
+
+- Package: `src/keprix/vical/calendar/` (Google, Microsoft, ICS adapters + projection store)
+- Host calendar creation and guest invitation delivery evidenced separately
+- Durable notification outbox (`vical_notification_outbox`); not an in-memory list as sole record
+- Google push: `POST /api/vical/webhooks/google-calendar` (channel token + dedupe + attendee reconcile)
+- Invitation view: `GET /api/vical/bookings/{id}/invitation`
+- CE: ICS-only host event + outbox invite when Google/Microsoft absent
+- Tests: `tests/customer_concierge/test_calendar_invitations_633.py`
+
 ## Published knowledge, customer cases, handoff (Prompt 631)
 
 - Tenant knowledge store with `draft` / `published` / `archived` + revisions (`published_knowledge.py`)

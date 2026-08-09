@@ -13,6 +13,10 @@ from keprix.auth.dependencies import get_current_user
 from keprix.vical.bookings import BookingLifecycle, BookingLifecycleError
 from keprix.vical.conferencing import sync_notes, to_public_booking_view
 from keprix.vical.saga import book_with_saga
+from keprix.vical.calendar.calendar_webhooks import handle_google_calendar_webhook
+from keprix.vical.calendar.delivery_state import booking_invitation_view
+from keprix.vical.calendar.projection_store import get_projection_store
+from keprix.vical.calendar.sync_booking import renew_expiring_watches
 from keprix.vical.zoom_webhooks import handle_zoom_webhook
 from keprix.vical.deposits import DepositError, create_checkout_session, mark_deposit_paid
 from keprix.vical.ics import booking_ics_dict, render_booking_ics
@@ -668,3 +672,46 @@ async def zoom_webhook(
     if not result.get("ok"):
         raise HTTPException(status_code=401, detail=result)
     return result
+
+
+@router.post("/webhooks/google-calendar")
+async def google_calendar_webhook(request: Request) -> dict[str, Any]:
+    import json
+
+    raw = await request.body()
+    try:
+        payload = json.loads(raw.decode("utf-8") or "{}") if raw else {}
+    except Exception:
+        payload = {}
+    headers = {k: v for k, v in request.headers.items()}
+    result = handle_google_calendar_webhook(
+        headers=headers,
+        body=payload if isinstance(payload, dict) else {},
+    )
+    if not result.get("ok"):
+        raise HTTPException(status_code=401, detail=result)
+    return result
+
+
+@router.get("/bookings/{booking_id}/invitation")
+async def booking_invitation(
+    booking_id: str, user: dict = Depends(get_current_user)
+) -> dict[str, Any]:
+    booking = vical_store.get_booking(_uid(user), booking_id)
+    if booking is None:
+        raise HTTPException(status_code=404, detail="booking not found")
+    ws = booking.workspace_id or booking.user_id
+    projection = get_projection_store().get_projection(ws, booking_id)
+    return {
+        "bookingId": booking_id,
+        "invitation": booking_invitation_view(projection),
+        "projection": projection,
+        "deliveryAttempts": get_projection_store().list_delivery_attempts(ws, booking_id),
+    }
+
+
+@router.post("/calendar/watches/renew")
+async def renew_calendar_watches(user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    _ = _uid(user)
+    renewed = renew_expiring_watches()
+    return {"ok": True, "renewed": renewed}

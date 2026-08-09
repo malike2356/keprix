@@ -82,24 +82,37 @@ def _google_calendar_status() -> tuple[FeatureReadinessStatus, str]:
         (os.environ.get("GOOGLE_CLIENT_ID") or os.environ.get("GOOGLE_OAUTH_CLIENT_ID") or "").strip()
         and (os.environ.get("GOOGLE_CLIENT_SECRET") or os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET") or "").strip()
     ):
-        return "not_configured", "Google Calendar OAuth not configured"
-    return "disconnected", "Google OAuth env present; concierge calendar projection not wired"
+        return (
+            "not_configured",
+            "Google Calendar OAuth not configured; CE uses ICS host event + durable invite outbox",
+        )
+    if (os.environ.get("KEPRIX_GOOGLE_CALENDAR_ACCESS_TOKEN") or "").strip():
+        return "ready", "Google Calendar adapter wired with access token"
+    return "disconnected", "Google OAuth env present; connect host calendar token for live writes"
 
 
 def _microsoft_calendar_status() -> tuple[FeatureReadinessStatus, str]:
-    return "not_configured", "Microsoft Graph calendar driver not live"
+    if not (
+        (os.environ.get("MICROSOFT_OAUTH_CLIENT_ID") or "").strip()
+        and (os.environ.get("MICROSOFT_OAUTH_CLIENT_SECRET") or "").strip()
+    ):
+        return "not_configured", "Microsoft Graph calendar OAuth not configured"
+    return "disconnected", "Microsoft Graph adapter present; host token required for live writes"
 
 
 def _email_delivery_status() -> tuple[FeatureReadinessStatus, str]:
+    # Durable SQLite/Postgres outbox always available; transport is optional
     if (
         (os.environ.get("SENDGRID_API_KEY") or "").strip()
         or (os.environ.get("MAILGUN_API_KEY") or "").strip()
         or (os.environ.get("SMTP_URL") or "").strip()
         or (os.environ.get("KEPRIX_OUTREACH_FROM_EMAIL") or "").strip()
     ):
-        # viCal default outbox is in-memory; not proof of delivery
-        return "disconnected", "Outbound email env present; viCal notification outbox is not delivery proof"
-    return "not_configured", "Outbound email provider not configured; viCal uses in-memory outbox"
+        return "ready", "Durable viCal notification outbox + outbound email env present"
+    return (
+        "disconnected",
+        "Durable viCal notification outbox ready; SMTP/SendGrid transport not configured",
+    )
 
 
 def _inbound_webhook_status() -> tuple[FeatureReadinessStatus, str]:
@@ -107,10 +120,16 @@ def _inbound_webhook_status() -> tuple[FeatureReadinessStatus, str]:
         (os.environ.get("KEPRIX_CONCIERGE_ZOOM_WEBHOOK_SECRET") or "").strip()
         or (os.environ.get("ZOOM_WEBHOOK_SECRET") or "").strip()
     )
+    google_token = (os.environ.get("KEPRIX_CONCIERGE_GOOGLE_CALENDAR_WEBHOOK_TOKEN") or "").strip()
+    if zoom_secret and google_token:
+        return (
+            "ready",
+            "Zoom + Google Calendar webhooks at /api/vical/webhooks/* with signature/token + dedupe",
+        )
     if zoom_secret:
         return "ready", "Zoom webhook signature + dedupe at /api/vical/webhooks/zoom"
-    if (os.environ.get("KEPRIX_CONCIERGE_GOOGLE_CALENDAR_WEBHOOK_TOKEN") or "").strip():
-        return "disconnected", "Calendar webhook token present; full calendar reconcile is Prompt 633"
+    if google_token:
+        return "ready", "Google Calendar webhook token at /api/vical/webhooks/google-calendar"
     return "not_configured", "Provider inbound webhook receivers not configured"
 
 
@@ -197,14 +216,13 @@ def evaluate_capability_health(
         "persistenceMode": _persistence_mode(),
         "honesty": [
             "Static room URL / meeting_url_template is unmanaged fallback, not managed Zoom sync.",
-            "viCal notification outbox is in-memory and is not proof of delivery.",
+            "Host calendar creation and guest invitation delivery are evidenced separately.",
+            "Durable outbox evidences enqueue/send attempts; SMTP provider ACK is a separate transport layer.",
             "Operator /api/support routes are not external customer support.",
-            "Community Edition can book with ICS when Zoom is not configured.",
+            "Community Edition can book with ICS when Zoom/Google/Microsoft are not configured.",
         ],
         "gaps": [
-            "microsoft_calendar_driver",
-            "durable_notification_delivery",
-            "calendar_invitation_projection",
+            "microsoft_calendar_live_oauth_store",
         ],
         "canonicalBookingService": "keprix.vical.saga.book_with_saga",
     }

@@ -31,6 +31,17 @@ def run_vical_doctor(*, workspace_id: str = "default", user_id: str = "default")
                 (os.environ.get("KEPRIX_CONCIERGE_ZOOM_WEBHOOK_SECRET") or "").strip()
                 or (os.environ.get("ZOOM_WEBHOOK_SECRET") or "").strip()
             ),
+            "googleCalendarPath": "/api/vical/webhooks/google-calendar",
+            "googleCalendarTokenConfigured": bool(
+                (os.environ.get("KEPRIX_CONCIERGE_GOOGLE_CALENDAR_WEBHOOK_TOKEN") or "").strip()
+            ),
+        },
+        "calendar": {
+            "googleAdapter": True,
+            "microsoftAdapter": True,
+            "icsFallback": True,
+            "durableOutbox": True,
+            "invitationEvidenceSeparateFromHostEvent": True,
         },
         "fallback": {
             "staticRoomUrl": True,

@@ -52,6 +52,7 @@ def render_booking_ics(
         f"SUMMARY:{_escape(title)}",
         f"DESCRIPTION:{_escape(desc)}",
         f"LOCATION:{_escape(loc)}",
+        f"ATTENDEE;CN={_escape(booking.guest_name)};RSVP=TRUE:mailto:{booking.guest_email}",
         f"STATUS:{'CANCELLED' if booking.status in {'cancelled', 'rejected'} else 'CONFIRMED'}",
         "END:VEVENT",
         "END:VCALENDAR",

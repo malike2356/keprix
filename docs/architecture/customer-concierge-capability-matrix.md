@@ -15,11 +15,11 @@ Honesty rule: URL templates, in-memory outboxes, and operator-auth support route
 | Contract schemas + synthetic fixtures | REAL | Vendored contract; `contract_schema.py` |
 | Scope mapping workspace/tenant/user | REAL | `scope.py` + store queries by workspace |
 | Capability health (CE + Postgres label) | REAL | `capability_health.py`; CE defaults `not_configured` |
-| Public viCal booking / ICS | PARTIAL | `vical/*`; no saga confirmation rules |
+| Public viCal booking / ICS | REAL | Saga + ICS CE path; ATTENDEE in ICS |
 | Conferencing (Zoom create) | REAL | Prompt 632; `vical/conferencing/zoom_adapter.py` + `book_with_saga` |
-| Google calendar projection | PARTIAL | Workspace calendar bridge; no concierge saga |
-| Microsoft calendar | MISSING | Not live |
-| Outbound delivery proof | MISSING | `vical/notifications.py` in-memory outbox |
+| Google calendar projection | REAL | Prompt 633; `vical/calendar/google_adapter.py` + saga project |
+| Microsoft calendar | PARTIAL | Adapter present; live OAuth store still a gap |
+| Outbound delivery proof | PARTIAL | Durable SQLite outbox evidence; SMTP ACK optional |
 | External customer support | REAL | Prompt 631; `customer_concierge/support_cases.py` (not `/api/support`) |
 | Published business knowledge | REAL | Prompt 631; `published_knowledge.py` publish_state + citations |
 | Audience session principal | REAL | Prompt 630; `customer_concierge/audience/*` deny-by-default tools |

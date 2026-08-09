@@ -104,9 +104,10 @@ def test_capability_health_honest_without_providers(monkeypatch: pytest.MonkeyPa
     assert report["ready"] is False
     assert report["features"]["zoom"]["status"] == "not_configured"
     assert report["features"]["microsoftCalendar"]["status"] == "not_configured"
-    assert "durable_notification_delivery" in report["gaps"]
-    assert "calendar_invitation_projection" in report["gaps"]
+    assert "calendar_invitation_projection" not in report["gaps"]
+    assert "durable_notification_delivery" not in report["gaps"]
     assert "zoom_meeting_create" not in report["gaps"]
+    assert "microsoft_calendar_live_oauth_store" in report["gaps"]
     assert report["canonicalBookingService"] == "keprix.vical.saga.book_with_saga"
     assert report["persistenceMode"] in {"sqlite", "postgres"}
 

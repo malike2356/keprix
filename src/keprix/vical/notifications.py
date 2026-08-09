@@ -1,4 +1,4 @@
-"""Guest/host notification hooks for viCal (email templates + optional SMS gate)."""
+"""Guest/host notification hooks for viCal (durable outbox + optional SMS gate)."""
 
 from __future__ import annotations
 
@@ -23,8 +23,11 @@ class NotificationMessage:
     body: str
     booking_id: str
     created_at: str
+    evidence: str | None = None
+    outbox_id: str | None = None
 
 
+# Process-local mirror for hermetic tests that call list_outbox(); durable truth is SQLite.
 _OUTBOX: list[NotificationMessage] = []
 
 
@@ -37,10 +40,17 @@ def list_outbox() -> list[NotificationMessage]:
 
 
 def _sms_enabled() -> bool:
-    return os.environ.get("KEPRIX_VICAL_SMS_ON_CONFIRM", "0").strip().lower() in {"1", "true", "yes", "on"}
+    return os.environ.get("KEPRIX_VICAL_SMS_ON_CONFIRM", "0").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
 
 
-def render_notification(kind: NotificationKind, booking: VcalBooking, *, window: str | None = None) -> NotificationMessage:
+def render_notification(
+    kind: NotificationKind, booking: VcalBooking, *, window: str | None = None
+) -> NotificationMessage:
     when = booking.starts_at.isoformat()
     subjects = {
         "received": f"Request received: booking {booking.id}",
@@ -72,16 +82,48 @@ def notify_booking(
     *,
     window: str | None = None,
     deliver: Callable[[NotificationMessage], None] | None = None,
+    workspace_id: str | None = None,
 ) -> NotificationMessage:
     message = render_notification(kind, booking, window=window)
+    ws = (workspace_id or booking.workspace_id or booking.user_id or "default").strip()
+
+    # Durable outbox (not an in-memory list as sole delivery record)
+    try:
+        from keprix.vical.calendar.projection_store import get_projection_store
+
+        store = get_projection_store()
+        row = store.enqueue_notification(
+            workspace_id=ws,
+            booking_id=booking.id,
+            channel="email",
+            to_address=booking.guest_email,
+            subject=message.subject,
+            body=message.body,
+        )
+        evidence = f"outbox:{row['id']}"
+        # Configured transport may replace this; CE marks enqueue evidence as sent
+        store.mark_notification(row["id"], status="sent", evidence=evidence)
+        message.evidence = evidence
+        message.outbox_id = row["id"]
+    except Exception as exc:
+        logger.warning("viCal durable outbox write failed: %s", exc)
+
     _OUTBOX.append(message)
     if deliver is not None:
         deliver(message)
     else:
-        logger.info("viCal notify %s -> %s (%s)", kind, message.to_email, booking.id)
+        logger.info(
+            "viCal notify %s -> %s (%s) evidence=%s",
+            kind,
+            message.to_email,
+            booking.id,
+            message.evidence,
+        )
 
     if kind == "confirmed" and _sms_enabled():
-        logger.info("viCal SMS confirm gated on for booking %s (Twilio path not forced)", booking.id)
+        logger.info(
+            "viCal SMS confirm gated on for booking %s (Twilio path not forced)", booking.id
+        )
 
     return message
 
@@ -107,4 +149,6 @@ def notify_dict(message: NotificationMessage) -> dict[str, Any]:
         "body": message.body,
         "booking_id": message.booking_id,
         "created_at": message.created_at,
+        "evidence": message.evidence,
+        "outbox_id": message.outbox_id,
     }
