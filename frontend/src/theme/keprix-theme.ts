@@ -5,7 +5,6 @@ import {
   contrastText,
   ensureContrast,
   severityScale,
-  softStatusColors,
 } from "./contrast";
 import type { KeprixPalette } from "./tokens/colors";
 import { getKeprixColors, keprixColorsDark, type ThemeMode } from "./tokens/colors";
@@ -48,11 +47,12 @@ function buildShadows(mode: ThemeMode): string[] {
 
 function alertTone(theme: Theme, key: "success" | "info" | "warning" | "error") {
   const main = theme.palette[key].main;
-  const soft = softStatusColors(main, theme.palette.background.paper, theme.palette.mode);
+  const paper = theme.palette.background.paper;
   return {
-    backgroundColor: soft.backgroundColor,
-    color: soft.color,
-    "& .MuiAlert-icon": { color: soft.color },
+    // Tint only: keep the real paper underneath so light/dark shells stay consistent.
+    backgroundColor: alpha(main, theme.palette.mode === "dark" ? 0.16 : 0.1),
+    color: ensureContrast(main, paper, 4.5),
+    "& .MuiAlert-icon": { color: "inherit" },
   };
 }
 
@@ -165,30 +165,30 @@ export function createKeprixTheme(mode: ThemeMode = "dark", paletteOverride?: Ke
       MuiButton: {
         styleOverrides: {
           root: { textTransform: "none", fontWeight: 500, borderRadius: 8 },
-          containedPrimary: {
-            backgroundColor: c.primary,
-            color: contrastFor(c.primary),
-            "&:hover": { backgroundColor: c.primaryDark },
-          },
-        },
-      },
-      MuiCard: {
-        styleOverrides: {
-          root: {
-            backgroundImage: "none",
-            backgroundColor: c.bgCard,
-            color: c.textPrimary,
-            border: `1px solid ${c.border}`,
-            boxShadow: "none",
-          },
+          containedPrimary: ({ theme }) => ({
+            backgroundColor: theme.palette.primary.main,
+            color: theme.palette.primary.contrastText,
+            "&:hover": { backgroundColor: theme.palette.primary.dark },
+          }),
         },
       },
       MuiPaper: {
         styleOverrides: {
-          root: {
+          root: ({ theme }) => ({
             backgroundImage: "none",
-            color: c.textPrimary,
-          },
+            color: theme.palette.text.primary,
+          }),
+        },
+      },
+      MuiCard: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            backgroundImage: "none",
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.text.primary,
+            border: `1px solid ${theme.palette.divider}`,
+            boxShadow: "none",
+          }),
         },
       },
       MuiDrawer: {
@@ -302,69 +302,70 @@ export function createKeprixTheme(mode: ThemeMode = "dark", paletteOverride?: Ke
       },
       MuiOutlinedInput: {
         styleOverrides: {
-          root: {
-            color: c.textPrimary,
-            backgroundColor: alpha(c.bgCard, mode === "dark" ? 0.4 : 1),
-          },
-          notchedOutline: {
-            borderColor: c.border,
+          root: ({ theme }) => ({
+            color: theme.palette.text.primary,
+            // Do not paint a forced fill; inherit paper/card from the parent surface.
+            backgroundColor: "transparent",
+          }),
+          notchedOutline: ({ theme }) => ({
+            borderColor: theme.palette.divider,
             "& legend": {
               boxSizing: "content-box",
             },
-          },
-          input: {
-            color: c.textPrimary,
+          }),
+          input: ({ theme }) => ({
+            color: theme.palette.text.primary,
             "&::placeholder": {
-              color: c.textSecondary,
+              color: theme.palette.text.secondary,
               opacity: 1,
             },
-          },
+          }),
         },
       },
       MuiInputLabel: {
         styleOverrides: {
-          root: {
-            color: c.textSecondary,
+          root: ({ theme }) => ({
+            color: theme.palette.text.secondary,
             "&.Mui-focused": {
-              color: ensureContrast(c.primary, c.bgPaper),
+              color: ensureContrast(theme.palette.primary.main, theme.palette.background.paper),
             },
-          },
-          outlined: {
+          }),
+          outlined: ({ theme }) => ({
             "&.MuiInputLabel-shrink": {
-              backgroundColor: c.bgCard,
-              color: c.textSecondary,
+              backgroundColor: theme.palette.background.paper,
+              color: theme.palette.text.secondary,
               paddingInline: 4,
               marginInline: -4,
             },
-          },
+          }),
         },
       },
       MuiFormHelperText: {
         styleOverrides: {
-          root: { color: c.textSecondary },
+          root: ({ theme }) => ({ color: theme.palette.text.secondary }),
         },
       },
       MuiMenuItem: {
         styleOverrides: {
-          root: { color: c.textPrimary },
+          root: ({ theme }) => ({ color: theme.palette.text.primary }),
         },
       },
       MuiDialogTitle: {
         styleOverrides: {
-          root: { color: c.textPrimary },
+          root: ({ theme }) => ({ color: theme.palette.text.primary }),
         },
       },
       MuiDialogContentText: {
         styleOverrides: {
-          root: { color: c.textSecondary },
+          root: ({ theme }) => ({ color: theme.palette.text.secondary }),
         },
       },
       MuiTooltip: {
         styleOverrides: {
-          tooltip: {
-            backgroundColor: mode === "dark" ? "#f3f4f6" : "#111827",
-            color: mode === "dark" ? "#111827" : "#f9fafb",
-          },
+          tooltip: ({ theme }) => ({
+            backgroundColor: theme.palette.mode === "dark" ? theme.palette.grey[100] : theme.palette.grey[900],
+            color: theme.palette.mode === "dark" ? theme.palette.grey[900] : theme.palette.common.white,
+          }),
         },
       },
     },

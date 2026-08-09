@@ -47,7 +47,8 @@ export default function CodeBlock({ language, content }: CodeBlockProps) {
         borderColor: "divider",
         borderRadius: 2,
         overflow: "hidden",
-        bgcolor: "#0d1117",
+        bgcolor: "background.paper",
+        color: "text.primary",
       }}
     >
       <Box
@@ -59,13 +60,14 @@ export default function CodeBlock({ language, content }: CodeBlockProps) {
           py: 0.75,
           borderBottom: 1,
           borderColor: "divider",
+          bgcolor: "action.hover",
         }}
       >
-        <Typography variant="caption" sx={{ color: "#9ca3af" }}>
+        <Typography variant="caption" color="text.secondary">
           {language}
         </Typography>
         <Tooltip title={copied ? "Copied" : "Copy"}>
-          <IconButton size="small" onClick={onCopy} aria-label="Copy code" sx={{ color: "#9ca3af" }}>
+          <IconButton size="small" onClick={onCopy} aria-label="Copy code" color="inherit">
             <ContentCopyIcon fontSize="small" />
           </IconButton>
         </Tooltip>
@@ -79,6 +81,8 @@ export default function CodeBlock({ language, content }: CodeBlockProps) {
           overflow: "auto",
           fontSize: 13,
           lineHeight: 1.5,
+          bgcolor: "grey.900",
+          color: "common.white",
         }}
       >
         <Box component="code" sx={{ fontFamily: "monospace" }} dangerouslySetInnerHTML={{ __html: highlighted }} />

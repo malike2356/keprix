@@ -120,7 +120,7 @@ function GalaxyCanvas({
   } | null>(null);
   const [, bump] = React.useState(0);
 
-  const voidBg = dark ? "#1a1b1f" : "#f4f4f6";
+  const voidBg = "var(--kp-bg)";
   const edgeColor = dark ? "rgba(210,214,228,0.45)" : "rgba(40,40,50,0.28)";
   const edgeHot = dark ? "rgba(236,240,255,0.88)" : "rgba(30,30,40,0.65)";
   const labelColor = dark ? "rgba(246,247,252,0.96)" : "rgba(20,20,28,0.9)";
@@ -476,7 +476,7 @@ function GalaxyInner({ graph, loading }: Props) {
 
   if (loading) {
     return (
-      <Box sx={{ height: "100%", display: "grid", placeItems: "center", bgcolor: (t) => (t.palette.mode === "dark" ? "#1a1b1f" : "#f4f4f6") }}>
+      <Box sx={{ height: "100%", display: "grid", placeItems: "center", bgcolor: "background.default" }}>
         <Typography color="text.secondary" variant="body2">
           Loading vault graph…
         </Typography>

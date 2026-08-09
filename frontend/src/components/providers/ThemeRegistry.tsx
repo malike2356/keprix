@@ -4,6 +4,7 @@ import * as React from "react";
 import { usePathname } from "next/navigation";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
+import { relativeLuminance } from "@/theme/contrast";
 import { createKeprixTheme } from "@/theme/keprix-theme";
 import { paletteFromCssVars } from "@/theme/palette-from-css";
 import { pulseSkinChange, syncKeprixCssAliases } from "@/theme/sync-css-aliases";
@@ -55,9 +56,21 @@ function applyDocumentTheme(mode: ThemeMode, skin: string) {
   root.dataset.skin = skin;
   root.classList.toggle("dark", mode === "dark");
   root.style.colorScheme = mode;
-  window.requestAnimationFrame(() => {
-    syncKeprixCssAliases();
-  });
+  syncKeprixCssAliases();
+}
+
+/** Drop stale CSS palettes that disagree with the active mode (light shell + dark paper). */
+export function paletteAlignedWithMode(palette: KeprixPalette, mode: ThemeMode): boolean {
+  const lum = relativeLuminance(palette.bgPaper || palette.bgDefault);
+  if (!Number.isFinite(lum)) return false;
+  return mode === "light" ? lum >= 0.45 : lum <= 0.55;
+}
+
+function resolveThemePalette(mode: ThemeMode, palette: KeprixPalette | null): KeprixPalette {
+  const fallback = getKeprixColors(mode);
+  if (!palette) return fallback;
+  if (!paletteAlignedWithMode(palette, mode)) return fallback;
+  return palette;
 }
 
 type ThemeContextValue = {
@@ -84,42 +97,57 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
   const [mode, setModeState] = React.useState<ThemeMode>("dark");
   const [skin, setSkinState] = React.useState(DEFAULT_THEME_SKIN);
   const [palette, setPalette] = React.useState<KeprixPalette | null>(null);
+  const modeRef = React.useRef(mode);
+  const skinRef = React.useRef(skin);
+  modeRef.current = mode;
+  skinRef.current = skin;
 
-  React.useEffect(() => {
-    setModeState(resolveWorkspaceMode());
-    setSkinState(resolveWorkspaceSkin());
-  }, [pathname]);
-
-  React.useEffect(() => {
-    applyDocumentTheme(mode, skin);
-    const frame = window.requestAnimationFrame(() => {
-      setPalette(paletteFromCssVars(mode));
-      syncKeprixCssAliases();
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [mode, skin]);
-
-  const setMode = React.useCallback((next: ThemeMode) => {
-    setModeState(next);
-    localStorage.setItem(MODE_STORAGE_KEY, next);
+  const refreshPalette = React.useCallback((nextMode: ThemeMode, nextSkin: string) => {
+    applyDocumentTheme(nextMode, nextSkin);
+    setPalette(paletteFromCssVars(nextMode));
   }, []);
 
-  const setSkin = React.useCallback((next: string) => {
-    if (!THEME_SKINS.some((item) => item.id === next)) {
-      return;
-    }
-    setSkinState(next);
-    localStorage.setItem(SKIN_STORAGE_KEY, next);
-    rememberSkinId(next);
-    pulseSkinChange();
-  }, []);
+  React.useEffect(() => {
+    const nextMode = resolveWorkspaceMode();
+    const nextSkin = resolveWorkspaceSkin();
+    setModeState(nextMode);
+    setSkinState(nextSkin);
+    refreshPalette(nextMode, nextSkin);
+  }, [pathname, refreshPalette]);
+
+  React.useEffect(() => {
+    refreshPalette(mode, skin);
+  }, [mode, skin, refreshPalette]);
+
+  const setMode = React.useCallback(
+    (next: ThemeMode) => {
+      setModeState(next);
+      localStorage.setItem(MODE_STORAGE_KEY, next);
+      refreshPalette(next, skinRef.current);
+    },
+    [refreshPalette],
+  );
+
+  const setSkin = React.useCallback(
+    (next: string) => {
+      if (!THEME_SKINS.some((item) => item.id === next)) {
+        return;
+      }
+      setSkinState(next);
+      localStorage.setItem(SKIN_STORAGE_KEY, next);
+      rememberSkinId(next);
+      pulseSkinChange();
+      refreshPalette(modeRef.current, next);
+    },
+    [refreshPalette],
+  );
 
   const toggleMode = React.useCallback(() => {
     setMode(mode === "light" ? "dark" : "light");
   }, [mode, setMode]);
 
   const theme = React.useMemo(
-    () => createKeprixTheme(mode, palette ?? getKeprixColors(mode)),
+    () => createKeprixTheme(mode, resolveThemePalette(mode, palette)),
     [mode, palette],
   );
 

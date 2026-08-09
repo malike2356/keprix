@@ -63,7 +63,7 @@ html.dark {
 }
 
 .MuiInputLabel-outlined.MuiInputLabel-shrink {
-  background-color: var(--kp-bg-paper, var(--card, #121212));
+  background-color: var(--kp-bg-paper);
   padding-inline: 4px;
   margin-inline: -4px;
 }
@@ -72,10 +72,10 @@ html.dark {
 .MuiOutlinedInput-input:-webkit-autofill:hover,
 .MuiOutlinedInput-input:-webkit-autofill:focus,
 .MuiOutlinedInput-input:-webkit-autofill:active {
-  -webkit-text-fill-color: var(--kp-text-primary, inherit) !important;
-  caret-color: var(--kp-text-primary, inherit);
+  -webkit-text-fill-color: var(--kp-text-primary) !important;
+  caret-color: var(--kp-text-primary);
   transition: background-color 99999s ease-out 0s;
-  box-shadow: 0 0 0 1000px var(--kp-bg-paper, var(--card, #121212)) inset !important;
+  box-shadow: 0 0 0 1000px var(--kp-bg-paper) inset !important;
 }
 
 html {
