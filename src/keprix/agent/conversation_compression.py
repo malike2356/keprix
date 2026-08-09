@@ -502,6 +502,17 @@ def compress_context(
     if todo_snapshot:
         compressed.append({"role": "user", "content": todo_snapshot})
 
+    try:
+        from keprix.agent_state.context_state import ContextStateStore
+
+        project_state_snapshot = ContextStateStore().format_for_injection(
+            getattr(agent, "session_id", "") or ""
+        )
+        if project_state_snapshot:
+            compressed.append({"role": "user", "content": project_state_snapshot})
+    except Exception:
+        pass
+
     agent._invalidate_system_prompt()
     new_system_prompt = agent._build_system_prompt(system_message)
     agent._cached_system_prompt = new_system_prompt

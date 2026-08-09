@@ -47,6 +47,7 @@ _SELF_DOC_PATHS: tuple[str, ...] = (
     "docs/features/skill-first-execution.md",
     "docs/features/mcp-connector-first.md",
     "docs/features/colleague-memory-continuity.md",
+    "docs/features/agent-context-task-state.md",
     "docs/features/agentic-crm.md",
     "docs/features/crm-compliance.md",
     "docs/architecture/standalone-lead-outreach-capability-matrix.md",
