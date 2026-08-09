@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://keprixai.com/schemas/document-vault/contract.schema.json",
+  "title": "KeprixDocumentVaultContract",
+  "description": "Keprix-native Document Vault service contract (Prompt 645). Behavioral parity with shared AIVA-KEPRIX-DOCUMENT-VAULT.md; no Carina runtime dependency.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_version",
+    "product",
+    "carina_runtime_required",
+    "workspace_id",
+    "item_kinds",
+    "content_authority",
+    "owners",
+    "flags",
+    "document_vault_ready"
+  ],
+  "properties": {
+    "contract_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "product": {
+      "type": "string",
+      "const": "keprix"
+    },
+    "carina_runtime_required": {
+      "type": "boolean",
+      "const": false,
+      "description": "Must remain false. Standalone Keprix implements the shared behavioral contract natively."
+    },
+    "workspace_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actor_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "item_kinds": {
+      "type": "array",
+      "minItems": 9,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": [
+          "folder",
+          "rich_document",
+          "spreadsheet",
+          "presentation",
+          "markdown",
+          "html",
+          "plain_text",
+          "pdf",
+          "binary_upload"
+        ]
+      }
+    },
+    "content_authority": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "enum": ["workspace", "google"]
+      }
+    },
+    "owners": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "metadata",
+        "content",
+        "revisions",
+        "jobs",
+        "provider_mappings",
+        "index_state",
+        "audit"
+      ],
+      "properties": {
+        "metadata": { "type": "string", "minLength": 1 },
+        "content": { "type": "string", "minLength": 1 },
+        "revisions": { "type": "string", "minLength": 1 },
+        "jobs": { "type": "string", "minLength": 1 },
+        "provider_mappings": { "type": "string", "minLength": 1 },
+        "index_state": { "type": "string", "minLength": 1 },
+        "audit": { "type": "string", "minLength": 1 }
+      }
+    },
+    "flags": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "KEPRIX_DOCUMENT_VAULT_ENABLED",
+        "KEPRIX_DOCUMENT_VAULT_MIGRATE",
+        "KEPRIX_DOCUMENT_VAULT_CUTOVER",
+        "KEPRIX_DOCUMENT_VAULT_HOST_FS_BRIDGE"
+      ],
+      "properties": {
+        "KEPRIX_DOCUMENT_VAULT_ENABLED": {
+          "type": "boolean",
+          "description": "Canonical vault service active (default false until Prompt 646)."
+        },
+        "KEPRIX_DOCUMENT_VAULT_MIGRATE": {
+          "type": "boolean",
+          "description": "Allow migration writers; inventory/audit remains read-only when false."
+        },
+        "KEPRIX_DOCUMENT_VAULT_CUTOVER": {
+          "type": "boolean",
+          "description": "Retire compatibility adapters after verified cutover."
+        },
+        "KEPRIX_DOCUMENT_VAULT_HOST_FS_BRIDGE": {
+          "type": "boolean",
+          "const": false,
+          "description": "Must stay false. Admin host filesystem is never the tenant vault."
+        }
+      }
+    },
+    "document_vault_ready": {
+      "type": "boolean",
+      "description": "True only after Prompt 653 programme close. Prompt 645 leaves this false."
+    },
+    "surfaces_inventoried": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true
+    },
+    "error_codes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "not_configured",
+          "workspace_mismatch",
+          "soft_wall_required",
+          "conflict",
+          "stale_revision",
+          "cycle_rejected",
+          "path_traversal",
+          "quota_exceeded",
+          "host_fs_forbidden",
+          "idempotent_replay",
+          "unsupported_kind"
+        ]
+      },
+      "uniqueItems": true
+    }
+  }
+}
