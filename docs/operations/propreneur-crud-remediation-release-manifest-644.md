@@ -20,7 +20,7 @@ Fill SHAs after focused commits land on `origin/main`. Do not paste secrets.
 
 | Root | Branch | SHA | Notes |
 | --- | --- | --- | --- |
-| `keprix/` | main | `2d45114a057f6ff7ab4975feac175c5fb31a6a26` | Product pack + Soft Wall + readiness UI/docs |
+| `keprix/` | main | `528188ac94c62de4dbc804e7a85fc163a012aa22` | Product pack + Soft Wall + readiness UI/docs |
 | `propreneur/` | main | `8d37f4a144538396b5cbc30d54b9a64ed8efc180` | Aiva v1 CRUD + Pest matrix + brain knowledge |
 | `carina/` (generated twins) | main | `72223c181f89987f5d741d2621beca8ea4e7ec1e` | `propreneur-aiva-tools.v1.json` + result envelope only |
 
