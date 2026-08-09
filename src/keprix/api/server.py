@@ -438,6 +438,12 @@ def create_app() -> FastAPI:
             from keprix.crm.bootstrap import ensure_crm_tables
 
             await ensure_crm_tables()
+            try:
+                from keprix.customer_concierge.bootstrap import ensure_concierge_tables
+
+                await ensure_concierge_tables()
+            except Exception:
+                logger.exception("customer concierge bootstrap failed")
         except Exception:
             pass
         try:
@@ -768,6 +774,14 @@ def create_app() -> FastAPI:
         from keprix.crm.routes import router as crm_router
 
         app.include_router(crm_router)
+        try:
+            from keprix.customer_concierge.routes import public_router as concierge_public_router
+            from keprix.customer_concierge.routes import router as concierge_router
+
+            app.include_router(concierge_router)
+            app.include_router(concierge_public_router)
+        except Exception:
+            logger.exception("customer concierge routes failed to load")
         from keprix.discovery.routes import router as crm_discovery_router
 
         app.include_router(crm_discovery_router)

@@ -66,6 +66,7 @@ _SELF_DOC_PATHS: tuple[str, ...] = (
     "docs/architecture/document-vault-google-drive.md",
     "docs/features/document-vault.md",
     "docs/operations/document-vault-runbook.md",
+    "docs/features/customer-concierge.md",
     "docs/features/crm-integrations.md",
     "docs/features/soft-wall-safety.md",
     "docs/features/soft-wall-enroll-vical.md",

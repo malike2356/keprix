@@ -72,6 +72,7 @@ NAV_ITEMS: list[dict[str, Any]] = [
     {"id": "opportunities", "label": "Research opportunities", "href": "/opportunities", "group": "pipeline", "icon": "science"},
     {"id": "escalations", "label": "Escalations", "href": "/escalations", "group": "pipeline", "icon": "shield"},
     {"id": "worker-kb", "label": "Worker KB", "href": "/workers/kb", "group": "pipeline", "icon": "memory"},
+    {"id": "customer-concierge", "label": "Customer Concierge", "href": "/concierge", "group": "pipeline", "icon": "chat"},
     # --- Knowledge: documents, files, durable memory ---
     {"id": "documents", "label": "Documents", "href": "/documents", "group": "knowledge", "icon": "folder"},
     {"id": "document-agents", "label": "Document agents", "href": "/document-agents", "group": "knowledge", "icon": "folder"},
