@@ -69,6 +69,10 @@ LOCAL_SLASH_COMMANDS: tuple[LocalSlashCommand, ...] = (
     LocalSlashCommand(("/feedback",), "Send product feedback"),
     LocalSlashCommand(("/debug",), "Toggle debug overlay"),
     LocalSlashCommand(("/open",), "Open a URL in the system browser"),
+    LocalSlashCommand(
+        ("/vault",),
+        "Tenant Document Vault (list|search|mkdir|note|inspect|rename|trash|restore|export|sync|host)",
+    ),
     LocalSlashCommand(("/search",), "Search the current transcript"),
     LocalSlashCommand(("/profile",), "Switch or inspect profile"),
     LocalSlashCommand(("/cron",), "Manage scheduled jobs"),
@@ -85,6 +89,11 @@ LOCAL_SLASH_COMMANDS: tuple[LocalSlashCommand, ...] = (
 
 COMMAND_OVERRIDES: dict[str, dict[str, object]] = {
     "/open": {"args": "<url>", "examples": ("/open https://example.com",), "handler_kind": "external"},
+    "/vault": {
+        "args": "list|search <q>|mkdir <name>|note <name>|inspect <id>|rename <id> <name>|trash <id>|restore <id>|export <id>|sync|host",
+        "examples": ("/vault list", "/vault search invoice", "/vault mkdir Reports"),
+        "handler_kind": "panel",
+    },
     "/search": {"args": "<query>", "examples": ("/search invoice",), "handler_kind": "panel"},
     "/steer": {"args": "<instruction>", "examples": ("/steer focus on nginx",), "requires_session": True},
     "/busy": {"args": "interrupt|queue|steer", "examples": ("/busy queue",)},

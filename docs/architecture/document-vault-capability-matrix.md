@@ -27,8 +27,8 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | Workspace documents PG + versions | REAL | `workspace/documents_pg.py`, `document_versions` |
 | Workspace documents in-memory fallback | REAL | `workspace/repository.py` when PG off / pytest |
 | Workspace document HTTP | REAL | `workspace/routes/document_routes.py` |
-| Frontend `/documents` | PARTIAL | Editable docs UI; not yet canonical tree vault |
-| Frontend `/files` | PARTIAL | File browser; may redirect to vault in 648 |
+| Frontend `/documents` | REAL | Document Vault explorer primary; legacy docs tab retained |
+| Frontend `/files` | REAL | Defaults to Document Vault; `?mode=host` admin host FS |
 | Admin host FS `/api/fs` | OUT_OF_SCOPE | `api/fs_routes.py`; stay separate forever |
 | Sandboxed `/api/files/upload|open` | REAL | Chat attachment path; migrate via adapters |
 | Markdown knowledge vault | PARTIAL | `api/knowledge_vault_routes.py`, `vault/*` |
@@ -40,8 +40,10 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | Google Drive tools | PARTIAL | `gws_drive_search` only; full sync is 649 |
 | Syncthing bridge | PARTIAL | `sync/syncthing`, `syncthing_vault` tool |
 | Obsidian / research vault | PARTIAL | `research_workspace/obsidian*` |
-| Desktop file tree | OUT_OF_SCOPE | Host/project FS via `/api/fs` |
-| TUI recent file actions | PARTIAL | open_file; no vault explorer yet (648) |
+| Desktop file tree | OUT_OF_SCOPE | Host/project FS via `/api/fs`; vault tab is separate tenant UI |
+| Desktop Document Vault tab | REAL | Right sidebar mode toggle; tenant API only |
+| TUI recent file actions | PARTIAL | Host/path open_file remains |
+| TUI Document Vault | REAL | Palette + `/vault` slash; browse/CRUD/export/sync note |
 | Agent file tools | PARTIAL | `file_tools`, `vault_tools`; vault tools arrive in 650 |
 | Channel gateway document cache | PARTIAL | `gateway/platforms/base.py` cache; 651 |
 | Canonical Document Vault service | REAL | `document_vault.store` + `service` + `/api/document-vault/*` (646); flags default off |
@@ -49,7 +51,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | Local CE + optional object storage | REAL | `LocalStorageAdapter`; S3 adapter when bucket configured |
 | Migration (workspace docs / knowledge vault) | REAL | Idempotent writers gated by `KEPRIX_DOCUMENT_VAULT_MIGRATE` |
 | Format engines / PDF pipeline | REAL | Registry + safety + engines; PDF artifact revision-linked; CE MD/HTML/TXT/CSV/PDF |
-| Document Vault UI explorer | MISSING | Prompt 648 |
+| Document Vault UI explorer | REAL | Web explorer + desktop vault tab + TUI `/vault` (648) |
 | Google Drive OAuth sync/push | MISSING | Prompt 649 |
 | Vault Soft Wall agent policy | MISSING | Prompt 650 |
 | Channel / Telegram vault ops | MISSING | Prompt 651 |
@@ -63,7 +65,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | 645 | This matrix + contract + inventory audit + conformance (no data mutation); **COMPLETED** |
 | 646 | Canonical tree storage, revisions, migration writers; **COMPLETED** |
 | 647 | Format engines, import/export, PDF; **COMPLETED** |
-| 648 | Web, desktop, TUI explorer |
+| 648 | Web, desktop, TUI explorer; **COMPLETED** |
 | 649 | Google Drive OAuth sync and push |
 | 650 | Agent tools, policy, approvals |
 | 651 | Channel and Telegram vault operations |

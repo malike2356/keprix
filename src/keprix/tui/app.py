@@ -1009,7 +1009,10 @@ class KeprixTuiApp(App):
                 await self.action_review_mode()
                 return
             if result.dispatch_kind == "open_file":
-                self._log_system(f"Recent file: {result.value}")
+                self._log_system(f"Recent file (host/path context): {result.value}")
+                return
+            if result.dispatch_kind == "vault_action":
+                await self._handle_vault_palette(result.value)
                 return
             if result.dispatch_kind == "open_registry":
                 self._log_system(f"Open {action.kind}: {result.value}")
@@ -1017,6 +1020,119 @@ class KeprixTuiApp(App):
             self._prompt_overlay_open = False
             self._input_bar().disabled = False
             self._input_bar().focus()
+
+    async def _handle_vault_palette(self, action_value: str) -> None:
+        """Run immediate vault actions or seed /vault slash input for args."""
+        immediate = {"list", "sync_status", "host_fs_note"}
+        if action_value in immediate:
+            await self._run_vault_command([action_value.replace("sync_status", "sync").replace("host_fs_note", "host")])
+            return
+        seeds = {
+            "search": "/vault search ",
+            "mkdir": "/vault mkdir ",
+            "create_note": "/vault note ",
+            "inspect": "/vault inspect ",
+            "rename": "/vault rename ",
+            "trash": "/vault trash ",
+            "restore": "/vault restore ",
+            "export": "/vault export ",
+        }
+        seed = seeds.get(action_value)
+        if seed:
+            inp = self._input_bar()
+            inp.value = seed
+            inp.cursor_position = len(seed)
+            self._log_system("Document Vault: complete the /vault command and press Enter.")
+            return
+        self._log_system(f"Unknown vault action: {action_value}")
+
+    async def _run_vault_command(self, args: list[str]) -> None:
+        from keprix.tui.document_vault import DocumentVaultTuiClient, format_vault_listing
+
+        if not args:
+            self._log_system(
+                "Usage: /vault list|search <q>|mkdir <name>|note <name>|inspect <id>|"
+                "rename <id> <name>|trash <id>|restore <id>|export <id>|sync|host"
+            )
+            return
+        op = args[0].lower()
+        rest = args[1:]
+        vault = DocumentVaultTuiClient(self.client)
+        try:
+            if op == "list":
+                payload = await vault.list_items()
+                self._log_system(format_vault_listing(payload))
+                return
+            if op == "search":
+                query = " ".join(rest).strip()
+                if not query:
+                    self._log_system("Usage: /vault search <query>")
+                    return
+                payload = await vault.list_items(q=query)
+                self._log_system(format_vault_listing(payload))
+                return
+            if op == "mkdir":
+                name = " ".join(rest).strip() or "New folder"
+                item = await vault.create_folder(name)
+                self._log_system(f"Created folder: {item.get('name')} ({item.get('id')})")
+                return
+            if op in {"note", "create_note", "create-note"}:
+                name = " ".join(rest).strip() or "Untitled"
+                item = await vault.create_text(name, f"# {name}\n\n")
+                self._log_system(f"Created note: {item.get('name')} ({item.get('id')})")
+                return
+            if op == "inspect":
+                if not rest:
+                    self._log_system("Usage: /vault inspect <item_id>")
+                    return
+                payload = await vault.read_content(rest[0])
+                content = str(payload.get("content") or "")
+                preview = content if len(content) <= 1200 else content[:1200] + "\n..."
+                self._log_system(f"Vault item {rest[0]}:\n{preview}")
+                return
+            if op == "rename":
+                if len(rest) < 2:
+                    self._log_system("Usage: /vault rename <item_id> <new name>")
+                    return
+                item = await vault.rename(rest[0], " ".join(rest[1:]))
+                self._log_system(f"Renamed to {item.get('name')}")
+                return
+            if op == "trash":
+                if not rest:
+                    self._log_system("Usage: /vault trash <item_id>")
+                    return
+                item = await vault.trash(rest[0])
+                self._log_system(f"Trashed {item.get('name')}")
+                return
+            if op == "restore":
+                if not rest:
+                    self._log_system("Usage: /vault restore <item_id>")
+                    return
+                item = await vault.restore(rest[0])
+                self._log_system(f"Restored {item.get('name')}")
+                return
+            if op == "export":
+                if not rest:
+                    self._log_system("Usage: /vault export <item_id>")
+                    return
+                data = await vault.export(rest[0], "md")
+                self._log_system(f"Export markdown bytes={len(data)} (tenant vault; not host path)")
+                return
+            if op in {"sync", "sync_status"}:
+                self._log_system(
+                    "Document Vault sync: Google Drive OAuth/push arrives in prompt 649. "
+                    "Local vault CRUD is available now."
+                )
+                return
+            if op == "host":
+                self._log_system(
+                    "Host filesystem browse is admin-only (/api/fs, desktop project tree). "
+                    "It is never the tenant Document Vault."
+                )
+                return
+            self._log_system(f"Unknown /vault operation: {op}")
+        except Exception as exc:
+            self._log_system(f"Document Vault error: {exc}")
 
     async def on_list_view_selected(self, event: ListView.Selected) -> None:
         if event.item.id:
@@ -1073,6 +1189,9 @@ class KeprixTuiApp(App):
                     self._log_system(f"Open failed: {exc}")
                     return
                 self._log_system(f"Opened: {url}")
+                return
+            if command == "/vault":
+                await self._run_vault_command(args)
                 return
             if command == "/search":
                 query = " ".join(args).strip()

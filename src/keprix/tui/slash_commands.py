@@ -36,6 +36,7 @@ HELP_TEXT = """Local TUI commands:
   /voice on|off  enable or disable push-to-talk
   /debug         toggle debug overlay when available
   /open <url>    open a URL in the system browser
+  /vault ...     tenant Document Vault (not host FS); try /vault list
 
 Additional Hermes-style commands tab-complete and fall through to the backend:
   /compact /tools /skills /plugins /config /doctor /insights /resume /fork

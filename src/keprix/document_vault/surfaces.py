@@ -55,7 +55,7 @@ SURFACES: tuple[Surface, ...] = (
         "frontend/src/app/(workspace)/files/page.tsx",
         True,
         False,
-        "May redirect to /documents",
+        "Defaults to Document Vault; host via ?mode=host",
     ),
     Surface(
         "admin_host_fs",
@@ -151,7 +151,7 @@ SURFACES: tuple[Surface, ...] = (
         "src/keprix/apps/desktop/src/app/right-sidebar/files/tree.tsx",
         False,
         False,
-        "Host/project FS; OUT_OF_SCOPE",
+        "Host/project FS; OUT_OF_SCOPE; vault tab separate",
     ),
     Surface(
         "tui_file_actions",
@@ -159,7 +159,7 @@ SURFACES: tuple[Surface, ...] = (
         "src/keprix/tui/command_center/palette.py",
         True,
         False,
-        "open_file; vault explorer in 648",
+        "vault palette + /vault slash (648)",
     ),
     Surface(
         "agent_vault_tools",

@@ -12,6 +12,7 @@ ActionKind = Literal[
     "skill",
     "plugin",
     "file",
+    "vault",
     "runtime",
     "help",
     "ui",

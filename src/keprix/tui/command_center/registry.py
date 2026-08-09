@@ -137,6 +137,122 @@ def runtime_actions() -> list[CommandCenterAction]:
     ]
 
 
+def document_vault_actions() -> list[CommandCenterAction]:
+    """Tenant Document Vault workflows (never host filesystem)."""
+    return [
+        CommandCenterAction(
+            id="vault:list",
+            title="Vault: list root",
+            description="List tenant Document Vault root (not host FS)",
+            kind="vault",
+            effect="execute",
+            value="list",
+            category="Document Vault",
+            keywords=("documents", "files", "browse", "tenant"),
+        ),
+        CommandCenterAction(
+            id="vault:search",
+            title="Vault: search",
+            description="Search tenant Document Vault; type query after selecting",
+            kind="vault",
+            effect="execute",
+            value="search",
+            category="Document Vault",
+            keywords=("find", "query"),
+        ),
+        CommandCenterAction(
+            id="vault:mkdir",
+            title="Vault: create folder",
+            description="Create a folder in the tenant Document Vault",
+            kind="vault",
+            effect="execute",
+            value="mkdir",
+            category="Document Vault",
+            keywords=("folder", "create"),
+        ),
+        CommandCenterAction(
+            id="vault:create-note",
+            title="Vault: create note",
+            description="Create a markdown note in the tenant Document Vault",
+            kind="vault",
+            effect="execute",
+            value="create_note",
+            category="Document Vault",
+            keywords=("markdown", "text", "create"),
+        ),
+        CommandCenterAction(
+            id="vault:inspect",
+            title="Vault: inspect item",
+            description="Read vault item content by id (tenant vault)",
+            kind="vault",
+            effect="execute",
+            value="inspect",
+            category="Document Vault",
+            keywords=("read", "preview", "content"),
+        ),
+        CommandCenterAction(
+            id="vault:rename",
+            title="Vault: rename",
+            description="Rename a vault item (id then new name)",
+            kind="vault",
+            effect="execute",
+            value="rename",
+            category="Document Vault",
+            keywords=("move", "name"),
+        ),
+        CommandCenterAction(
+            id="vault:trash",
+            title="Vault: trash",
+            description="Move a vault item to trash by id",
+            kind="vault",
+            effect="execute",
+            value="trash",
+            category="Document Vault",
+            keywords=("delete", "remove"),
+        ),
+        CommandCenterAction(
+            id="vault:restore",
+            title="Vault: restore",
+            description="Restore a trashed vault item by id",
+            kind="vault",
+            effect="execute",
+            value="restore",
+            category="Document Vault",
+            keywords=("undelete"),
+        ),
+        CommandCenterAction(
+            id="vault:export",
+            title="Vault: export markdown",
+            description="Export a vault item as markdown bytes summary",
+            kind="vault",
+            effect="execute",
+            value="export",
+            category="Document Vault",
+            keywords=("download", "md"),
+        ),
+        CommandCenterAction(
+            id="vault:sync-status",
+            title="Vault: sync status",
+            description="Show Drive sync status placeholder (full sync in 649)",
+            kind="vault",
+            effect="execute",
+            value="sync_status",
+            category="Document Vault",
+            keywords=("drive", "google", "sync"),
+        ),
+        CommandCenterAction(
+            id="vault:host-fs-note",
+            title="Host FS note",
+            description="Reminder: admin host filesystem is separate from Document Vault",
+            kind="vault",
+            effect="execute",
+            value="host_fs_note",
+            category="Document Vault",
+            keywords=("admin", "filesystem", "host"),
+        ),
+    ]
+
+
 def theme_actions() -> list[CommandCenterAction]:
     return [
         CommandCenterAction(
@@ -168,6 +284,7 @@ def build_default_registry(
     registry.extend(registry_item_actions(list(skills or []), kind="skill", category="Skills"))
     registry.extend(registry_item_actions(list(plugins or []), kind="plugin", category="Plugins"))
     registry.extend(recent_file_actions(list(recent_files or [])))
+    registry.extend(document_vault_actions())
     registry.extend(runtime_actions())
     registry.extend(theme_actions())
     return registry
@@ -176,6 +293,7 @@ def build_default_registry(
 __all__ = [
     "CommandCenterRegistry",
     "build_default_registry",
+    "document_vault_actions",
     "local_command_actions",
     "model_actions",
     "recent_file_actions",

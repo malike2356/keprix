@@ -9,7 +9,19 @@ from keprix.tui.command_center.actions import CommandCenterAction
 from keprix.tui.command_center.registry import CommandCenterRegistry
 
 PaletteStateName = Literal["ready", "loading", "empty", "error"]
-PaletteDispatchKind = Literal["insert_text", "switch_session", "switch_model", "switch_theme", "runtime_action", "open_help", "open_review", "open_file", "open_registry", "none"]
+PaletteDispatchKind = Literal[
+    "insert_text",
+    "switch_session",
+    "switch_model",
+    "switch_theme",
+    "runtime_action",
+    "open_help",
+    "open_review",
+    "open_file",
+    "open_registry",
+    "vault_action",
+    "none",
+]
 
 
 @dataclass(frozen=True)
@@ -84,6 +96,8 @@ def dispatch_for_action(action: CommandCenterAction) -> CommandPaletteResult:
         return CommandPaletteResult(action, "open_help", action.value)
     if action.kind == "file":
         return CommandPaletteResult(action, "open_file", action.value)
+    if action.kind == "vault":
+        return CommandPaletteResult(action, "vault_action", action.value)
     if action.kind in {"skill", "plugin"}:
         return CommandPaletteResult(action, "open_registry", action.value)
     return CommandPaletteResult(action, "none", action.value)
