@@ -12,7 +12,7 @@ This table names exact modules to extend. Do not build parallel booking or CRM s
 
 | Claim | Evidence path | Why it fails managed Concierge v1 |
 | --- | --- | --- |
-| Meeting URL templates = Zoom booking | `src/keprix/vical/conferencing.py` (`resolve_meeting_url`) | Substitutes template strings only; no Zoom meeting create, no meeting ID store, no host URL redaction |
+| Meeting URL templates = Zoom booking | `src/keprix/vical/conferencing/fallback.py` (`resolve_meeting_url`) | Historical gap code `zoom_meeting_create`; templates remain unmanaged fallback after 632 managed Zoom adapter |
 | In-memory notification outbox = delivery | `src/keprix/vical/notifications.py` (`_OUTBOX`) | Process-local list; not durable; not proof of delivery |
 | Operator support API = external customer support | `src/keprix/support/routes.py` (`require_api_auth`) | Authenticated operator surface; no audience principal or visitor ticket API |
 
@@ -44,14 +44,14 @@ Tests assert these gap codes: `zoom_meeting_create`, `durable_notification_deliv
 | --- | --- | --- |
 | REUSABLE | `src/keprix/vical/{bookings,busy,ics,store,routes}.py` | Public booking, guest tokens, ICS |
 | INCOMPLETE | `src/keprix/vical/store.py` | JSON file store; not workspace Postgres ledger |
-| MISSING | Provider-neutral booking saga (Prompt 632) | |
+| ADDED (632) | `src/keprix/vical/saga/*` | Provider-neutral booking saga + durable ledger |
 
 ### 4. Conferencing
 
 | Status | Path | Note |
 | --- | --- | --- |
-| INCOMPLETE | `src/keprix/vical/conferencing.py` | Explicit URL or `meeting_url_template` only |
-| MISSING | Zoom OAuth meeting create + reconcile + webhooks (632/633) | |
+| REUSABLE | `src/keprix/vical/conferencing.py` package (`fallback.py`, `zoom_adapter.py`, `redact.py`) | Templates = unmanaged; Zoom create = managed |
+| ADDED (632) | Zoom OAuth + webhooks | `zoom_oauth.py`, `/api/vical/webhooks/zoom`; gap code `zoom_meeting_create` closed |
 
 ### 5. Calendar bridge / CalDAV
 
@@ -114,7 +114,7 @@ Helper: `src/keprix/customer_concierge/scope.py`.
 | --- | --- |
 | 630 | Audience principal + tool policy (**COMPLETED**) |
 | 631 | Published knowledge + external support/handoff (**COMPLETED**) |
-| 632 | Booking saga + Zoom create |
+| 632 | Booking saga + Zoom create (**COMPLETED**) |
 | 633 | Calendar invitations + reconciliation |
 | 634 | Operator inbox / CRM / channels UI |
 | 635 | E2E packaging and deploy |

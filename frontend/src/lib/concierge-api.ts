@@ -222,3 +222,37 @@ export function releaseSession(sessionId: string) {
     { method: "POST" },
   );
 }
+
+export type ZoomConnection = {
+  provider: string;
+  oauthConfigured: boolean;
+  connected: boolean;
+  accountEmail: string | null;
+  scopes: string[];
+  status: string;
+  standalone: boolean;
+  fallback?: { staticRoomUrl: boolean; icsFallback: boolean; claimsManagedZoom: boolean };
+};
+
+export function fetchZoomConnection() {
+  return jsonFetch<ZoomConnection>(`${API}/integrations/zoom`);
+}
+
+export function beginZoomConnect(redirectUri: string) {
+  return jsonFetch<{ ok: boolean; authorizeUrl?: string; error_code?: string }>(
+    `${API}/integrations/zoom/connect`,
+    { method: "POST", body: JSON.stringify({ redirectUri }) },
+  );
+}
+
+export function testZoomConnection() {
+  return jsonFetch<{ ok: boolean; detail?: string }>(`${API}/integrations/zoom/test`, {
+    method: "POST",
+  });
+}
+
+export function revokeZoomConnection() {
+  return jsonFetch<{ ok: boolean; revoked: boolean }>(`${API}/integrations/zoom/revoke`, {
+    method: "POST",
+  });
+}

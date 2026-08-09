@@ -1,4 +1,4 @@
-"""Meeting URL / conferencing helpers for viCal confirmations."""
+"""Unmanaged meeting URL helpers (template / explicit). Not managed Zoom."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import logging
 import os
 from typing import Any
 
+from keprix.vical.conferencing.static_url_adapter import StaticUrlConferencingAdapter
 from keprix.vical.store import VicalStore, vical_store
 from keprix.vical.types import VcalBooking
 
@@ -27,7 +28,6 @@ def resolve_meeting_url(
     store: VicalStore | None = None,
     explicit: str | None = None,
 ) -> str | None:
-    """Prefer explicit URL, then host template, then leave empty for CalDAV/workspace path."""
     if explicit and explicit.strip():
         return explicit.strip()
     if booking.meeting_url:
@@ -43,10 +43,8 @@ def resolve_meeting_url(
             .replace("{host_user_id}", booking.host_user_id)
         )
 
-    # Optional GWS Meet hook when already connected; never invent OAuth here.
     if os.environ.get("KEPRIX_VICAL_GWS_MEET", "0").strip().lower() in {"1", "true", "yes", "on"}:
         try:
-            # Soft probe only; adapter may be absent in CE.
             from keprix.integrations.google_workspace import tools_calendar  # noqa: F401
 
             logger.info("GWS Meet flag on; host should set meeting_url_template or explicit URL")
@@ -66,19 +64,26 @@ def apply_meeting_url_on_confirm(
     url = resolve_meeting_url(booking, store=store, explicit=explicit)
     if not url or booking.meeting_url == url:
         return booking
-    return store.update_booking(user_id, booking.id, meeting_url=url)
+    _ = StaticUrlConferencingAdapter(default_url=url)
+    meta = dict(booking.metadata or {})
+    meta["conferenceProvider"] = "static_url"
+    meta["staticRoomUrlFallback"] = True
+    meta["conferenceManaged"] = False
+    meta["label"] = "unmanaged_static_url"
+    return store.update_booking(user_id, booking.id, meeting_url=url, metadata=meta)
 
 
 def sync_notes() -> dict[str, Any]:
-    """Runbook snapshot for operators (no secrets)."""
     return {
         "primary": "Workspace calendar bridge + CalDAV push from /calendar sources",
         "flag": "KEPRIX_VICAL_CALENDAR_SYNC",
         "enabled": calendar_sync_enabled(),
         "conferencing_order": [
-            "explicit meeting_url on create",
-            "host meeting_url_template",
-            "optional KEPRIX_VICAL_GWS_MEET documentation path",
+            "book_with_saga managed Zoom (when connected)",
+            "explicit meeting_url / static_room_url_fallback (unmanaged)",
+            "host meeting_url_template (unmanaged)",
+            "ICS fallback for Community Edition",
         ],
         "docs": "/docs/features/vical.md",
+        "canonicalService": "keprix.vical.saga.book_with_saga",
     }

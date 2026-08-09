@@ -310,6 +310,82 @@ def _execute_tool(
     if name == "safe_reply":
         return {"ok": True, "tool": name, "reply": str(args.get("text") or text)}
 
+    if name in {
+        "vical-booking-create",
+        "vical_book",
+        "outreach-booking-confirm",
+    }:
+        from datetime import datetime, timezone
+
+        from keprix.vical.conferencing.redact import to_public_booking_view
+        from keprix.vical.saga import book_with_saga
+        from keprix.vical.seed import ensure_default_consultation
+
+        host_id = workspace_id
+        ensure_default_consultation(host_id)
+        starts_raw = args.get("startsAt") or args.get("starts_at")
+        if not starts_raw:
+            return {"ok": False, "error_code": "starts_at_required", "tool": name}
+        starts_at = datetime.fromisoformat(str(starts_raw).replace("Z", "+00:00"))
+        if starts_at.tzinfo is None:
+            starts_at = starts_at.replace(tzinfo=timezone.utc)
+        guest_email = str(args.get("guestEmail") or args.get("email") or "").strip()
+        guest_name = str(args.get("guestName") or args.get("name") or "Guest").strip()
+        if not guest_email:
+            return {"ok": False, "error_code": "guest_email_required", "tool": name}
+        result = book_with_saga(
+            host_id,
+            guest_name=guest_name,
+            guest_email=guest_email,
+            starts_at=starts_at,
+            slug=str(args.get("slug") or "consultation"),
+            source="agent",
+            notes=str(args.get("notes") or text or "")[:1000] or None,
+            workspace_id=workspace_id,
+            persona_id=persona_id,
+            idempotency_key=args.get("idempotencyKey") or args.get("idempotency_key"),
+            prefer_managed_zoom=bool(policy.get("bookingEnabled", True)),
+            static_room_url=args.get("meetingUrl") or args.get("staticRoomUrl"),
+            skip_slot_check=bool(args.get("skipSlotCheck")),
+        )
+        public = to_public_booking_view(result["booking"].to_dict())
+        return {
+            "ok": True,
+            "tool": name,
+            "reply": (
+                f"Booked for {guest_name}. "
+                + (
+                    f"Join: {public.get('meeting_url')}"
+                    if public.get("meeting_url")
+                    else "ICS will be available for the confirmed booking."
+                )
+            ),
+            "booking": public,
+            "duplicate": result.get("duplicate"),
+            "conferenceManaged": result.get("conferenceManaged"),
+            "actionRequired": result.get("actionRequired"),
+            "workspaceMember": False,
+        }
+
+    if name in {"vical-slots-offer", "vical_slots", "outreach-booking-offer-slots"}:
+        from datetime import datetime, timedelta, timezone
+
+        from keprix.vical.seed import ensure_default_consultation
+        from keprix.vical.slots import SlotEngine
+
+        host_id = workspace_id
+        ensure_default_consultation(host_id)
+        start = datetime.now(timezone.utc) + timedelta(hours=1)
+        slots = SlotEngine().offer_slots(host_id, slug="consultation", start=start, count=5)
+        return {
+            "ok": True,
+            "tool": name,
+            "slots": [
+                {"startsAt": s.start_at.isoformat(), "endsAt": s.end_at.isoformat()} for s in slots
+            ],
+            "workspaceMember": False,
+        }
+
     return {"ok": False, "error_code": "tool_not_implemented", "tool": tool_name}
 
 

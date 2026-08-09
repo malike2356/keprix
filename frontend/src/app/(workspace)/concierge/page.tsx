@@ -15,6 +15,7 @@ import * as React from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import {
   addCaseNote,
+  beginZoomConnect,
   createKnowledge,
   fetchConciergeProfile,
   fetchCustomerCase,
@@ -22,17 +23,21 @@ import {
   fetchKnowledge,
   fetchPreview,
   fetchReadiness,
+  fetchZoomConnection,
   publishConcierge,
   releaseSession,
+  revokeZoomConnection,
   saveStep1,
   saveStep2,
   setKnowledgePublishState,
   takeoverSession,
+  testZoomConnection,
   unpublishConcierge,
   type ConciergeProfile,
   type CustomerCase,
   type KnowledgeSource,
   type Readiness,
+  type ZoomConnection,
 } from "@/lib/concierge-api";
 
 const TABS = [
@@ -88,6 +93,8 @@ export default function ConciergePage() {
   const [caseNotes, setCaseNotes] = React.useState<Array<{ id: string; body: string }>>([]);
   const [noteDraft, setNoteDraft] = React.useState("");
   const [casesNote, setCasesNote] = React.useState<string | null>(null);
+  const [zoom, setZoom] = React.useState<ZoomConnection | null>(null);
+  const [zoomDetail, setZoomDetail] = React.useState<string | null>(null);
 
   const load = React.useCallback(async () => {
     setError(null);
@@ -572,6 +579,85 @@ export default function ConciergePage() {
               </Button>
             </Box>
           ) : null}
+        </Stack>
+      ) : tab === 5 ? (
+        <Stack spacing={2} sx={{ maxWidth: 720 }}>
+          <Alert severity="info">
+            Zoom uses your own OAuth app credentials (ZOOM_CLIENT_ID / SECRET). No VERLOX-hosted credential service is required.
+            Static room URLs and ICS remain labelled unmanaged fallbacks.
+          </Alert>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              void (async () => {
+                try {
+                  setZoom(await fetchZoomConnection());
+                  setZoomDetail(null);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Zoom status failed");
+                }
+              })();
+            }}
+          >
+            Refresh Zoom status
+          </Button>
+          {zoom ? (
+            <Box sx={{ border: "1px solid", borderColor: "divider", p: 2, borderRadius: 1 }}>
+              <Typography variant="subtitle2">Status: {zoom.status}</Typography>
+              <Typography variant="body2">OAuth configured: {String(zoom.oauthConfigured)}</Typography>
+              <Typography variant="body2">Connected: {String(zoom.connected)}</Typography>
+              <Typography variant="body2">Account: {zoom.accountEmail || "n/a"}</Typography>
+              <Typography variant="body2">Scopes: {(zoom.scopes || []).join(" ") || "n/a"}</Typography>
+              <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                Fallback: static URL={String(zoom.fallback?.staticRoomUrl)} · ICS={String(zoom.fallback?.icsFallback)} ·
+                claims managed Zoom={String(zoom.fallback?.claimsManagedZoom)}
+              </Typography>
+            </Box>
+          ) : null}
+          {zoomDetail ? <Alert severity="success">{zoomDetail}</Alert> : null}
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="contained"
+              onClick={() => {
+                void (async () => {
+                  const redirectUri = `${window.location.origin}/concierge`;
+                  const res = await beginZoomConnect(redirectUri);
+                  if (res.authorizeUrl) {
+                    window.open(res.authorizeUrl, "_blank", "noopener,noreferrer");
+                  } else {
+                    setError(res.error_code || "Zoom connect unavailable");
+                  }
+                })();
+              }}
+            >
+              Connect / reconnect
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                void (async () => {
+                  const res = await testZoomConnection();
+                  setZoomDetail(res.detail || (res.ok ? "Zoom test ok" : "Zoom test failed"));
+                  setZoom(await fetchZoomConnection());
+                })();
+              }}
+            >
+              Test
+            </Button>
+            <Button
+              color="warning"
+              variant="outlined"
+              onClick={() => {
+                void (async () => {
+                  await revokeZoomConnection();
+                  setZoom(await fetchZoomConnection());
+                  setZoomDetail("Zoom connection revoked");
+                })();
+              }}
+            >
+              Revoke
+            </Button>
+          </Stack>
         </Stack>
       ) : (
         <Alert severity="info">

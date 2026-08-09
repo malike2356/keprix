@@ -58,12 +58,23 @@ def _persistence_mode() -> str:
 
 
 def _zoom_status() -> tuple[FeatureReadinessStatus, str]:
-    # Conferencing helper is URL/template only; Zoom create is Prompt 632.
     client = (os.environ.get("ZOOM_CLIENT_ID") or "").strip()
     secret = (os.environ.get("ZOOM_CLIENT_SECRET") or "").strip()
     if not client or not secret:
-        return "not_configured", "ZOOM_CLIENT_ID/SECRET missing; meeting create not implemented (URL template only)"
-    return "disconnected", "Zoom OAuth env present; no managed meeting create/reconcile yet"
+        return (
+            "not_configured",
+            "ZOOM_CLIENT_ID/SECRET missing; use labelled static URL / ICS fallback",
+        )
+    try:
+        from keprix.vical.zoom_oauth import zoom_connection_status
+
+        # Health is workspace-agnostic env readiness; connection is per-user
+        snap = zoom_connection_status("default", "default")
+        if snap.get("connected") and not snap.get("expired"):
+            return "ready", "Zoom OAuth configured and a local token bundle is present"
+        return "disconnected", "Zoom OAuth configured; connect a host account to create meetings"
+    except Exception:
+        return "disconnected", "Zoom OAuth env present; connection status unavailable"
 
 
 def _google_calendar_status() -> tuple[FeatureReadinessStatus, str]:
@@ -92,12 +103,14 @@ def _email_delivery_status() -> tuple[FeatureReadinessStatus, str]:
 
 
 def _inbound_webhook_status() -> tuple[FeatureReadinessStatus, str]:
-    if (
+    zoom_secret = (
         (os.environ.get("KEPRIX_CONCIERGE_ZOOM_WEBHOOK_SECRET") or "").strip()
         or (os.environ.get("ZOOM_WEBHOOK_SECRET") or "").strip()
-        or (os.environ.get("KEPRIX_CONCIERGE_GOOGLE_CALENDAR_WEBHOOK_TOKEN") or "").strip()
-    ):
-        return "disconnected", "Webhook secret present; inbound reconcile not implemented"
+    )
+    if zoom_secret:
+        return "ready", "Zoom webhook signature + dedupe at /api/vical/webhooks/zoom"
+    if (os.environ.get("KEPRIX_CONCIERGE_GOOGLE_CALENDAR_WEBHOOK_TOKEN") or "").strip():
+        return "disconnected", "Calendar webhook token present; full calendar reconcile is Prompt 633"
     return "not_configured", "Provider inbound webhook receivers not configured"
 
 
@@ -167,7 +180,8 @@ def evaluate_capability_health(
         "contractVersion": CUSTOMER_CONCIERGE_CONTRACT_VERSION,
         "workspaceId": scope.workspace_id,
         "conciergeId": profile.id if profile else None,
-        "ready": False,  # managed Zoom booking not complete until 632+
+        # Ready when public concierge + Zoom create path are available (ICS still works without Zoom)
+        "ready": features["publicConcierge"]["status"] == "ready" and zoom_s == "ready",
         "features": features,
         "blockers": blockers,
     }
@@ -182,17 +196,15 @@ def evaluate_capability_health(
         },
         "persistenceMode": _persistence_mode(),
         "honesty": [
-            "Meeting URL templates are not managed Zoom booking.",
+            "Static room URL / meeting_url_template is unmanaged fallback, not managed Zoom sync.",
             "viCal notification outbox is in-memory and is not proof of delivery.",
             "Operator /api/support routes are not external customer support.",
-            "Capability ready=false until conferencing create, calendar projection, and delivery proof exist.",
+            "Community Edition can book with ICS when Zoom is not configured.",
         ],
         "gaps": [
-            "zoom_meeting_create",
             "microsoft_calendar_driver",
             "durable_notification_delivery",
-            "external_customer_support_api",
-            "audience_session_principal",
-            "inbound_provider_webhook_reconcile",
+            "calendar_invitation_projection",
         ],
+        "canonicalBookingService": "keprix.vical.saga.book_with_saga",
     }

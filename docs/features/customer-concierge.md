@@ -29,6 +29,16 @@ When published, `build_concierge_persona_overlay` injects business name, descrip
 - Capability matrix: `docs/architecture/customer-concierge-capability-matrix.md`
 - Health API: `GET /api/customer-concierge/capability-health` (honest `not_configured`; `ready=false` until managed booking exists)
 
+## Booking saga and Zoom (Prompt 632)
+
+- Canonical service: `keprix.vical.saga.book_with_saga` (idempotent booking + conference provision)
+- Zoom user OAuth via encrypted local token store (`vical/zoom_oauth.py`); no VERLOX-hosted credential service
+- Host start URL redacted from public DTOs/logs; join URL persisted
+- Webhook: `POST /api/vical/webhooks/zoom` (signature + dedupe)
+- Operator: `/api/customer-concierge/integrations/zoom/*` + Integrations tab; doctor: `keprix.vical.doctor.run_vical_doctor`
+- CE: labelled static URL + ICS fallback when Zoom is not configured
+- Tests: `tests/customer_concierge/test_booking_saga_zoom_632.py`
+
 ## Published knowledge, customer cases, handoff (Prompt 631)
 
 - Tenant knowledge store with `draft` / `published` / `archived` + revisions (`published_knowledge.py`)

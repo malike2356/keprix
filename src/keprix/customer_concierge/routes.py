@@ -40,6 +40,13 @@ from keprix.customer_concierge.support_cases import (
 )
 from keprix.customer_concierge.visitor_turn import run_visitor_turn
 from keprix.customer_concierge.widget import public_widget_embed, public_widget_status
+from keprix.customer_concierge.zoom_connection import (
+    begin_connect,
+    complete_connect,
+    connection_snapshot,
+    revoke_connection,
+    test_connection,
+)
 
 router = APIRouter(prefix="/api/customer-concierge", tags=["customer-concierge"])
 public_router = APIRouter(prefix="/api/customer-concierge/public", tags=["customer-concierge-public"])
@@ -310,6 +317,78 @@ async def sign_embed(
         {"personaId": persona_id, "workspaceId": ws, "nonce": nonce, "exp": exp}
     )
     return {"ok": True, "token": token, "nonce": nonce, "exp": exp}
+
+
+@router.get("/integrations/zoom")
+async def zoom_status(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return connection_snapshot(ws, _uid(user))
+
+
+@router.post("/integrations/zoom/connect")
+async def zoom_connect(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    redirect_uri = str(body.get("redirectUri") or body.get("redirect_uri") or "").strip()
+    if not redirect_uri:
+        raise HTTPException(status_code=400, detail={"error_code": "redirect_uri_required"})
+    return begin_connect(
+        workspace_id=ws,
+        user_id=_uid(user),
+        redirect_uri=redirect_uri,
+        state=body.get("state"),
+    )
+
+
+@router.post("/integrations/zoom/callback")
+async def zoom_callback(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    code = str(body.get("code") or "").strip()
+    redirect_uri = str(body.get("redirectUri") or body.get("redirect_uri") or "").strip()
+    if not code or not redirect_uri:
+        raise HTTPException(status_code=400, detail={"error_code": "code_and_redirect_required"})
+    try:
+        return complete_connect(
+            workspace_id=ws,
+            user_id=_uid(user),
+            code=code,
+            redirect_uri=redirect_uri,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail={"error_code": "oauth_failed", "message": str(exc)}) from exc
+
+
+@router.post("/integrations/zoom/test")
+async def zoom_test(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return test_connection(ws, _uid(user))
+
+
+@router.post("/integrations/zoom/revoke")
+async def zoom_revoke(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return revoke_connection(ws, _uid(user))
 
 
 @router.get("/knowledge")

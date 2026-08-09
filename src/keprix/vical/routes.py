@@ -6,12 +6,14 @@ import os
 from datetime import date, datetime
 from typing import Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
 from keprix.auth.dependencies import get_current_user
 from keprix.vical.bookings import BookingLifecycle, BookingLifecycleError
-from keprix.vical.conferencing import sync_notes
+from keprix.vical.conferencing import sync_notes, to_public_booking_view
+from keprix.vical.saga import book_with_saga
+from keprix.vical.zoom_webhooks import handle_zoom_webhook
 from keprix.vical.deposits import DepositError, create_checkout_session, mark_deposit_paid
 from keprix.vical.ics import booking_ics_dict, render_booking_ics
 from keprix.vical.intake import IntakeDisqualified, IntakeError, intake_required_for_source, validate_intake_answers
@@ -312,14 +314,13 @@ async def get_booking(booking_id: str, user: dict = Depends(get_current_user)) -
 @router.post("/bookings", status_code=201)
 async def create_booking(body: BookingCreate, user: dict = Depends(get_current_user)) -> dict[str, Any]:
     uid = _uid(user)
-    life = BookingLifecycle()
     try:
         et = SlotEngine().resolve_event_type(uid, event_type_id=body.event_type_id, slug=body.slug)
         if et.intake_pool_id and intake_required_for_source(body.source):
             pool = vical_store.get_intake_pool(uid, et.intake_pool_id)
             cleaned = validate_intake_answers(pool, body.intake_answers)
             body = body.model_copy(update={"intake_answers": cleaned})
-        booking = life.create(
+        result = book_with_saga(
             uid,
             event_type_id=body.event_type_id,
             slug=body.slug,
@@ -334,6 +335,8 @@ async def create_booking(body: BookingCreate, user: dict = Depends(get_current_u
             holder_token=body.holder_token,
             lock_id=body.lock_id,
             skip_slot_check=body.skip_slot_check,
+            workspace_id=uid,
+            prefer_managed_zoom=True,
         )
     except IntakeDisqualified as exc:
         raise HTTPException(status_code=422, detail={"code": "intake_disqualified", "message": str(exc)}) from exc
@@ -343,7 +346,12 @@ async def create_booking(body: BookingCreate, user: dict = Depends(get_current_u
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-    return booking.to_dict()
+    booking = result["booking"]
+    payload = to_public_booking_view(booking.to_dict())
+    payload["duplicate"] = result.get("duplicate")
+    payload["conferenceManaged"] = result.get("conferenceManaged")
+    payload["actionRequired"] = result.get("actionRequired")
+    return payload
 
 
 @router.post("/bookings/{booking_id}/approve")
@@ -524,14 +532,13 @@ async def public_create_booking(public_slug: str, body: PublicBookingCreate) -> 
     profile = _resolve_public_host(public_slug)
     uid = str(profile["user_id"])
     ensure_default_consultation(uid)
-    life = BookingLifecycle()
     try:
         et = SlotEngine().resolve_event_type(uid, event_type_id=body.event_type_id, slug=body.event_type_slug)
         intake_answers = body.intake_answers
         if et.intake_pool_id:
             pool = vical_store.get_intake_pool(uid, et.intake_pool_id)
             intake_answers = validate_intake_answers(pool, body.intake_answers)
-        booking = life.create(
+        result = book_with_saga(
             uid,
             event_type_id=et.id,
             guest_name=body.guest_name,
@@ -543,7 +550,10 @@ async def public_create_booking(public_slug: str, body: PublicBookingCreate) -> 
             intake_answers=intake_answers,
             holder_token=body.holder_token,
             lock_id=body.lock_id,
+            workspace_id=uid,
+            prefer_managed_zoom=True,
         )
+        booking = result["booking"]
     except IntakeDisqualified as exc:
         raise HTTPException(status_code=422, detail={"code": "intake_disqualified", "message": str(exc)}) from exc
     except IntakeError as exc:
@@ -553,7 +563,9 @@ async def public_create_booking(public_slug: str, body: PublicBookingCreate) -> 
     except (LookupError, IsolationError) as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
-    payload = booking.to_dict()
+    payload = to_public_booking_view(booking.to_dict())
+    payload["conferenceManaged"] = result.get("conferenceManaged")
+    payload["duplicate"] = result.get("duplicate")
     if booking.status == "pending_payment":
         try:
             checkout = create_checkout_session(uid, booking.id)
@@ -627,3 +639,32 @@ async def deposit_mock_pay(session_id: str = Query(...)) -> dict[str, Any]:
     except DepositError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return {"ok": True, "booking": booking.to_dict()}
+
+
+@router.post("/webhooks/zoom")
+async def zoom_webhook(
+    request: Request,
+    x_zm_signature: str | None = Header(default=None, alias="x-zm-signature"),
+    x_zm_request_timestamp: str | None = Header(default=None, alias="x-zm-request-timestamp"),
+) -> dict[str, Any]:
+    import json
+
+    raw = await request.body()
+    try:
+        payload = json.loads(raw.decode("utf-8") or "{}")
+    except Exception:
+        payload = {}
+    result = handle_zoom_webhook(
+        payload=payload if isinstance(payload, dict) else {},
+        body=raw,
+        timestamp=x_zm_request_timestamp,
+        signature=x_zm_signature,
+    )
+    if result.get("challenge"):
+        return {
+            "plainToken": result.get("plainToken"),
+            "encryptedToken": result.get("encryptedToken"),
+        }
+    if not result.get("ok"):
+        raise HTTPException(status_code=401, detail=result)
+    return result
