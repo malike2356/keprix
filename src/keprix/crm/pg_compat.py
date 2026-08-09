@@ -82,7 +82,10 @@ def ping_postgres(url: str | None = None) -> bool:
 
 
 def translate_placeholders(sql: str) -> str:
-    """Replace sqlite ``?`` bind markers with psycopg ``%s`` (outside quotes)."""
+    """Replace sqlite ``?`` bind markers with psycopg ``%s`` (outside quotes).
+
+    Literal ``%`` (e.g. LIKE patterns) must become ``%%`` for psycopg.
+    """
     out: list[str] = []
     i = 0
     in_single = False
@@ -101,6 +104,10 @@ def translate_placeholders(sql: str) -> str:
             continue
         if ch == "?" and not in_single and not in_double:
             out.append("%s")
+            i += 1
+            continue
+        if ch == "%":
+            out.append("%%")
             i += 1
             continue
         out.append(ch)

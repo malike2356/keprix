@@ -18,6 +18,16 @@ def sqlite_store(tmp_path: Path, monkeypatch):
     return reset_crm_store_for_tests(path)
 
 
+def test_translate_placeholders_escapes_percent() -> None:
+    from keprix.crm.pg_compat import translate_placeholders
+
+    assert translate_placeholders("SELECT ?") == "SELECT %s"
+    assert (
+        translate_placeholders("SELECT * FROM t WHERE name LIKE 'crm_%' AND id = ?")
+        == "SELECT * FROM t WHERE name LIKE 'crm_%%' AND id = %s"
+    )
+
+
 def test_sqlite_restart_persistence(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setenv("KEPRIX_CRM_BACKEND", "sqlite")
     path = tmp_path / "persist.sqlite"
