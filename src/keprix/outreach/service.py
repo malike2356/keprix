@@ -176,7 +176,9 @@ class OutreachService:
         if not seq:
             raise LookupError("sequence_not_found")
         next_run = _iso(_utcnow()) if start_immediately else _iso(_utcnow() + timedelta(hours=1))
-        enrollment = self.store.enroll_lead(lead_id, sequence_id, next_run_at=next_run)
+        enrollment = self.store.enroll_lead(
+            lead_id, sequence_id, workspace_id=workspace_id, next_run_at=next_run
+        )
         self.store.update_lead_status(workspace_id, lead_id, "enrolled")
         return {"enrollment": enrollment, "lead": self.store.get_lead(workspace_id, lead_id)}
 

@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS outreach_lists (
 );
 
 CREATE TABLE IF NOT EXISTS outreach_list_members (
+    workspace_id TEXT NOT NULL DEFAULT '',
     list_id TEXT NOT NULL,
     lead_id TEXT NOT NULL,
     PRIMARY KEY (list_id, lead_id)
@@ -77,16 +78,61 @@ CREATE INDEX IF NOT EXISTS ix_outreach_approvals_ws ON outreach_approvals(worksp
 """
 
 
+def ensure_ops_workspace_columns(conn) -> None:
+    cols = {str(r[1]) for r in conn.execute("PRAGMA table_info(outreach_list_members)").fetchall()}
+    if "workspace_id" not in cols:
+        conn.execute(
+            "ALTER TABLE outreach_list_members ADD COLUMN workspace_id TEXT NOT NULL DEFAULT ''"
+        )
+    conn.execute(
+        """
+        UPDATE outreach_list_members
+        SET workspace_id = COALESCE(
+            (SELECT l.workspace_id FROM outreach_lists l WHERE l.id = outreach_list_members.list_id),
+            workspace_id,
+            ''
+        )
+        WHERE COALESCE(workspace_id, '') = ''
+        """
+    )
+    conn.commit()
+
+
 class OutreachOpsStore:
     def __init__(self, path: Path | None = None) -> None:
-        base = path or (_data_root() / "outreach.sqlite")
-        self._path = base
+        from keprix.crm.durable import resolve_crm_backend
+
         self._lock = threading.RLock()
-        self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
-        self._conn.row_factory = sqlite3.Row
-        self._conn.executescript(OPS_SCHEMA)
-        self._conn.commit()
-        self._ensure_message_columns()
+        if path is not None:
+            self._backend = "sqlite"
+            self._path = Path(path)
+        else:
+            self._backend = resolve_crm_backend()
+            self._path = _data_root() / "outreach.sqlite"
+
+        if self._backend == "postgres":
+            from keprix.crm.pg_compat import connect_crm_pg
+            from keprix.outreach.schema_pg import ensure_outreach_pg_schema
+
+            self._path = None
+            self._conn = connect_crm_pg()
+            ensure_outreach_pg_schema(self._conn)
+        else:
+            assert self._path is not None
+            self._path.parent.mkdir(parents=True, exist_ok=True)
+            self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
+            self._conn.row_factory = sqlite3.Row
+            self._conn.executescript(OPS_SCHEMA)
+            self._conn.commit()
+            try:
+                ensure_ops_workspace_columns(self._conn)
+            except Exception:
+                pass
+            self._ensure_message_columns()
+
+    @property
+    def backend(self) -> str:
+        return self._backend
 
     def _ensure_message_columns(self) -> None:
         cols = {r[1] for r in self._conn.execute("PRAGMA table_info(outreach_messages)").fetchall()}
@@ -97,7 +143,15 @@ class OutreachOpsStore:
                 )
             if "approval_id" not in cols:
                 self._conn.execute("ALTER TABLE outreach_messages ADD COLUMN approval_id TEXT")
+            if "workspace_id" not in cols:
+                self._conn.execute(
+                    "ALTER TABLE outreach_messages ADD COLUMN workspace_id TEXT NOT NULL DEFAULT ''"
+                )
             self._conn.commit()
+
+    def close(self) -> None:
+        with self._lock:
+            self._conn.close()
 
     def _fetchone(self, sql: str, params: tuple = ()) -> dict[str, Any] | None:
         return _row_to_dict(self._conn.execute(sql, params).fetchone())
@@ -184,8 +238,8 @@ class OutreachOpsStore:
             )
             for lead_id in fields.get("lead_ids") or []:
                 self._conn.execute(
-                    "INSERT OR IGNORE INTO outreach_list_members (list_id, lead_id) VALUES (?, ?)",
-                    (list_id, lead_id),
+                    "INSERT OR IGNORE INTO outreach_list_members (workspace_id, list_id, lead_id) VALUES (?, ?, ?)",
+                    (workspace_id, list_id, lead_id),
                 )
             self._conn.commit()
         return next(x for x in self.list_lists(workspace_id) if x["id"] == list_id)
@@ -220,8 +274,8 @@ class OutreachOpsStore:
                 self._conn.execute("DELETE FROM outreach_list_members WHERE list_id = ?", (list_id,))
                 for lead_id in fields.get("lead_ids") or []:
                     self._conn.execute(
-                        "INSERT OR IGNORE INTO outreach_list_members (list_id, lead_id) VALUES (?, ?)",
-                        (list_id, lead_id),
+                        "INSERT OR IGNORE INTO outreach_list_members (workspace_id, list_id, lead_id) VALUES (?, ?, ?)",
+                        (workspace_id, list_id, lead_id),
                     )
             self._conn.commit()
         return next((x for x in self.list_lists(workspace_id) if x["id"] == list_id), None)
@@ -236,8 +290,8 @@ class OutreachOpsStore:
         with self._lock:
             for lead_id in lead_ids:
                 self._conn.execute(
-                    "INSERT OR IGNORE INTO outreach_list_members (list_id, lead_id) VALUES (?, ?)",
-                    (list_id, lead_id),
+                    "INSERT OR IGNORE INTO outreach_list_members (workspace_id, list_id, lead_id) VALUES (?, ?, ?)",
+                    (workspace_id, list_id, lead_id),
                 )
             self._conn.execute(
                 "UPDATE outreach_lists SET updated_at = ? WHERE id = ?",
@@ -392,7 +446,21 @@ def get_outreach_ops_store(path: Path | None = None) -> OutreachOpsStore:
         return OutreachOpsStore(path=path)
     with _ops_lock:
         if _ops is None:
-            # Share sqlite file with main outreach store
             main = get_outreach_store()
-            _ops = OutreachOpsStore(path=main._path)
+            if getattr(main, "backend", "sqlite") == "postgres":
+                _ops = OutreachOpsStore()
+            else:
+                _ops = OutreachOpsStore(path=main._path)
+        return _ops
+
+
+def reset_outreach_ops_store_for_tests(path: Path | None = None) -> OutreachOpsStore:
+    global _ops
+    with _ops_lock:
+        if _ops is not None:
+            try:
+                _ops.close()
+            except Exception:
+                pass
+        _ops = OutreachOpsStore(path=path) if path else OutreachOpsStore()
         return _ops

@@ -1,4 +1,4 @@
-"""SQLite-backed CRM store with workspace isolation (Soft Wall pattern)."""
+"""SQLite / Postgres CRM store with workspace isolation (Soft Wall pattern)."""
 
 from __future__ import annotations
 
@@ -256,26 +256,50 @@ class CrmStore:
     """Central workspace-scoped CRM repository. Callers must pass workspace_id."""
 
     def __init__(self, path: Path | None = None) -> None:
-        self._path = path or (_data_root() / "crm.sqlite")
-        self._path.parent.mkdir(parents=True, exist_ok=True)
-        self._lock = threading.RLock()
-        self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
-        self._conn.row_factory = sqlite3.Row
-        self._conn.execute("PRAGMA foreign_keys = ON")
-        self._conn.executescript(SQLITE_SCHEMA)
-        self._conn.commit()
-        try:
-            from keprix.crm.schema import ensure_crm_lead_ingestion_columns
+        from keprix.crm.durable import resolve_crm_backend, sqlite_crm_path_from_env
 
-            ensure_crm_lead_ingestion_columns(self._conn)
-        except Exception:
-            pass
+        self._lock = threading.RLock()
+        # Explicit path always means local sqlite (tests / CE file override).
+        if path is not None:
+            self._backend = "sqlite"
+            self._path = Path(path)
+        else:
+            self._backend = resolve_crm_backend()
+            env_path = sqlite_crm_path_from_env()
+            self._path = Path(env_path) if env_path else (_data_root() / "crm.sqlite")
+
+        if self._backend == "postgres":
+            from keprix.crm.pg_compat import connect_crm_pg
+            from keprix.crm.schema_pg import ensure_crm_pg_schema
+
+            self._path = None
+            self._conn = connect_crm_pg()
+            ensure_crm_pg_schema(self._conn)
+        else:
+            assert self._path is not None
+            self._path.parent.mkdir(parents=True, exist_ok=True)
+            self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
+            self._conn.row_factory = sqlite3.Row
+            self._conn.execute("PRAGMA foreign_keys = ON")
+            self._conn.executescript(SQLITE_SCHEMA)
+            self._conn.commit()
+            try:
+                from keprix.crm.schema import ensure_crm_lead_ingestion_columns
+
+                ensure_crm_lead_ingestion_columns(self._conn)
+            except Exception:
+                pass
+
         try:
             from keprix.crm.nice_schema import ensure_nice_schema
 
             ensure_nice_schema(self)
         except Exception:
             pass
+
+    @property
+    def backend(self) -> str:
+        return self._backend
 
     def close(self) -> None:
         with self._lock:
@@ -1746,7 +1770,7 @@ class CrmStore:
         scope_key = scope_id or ""
         existing = self._fetchone(
             "SELECT * FROM crm_kill_switches WHERE workspace_id = ? AND scope = ? "
-            "AND IFNULL(scope_id, '') = ? AND deleted_at IS NULL",
+            "AND COALESCE(scope_id, '') = ? AND deleted_at IS NULL",
             (ws, scope, scope_key),
         )
         payload = {
@@ -1785,7 +1809,7 @@ class CrmStore:
         scope_key = scope_id or ""
         row = self._fetchone(
             "SELECT enabled FROM crm_kill_switches WHERE workspace_id = ? AND scope = ? "
-            "AND IFNULL(scope_id, '') = ? AND deleted_at IS NULL",
+            "AND COALESCE(scope_id, '') = ? AND deleted_at IS NULL",
             (ws, scope, scope_key),
         )
         if not row:

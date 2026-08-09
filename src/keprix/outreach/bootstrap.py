@@ -8,15 +8,15 @@ logger = logging.getLogger(__name__)
 
 
 async def ensure_outreach_tables() -> list[str]:
-    """Create outreach_* tables on Postgres if engine is configured. Always warms sqlite."""
+    """Create outreach_* TEXT tables on Postgres if engine is configured. Always warms store."""
     names: list[str] = []
     try:
         from keprix.outreach.store import get_outreach_store
 
-        get_outreach_store()
-        names.append("sqlite:outreach")
+        store = get_outreach_store()
+        names.append(f"{store.backend}:outreach")
     except Exception:
-        logger.exception("outreach sqlite bootstrap failed")
+        logger.exception("outreach store bootstrap failed")
 
     try:
         from keprix.database import get_engine
@@ -25,10 +25,10 @@ async def ensure_outreach_tables() -> list[str]:
         engine = get_engine()
         if engine is None:
             return names
-        from keprix.outreach.schema import OUTREACH_SCHEMA_SQL
+        from keprix.outreach.schema_pg import OUTREACH_PG_SCHEMA_SQL
 
         async with engine.begin() as conn:
-            for stmt in OUTREACH_SCHEMA_SQL.split(";"):
+            for stmt in OUTREACH_PG_SCHEMA_SQL.split(";"):
                 chunk = stmt.strip()
                 if not chunk:
                     continue
@@ -42,9 +42,14 @@ async def ensure_outreach_tables() -> list[str]:
                 "outreach_enrollments",
                 "outreach_messages",
                 "outreach_replies",
+                "outreach_control",
+                "outreach_lists",
+                "outreach_list_members",
+                "outreach_bookings",
+                "outreach_approvals",
             ]
         )
-        logger.info("outreach postgres tables verified")
+        logger.info("outreach postgres TEXT tables verified")
     except Exception:
         logger.exception("outreach postgres bootstrap failed")
     return names

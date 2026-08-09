@@ -1,4 +1,4 @@
-"""SQLite-backed outreach store (K02). Schema mirrors Postgres tables."""
+"""SQLite / Postgres outreach store (TEXT ids). Schema mirrors schema_pg."""
 
 from __future__ import annotations
 
@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS outreach_sequences (
 
 CREATE TABLE IF NOT EXISTS outreach_sequence_steps (
     id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL DEFAULT '',
     sequence_id TEXT NOT NULL,
     step_order INTEGER NOT NULL,
     channel TEXT NOT NULL DEFAULT 'email',
@@ -88,6 +89,7 @@ CREATE TABLE IF NOT EXISTS outreach_leads (
 
 CREATE TABLE IF NOT EXISTS outreach_enrollments (
     id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL DEFAULT '',
     lead_id TEXT NOT NULL,
     sequence_id TEXT NOT NULL,
     current_step INTEGER NOT NULL DEFAULT 0,
@@ -98,6 +100,7 @@ CREATE TABLE IF NOT EXISTS outreach_enrollments (
 
 CREATE TABLE IF NOT EXISTS outreach_messages (
     id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL DEFAULT '',
     enrollment_id TEXT NOT NULL,
     step_id TEXT,
     channel TEXT NOT NULL,
@@ -113,6 +116,7 @@ CREATE TABLE IF NOT EXISTS outreach_messages (
 
 CREATE TABLE IF NOT EXISTS outreach_replies (
     id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL DEFAULT '',
     lead_id TEXT,
     message_id TEXT,
     from_address TEXT NOT NULL,
@@ -129,6 +133,10 @@ CREATE INDEX IF NOT EXISTS ix_outreach_sequences_workspace ON outreach_sequences
 CREATE INDEX IF NOT EXISTS ix_outreach_leads_workspace ON outreach_leads(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_leads_email ON outreach_leads(workspace_id, email);
 CREATE INDEX IF NOT EXISTS ix_outreach_enrollments_due ON outreach_enrollments(status, next_run_at);
+CREATE INDEX IF NOT EXISTS ix_outreach_enrollments_ws ON outreach_enrollments(workspace_id);
+CREATE INDEX IF NOT EXISTS ix_outreach_messages_ws ON outreach_messages(workspace_id);
+CREATE INDEX IF NOT EXISTS ix_outreach_replies_ws ON outreach_replies(workspace_id);
+CREATE INDEX IF NOT EXISTS ix_outreach_steps_ws ON outreach_sequence_steps(workspace_id);
 """
 
 
@@ -155,15 +163,106 @@ def _row_to_dict(row: sqlite3.Row | None) -> dict[str, Any] | None:
     return data
 
 
+def ensure_outreach_workspace_columns(conn) -> None:
+    """ADD workspace_id (and backfill) on child tables for older SQLite files."""
+
+    def _cols(table: str) -> set[str]:
+        return {str(r[1]) for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+
+    alters = (
+        ("outreach_sequence_steps", "workspace_id TEXT NOT NULL DEFAULT ''"),
+        ("outreach_enrollments", "workspace_id TEXT NOT NULL DEFAULT ''"),
+        ("outreach_messages", "workspace_id TEXT NOT NULL DEFAULT ''"),
+        ("outreach_replies", "workspace_id TEXT NOT NULL DEFAULT ''"),
+    )
+    for table, ddl in alters:
+        cols = _cols(table)
+        col_name = ddl.split()[0]
+        if col_name not in cols:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {ddl}")
+
+    conn.execute(
+        """
+        UPDATE outreach_sequence_steps
+        SET workspace_id = COALESCE(
+            (SELECT s.workspace_id FROM outreach_sequences s WHERE s.id = outreach_sequence_steps.sequence_id),
+            workspace_id,
+            ''
+        )
+        WHERE COALESCE(workspace_id, '') = ''
+        """
+    )
+    conn.execute(
+        """
+        UPDATE outreach_enrollments
+        SET workspace_id = COALESCE(
+            (SELECT l.workspace_id FROM outreach_leads l WHERE l.id = outreach_enrollments.lead_id),
+            workspace_id,
+            ''
+        )
+        WHERE COALESCE(workspace_id, '') = ''
+        """
+    )
+    conn.execute(
+        """
+        UPDATE outreach_messages
+        SET workspace_id = COALESCE(
+            (SELECT e.workspace_id FROM outreach_enrollments e WHERE e.id = outreach_messages.enrollment_id),
+            workspace_id,
+            ''
+        )
+        WHERE COALESCE(workspace_id, '') = ''
+        """
+    )
+    conn.execute(
+        """
+        UPDATE outreach_replies
+        SET workspace_id = COALESCE(
+            (SELECT l.workspace_id FROM outreach_leads l WHERE l.id = outreach_replies.lead_id),
+            workspace_id,
+            ''
+        )
+        WHERE COALESCE(workspace_id, '') = ''
+        """
+    )
+    conn.commit()
+
+
 class OutreachStore:
     def __init__(self, path: Path | None = None) -> None:
-        self._path = path or (_data_root() / "outreach.sqlite")
+        from keprix.crm.durable import resolve_crm_backend
+
         self._lock = threading.RLock()
-        self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
-        self._conn.row_factory = sqlite3.Row
-        self._conn.execute("PRAGMA foreign_keys = ON")
-        self._conn.executescript(SQLITE_SCHEMA)
-        self._conn.commit()
+        if path is not None:
+            self._backend = "sqlite"
+            self._path = Path(path)
+        else:
+            self._backend = resolve_crm_backend()
+            self._path = _data_root() / "outreach.sqlite"
+
+        if self._backend == "postgres":
+            from keprix.crm.pg_compat import connect_crm_pg
+            from keprix.outreach.schema_pg import ensure_outreach_pg_schema
+
+            self._path = None
+            self._conn = connect_crm_pg()
+            ensure_outreach_pg_schema(self._conn)
+        else:
+            assert self._path is not None
+            self._path.parent.mkdir(parents=True, exist_ok=True)
+            self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
+            self._conn.row_factory = sqlite3.Row
+            self._conn.execute("PRAGMA foreign_keys = ON")
+            self._conn.executescript(SQLITE_SCHEMA)
+            self._conn.commit()
+            try:
+                ensure_outreach_workspace_columns(self._conn)
+            except Exception:
+                pass
+
+    @property
+    def backend(self) -> str:
+        return self._backend
 
     def close(self) -> None:
         with self._lock:
@@ -176,6 +275,12 @@ class OutreachStore:
     def _fetchall(self, sql: str, params: tuple = ()) -> list[dict[str, Any]]:
         cur = self._conn.execute(sql, params)
         return [d for r in cur.fetchall() if (d := _row_to_dict(r))]
+
+    def _require_workspace(self, workspace_id: str) -> str:
+        ws = str(workspace_id or "").strip()
+        if not ws:
+            raise ValueError("workspace_id is required")
+        return ws
 
     # ── Campaigns ──────────────────────────────────────────────
     def create_campaign(self, workspace_id: str, name: str, **fields: Any) -> dict[str, Any]:
@@ -284,11 +389,12 @@ class OutreachStore:
                 self._conn.execute(
                     """
                     INSERT INTO outreach_sequence_steps (
-                        id, sequence_id, step_order, channel, subject, body, cta, link, delay_hours
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        id, workspace_id, sequence_id, step_order, channel, subject, body, cta, link, delay_hours
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         str(uuid.uuid4()),
+                        workspace_id,
                         seq_id,
                         int(step.get("step_order") or idx),
                         step.get("channel") or "email",
@@ -310,8 +416,8 @@ class OutreachStore:
         if not seq:
             return None
         seq["steps"] = self._fetchall(
-            "SELECT * FROM outreach_sequence_steps WHERE sequence_id = ? ORDER BY step_order ASC",
-            (sequence_id,),
+            "SELECT * FROM outreach_sequence_steps WHERE sequence_id = ? AND workspace_id = ? ORDER BY step_order ASC",
+            (sequence_id, workspace_id),
         )
         return seq
 
@@ -443,23 +549,39 @@ class OutreachStore:
         lead_id: str,
         sequence_id: str,
         *,
+        workspace_id: str | None = None,
         next_run_at: str | None = None,
     ) -> dict[str, Any]:
         now = _utcnow()
         enrollment_id = str(uuid.uuid4())
+        ws = workspace_id
+        if not ws:
+            lead = self._fetchone("SELECT workspace_id FROM outreach_leads WHERE id = ?", (lead_id,))
+            ws = str((lead or {}).get("workspace_id") or "")
+        ws = self._require_workspace(ws)
         with self._lock:
             self._conn.execute(
                 """
                 INSERT INTO outreach_enrollments (
-                    id, lead_id, sequence_id, current_step, next_run_at, status, created_at
-                ) VALUES (?, ?, ?, 0, ?, 'active', ?)
+                    id, workspace_id, lead_id, sequence_id, current_step, next_run_at, status, created_at
+                ) VALUES (?, ?, ?, ?, 0, ?, 'active', ?)
                 """,
-                (enrollment_id, lead_id, sequence_id, next_run_at or now, now),
+                (enrollment_id, ws, lead_id, sequence_id, next_run_at or now, now),
             )
             self._conn.commit()
-        return self._fetchone("SELECT * FROM outreach_enrollments WHERE id = ?", (enrollment_id,))  # type: ignore[return-value]
+        return self._fetchone(
+            "SELECT * FROM outreach_enrollments WHERE id = ? AND workspace_id = ?",
+            (enrollment_id, ws),
+        )  # type: ignore[return-value]
 
-    def get_enrollment(self, enrollment_id: str) -> dict[str, Any] | None:
+    def get_enrollment(
+        self, enrollment_id: str, workspace_id: str | None = None
+    ) -> dict[str, Any] | None:
+        if workspace_id:
+            return self._fetchone(
+                "SELECT * FROM outreach_enrollments WHERE id = ? AND workspace_id = ?",
+                (enrollment_id, workspace_id),
+            )
         return self._fetchone("SELECT * FROM outreach_enrollments WHERE id = ?", (enrollment_id,))
 
     def list_due_enrollments(self, *, now_iso: str | None = None, limit: int = 100) -> list[dict[str, Any]]:
@@ -477,18 +599,38 @@ class OutreachStore:
     def update_enrollment(self, enrollment_id: str, **fields: Any) -> dict[str, Any] | None:
         allowed = {"current_step", "next_run_at", "status"}
         updates = {k: v for k, v in fields.items() if k in allowed}
+        existing = self.get_enrollment(enrollment_id)
+        if not existing:
+            return None
         if not updates:
-            return self.get_enrollment(enrollment_id)
+            return existing
+        ws = str(existing.get("workspace_id") or "")
         cols = ", ".join(f"{k} = ?" for k in updates)
         with self._lock:
-            self._conn.execute(
-                f"UPDATE outreach_enrollments SET {cols} WHERE id = ?",
-                (*updates.values(), enrollment_id),
-            )
+            if ws:
+                self._conn.execute(
+                    f"UPDATE outreach_enrollments SET {cols} WHERE id = ? AND workspace_id = ?",
+                    (*updates.values(), enrollment_id, ws),
+                )
+            else:
+                self._conn.execute(
+                    f"UPDATE outreach_enrollments SET {cols} WHERE id = ?",
+                    (*updates.values(), enrollment_id),
+                )
             self._conn.commit()
-        return self.get_enrollment(enrollment_id)
+        return self.get_enrollment(enrollment_id, workspace_id=ws or None)
 
-    def active_enrollments_for_lead(self, lead_id: str) -> list[dict[str, Any]]:
+    def active_enrollments_for_lead(
+        self, lead_id: str, *, workspace_id: str | None = None
+    ) -> list[dict[str, Any]]:
+        if workspace_id:
+            return self._fetchall(
+                """
+                SELECT * FROM outreach_enrollments
+                WHERE lead_id = ? AND workspace_id = ? AND status = 'active'
+                """,
+                (lead_id, workspace_id),
+            )
         return self._fetchall(
             "SELECT * FROM outreach_enrollments WHERE lead_id = ? AND status = 'active'",
             (lead_id,),
@@ -498,17 +640,27 @@ class OutreachStore:
     def create_message(self, **fields: Any) -> dict[str, Any]:
         msg_id = str(uuid.uuid4())
         now = _utcnow()
+        enrollment_id = fields["enrollment_id"]
+        ws = fields.get("workspace_id")
+        if not ws:
+            enr = self._fetchone(
+                "SELECT workspace_id FROM outreach_enrollments WHERE id = ?",
+                (enrollment_id,),
+            )
+            ws = str((enr or {}).get("workspace_id") or "")
+        ws = self._require_workspace(ws)
         with self._lock:
             self._conn.execute(
                 """
                 INSERT INTO outreach_messages (
-                    id, enrollment_id, step_id, channel, subject, body,
+                    id, workspace_id, enrollment_id, step_id, channel, subject, body,
                     sent_at, delivered_at, opened_at, clicked_at, bounced, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     msg_id,
-                    fields["enrollment_id"],
+                    ws,
+                    enrollment_id,
                     fields.get("step_id"),
                     fields.get("channel") or "email",
                     fields.get("subject"),
@@ -522,7 +674,10 @@ class OutreachStore:
                 ),
             )
             self._conn.commit()
-        return self._fetchone("SELECT * FROM outreach_messages WHERE id = ?", (msg_id,))  # type: ignore[return-value]
+        return self._fetchone(
+            "SELECT * FROM outreach_messages WHERE id = ? AND workspace_id = ?",
+            (msg_id, ws),
+        )  # type: ignore[return-value]
 
     def count_messages_sent_today(self, campaign_id: str, day_prefix: str) -> int:
         row = self._fetchone(
@@ -539,17 +694,27 @@ class OutreachStore:
     def create_reply(self, **fields: Any) -> dict[str, Any]:
         reply_id = str(uuid.uuid4())
         now = _utcnow()
+        lead_id = fields.get("lead_id")
+        ws = fields.get("workspace_id")
+        if not ws and lead_id:
+            lead = self._fetchone(
+                "SELECT workspace_id FROM outreach_leads WHERE id = ?",
+                (lead_id,),
+            )
+            ws = str((lead or {}).get("workspace_id") or "")
+        ws = self._require_workspace(ws)
         with self._lock:
             self._conn.execute(
                 """
                 INSERT INTO outreach_replies (
-                    id, lead_id, message_id, from_address, subject, body,
+                    id, workspace_id, lead_id, message_id, from_address, subject, body,
                     classification, confidence, resolved, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     reply_id,
-                    fields.get("lead_id"),
+                    ws,
+                    lead_id,
                     fields.get("message_id"),
                     fields["from_address"],
                     fields.get("subject"),
@@ -561,7 +726,10 @@ class OutreachStore:
                 ),
             )
             self._conn.commit()
-        return self._fetchone("SELECT * FROM outreach_replies WHERE id = ?", (reply_id,))  # type: ignore[return-value]
+        return self._fetchone(
+            "SELECT * FROM outreach_replies WHERE id = ? AND workspace_id = ?",
+            (reply_id, ws),
+        )  # type: ignore[return-value]
 
     def campaign_stats(self, workspace_id: str, campaign_id: str) -> dict[str, Any]:
         campaign = self.get_campaign(workspace_id, campaign_id)

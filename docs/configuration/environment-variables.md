@@ -53,6 +53,10 @@ in **Install minimum** above.
 | `CUSTOM_LLM_BASE_URL` | LLM Providers | `(empty)` | no |
 | `CUSTOM_LLM_API_KEY` | LLM Providers | `(empty)` | no |
 | `KEPRIX_DATABASE_URL` | bash scripts/generate-production-env.sh | `postgresql+asyncpg://keprix:REPLACE_ME_POSTGRES@localhost:5432/keprix` | no |
+| `KEPRIX_CRM_BACKEND` | CRM/outreach durable store: `auto` / `sqlite` / `postgres` | `auto` | no |
+| `KEPRIX_CRM_DB_PATH` | Optional SQLite path override for CRM | `(empty)` | no |
+| `KEPRIX_CRM_FORCE_PG` | Force Postgres backend (including under pytest) | `0` | no |
+| `KEPRIX_TEST_DATABASE_URL` | Optional Postgres URL for CRM durable tests | `(empty)` | no |
 | `POSTGRES_PASSWORD` | Database | `REPLACE_ME_POSTGRES` | no |
 | `POSTGRES_BIND` | Database | `127.0.0.1` | no |
 | `POSTGRES_HOST_PORT` | Database | `5432` | no |
@@ -167,6 +171,10 @@ in **Install minimum** above.
 | `KEPRIX_MUTATION_ADMIN_CHANNEL` | Mutation Engine | `web` | no |
 | `KEPRIX_MUTATION_MAX_RETRIES` | Mutation Engine | `2` | no |
 | `KEPRIX_MUTATION_REQUIRED_CHANNELS` | Mutation Engine | `web_ui,telegram` | no |
+| `AIVA_PROVIDER` | Aiva uses a low-latency model independently of the engineering agent default. | `deepseek` | no |
+| `AIVA_MODEL` | Mutation Engine | `deepseek-v4-flash` | no |
+| `AIVA_DEEPSEEK_THINKING` | Keep Flash in low-latency non-thinking mode. Enable only for complex Aiva work. | `false` | no |
+| `AIVA_WORKSPACE_MODELS` | strings or objects with provider and model keys. | `{}` | no |
 | `KEPRIX_TOOL_SIGNING_KEY` | Mutation Engine | `/data/keprix/secrets/tool-signing-key.pem` | no |
 | `KEPRIX_TOOL_VERIFY_KEY` | Mutation Engine | `/data/keprix/secrets/tool-verify-key.pem` | no |
 | `KEPRIX_MUTATION_REQUIRE_APPROVAL` | Mutation Engine | `true` | no |

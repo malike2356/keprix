@@ -62,7 +62,7 @@ Honesty rule: UI presence or mocked tests alone never mark REAL. Conformance sui
 | CLI initiation | REAL | `keprix crm-ingest` + `python -m keprix.crm.ingestion` |
 | API / frontend initiation | REAL | Documented APIs + full consoles |
 | Local single-user persistence | REAL | `crm.sqlite` + `outreach.sqlite` |
-| Hosted multi-workspace persistence | PARTIAL | `workspace_id` isolation REAL; CRM still SQLite bootstrap (Prompt 622 Postgres path) |
+| Hosted multi-workspace persistence | REAL | SQLite CE + Postgres TEXT schema (`durable.py`, Alembic 028); workspace scoped queries |
 
 ## Build order (series)
 
