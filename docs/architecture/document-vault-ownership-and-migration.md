@@ -40,15 +40,15 @@ See `document-vault-contract.md` owners table. One canonical vault service; adap
 | Credential vault entries | **skip** | Secrets |
 | Host FS paths | **skip / reject** | `host_fs_forbidden` |
 
-## Compatibility adapters (design; 646 implements)
+## Compatibility adapters (646)
 
 | Caller | Adapter behavior until cutover |
 | --- | --- |
-| `/api/workspace/documents` | Read/write through vault when ENABLED else legacy |
-| `/api/vault/files` | Knowledge vault bridge; map paths to items |
-| `/api/documents` indexes | Index vault revisions when enabled |
+| `/api/document-vault` | **Canonical** active surface |
+| `/api/workspace/documents` | Legacy until ENABLED+CUTOVER; migrate via `/migrate` |
+| `/api/vault/files` | Knowledge vault migrate into folder tree |
+| `/api/documents` indexes | Index vault revisions when enabled (652) |
 | `/api/files/upload` | Optional quarantine → vault import Soft Wall |
-| Agent `vault_*` / file tools | Prefer vault tools when ENABLED |
 | `/api/fs` | Unchanged; never routed through vault |
 
 ## Idempotent migration rules

@@ -44,8 +44,10 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | TUI recent file actions | PARTIAL | open_file; no vault explorer yet (648) |
 | Agent file tools | PARTIAL | `file_tools`, `vault_tools`; vault tools arrive in 650 |
 | Channel gateway document cache | PARTIAL | `gateway/platforms/base.py` cache; 651 |
-| Canonical Document Vault service | MISSING | Prompt 646 |
-| Vault tree + revisions APIs | MISSING | Prompt 646 |
+| Canonical Document Vault service | REAL | `document_vault.store` + `service` + `/api/document-vault/*` (646); flags default off |
+| Vault tree + revisions APIs | REAL | Parent tree, trash/restore, optimistic revisions, audit, jobs |
+| Local CE + optional object storage | REAL | `LocalStorageAdapter`; S3 adapter when bucket configured |
+| Migration (workspace docs / knowledge vault) | REAL | Idempotent writers gated by `KEPRIX_DOCUMENT_VAULT_MIGRATE` |
 | Format engines / PDF pipeline | PARTIAL | Existing export; 647 expands |
 | Document Vault UI explorer | MISSING | Prompt 648 |
 | Google Drive OAuth sync/push | MISSING | Prompt 649 |
@@ -58,8 +60,8 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 
 | Prompt | Focus |
 | --- | --- |
-| 645 | This matrix + contract + inventory audit + conformance (no data mutation) |
-| 646 | Canonical tree storage, revisions, migration writers |
+| 645 | This matrix + contract + inventory audit + conformance (no data mutation); **COMPLETED** |
+| 646 | Canonical tree storage, revisions, migration writers; **COMPLETED** |
 | 647 | Format engines, import/export, PDF |
 | 648 | Web, desktop, TUI explorer |
 | 649 | Google Drive OAuth sync and push |

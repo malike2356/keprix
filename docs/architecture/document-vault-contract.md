@@ -1,6 +1,6 @@
 # Keprix Document Vault service contract (Prompt 645)
 
-**Status:** CONTRACT LOCKED (implementation begins at 646)  
+**Status:** DOMAIN IMPLEMENTED (Prompt 646); UI/sync/agent/channel remain later prompts  
 **Contract version:** `1.0.0`  
 **Schema:** `schemas/document-vault/contract.schema.json`  
 **Shared behavioral source:** `shared/workspace-governance/AIVA-KEPRIX-DOCUMENT-VAULT.md`

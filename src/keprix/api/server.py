@@ -157,6 +157,7 @@ from keprix.agent_os.routes import router as agent_os_router
 from keprix.api.agent_os_skill_proposal_routes import router as agent_os_skill_proposal_router
 from keprix.api.workspace_template_routes import router as workspace_template_router
 from keprix.api.knowledge_vault_routes import router as knowledge_vault_router
+from keprix.document_vault.routes import router as document_vault_router
 from keprix.api.ladder_routes import router as ladder_router
 from keprix.api.agent_os_promote_routes import router as agent_os_promote_router
 from keprix.api.agent_os_ledger_routes import router as agent_os_ledger_router
@@ -851,6 +852,7 @@ def create_app() -> FastAPI:
     app.include_router(admin_users_router)
     app.include_router(vault_router)
     app.include_router(knowledge_vault_router)
+    app.include_router(document_vault_router)
     app.include_router(vault_pack_router)
     app.include_router(backup_router)
     app.include_router(cron_router)

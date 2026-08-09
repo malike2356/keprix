@@ -26,15 +26,15 @@ ADAPTERS: tuple[AdapterSpec, ...] = (
         caller="/api/workspace/documents",
         source="workspace.documents_pg|repository",
         target="document_vault.items",
-        status="planned",
-        notes="Preserve IDs via mapping; enable when KEPRIX_DOCUMENT_VAULT_ENABLED",
+        status="partial",
+        notes="Migrate via /api/document-vault/migrate; live dual-write when ENABLED+CUTOVER",
     ),
     AdapterSpec(
         caller="/api/vault/files",
         source="keprix.vault.local_folder",
         target="document_vault.items(markdown)",
-        status="planned",
-        notes="Path segments become folder ancestry",
+        status="partial",
+        notes="Knowledge vault files migrate into folder tree; path segments become parents",
     ),
     AdapterSpec(
         caller="/api/documents",
@@ -49,6 +49,13 @@ ADAPTERS: tuple[AdapterSpec, ...] = (
         target="document_vault.import",
         status="planned",
         notes="Quarantine + Soft Wall before durable import",
+    ),
+    AdapterSpec(
+        caller="/api/document-vault",
+        source="document_vault.store",
+        target="document_vault.items",
+        status="active",
+        notes="Canonical HTTP surface (Prompt 646)",
     ),
     AdapterSpec(
         caller="/api/fs",

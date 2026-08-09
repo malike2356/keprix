@@ -7,6 +7,8 @@ behavioral contract. Must never require Carina at runtime.
 from __future__ import annotations
 
 from keprix.document_vault.flags import DocumentVaultFlags, load_flags
+from keprix.document_vault.service import DocumentVaultService, get_document_vault_service
+from keprix.document_vault.store import DocumentVaultStore, get_document_vault_store
 
 CONTRACT_VERSION = "1.0.0"
 PRODUCT = "keprix"
@@ -17,5 +19,9 @@ __all__ = [
     "CONTRACT_VERSION",
     "PRODUCT",
     "DocumentVaultFlags",
+    "DocumentVaultService",
+    "DocumentVaultStore",
+    "get_document_vault_service",
+    "get_document_vault_store",
     "load_flags",
 ]

@@ -99,7 +99,12 @@ def test_matrix_lists_build_order_and_host_fs_out_of_scope() -> None:
         assert prompt in text
     assert "OUT_OF_SCOPE" in text
     assert "/api/fs" in text
-    assert "MISSING" in text  # canonical service still missing until 646
+    assert "document_vault" in text.lower() or "Document Vault" in text
+    # 646 closed canonical storage; programme ready flag still false until 653
+    from keprix.document_vault.store import DocumentVaultStore
+    from keprix.document_vault.service import DocumentVaultService
+
+    assert DocumentVaultStore and DocumentVaultService
 
 
 def test_flags_force_host_fs_bridge_off(monkeypatch: pytest.MonkeyPatch) -> None:

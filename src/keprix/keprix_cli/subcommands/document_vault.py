@@ -26,3 +26,12 @@ def build_document_vault_parser(
 
     adapters = sub.add_parser("adapters", help="List compatibility adapter specs")
     adapters.set_defaults(func=cmd_document_vault)
+
+    migrate = sub.add_parser("migrate", help="Migrate workspace repo docs into vault")
+    migrate.add_argument("--workspace-id", default="local")
+    migrate.add_argument(
+        "--write",
+        action="store_true",
+        help="Apply writes (requires KEPRIX_DOCUMENT_VAULT_MIGRATE=1)",
+    )
+    migrate.set_defaults(func=cmd_document_vault)
