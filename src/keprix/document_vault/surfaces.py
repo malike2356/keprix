@@ -162,12 +162,20 @@ SURFACES: tuple[Surface, ...] = (
         "vault palette + /vault slash (648)",
     ),
     Surface(
+        "agent_document_vault_tools",
+        "tools",
+        "src/keprix/tools/document_vault_tools.py",
+        True,
+        False,
+        "Canonical Document Vault agent tools + Soft Wall (650)",
+    ),
+    Surface(
         "agent_vault_tools",
         "tools",
         "src/keprix/tools/vault_tools.py",
         True,
         False,
-        "Knowledge vault tools; vault CRUD in 650",
+        "Legacy markdown knowledge vault; redirects when Document Vault enabled",
     ),
     Surface(
         "agent_file_tools",
@@ -175,7 +183,7 @@ SURFACES: tuple[Surface, ...] = (
         "src/keprix/tools/file_tools.py",
         True,
         False,
-        "Host-oriented file tools; policy in 650",
+        "Host/project FS tools; never tenant Document Vault paths",
     ),
     Surface(
         "channel_gateway_docs",

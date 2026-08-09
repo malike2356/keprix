@@ -678,8 +678,26 @@ class OutreachStore:
             self._conn = sqlite3.connect(str(self._path), check_same_thread=False)
             self._conn.row_factory = sqlite3.Row
             self._conn.execute("PRAGMA foreign_keys = ON")
-            self._conn.executescript(SQLITE_SCHEMA)
-            self._conn.commit()
+            # Older outreach.sqlite files may lack columns that indexes reference.
+            # Apply additive column ensures first when the bundled script fails.
+            try:
+                self._conn.executescript(SQLITE_SCHEMA)
+                self._conn.commit()
+            except sqlite3.OperationalError:
+                try:
+                    ensure_scheduler_columns(self._conn)
+                except Exception:
+                    pass
+                try:
+                    ensure_delivery_columns(self._conn)
+                except Exception:
+                    pass
+                try:
+                    ensure_mailbox_columns(self._conn)
+                except Exception:
+                    pass
+                self._conn.executescript(SQLITE_SCHEMA)
+                self._conn.commit()
             try:
                 ensure_outreach_workspace_columns(self._conn)
             except Exception:

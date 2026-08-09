@@ -25,13 +25,36 @@ def vault_configured() -> bool:
     return bool(get_vault_config().root_path)
 
 
+def _document_vault_enabled() -> bool:
+    try:
+        from keprix.document_vault.flags import load_flags
+
+        return bool(load_flags().enabled)
+    except Exception:
+        return False
+
+
 def vault_read(path: str) -> str:
+    if _document_vault_enabled():
+        raise RuntimeError(
+            "Document Vault is enabled. Use document_vault_read / document_vault_inspect "
+            "with item_id instead of knowledge-vault host paths."
+        )
     from keprix.vault.config import get_configured_provider
 
     return _run(get_configured_provider().read_file(path))
 
 
 def vault_write(path: str, content: str) -> dict[str, Any]:
+    if _document_vault_enabled():
+        return {
+            "ok": False,
+            "error_code": "migrated",
+            "error": (
+                "Document Vault is enabled. Use document_vault_create_file / "
+                "document_vault_update instead of knowledge-vault path writes."
+            ),
+        }
     from keprix.vault.config import get_configured_provider, get_vault_config
 
     if get_vault_config().read_only:
@@ -41,6 +64,13 @@ def vault_write(path: str, content: str) -> dict[str, Any]:
 
 
 def vault_search(query: str) -> dict[str, Any]:
+    if _document_vault_enabled():
+        return {
+            "ok": False,
+            "error_code": "migrated",
+            "error": "Document Vault is enabled. Use document_vault_search instead.",
+            "hint": "document_vault_search",
+        }
     from keprix.vault.config import get_configured_provider
 
     rows = _run(get_configured_provider().search(query))

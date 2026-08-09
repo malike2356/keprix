@@ -21,6 +21,7 @@ capabilities:
   cron-jobs: "cron scheduler jobs terminal file toolsets"
   mobile-client: "Android mobile client companion"
   workspace-ui: "Next.js workspace chat documents tasks settings"
+  document-vault: "tenant Document Vault folders files revisions Soft Wall agent tools Google Drive sync"
   upstream-monitor: "Hermes upstream release tracking adoption pipeline"
 
 # Maps Hermes-oriented keywords to Keprix capability ids (boosts matching).
@@ -51,3 +52,7 @@ aliases:
   android: mobile-client
   playbook: playbooks
   a2a: a2a-protocol
+  documents: document-vault
+  document-vault: document-vault
+  vault: document-vault
+  google-drive: document-vault

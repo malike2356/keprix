@@ -170,6 +170,9 @@ def _with_deeplink(approval: dict[str, Any]) -> dict[str, Any]:
         elif str(obj_type) == "demo_seed":
             out["object_deep_link"] = f"/crm/settings#demo-data&approval={aid}"
             out["deep_link"] = out["object_deep_link"]
+        elif str(obj_type) == "document_vault_item":
+            out["object_deep_link"] = f"/documents?item={obj_id}&approval={aid}"
+            out["deep_link"] = out["object_deep_link"]
         else:
             plural = {
                 "lead": "leads",
