@@ -15,7 +15,6 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
 import * as React from "react";
 import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
@@ -91,9 +90,36 @@ export default function OutreachDeliverabilityPage() {
       {data?.soft_wall_block_cold_send ? (
         <Alert severity="warning">
           Soft Wall cold send blocked: {data.soft_wall_block_reason || "policy check failed"}.{" "}
-          <Button component={NextLink} href="/outreach/settings" size="small">
-            Open safety settings
-          </Button>
+          {/* Real <a>: MUI Button + next/link often fails to navigate in the workspace shell. */}
+          {String(data.soft_wall_block_reason || "").includes("no sender domain") ? (
+            <Box
+              component="a"
+              href="#add-sender-domain"
+              sx={{
+                ml: 0.5,
+                color: "inherit",
+                fontWeight: 600,
+                textDecoration: "underline",
+                cursor: "pointer",
+              }}
+            >
+              Add a sender domain below
+            </Box>
+          ) : (
+            <Box
+              component="a"
+              href="/outreach/settings"
+              sx={{
+                ml: 0.5,
+                color: "inherit",
+                fontWeight: 600,
+                textDecoration: "underline",
+                cursor: "pointer",
+              }}
+            >
+              Open safety settings
+            </Box>
+          )}
         </Alert>
       ) : (
         <Alert severity="success">Deliverability checklist clear for cold send (subject to Soft Wall approvals).</Alert>
@@ -178,7 +204,7 @@ export default function OutreachDeliverabilityPage() {
         </Table>
       </Paper>
 
-      <Paper variant="outlined" sx={{ p: 2 }}>
+      <Paper id="add-sender-domain" variant="outlined" sx={{ p: 2 }}>
         <Typography variant="subtitle2" sx={{ mb: 1 }}>
           Add / update sender domain
         </Typography>
@@ -195,7 +221,11 @@ export default function OutreachDeliverabilityPage() {
             <Button variant="contained" disabled={busy} onClick={() => void save()}>
               Save readiness
             </Button>
-            <Button component={NextLink} href="/outreach/settings" sx={{ ml: 1 }}>
+            <Button
+              component="a"
+              href="/outreach/settings"
+              sx={{ ml: 1 }}
+            >
               Kill switches
             </Button>
           </Box>
