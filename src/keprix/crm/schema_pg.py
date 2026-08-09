@@ -35,6 +35,8 @@ CRM_TABLE_NAMES: tuple[str, ...] = (
     "crm_sender_readiness",
     "crm_kill_switches",
     "crm_saved_views",
+    "crm_funnel_runs",
+    "crm_funnel_run_steps",
 )
 
 
@@ -50,4 +52,10 @@ def ensure_crm_pg_schema(conn) -> None:
                 alter_ddl = "custom_fields TEXT DEFAULT '{}'"
             conn.execute(f"ALTER TABLE crm_leads ADD COLUMN {alter_ddl}")
     ensure_crm_saved_views(conn)
+    try:
+        from keprix.crm.funnel_orchestrator import ensure_funnel_run_tables
+
+        ensure_funnel_run_tables(conn)
+    except Exception:
+        pass
     conn.commit()

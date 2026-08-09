@@ -317,6 +317,13 @@ class CrmStore:
                 pass
 
         try:
+            from keprix.crm.funnel_orchestrator import ensure_funnel_run_tables
+
+            ensure_funnel_run_tables(self._conn)
+        except Exception:
+            pass
+
+        try:
             from keprix.crm.nice_schema import ensure_nice_schema
 
             ensure_nice_schema(self)

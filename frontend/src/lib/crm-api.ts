@@ -793,12 +793,15 @@ export async function setCrmWorkflowStatus(
 
 export async function fetchCrmFunnel(
   workspaceId = DEFAULT_WORKSPACE,
-  opts?: { campaign_id?: string; pack?: string; days?: number },
+  opts?: { campaign_id?: string; pack?: string; days?: number; extended?: boolean },
 ) {
   return parseJson<{
     metrics: Record<string, number>;
     deliverability_strip?: Record<string, unknown>;
     deep_links?: Record<string, string>;
+    conversion_rates?: Record<string, unknown>;
+    time_in_stage?: Record<string, unknown>;
+    outcome_rollups?: Record<string, unknown>;
   }>(
     await ceApi(
       `/api/crm/funnel${qs({
@@ -806,9 +809,57 @@ export async function fetchCrmFunnel(
         campaign_id: opts?.campaign_id,
         pack: opts?.pack,
         days: opts?.days,
+        extended: opts?.extended ? true : undefined,
       })}`,
     ),
     "Failed to load CRM funnel",
+  );
+}
+
+export async function fetchCrmNextBestAction(
+  subjectId: string,
+  workspaceId = DEFAULT_WORKSPACE,
+  subjectType = "lead",
+) {
+  return parseJson<{
+    action?: string | null;
+    reason?: string;
+    confidence?: number;
+    requires_approval?: boolean;
+    lifecycle_label?: string | null;
+    suppressed?: boolean;
+  }>(
+    await ceApi(
+      `/api/crm/funnel/nba${qs({
+        ...workspaceParams(workspaceId),
+        subject_id: subjectId,
+        subject_type: subjectType,
+      })}`,
+    ),
+    "Failed to load next-best-action",
+  );
+}
+
+export async function fetchCrmJourneyStatus(workspaceId = DEFAULT_WORKSPACE, listId?: string) {
+  return parseJson<{
+    pending_approvals?: CrmApproval[];
+    funnel?: Record<string, number>;
+    steps?: string[];
+  }>(
+    await ceApi(
+      `/api/crm/funnel/journey${qs({
+        ...workspaceParams(workspaceId),
+        list_id: listId,
+      })}`,
+    ),
+    "Failed to load journey status",
+  );
+}
+
+export async function fetchCrmFunnelAnalytics(workspaceId = DEFAULT_WORKSPACE, days = 30) {
+  return parseJson<Record<string, unknown>>(
+    await ceApi(`/api/crm/funnel/analytics${qs({ ...workspaceParams(workspaceId), days })}`),
+    "Failed to load funnel analytics",
   );
 }
 

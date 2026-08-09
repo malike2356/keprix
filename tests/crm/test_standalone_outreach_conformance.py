@@ -20,15 +20,18 @@ CONTRACT_SCHEMA = ROOT / "schemas/standalone-lead-outreach/contract.schema.json"
 
 # Known gaps that must remain visible until later prompts close them.
 KNOWN_GAPS: dict[str, str] = {
-    "channel_attachment_import": "SIMULATED: email_ingest stub (627)",
+    # Prompt 627 closed channel_attachment_import; keep at least one gap until 628.
+    "e2e_observability_release": "MISSING: Prompt 628 closes series readiness",
 }
 
-# Prompt 624 closed campaign_scheduler; 625 closed live send + provider events; 626 mailbox scan.
+# Prompt 624 closed campaign_scheduler; 625 closed live send + provider events; 626 mailbox scan; 627 funnel/channel.
 CLOSED_CAPABILITIES: dict[str, str] = {
     "campaign_scheduler": "REAL: claim-lease process-due + Soft Wall park (624)",
     "live_email_send": "REAL: Soft Wall approve + SMTP bind / honest dry-run default (625)",
     "provider_events": "REAL: SES/SendGrid/Mailgun normalizer + apply + idempotency (625)",
     "automatic_mailbox_scan": "REAL: IMAP normalize/match/ingest + cursors + Soft Wall drafts (626)",
+    "channel_attachment_import": "REAL: ingest_channel_attachment + email_ingest poll_once default off (627)",
+    "channel_telegram_initiation": "REAL: telegram funnel journey intents (627)",
 }
 
 
@@ -76,15 +79,32 @@ def test_known_gaps_catalogued_and_not_false_ready() -> None:
     assert "live_email_send" not in KNOWN_GAPS
     assert "provider_events" not in KNOWN_GAPS
     assert "automatic_mailbox_scan" not in KNOWN_GAPS
+    assert "channel_attachment_import" not in KNOWN_GAPS
     assert CLOSED_CAPABILITIES.get("campaign_scheduler", "").startswith("REAL")
     assert CLOSED_CAPABILITIES.get("live_email_send", "").startswith("REAL")
     assert CLOSED_CAPABILITIES.get("provider_events", "").startswith("REAL")
     assert CLOSED_CAPABILITIES.get("automatic_mailbox_scan", "").startswith("REAL")
+    assert CLOSED_CAPABILITIES.get("channel_attachment_import", "").startswith("REAL")
     readiness = False
     for key, note in KNOWN_GAPS.items():
         assert note, key
         assert any(tag in note for tag in ("MISSING", "PARTIAL", "SIMULATED")), note
     assert readiness is False, "do not claim standalone_outreach_ready at Prompt 620"
+
+
+def test_funnel_docs_and_modules_exist() -> None:
+    funnel_doc = ROOT / "docs/architecture/standalone-lead-outreach-funnel.md"
+    assert funnel_doc.is_file()
+    for rel in (
+        "src/keprix/crm/funnel_orchestrator.py",
+        "src/keprix/crm/channel_journey.py",
+        "src/keprix/crm/next_best_action.py",
+        "src/keprix/crm/lifecycle.py",
+    ):
+        assert (ROOT / rel).is_file()
+    text = MATRIX.read_text(encoding="utf-8")
+    assert "Channel-attachment import" in text
+    assert "email_ingest" in text or "REAL" in text
 
 
 def test_mailbox_docs_and_module_exist() -> None:

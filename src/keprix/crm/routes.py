@@ -2002,10 +2002,15 @@ async def crm_funnel(
     campaign_id: str | None = None,
     pack: str | None = None,
     days: int = 30,
+    extended: bool = False,
     user: dict = Depends(get_current_user),
 ) -> dict[str, Any]:
     require_cap(user, "view")
     ws = _workspace(workspace_id, x_workspace_id, user)
+    if extended:
+        from keprix.crm.funnel_analytics import extended_funnel_report
+
+        return extended_funnel_report(ws, days=days, crm_store=_store())
     from keprix.crm.funnel_analytics import funnel_snapshot
 
     return funnel_snapshot(ws, campaign_id=campaign_id, pack=pack, days=days, crm_store=_store())
@@ -2023,6 +2028,193 @@ async def crm_digest(
     from keprix.crm.funnel_analytics import build_digest
 
     return build_digest(ws, hours=hours, crm_store=_store())
+
+
+# ── Funnel orchestration / NBA / journey (627) ────────────────
+@router.post("/funnel/orchestrate")
+async def crm_funnel_orchestrate(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    from keprix.crm.funnel_orchestrator import orchestrate
+
+    return orchestrate(
+        ws,
+        trigger=str(body.get("trigger") or ""),
+        action=str(body.get("action") or ""),
+        subject_id=str(body.get("subject_id") or body.get("lead_id") or ""),
+        subject_type=str(body.get("subject_type") or "lead"),
+        idempotency_key=body.get("idempotency_key"),
+        payload=body.get("payload") if isinstance(body.get("payload"), dict) else body,
+        crm_store=_store(),
+        actor_type="user",
+        actor_id=_uid(user),
+        force=bool(body.get("force")),
+        approval_id=body.get("approval_id"),
+        require_soft_wall=bool(body.get("require_soft_wall", True)),
+    )
+
+
+@router.get("/funnel/nba")
+async def crm_funnel_nba_get(
+    subject_id: str,
+    subject_type: str = "lead",
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "view")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    from keprix.crm.lifecycle import lifecycle_label
+    from keprix.crm.next_best_action import suggest_next_best_action
+
+    suggestion = suggest_next_best_action(ws, subject_id=subject_id, subject_type=subject_type, crm_store=_store())
+    if suggestion.get("stage"):
+        suggestion["lifecycle_label"] = lifecycle_label(suggestion.get("stage"))
+    return suggestion
+
+
+@router.post("/funnel/nba")
+async def crm_funnel_nba_execute(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    from keprix.crm.next_best_action import execute_next_best_action, suggest_next_best_action
+
+    if body.get("execute"):
+        return execute_next_best_action(
+            ws,
+            subject_id=str(body.get("subject_id") or body.get("lead_id") or ""),
+            subject_type=str(body.get("subject_type") or "lead"),
+            action=body.get("action"),
+            force=bool(body.get("force")),
+            approval_id=body.get("approval_id"),
+            actor_id=_uid(user),
+            crm_store=_store(),
+        )
+    return suggest_next_best_action(
+        ws,
+        subject_id=str(body.get("subject_id") or body.get("lead_id") or ""),
+        subject_type=str(body.get("subject_type") or "lead"),
+        crm_store=_store(),
+    )
+
+
+@router.post("/funnel/journey")
+async def crm_funnel_journey(
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    from keprix.crm.channel_journey import run_channel_journey
+    import base64
+
+    payload = body.get("payload_b64")
+    content = base64.b64decode(payload) if isinstance(payload, str) and payload else None
+    raw = body.get("content")
+    if content is None and isinstance(raw, str):
+        content = raw.encode("utf-8")
+    elif content is None and isinstance(raw, (bytes, bytearray)):
+        content = bytes(raw)
+    return run_channel_journey(
+        ws,
+        payload=content,
+        filename=str(body.get("filename") or "upload.csv"),
+        channel=str(body.get("channel") or "api"),
+        list_name=body.get("list_name"),
+        list_id=body.get("list_id"),
+        campaign_name=body.get("campaign_name"),
+        sequence_id=body.get("sequence_id"),
+        skip_enrich=bool(body.get("skip_enrich")),
+        approve_enroll=bool(body.get("approve_enroll")),
+        approval_id=body.get("approval_id"),
+        force=bool(body.get("force")),
+        actor_id=_uid(user),
+        crm_store=_store(),
+        upload_id=body.get("upload_id"),
+    )
+
+
+@router.get("/funnel/journey")
+async def crm_funnel_journey_status(
+    list_id: str | None = None,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "view")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    from keprix.crm.channel_journey import journey_status
+
+    return journey_status(ws, list_id=list_id, crm_store=_store())
+
+
+@router.get("/funnel/analytics")
+async def crm_funnel_analytics_ext(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    days: int = 30,
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "view")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    from keprix.crm.funnel_analytics import extended_funnel_report
+
+    return extended_funnel_report(ws, days=days, crm_store=_store())
+
+
+@router.get("/lifecycle/aliases")
+async def crm_lifecycle_aliases(
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "view")
+    from keprix.crm.lifecycle import lifecycle_alias_map
+
+    return lifecycle_alias_map()
+
+
+@router.post("/leads/{lead_id}/convert")
+async def crm_convert_lead(
+    lead_id: str,
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    target = str(body.get("target") or "contact").lower()
+    from keprix.crm.lifecycle import convert_lead_to_contact, convert_lead_to_customer
+
+    if target in {"customer", "paying"}:
+        return convert_lead_to_customer(
+            ws,
+            lead_id,
+            paying=target == "paying" or bool(body.get("paying", True)),
+            crm_store=_store(),
+            actor_id=_uid(user),
+            force=bool(body.get("force")),
+            approval_id=body.get("approval_id"),
+        )
+    return convert_lead_to_contact(
+        ws,
+        lead_id,
+        crm_store=_store(),
+        actor_id=_uid(user),
+        force=bool(body.get("force")),
+        approval_id=body.get("approval_id"),
+    )
 
 
 # ── Booking offer (445) ───────────────────────────────────────

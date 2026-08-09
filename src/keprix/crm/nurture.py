@@ -58,6 +58,9 @@ DEFAULT_WORKFLOW_META = {
     "stop_on_booking": True,
     "stop_on_unsubscribe": True,
     "cadence": {"max_emails_per_week": 3, "quiet_hours": [18, 8]},
+    # Optional Soft Wall branch on interested/question; linear default remains.
+    "branch_on_classifications": {},
+    "branch_require_soft_wall": True,
 }
 
 
@@ -363,3 +366,129 @@ def process_nurture_due(workspace_id: str | None = None, **kwargs: Any) -> dict[
     ]}
     result["extra_skipped"] = extra_skipped
     return result
+
+
+# Classifications that stop linear nurture by default (existing engagement labels).
+STOP_ON_REPLY_CLASSIFICATIONS = frozenset(
+    {
+        "replied",
+        "interested",
+        "not_interested",
+        "question",
+        "objection",
+        "unsubscribe",
+        "bounce",
+        "complaint",
+        "booked_intent",
+        "booking_intent",
+        "human_takeover",
+    }
+)
+
+# Optional Soft Wall branch targets (interested / question only).
+BRANCHABLE_CLASSIFICATIONS = frozenset({"interested", "question"})
+
+
+def handle_nurture_reply_branch(
+    workspace_id: str,
+    *,
+    classification: str,
+    outreach_lead_id: str | None = None,
+    enrollment_id: str | None = None,
+    sequence_id: str | None = None,
+    alternate_sequence_id: str | None = None,
+    require_soft_wall: bool = True,
+    force: bool = False,
+    approval_id: str | None = None,
+    actor_id: str | None = None,
+    outreach_store: Any = None,
+    outreach_service: Any = None,
+) -> dict[str, Any]:
+    """Stop-on-reply (linear default) with optional Soft Wall branch to another sequence.
+
+    Keeps linear stop behaviour unless ``alternate_sequence_id`` (or workflow meta
+    ``branch_on_classifications``) is set for interested/question.
+    """
+    label = str(classification or "").strip().lower()
+    if outreach_store is None:
+        from keprix.outreach.store import get_outreach_store
+
+        outreach_store = get_outreach_store()
+    if outreach_service is None:
+        from keprix.outreach.service import get_outreach_service
+
+        outreach_service = get_outreach_service(outreach_store)
+
+    paused: list[str] = []
+    if enrollment_id:
+        outreach_store.update_enrollment(str(enrollment_id), status="paused_engagement", next_run_at=None)
+        paused.append(str(enrollment_id))
+    elif outreach_lead_id:
+        for enr in outreach_store.active_enrollments_for_lead(str(outreach_lead_id)):
+            outreach_store.update_enrollment(enr["id"], status="paused_engagement", next_run_at=None)
+            paused.append(str(enr["id"]))
+
+    branch_target = alternate_sequence_id
+    if not branch_target and sequence_id:
+        meta = (_load_all_meta(outreach_store).get(workspace_id) or {}).get(sequence_id) or {}
+        branches = meta.get("branch_on_classifications") or {}
+        if isinstance(branches, dict):
+            branch_target = branches.get(label)
+
+    if label not in BRANCHABLE_CLASSIFICATIONS or not branch_target:
+        return {
+            "ok": True,
+            "stopped": label in STOP_ON_REPLY_CLASSIFICATIONS,
+            "branched": False,
+            "paused_enrollments": paused,
+            "classification": label,
+            "note": "linear stop-on-reply default",
+        }
+
+    if require_soft_wall:
+        from keprix.crm.soft_wall import gate_or_approve
+
+        gate = gate_or_approve(
+            workspace_id,
+            kind="nurture_branch_sequence",
+            subject=f"Branch nurture on {label} → {branch_target}",
+            payload={
+                "classification": label,
+                "from_sequence_id": sequence_id,
+                "alternate_sequence_id": branch_target,
+                "outreach_lead_id": outreach_lead_id,
+            },
+            object_type="nurture_workflow",
+            object_id=str(sequence_id or branch_target),
+            actor_id=actor_id,
+            force=force,
+            approval_id=approval_id,
+        )
+        if gate.get("blocked"):
+            return {
+                "ok": False,
+                "blocked": True,
+                "stopped": True,
+                "branched": False,
+                "paused_enrollments": paused,
+                "approval": gate.get("approval"),
+                "error_code": gate.get("error_code"),
+            }
+
+    if not outreach_lead_id:
+        return {
+            "ok": False,
+            "error_code": "missing_outreach_lead_id",
+            "stopped": True,
+            "paused_enrollments": paused,
+        }
+    enrollment = outreach_service.enroll_lead(workspace_id, str(outreach_lead_id), str(branch_target))
+    return {
+        "ok": True,
+        "stopped": True,
+        "branched": True,
+        "paused_enrollments": paused,
+        "classification": label,
+        "alternate_sequence_id": branch_target,
+        "enrollment": enrollment,
+    }

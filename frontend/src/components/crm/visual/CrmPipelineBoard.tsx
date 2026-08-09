@@ -23,6 +23,7 @@ import CrmStatusBadge from "@/components/crm/visual/CrmStatusBadge";
 import { CRM_WORKSPACE, stageLabel } from "@/components/crm/types";
 import {
   commitCrmStageTransition,
+  fetchCrmNextBestAction,
   fetchCrmPipelineBoard,
   previewCrmStageTransition,
 } from "@/lib/crm-api";
@@ -56,6 +57,16 @@ export default function CrmPipelineBoard() {
   const [mobileMode, setMobileMode] = React.useState<"lanes" | "list">("lanes");
   const [q, setQ] = React.useState(search.get("q") || "");
   const savedView = search.get("view") || "";
+
+  const nba = useSWR(
+    selected ? ["crm-nba", CRM_WORKSPACE, selected.id, selected.entity_type] : null,
+    () =>
+      fetchCrmNextBestAction(
+        String(selected?.id),
+        CRM_WORKSPACE,
+        String(selected?.entity_type || "lead"),
+      ),
+  );
 
   const board = useSWR(
     ["crm-pipeline-board", CRM_WORKSPACE, savedView, search.toString()],
@@ -377,6 +388,18 @@ export default function CrmPipelineBoard() {
               <Typography variant="caption" color="text.secondary">
                 Next action: {selected.next_action || "-"}
               </Typography>
+              {nba.data?.action ? (
+                <Alert severity={nba.data.requires_approval ? "warning" : "info"} sx={{ py: 0.5 }}>
+                  Next best: {nba.data.action}
+                  {nba.data.lifecycle_label ? ` (${nba.data.lifecycle_label})` : ""}
+                  {" · "}
+                  {nba.data.reason}
+                  {nba.data.requires_approval ? " · Soft Wall required" : ""}
+                  {typeof nba.data.confidence === "number"
+                    ? ` · conf ${Math.round(nba.data.confidence * 100)}%`
+                    : ""}
+                </Alert>
+              ) : null}
               <Typography variant="caption" color="text.secondary">
                 Fit / engagement: {String(selected.fit_score ?? "-")} / {String(selected.engagement_score ?? "-")}
               </Typography>

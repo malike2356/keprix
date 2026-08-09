@@ -11,7 +11,7 @@ import Typography from "@mui/material/Typography";
 import useSWR from "swr";
 import CrmSoftWallPanel from "@/components/crm/CrmSoftWallPanel";
 import { CRM_WORKSPACE } from "@/components/crm/types";
-import { fetchCrmFunnel, fetchCrmKillSwitches, fetchCrmStatus } from "@/lib/crm-api";
+import { fetchCrmFunnel, fetchCrmJourneyStatus, fetchCrmKillSwitches, fetchCrmStatus } from "@/lib/crm-api";
 
 const QUICK_LINKS = [
   { href: "/crm/pipeline", label: "Pipeline board", description: "Kanban by canonical CRM stage." },
@@ -50,15 +50,18 @@ const FUNNEL_KEYS = [
 
 export default function CrmOverviewPage() {
   const status = useSWR(["crm-status", CRM_WORKSPACE], () => fetchCrmStatus(CRM_WORKSPACE));
-  const funnel = useSWR(["crm-funnel", CRM_WORKSPACE], () => fetchCrmFunnel(CRM_WORKSPACE));
+  const funnel = useSWR(["crm-funnel", CRM_WORKSPACE], () => fetchCrmFunnel(CRM_WORKSPACE, { extended: true }));
+  const journey = useSWR(["crm-journey", CRM_WORKSPACE], () => fetchCrmJourneyStatus(CRM_WORKSPACE));
   const kills = useSWR(["crm-kills-overview", CRM_WORKSPACE], () => fetchCrmKillSwitches(CRM_WORKSPACE));
   const counts = status.data?.counts;
   const metrics = funnel.data?.metrics;
+  const conversion = (funnel.data?.conversion_rates as { rates?: Record<string, number> } | undefined)?.rates;
   const loading = (status.isLoading && !status.data) || (funnel.isLoading && !funnel.data);
   const workspaceKillOn = (kills.data?.items || []).some(
     (k) => String(k.scope) === "workspace" && Boolean(k.enabled),
   );
   const loadError = status.error || funnel.error;
+  const pendingJourney = (journey.data?.pending_approvals || []).length;
 
   return (
     <Stack spacing={3}>
@@ -131,6 +134,30 @@ export default function CrmOverviewPage() {
                   </Typography>
                   <Typography variant="h5" sx={{ mt: 0.5 }}>
                     {metrics?.enrichment_cost ?? 0}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+              <Card variant="outlined">
+                <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Source to reply
+                  </Typography>
+                  <Typography variant="h5" sx={{ mt: 0.5 }}>
+                    {conversion ? Math.round((conversion.source_to_reply || 0) * 100) : 0}%
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+              <Card variant="outlined">
+                <CardContent sx={{ py: 1.5, "&:last-child": { pb: 1.5 } }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Journey Soft Wall
+                  </Typography>
+                  <Typography variant="h5" sx={{ mt: 0.5 }}>
+                    {pendingJourney}
                   </Typography>
                 </CardContent>
               </Card>

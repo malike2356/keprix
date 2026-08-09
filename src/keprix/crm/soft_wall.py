@@ -46,6 +46,13 @@ CRM_GATES = frozenset(
         "property_portal_checklist",
         "social_api_sync",
         "crm_demo_purge",
+        "lead_convert_contact",
+        "funnel_orchestrate",
+        "funnel_nba_execute",
+        "funnel_draft_reply",
+        "funnel_request_approval",
+        "channel_journey_campaign",
+        "nurture_branch_sequence",
     }
 )
 

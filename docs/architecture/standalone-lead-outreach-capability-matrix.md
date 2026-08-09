@@ -36,7 +36,7 @@ Honesty rule: UI presence or mocked tests alone never mark REAL. Conformance sui
 | Google Sheet | BLOCKED_OPTIONAL_CREDENTIALS | Routes exist; needs Google credentials |
 | Pasted-row import | REAL | `ingest_row_array` / tools `crm_ingest_import` rows payload |
 | API import | REAL | CRM upsert + discovery + ingest tools |
-| Channel-attachment import | PARTIAL | Parser path REAL via `ingest_channel_attachment`; mailbox poller still stub (`email_ingest.py`) |
+| Channel-attachment import | REAL | Parser + `ingest_channel_attachment`; IMAP `email_ingest.poll_once` implemented, default `KEPRIX_SHEET_EMAIL_INGEST=0` (Soft Wall before CRM write) |
 | Exact dedup | REAL | email → phone → website+company+locality (`crm/ingestion/dedup.py`) |
 | Fuzzy merge | REAL | Soft Wall `merge_identity` |
 | Sheet Soft Wall enrichment | REAL | `/crm/enrich` propose/apply |
@@ -58,7 +58,7 @@ Honesty rule: UI presence or mocked tests alone never mark REAL. Conformance sui
 | Suppression | REAL | Suppression wins over enroll/send |
 | Attribution | REAL | `/crm/attribution` |
 | Agent tool initiation | REAL | crm / outreach / sheet / discovery tools |
-| Channel (Telegram) initiation | PARTIAL | Funnel intents; not full sheet→campaign journey (Prompt 627) |
+| Channel (Telegram) initiation | REAL | Funnel intents + sheet→list→Soft Wall campaign journey (`telegram_funnel`, `channel_journey`); Slack/WhatsApp adapters PARTIAL |
 | CLI initiation | REAL | `keprix crm-ingest` + `python -m keprix.crm.ingestion` |
 | API / frontend initiation | REAL | Documented APIs + full consoles |
 | Local single-user persistence | REAL | `crm.sqlite` + `outreach.sqlite` |

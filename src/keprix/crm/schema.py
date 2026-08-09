@@ -455,6 +455,40 @@ CREATE INDEX IF NOT EXISTS ix_crm_outbox_status ON crm_outbox(workspace_id, stat
 CREATE INDEX IF NOT EXISTS ix_crm_merge_pending ON crm_merge_suggestions(workspace_id, status);
 CREATE INDEX IF NOT EXISTS ix_crm_discovery_ws ON crm_discovery_jobs(workspace_id, status);
 CREATE INDEX IF NOT EXISTS ix_crm_suppress_addr ON crm_suppression_entries(workspace_id, channel, address);
+
+CREATE TABLE IF NOT EXISTS crm_funnel_runs (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    trigger_name TEXT NOT NULL,
+    subject_type TEXT NOT NULL DEFAULT 'lead',
+    subject_id TEXT NOT NULL,
+    action_name TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'queued',
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    result_json TEXT NOT NULL DEFAULT '{}',
+    error TEXT,
+    actor_type TEXT,
+    actor_id TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(workspace_id, trigger_name, subject_id, action_name, idempotency_key)
+);
+CREATE INDEX IF NOT EXISTS ix_crm_funnel_runs_ws ON crm_funnel_runs(workspace_id, created_at);
+CREATE INDEX IF NOT EXISTS ix_crm_funnel_runs_subject ON crm_funnel_runs(workspace_id, subject_id);
+
+CREATE TABLE IF NOT EXISTS crm_funnel_run_steps (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    run_id TEXT NOT NULL,
+    step_order INTEGER NOT NULL DEFAULT 0,
+    step_name TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'queued',
+    detail_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_crm_funnel_steps_run ON crm_funnel_run_steps(workspace_id, run_id);
 """
 
 # Additive lead columns for existing DBs (Prompt 621).

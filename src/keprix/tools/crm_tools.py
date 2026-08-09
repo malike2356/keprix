@@ -1422,5 +1422,166 @@ registry.register(
     check_fn=check_crm_requirements,
 )
 
+
+def crm_funnel_orchestrate(args: dict[str, Any], **kwargs: Any) -> str:
+    ws = _require_workspace(args)
+    if not ws:
+        return _err("workspace_id required")
+    from keprix.crm.funnel_orchestrator import orchestrate
+
+    result = orchestrate(
+        ws,
+        trigger=str(args.get("trigger") or ""),
+        action=str(args.get("action") or ""),
+        subject_id=str(args.get("subject_id") or args.get("lead_id") or ""),
+        subject_type=str(args.get("subject_type") or "lead"),
+        idempotency_key=args.get("idempotency_key"),
+        payload=args.get("payload") if isinstance(args.get("payload"), dict) else {},
+        actor_type="agent",
+        actor_id=str(args.get("actor_id") or "agent"),
+        force=bool(args.get("force")),
+        approval_id=args.get("approval_id"),
+        require_soft_wall=bool(args.get("require_soft_wall", True)),
+    )
+    return _ok(result)
+
+
+def crm_next_best_action(args: dict[str, Any], **kwargs: Any) -> str:
+    ws = _require_workspace(args)
+    if not ws:
+        return _err("workspace_id required")
+    from keprix.crm.next_best_action import execute_next_best_action, suggest_next_best_action
+
+    subject_id = str(args.get("subject_id") or args.get("lead_id") or "")
+    subject_type = str(args.get("subject_type") or "lead")
+    if args.get("execute"):
+        return _ok(
+            execute_next_best_action(
+                ws,
+                subject_id=subject_id,
+                subject_type=subject_type,
+                action=args.get("action"),
+                force=bool(args.get("force")),
+                approval_id=args.get("approval_id"),
+                actor_id=str(args.get("actor_id") or "agent"),
+            )
+        )
+    return _ok(suggest_next_best_action(ws, subject_id=subject_id, subject_type=subject_type))
+
+
+def crm_channel_journey(args: dict[str, Any], **kwargs: Any) -> str:
+    ws = _require_workspace(args)
+    if not ws:
+        return _err("workspace_id required")
+    import base64
+
+    from keprix.crm.channel_journey import journey_status, run_channel_journey
+
+    if args.get("status_only"):
+        return _ok(journey_status(ws, list_id=args.get("list_id")))
+    payload = None
+    if args.get("payload_b64"):
+        payload = base64.b64decode(str(args["payload_b64"]))
+    elif args.get("content"):
+        payload = str(args["content"]).encode("utf-8")
+    result = run_channel_journey(
+        ws,
+        payload=payload,
+        filename=str(args.get("filename") or "upload.csv"),
+        channel=str(args.get("channel") or "agent"),
+        list_name=args.get("list_name"),
+        list_id=args.get("list_id"),
+        campaign_name=args.get("campaign_name"),
+        sequence_id=args.get("sequence_id"),
+        skip_enrich=bool(args.get("skip_enrich")),
+        approve_enroll=bool(args.get("approve_enroll")),
+        approval_id=args.get("approval_id"),
+        force=bool(args.get("force")),
+        actor_id=str(args.get("actor_id") or "agent"),
+    )
+    return _ok(result)
+
+
+registry.register(
+    name="crm_funnel_orchestrate",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_funnel_orchestrate",
+        "description": "Run a durable CRM funnel trigger→action with Soft Wall and suppression gates.",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(
+                trigger={"type": "string"},
+                action={"type": "string"},
+                subject_id={"type": "string"},
+                lead_id={"type": "string"},
+                subject_type={"type": "string"},
+                idempotency_key={"type": "string"},
+                payload={"type": "object"},
+                force={"type": "boolean"},
+                approval_id={"type": "string"},
+                require_soft_wall={"type": "boolean"},
+            ),
+            "required": ["workspace_id", "trigger", "action"],
+        },
+    },
+    handler=crm_funnel_orchestrate,
+    check_fn=check_crm_requirements,
+)
+
+registry.register(
+    name="crm_next_best_action",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_next_best_action",
+        "description": "Suggest or Soft Wall-execute next-best-action for a CRM subject.",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(
+                subject_id={"type": "string"},
+                lead_id={"type": "string"},
+                subject_type={"type": "string"},
+                execute={"type": "boolean"},
+                action={"type": "string"},
+                force={"type": "boolean"},
+                approval_id={"type": "string"},
+            ),
+            "required": ["workspace_id"],
+        },
+    },
+    handler=crm_next_best_action,
+    check_fn=check_crm_requirements,
+)
+
+registry.register(
+    name="crm_channel_journey",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_channel_journey",
+        "description": "Run spreadsheet channel journey (ingest→list→Soft Wall campaign) or status.",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(
+                payload_b64={"type": "string"},
+                content={"type": "string"},
+                filename={"type": "string"},
+                channel={"type": "string"},
+                list_name={"type": "string"},
+                list_id={"type": "string"},
+                campaign_name={"type": "string"},
+                sequence_id={"type": "string"},
+                skip_enrich={"type": "boolean"},
+                approve_enroll={"type": "boolean"},
+                approval_id={"type": "string"},
+                force={"type": "boolean"},
+                status_only={"type": "boolean"},
+            ),
+            "required": ["workspace_id"],
+        },
+    },
+    handler=crm_channel_journey,
+    check_fn=check_crm_requirements,
+)
+
 # Register ingestion tools alongside CRM tools (Prompt 621).
 import keprix.tools.crm_ingest_tools  # noqa: E402,F401
