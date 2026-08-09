@@ -66,7 +66,7 @@ Tests assert these gap codes: `zoom_meeting_create`, `durable_notification_deliv
 | Status | Path | Note |
 | --- | --- | --- |
 | REUSABLE | `src/keprix/crm/*`, `src/keprix/outreach/*` | Durable CRM, Soft Wall, viCal handoff helpers |
-| INCOMPLETE | Concierge timeline / outreach stop on booking | Prompt 634 |
+| ADDED (634) | Concierge mesh + nurture stop/pause | `capability_mesh.py`, `nurture_orchestration.py`, Bookings/Channels/Analytics UI |
 
 ### 7. Support / handoff
 

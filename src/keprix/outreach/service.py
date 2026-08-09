@@ -363,6 +363,14 @@ class OutreachService:
                 "campaign": campaign,
                 "sequence": sequence,
             }
+        if lead_status in ("paused_support", "paused"):
+            return {
+                "ok": False,
+                "reason": "paused_support_case",
+                "lead_id": lead_id,
+                "campaign": campaign,
+                "sequence": sequence,
+            }
         if sequence.get("stop_on_booking") and lead_status in ("booking", "booked", "attended"):
             return {
                 "ok": False,

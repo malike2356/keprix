@@ -401,11 +401,19 @@ def cancel_with_saga(
             google=google,
         )
     cancelled = life.cancel(user_id, booking_id)
+    nurture = None
+    try:
+        from keprix.customer_concierge.nurture_orchestration import apply_cancellation_policy
+
+        nurture = apply_cancellation_policy(cancelled)
+    except Exception:
+        nurture = None
     return {
         "booking": cancelled,
         "publicBooking": to_public_booking_view(cancelled.to_dict()),
         "reason": reason,
         "calendar": calendar_cancel,
+        "nurture": nurture,
     }
 
 

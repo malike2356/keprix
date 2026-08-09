@@ -24,6 +24,9 @@ Honesty rule: URL templates, in-memory outboxes, and operator-auth support route
 | Published business knowledge | REAL | Prompt 631; `published_knowledge.py` publish_state + citations |
 | Audience session principal | REAL | Prompt 630; `customer_concierge/audience/*` deny-by-default tools |
 | Channel Shield web path | PARTIAL | Embed HMAC + origin allowlist; gateway adapter still broader |
+| Operator Bookings/Channels/Analytics UI | REAL | Prompt 634; concierge page tabs + workspace_surface APIs |
+| CRM/Outreach booking mesh | REAL | Prompt 634; capability_mesh + nurture_orchestration |
+| Outreach stop on booking / pause on case | REAL | Soft Wall status booked + paused_support |
 | Carina runtime dependency | OUT_OF_SCOPE | Forbidden; static import scan |
 
 Conformance: `tests/customer_concierge/test_contract_conformance_629.py`.

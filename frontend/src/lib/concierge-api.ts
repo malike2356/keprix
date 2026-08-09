@@ -256,3 +256,93 @@ export function revokeZoomConnection() {
     method: "POST",
   });
 }
+
+export type ConciergeBooking = {
+  id: string;
+  guestName: string;
+  guestEmail: string;
+  status: string;
+  startsAt: string | null;
+  endsAt: string | null;
+  meetingUrl: string | null;
+  mesh: Record<string, unknown>;
+  invitation?: Record<string, unknown> | null;
+  spreadsheetRow?: Record<string, unknown>;
+  oneRecord?: boolean;
+};
+
+export function fetchConciergeBookings() {
+  return jsonFetch<{
+    bookings: ConciergeBooking[];
+    outreachBookings: Array<Record<string, unknown>>;
+    spreadsheetRows: Array<Record<string, unknown>>;
+    oneRecordSet: boolean;
+  }>(`${API}/bookings`);
+}
+
+export function fetchBookingMesh(bookingId: string) {
+  return jsonFetch<{ ok: boolean; mesh: Record<string, unknown> }>(
+    `${API}/bookings/${encodeURIComponent(bookingId)}/mesh`,
+  );
+}
+
+export function setBookingOutcome(bookingId: string, outcome: string, conversion?: boolean) {
+  return jsonFetch<{ ok: boolean }>(`${API}/bookings/${encodeURIComponent(bookingId)}/outcome`, {
+    method: "POST",
+    body: JSON.stringify({ outcome, conversion }),
+  });
+}
+
+export type ChannelRow = {
+  key: string;
+  enabled: boolean;
+  connected: boolean;
+  consentRequired: boolean;
+  setup?: string;
+};
+
+export function fetchChannels(personaId = "default") {
+  return jsonFetch<{
+    channels: ChannelRow[];
+    published: boolean;
+    embedUrl: string | null;
+    gatewaySessionPath: string;
+    note: string;
+  }>(`${API}/channels?personaId=${encodeURIComponent(personaId)}`);
+}
+
+export function patchChannels(personaId: string, channels: Record<string, unknown>) {
+  return jsonFetch<{ ok: boolean; channels: ChannelRow[] }>(
+    `${API}/channels?personaId=${encodeURIComponent(personaId)}`,
+    { method: "PATCH", body: JSON.stringify({ channels }) },
+  );
+}
+
+export function fetchAnalytics(personaId = "default") {
+  return jsonFetch<{
+    privacySafe: boolean;
+    metrics: Record<string, unknown>;
+    derived: Record<string, number>;
+    eventCounts: Record<string, number>;
+  }>(`${API}/analytics?personaId=${encodeURIComponent(personaId)}`);
+}
+
+export function fetchSessionMessages(sessionId: string) {
+  return jsonFetch<{
+    sessionId: string;
+    messages: Array<{ id?: string; role: string; body: string }>;
+    internalNotes: Array<{ id: string; body: string }>;
+  }>(`${API}/sessions/${encodeURIComponent(sessionId)}/messages`);
+}
+
+export function fetchLeadsTable() {
+  return jsonFetch<{ rows: Array<Record<string, unknown>>; note: string }>(`${API}/leads-table`);
+}
+
+export function fetchAudienceTools(surface = "web") {
+  return jsonFetch<{
+    surface: string;
+    ownerPrivileges: boolean;
+    allowedTools: string[];
+  }>(`${API}/audience-tools?surface=${encodeURIComponent(surface)}`);
+}

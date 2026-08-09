@@ -670,7 +670,20 @@ async def get_lead(
     lead = _store().get_lead(ws, lead_id)
     if not lead:
         raise HTTPException(status_code=404, detail={"error_code": "lead_not_found"})
-    return {"lead": lead}
+    # Concierge capability mesh (Prompt 634): show booking chain on CRM lead detail
+    concierge_mesh = None
+    try:
+        from keprix.customer_concierge.capability_mesh import build_booking_mesh
+        from keprix.vical.store import vical_store
+
+        for booking in vical_store.list_bookings(ws):
+            meta = dict(booking.metadata or {})
+            if str(meta.get("crm_lead_id") or "") == str(lead_id):
+                concierge_mesh = build_booking_mesh(booking, workspace_id=ws)
+                break
+    except Exception:
+        concierge_mesh = None
+    return {"lead": lead, "conciergeMesh": concierge_mesh}
 
 
 @router.patch("/leads/{lead_id}")

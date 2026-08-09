@@ -286,24 +286,51 @@ def _execute_tool(
         email = args.get("email")
         display = args.get("displayName") or args.get("name")
         identity = None
+        crm_contact_id = None
         if identity_id:
             from keprix.customer_concierge.audience.store import get_audience_store
 
             aud = get_audience_store()
             identity = aud.get_identity(workspace_id, identity_id)
             if identity:
+                # Best-effort CRM contact link (create/find by email); never broad search tools
+                if email:
+                    try:
+                        from keprix.crm.store import get_crm_store
+
+                        cstore = get_crm_store()
+                        for contact in cstore.list_contacts(workspace_id, limit=500):
+                            for item in contact.get("emails") or []:
+                                addr = item.get("address") if isinstance(item, dict) else item
+                                if str(addr or "").strip().lower() == str(email).strip().lower():
+                                    crm_contact_id = contact["id"]
+                                    break
+                            if crm_contact_id:
+                                break
+                        if not crm_contact_id and hasattr(cstore, "create_contact"):
+                            created = cstore.create_contact(
+                                workspace_id,
+                                str(display or email),
+                                email=str(email),
+                                source="concierge",
+                            )
+                            crm_contact_id = created.get("id") if isinstance(created, dict) else None
+                    except Exception:
+                        crm_contact_id = None
                 identity = aud.upsert_identity(
                     workspace_id=workspace_id,
                     channel=identity.channel,
                     external_key=identity.external_key,
                     display_name=str(display) if display else None,
                     email=str(email) if email else None,
+                    crm_contact_id=crm_contact_id,
                 )
         return {
             "ok": True,
             "tool": name,
             "reply": "Thanks, I saved your contact details for this conversation.",
             "contact": identity.to_dict() if identity else {"email": email, "displayName": display},
+            "crmContactId": crm_contact_id,
             "workspaceMember": False,
         }
 
@@ -333,6 +360,31 @@ def _execute_tool(
         guest_name = str(args.get("guestName") or args.get("name") or "Guest").strip()
         if not guest_email:
             return {"ok": False, "error_code": "guest_email_required", "tool": name}
+        crm_contact_id = args.get("crmContactId") or args.get("crm_contact_id")
+        crm_lead_id = args.get("crmLeadId") or args.get("crm_lead_id")
+        outreach_lead_id = args.get("outreachLeadId") or args.get("outreach_lead_id")
+        if identity_id and not crm_contact_id:
+            from keprix.customer_concierge.audience.store import get_audience_store
+
+            ident = get_audience_store().get_identity(workspace_id, identity_id)
+            if ident and ident.crm_contact_id:
+                crm_contact_id = ident.crm_contact_id
+
+        meta = {
+            "workspace_id": workspace_id,
+            "persona_id": persona_id,
+            "audience_session_id": session_id,
+            "concierge": True,
+        }
+        if crm_contact_id:
+            meta["crm_contact_id"] = crm_contact_id
+        if crm_lead_id:
+            meta["crm_lead_id"] = crm_lead_id
+        if outreach_lead_id:
+            meta["outreach_lead_id"] = outreach_lead_id
+        if session_id:
+            meta["conversation_id"] = session_id
+
         result = book_with_saga(
             host_id,
             guest_name=guest_name,
@@ -343,12 +395,32 @@ def _execute_tool(
             notes=str(args.get("notes") or text or "")[:1000] or None,
             workspace_id=workspace_id,
             persona_id=persona_id,
+            contact_id=str(crm_contact_id) if crm_contact_id else None,
             idempotency_key=args.get("idempotencyKey") or args.get("idempotency_key"),
             prefer_managed_zoom=bool(policy.get("bookingEnabled", True)),
             static_room_url=args.get("meetingUrl") or args.get("staticRoomUrl"),
             skip_slot_check=bool(args.get("skipSlotCheck")),
+            metadata=meta,
         )
         public = to_public_booking_view(result["booking"].to_dict())
+        nurture = None
+        mesh = None
+        if result["booking"].status == "confirmed" and not result.get("duplicate"):
+            from keprix.customer_concierge.nurture_orchestration import (
+                orchestrate_after_booking_confirmed,
+            )
+
+            # Lifecycle already fires CRM handoff; orchestration returns mesh + cadence stop evidence
+            nurture = orchestrate_after_booking_confirmed(
+                result["booking"], audience_session_id=session_id
+            )
+            mesh = nurture.get("mesh")
+        elif result["booking"].status == "confirmed":
+            from keprix.customer_concierge.capability_mesh import build_booking_mesh
+
+            mesh = build_booking_mesh(
+                result["booking"], workspace_id=workspace_id, audience_session_id=session_id
+            )
         return {
             "ok": True,
             "tool": name,
@@ -364,6 +436,8 @@ def _execute_tool(
             "duplicate": result.get("duplicate"),
             "conferenceManaged": result.get("conferenceManaged"),
             "actionRequired": result.get("actionRequired"),
+            "mesh": mesh,
+            "nurture": nurture,
             "workspaceMember": False,
         }
 

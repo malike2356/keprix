@@ -66,6 +66,24 @@ def request_handoff(
             "channel": channel,
         },
     )
+    nurture = None
+    if support_case:
+        try:
+            from keprix.customer_concierge.nurture_orchestration import (
+                orchestrate_after_support_case,
+            )
+
+            guest_email = None
+            if identity_id:
+                ident = aud.get_identity(workspace_id, identity_id)
+                guest_email = ident.email if ident else None
+            nurture = orchestrate_after_support_case(
+                workspace_id=workspace_id,
+                guest_email=guest_email,
+                support_case_id=str(support_case["id"]),
+            )
+        except Exception as exc:
+            nurture = {"ok": False, "error": str(exc)[:200]}
     return {
         "ok": True,
         "audienceSessionId": audience_session_id,
@@ -73,6 +91,7 @@ def request_handoff(
         "supportCase": support_case,
         "operatorUserId": updated.operator_user_id if updated else None,
         "channelContinuous": True,
+        "nurture": nurture,
     }
 
 

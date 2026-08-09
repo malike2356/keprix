@@ -17,22 +17,33 @@ import {
   addCaseNote,
   beginZoomConnect,
   createKnowledge,
+  fetchAnalytics,
+  fetchAudienceTools,
+  fetchBookingMesh,
+  fetchChannels,
+  fetchConciergeBookings,
   fetchConciergeProfile,
   fetchCustomerCase,
   fetchCustomerCases,
   fetchKnowledge,
+  fetchLeadsTable,
   fetchPreview,
   fetchReadiness,
+  fetchSessionMessages,
   fetchZoomConnection,
+  patchChannels,
   publishConcierge,
   releaseSession,
   revokeZoomConnection,
   saveStep1,
   saveStep2,
+  setBookingOutcome,
   setKnowledgePublishState,
   takeoverSession,
   testZoomConnection,
   unpublishConcierge,
+  type ChannelRow,
+  type ConciergeBooking,
   type ConciergeProfile,
   type CustomerCase,
   type KnowledgeSource,
@@ -95,6 +106,19 @@ export default function ConciergePage() {
   const [casesNote, setCasesNote] = React.useState<string | null>(null);
   const [zoom, setZoom] = React.useState<ZoomConnection | null>(null);
   const [zoomDetail, setZoomDetail] = React.useState<string | null>(null);
+  const [bookings, setBookings] = React.useState<ConciergeBooking[]>([]);
+  const [leadRows, setLeadRows] = React.useState<Array<Record<string, unknown>>>([]);
+  const [meshDetail, setMeshDetail] = React.useState<string | null>(null);
+  const [channels, setChannels] = React.useState<ChannelRow[]>([]);
+  const [channelNote, setChannelNote] = React.useState<string | null>(null);
+  const [analytics, setAnalytics] = React.useState<{
+    metrics: Record<string, unknown>;
+    derived: Record<string, number>;
+  } | null>(null);
+  const [sessionMessages, setSessionMessages] = React.useState<
+    Array<{ role: string; body: string }>
+  >([]);
+  const [audienceTools, setAudienceTools] = React.useState<string[]>([]);
 
   const load = React.useCallback(async () => {
     setError(null);
@@ -524,6 +548,17 @@ export default function ConciergePage() {
                       <Button
                         size="small"
                         onClick={() => {
+                          void (async () => {
+                            const msgs = await fetchSessionMessages(c.audienceSessionId as string);
+                            setSessionMessages(msgs.messages.map((m) => ({ role: m.role, body: m.body })));
+                          })();
+                        }}
+                      >
+                        Thread
+                      </Button>
+                      <Button
+                        size="small"
+                        onClick={() => {
                           void takeoverSession(c.audienceSessionId as string);
                         }}
                       >
@@ -544,6 +579,18 @@ export default function ConciergePage() {
             ))}
             {!cases.length ? <Typography variant="body2">No customer cases yet.</Typography> : null}
           </Stack>
+          {sessionMessages.length ? (
+            <Box sx={{ border: "1px solid", borderColor: "divider", p: 2, borderRadius: 1 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Originating thread (channel continuous)
+              </Typography>
+              {sessionMessages.map((m, idx) => (
+                <Typography key={`${m.role}-${idx}`} variant="body2" sx={{ mb: 0.75 }}>
+                  <strong>{m.role}:</strong> {m.body}
+                </Typography>
+              ))}
+            </Box>
+          ) : null}
           {selectedCaseId ? (
             <Box sx={{ border: "1px solid", borderColor: "divider", p: 2, borderRadius: 1 }}>
               <Typography variant="subtitle2" gutterBottom>
@@ -579,6 +626,192 @@ export default function ConciergePage() {
               </Button>
             </Box>
           ) : null}
+        </Stack>
+      ) : tab === 2 ? (
+        <Stack spacing={2} sx={{ maxWidth: 960 }}>
+          <Alert severity="info">
+            One booking record across viCal, Calendar, CRM, and Outreach. Soft Wall rows link via vical:id.
+          </Alert>
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                void (async () => {
+                  try {
+                    const data = await fetchConciergeBookings();
+                    setBookings(data.bookings);
+                    setLeadRows(data.spreadsheetRows);
+                    setMeshDetail(null);
+                  } catch (err) {
+                    setError(err instanceof Error ? err.message : "Bookings load failed");
+                  }
+                })();
+              }}
+            >
+              Refresh bookings
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                void (async () => {
+                  const data = await fetchLeadsTable();
+                  setLeadRows(data.rows);
+                })();
+              }}
+            >
+              Lead table rows
+            </Button>
+          </Stack>
+          <Stack spacing={1}>
+            {bookings.map((b) => (
+              <Box key={b.id} sx={{ border: "1px solid", borderColor: "divider", p: 1.5, borderRadius: 1 }}>
+                <Typography variant="subtitle2">
+                  {b.guestName} · {b.guestEmail} · {b.status}
+                </Typography>
+                <Typography variant="caption" display="block">
+                  {b.startsAt || "n/a"} · meeting={b.meetingUrl || "ics/fallback"}
+                </Typography>
+                <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      void (async () => {
+                        const res = await fetchBookingMesh(b.id);
+                        setMeshDetail(JSON.stringify(res.mesh?.mesh || res.mesh, null, 2));
+                      })();
+                    }}
+                  >
+                    Mesh chain
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      void setBookingOutcome(b.id, "completed", true);
+                    }}
+                  >
+                    Mark converted
+                  </Button>
+                  <Button size="small" href="/vical" component="a">
+                    Open viCal
+                  </Button>
+                  <Button size="small" href="/crm" component="a">
+                    Open CRM
+                  </Button>
+                </Stack>
+              </Box>
+            ))}
+            {!bookings.length ? <Typography variant="body2">No bookings yet.</Typography> : null}
+          </Stack>
+          {meshDetail ? (
+            <Box component="pre" sx={{ p: 1.5, bgcolor: "action.hover", overflow: "auto", fontSize: 12 }}>
+              {meshDetail}
+            </Box>
+          ) : null}
+          {leadRows.length ? (
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>
+                Spreadsheet lead columns (privacy-safe ids)
+              </Typography>
+              {leadRows.slice(0, 20).map((row) => (
+                <Typography key={String(row.bookingId)} variant="caption" display="block">
+                  {String(row.guestEmail)} · {String(row.status)} · booking={String(row.bookingId)} · crm=
+                  {String(row.crmLeadId || row.crmContactId || "-")} · outreach=
+                  {String(row.outreachLeadId || "-")}
+                </Typography>
+              ))}
+            </Box>
+          ) : null}
+        </Stack>
+      ) : tab === 4 ? (
+        <Stack spacing={2} sx={{ maxWidth: 800 }}>
+          <Alert severity="info">
+            Channel replies stay in the originating thread. Audience tools only; no owner privileges on visitor
+            surfaces (web, gateway, phone, desktop, TUI).
+          </Alert>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              void (async () => {
+                try {
+                  const data = await fetchChannels(personaId);
+                  setChannels(data.channels);
+                  setChannelNote(data.note);
+                  const tools = await fetchAudienceTools("web");
+                  setAudienceTools(tools.allowedTools);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Channels load failed");
+                }
+              })();
+            }}
+          >
+            Refresh channels
+          </Button>
+          {channelNote ? <Typography variant="body2">{channelNote}</Typography> : null}
+          <Stack spacing={1}>
+            {channels.map((ch) => (
+              <Box key={ch.key} sx={{ border: "1px solid", borderColor: "divider", p: 1.5, borderRadius: 1 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={ch.enabled}
+                      onChange={(e) => {
+                        void (async () => {
+                          const res = await patchChannels(personaId, {
+                            [ch.key]: { enabled: e.target.checked },
+                          });
+                          setChannels(res.channels);
+                        })();
+                      }}
+                    />
+                  }
+                  label={`${ch.key} · connected=${String(ch.connected)} · consent=${String(ch.consentRequired)}`}
+                />
+                {ch.setup ? (
+                  <Typography variant="caption" display="block">
+                    {ch.setup}
+                  </Typography>
+                ) : null}
+              </Box>
+            ))}
+          </Stack>
+          {audienceTools.length ? (
+            <Typography variant="caption" display="block">
+              Audience tools ({audienceTools.length}): {audienceTools.slice(0, 8).join(", ")}…
+            </Typography>
+          ) : null}
+        </Stack>
+      ) : tab === 6 ? (
+        <Stack spacing={2} sx={{ maxWidth: 720 }}>
+          <Alert severity="info">Metrics are event-derived and privacy-safe (no message bodies or host start URLs).</Alert>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              void (async () => {
+                try {
+                  const data = await fetchAnalytics(personaId);
+                  setAnalytics({ metrics: data.metrics, derived: data.derived });
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Analytics load failed");
+                }
+              })();
+            }}
+          >
+            Refresh analytics
+          </Button>
+          {analytics ? (
+            <Box sx={{ border: "1px solid", borderColor: "divider", p: 2, borderRadius: 1 }}>
+              <Typography variant="body2">Confirmed: {String(analytics.metrics.confirmedBookings)}</Typography>
+              <Typography variant="body2">Bookings total: {String(analytics.metrics.bookingsTotal)}</Typography>
+              <Typography variant="body2">Handoffs: {String(analytics.metrics.handoffs)}</Typography>
+              <Typography variant="body2">Takeovers: {String(analytics.metrics.takeovers)}</Typography>
+              <Typography variant="body2">
+                Confirm rate: {Number(analytics.derived.confirmRate || 0).toFixed(2)} · Cancel rate:{" "}
+                {Number(analytics.derived.cancelRate || 0).toFixed(2)}
+              </Typography>
+            </Box>
+          ) : (
+            <Typography variant="body2">Load analytics to report on concierge activity.</Typography>
+          )}
         </Stack>
       ) : tab === 5 ? (
         <Stack spacing={2} sx={{ maxWidth: 720 }}>
@@ -660,10 +893,7 @@ export default function ConciergePage() {
           </Stack>
         </Stack>
       ) : (
-        <Alert severity="info">
-          {TABS[tab]} will receive more operator controls in later prompts. viCal bookings, CRM, and outreach remain in their own
-          areas.
-        </Alert>
+        <Alert severity="info">{TABS[tab]} is loading operator controls.</Alert>
       )}
     </Box>
   );

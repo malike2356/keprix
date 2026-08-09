@@ -698,6 +698,145 @@ async def session_messages(
     }
 
 
+@router.get("/bookings")
+async def list_concierge_bookings(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.customer_concierge.workspace_surface import list_unified_bookings
+
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return list_unified_bookings(ws)
+
+
+@router.get("/bookings/{booking_id}/mesh")
+async def booking_mesh(
+    booking_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.customer_concierge.capability_mesh import build_booking_mesh
+    from keprix.vical.store import vical_store
+
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    booking = vical_store.get_booking(ws, booking_id)
+    if booking is None:
+        raise HTTPException(status_code=404, detail="booking not found")
+    return {"ok": True, "mesh": build_booking_mesh(booking, workspace_id=ws)}
+
+
+@router.post("/bookings/{booking_id}/outcome")
+async def booking_outcome(
+    booking_id: str,
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.customer_concierge.nurture_orchestration import update_funnel_outcome
+
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    result = update_funnel_outcome(
+        workspace_id=ws,
+        booking_id=booking_id,
+        outcome=str(body.get("outcome") or "unknown"),
+        conversion=body.get("conversion"),
+    )
+    if not result.get("ok"):
+        raise HTTPException(status_code=404, detail=result)
+    return result
+
+
+@router.get("/channels")
+async def get_channels(
+    persona_id: str = Query(default="default", alias="personaId"),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.customer_concierge.workspace_surface import channel_surface
+
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return channel_surface(ws, persona_id=persona_id)
+
+
+@router.patch("/channels")
+async def patch_channels(
+    body: dict[str, Any] = Body(default_factory=dict),
+    persona_id: str = Query(default="default", alias="personaId"),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.customer_concierge.workspace_surface import update_channel_surface
+
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    try:
+        return update_channel_surface(
+            ws,
+            persona_id=persona_id,
+            channels=dict(body.get("channels") or body),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/analytics")
+async def get_analytics(
+    persona_id: str = Query(default="default", alias="personaId"),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.customer_concierge.workspace_surface import analytics_surface
+
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return analytics_surface(ws, persona_id=persona_id)
+
+
+@router.get("/leads-table")
+async def leads_table(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.customer_concierge.capability_mesh import spreadsheet_rows_for_workspace
+
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return {
+        "workspaceId": ws,
+        "rows": spreadsheet_rows_for_workspace(ws),
+        "note": "Same booking ids as viCal and Outreach Soft Wall; CRM spreadsheet columns.",
+    }
+
+
+@router.get("/audience-tools")
+async def audience_tools_catalog(
+    surface: str = Query(default="web"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.customer_concierge.surface_tools import audience_tool_catalog
+
+    _ = user
+    return audience_tool_catalog(surface=surface)
+
+
+@router.post("/nurture/no-show-recovery")
+async def no_show_recovery(
+    body: dict[str, Any] = Body(default_factory=dict),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.customer_concierge.nurture_orchestration import no_show_recovery_gate
+
+    _ = user
+    result = no_show_recovery_gate(approved_automation=body.get("approvedAutomation"))
+    if not result.get("ok"):
+        raise HTTPException(status_code=403, detail=result)
+    return result
+
+
 @public_router.get("/{workspace_id}/{persona_id}/status")
 async def public_status(workspace_id: str, persona_id: str) -> dict[str, Any]:
     profile = get_concierge_store().get(workspace_id, persona_id)

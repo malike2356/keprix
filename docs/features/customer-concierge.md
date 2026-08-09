@@ -39,6 +39,15 @@ When published, `build_concierge_persona_overlay` injects business name, descrip
 - CE: labelled static URL + ICS fallback when Zoom is not configured
 - Tests: `tests/customer_concierge/test_booking_saga_zoom_632.py`
 
+## Workspace UI, CRM mesh, outreach, channels (Prompt 634)
+
+- Operator tabs: Setup, Conversations (thread + takeover), Bookings, Knowledge, Channels, Integrations, Analytics
+- Unified bookings: `GET /api/customer-concierge/bookings` (viCal + Soft Wall; one record set)
+- Capability mesh: `GET /api/customer-concierge/bookings/{id}/mesh` + leads table rows
+- Nurture: confirmed booking stops sales cadence; support cases pause outreach (`paused_support`); cancel holds (no auto-restart); no-show recovery gated
+- Audience tool catalog for web/gateway/phone/desktop/TUI without owner privileges
+- Tests: `tests/customer_concierge/test_workspace_ui_crm_634.py`
+
 ## Calendar invitations and reconciliation (Prompt 633)
 
 - Package: `src/keprix/vical/calendar/` (Google, Microsoft, ICS adapters + projection store)
