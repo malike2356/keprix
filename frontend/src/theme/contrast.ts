@@ -78,3 +78,43 @@ export function ensureMutedText(color: string, paper: string, mode: "light" | "d
   if (!parseHex(color)) return fallback;
   return ensureContrast(color, paperBg, 4.5);
 }
+
+export function ensurePrimaryText(color: string, paper: string, mode: "light" | "dark"): string {
+  const paperBg = parseHex(paper) ? paper : mode === "light" ? "#ffffff" : "#1a1d23";
+  const fallback = mode === "light" ? "#111827" : "#f3f4f6";
+  if (!parseHex(color)) return fallback;
+  return ensureContrast(color, paperBg, 4.5);
+}
+
+/** Soft status fill that keeps text readable in light and dark modes. */
+export function softStatusColors(
+  main: string,
+  paper: string,
+  mode: "light" | "dark",
+): { backgroundColor: string; color: string } {
+  const paperBg = parseHex(paper) ? paper : mode === "light" ? "#ffffff" : "#1a1d23";
+  const tint = ensureContrast(main, paperBg, 4.5);
+  // Approximate alpha overlay by mixing main into paper (no CSS alpha in palette helpers).
+  const mixAmount = mode === "dark" ? 0.22 : 0.14;
+  const backgroundColor = mixToward(paperBg, main, mixAmount);
+  const color = ensureContrast(tint, backgroundColor, 4.5);
+  return { backgroundColor, color };
+}
+
+/** Explicit severity light/dark/contrastText that stay usable as fills in dark mode. */
+export function severityScale(main: string, mode: "light" | "dark") {
+  const light =
+    mode === "dark"
+      ? mixToward(main, "#0a0a0a", 0.55) // dark tinted surface, not a washed pastel
+      : mixToward(main, "#ffffff", 0.72);
+  const dark =
+    mode === "dark" ? mixToward(main, "#ffffff", 0.28) : mixToward(main, "#0a0a0a", 0.28);
+  return {
+    main,
+    light,
+    dark,
+    contrastText: contrastText(main),
+    // Readable label when using `.light` as a row/chip fill.
+    softContrastText: contrastText(light),
+  };
+}

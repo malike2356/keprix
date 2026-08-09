@@ -5,6 +5,7 @@ import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import DashboardCard from "@/components/cards/DashboardCard";
 import { SkeletonDetailPanel } from "@/components/ui/loading";
 import type { BillingPlan, BillingSubscription } from "@/lib/billing-api";
@@ -99,17 +100,22 @@ export default function BillingSubscriptionSummary({
 function AlertRow({ onResume, actionLoading }: { onResume: () => void; actionLoading?: boolean }) {
   return (
     <Box
-      sx={{
+      sx={(theme) => ({
         p: 2,
         borderRadius: 1,
-        bgcolor: "warning.light",
-        color: "warning.contrastText",
-      }}
+        bgcolor: (t) =>
+          t.palette.mode === "dark"
+            ? alpha(t.palette.warning.main, 0.18)
+            : alpha(t.palette.warning.main, 0.12),
+        color: "text.primary",
+        border: "1px solid",
+        borderColor: alpha(theme.palette.warning.main, 0.45),
+      })}
     >
       <Typography variant="body2" sx={{ mb: 1 }}>
         Your subscription will cancel at the end of the current billing period.
       </Typography>
-      <Button size="small" variant="contained" color="inherit" onClick={onResume} disabled={actionLoading}>
+      <Button size="small" variant="contained" color="warning" onClick={onResume} disabled={actionLoading}>
         Resume subscription
       </Button>
     </Box>

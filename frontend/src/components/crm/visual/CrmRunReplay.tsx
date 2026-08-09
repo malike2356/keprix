@@ -12,6 +12,7 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 import {
   Background,
   Controls,
@@ -41,6 +42,7 @@ function stateColor(state: string): string {
 }
 
 export default function CrmRunReplay({ runId }: Props) {
+  const theme = useTheme();
   const reduced = useReducedMotion();
   const [error, setError] = React.useState<string | null>(null);
   const [paused, setPaused] = React.useState(false);
@@ -96,7 +98,8 @@ export default function CrmRunReplay({ runId }: Props) {
         border: `2px solid ${stateColor(st)}`,
         borderRadius: 8,
         padding: 8,
-        background: "#fff",
+        background: theme.palette.background.paper,
+        color: theme.palette.text.primary,
         fontSize: 12,
         whiteSpace: "pre-line",
         minWidth: 140,

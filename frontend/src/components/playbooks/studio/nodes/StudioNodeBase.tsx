@@ -3,6 +3,7 @@
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
+import { alpha, useTheme } from "@mui/material/styles";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
 import type { StudioNodeData, StudioNodeType } from "@/lib/playbook-studio/canvas-types";
 import { nodeDefinition } from "@/lib/playbook-studio/node-registry";
@@ -15,13 +16,23 @@ type Props = NodeProps & {
 };
 
 export default function StudioNodeBase({ type, data, selected, invalid, conditionHandles }: Props) {
+  const theme = useTheme();
   const definition = nodeDefinition(type);
   const Icon = definition.icon;
   const label = data.label || definition.label;
   const headerSx =
     definition.color === "default"
-      ? { bgcolor: "grey.100", color: "text.primary" }
-      : { bgcolor: `${definition.color}.light`, color: `${definition.color}.contrastText` };
+      ? {
+          bgcolor: alpha(theme.palette.text.primary, theme.palette.mode === "dark" ? 0.08 : 0.06),
+          color: "text.primary",
+        }
+      : {
+          bgcolor: alpha(
+            (theme.palette[definition.color] || theme.palette.primary).main,
+            theme.palette.mode === "dark" ? 0.22 : 0.14,
+          ),
+          color: "text.primary",
+        };
   const runBorder = data.runStatus === "completed"
     ? "success.main"
     : data.runStatus === "failed"
@@ -37,6 +48,7 @@ export default function StudioNodeBase({ type, data, selected, invalid, conditio
         width: 220,
         minHeight: 88,
         bgcolor: "background.paper",
+        color: "text.primary",
         border: "1px solid",
         borderColor: invalid || data.invalid ? "error.main" : runBorder || (selected ? "primary.main" : "divider"),
         borderWidth: selected ? 2 : 1,

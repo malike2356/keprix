@@ -11,11 +11,12 @@
   --kp-primary: var(--primary, #7c3aed);
   --kp-primary-light: var(--ring, #a78bfa);
   --kp-secondary: var(--secondary, #06b6d4);
-  --kp-bg: var(--background, #ffffff);
-  --kp-bg-paper: var(--card, #f5f5f5);
-  --kp-text-primary: var(--foreground, #111827);
-  --kp-text-secondary: var(--muted-foreground, #6b7280);
-  --kp-border: var(--border, rgba(0, 0, 0, 0.12));
+  /* Dark-first fallbacks: html defaults to class "dark". Light mode skins override --background/--foreground. */
+  --kp-bg: var(--background, #0a0a0a);
+  --kp-bg-paper: var(--card, #0a0a0a);
+  --kp-text-primary: var(--foreground, #fafafa);
+  --kp-text-secondary: var(--muted-foreground, #a1a1a1);
+  --kp-border: var(--border, #262626);
   --kp-radius-card: var(--radius, 12px);
   --kp-radius-chip: 9999px;
   --font-ai-studio-sans: "Google Sans Flex", "Google Sans Text", var(--font-inter-tight), "Inter Tight", var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;

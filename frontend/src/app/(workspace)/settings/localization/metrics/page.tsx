@@ -226,7 +226,16 @@ export default function LocalizationMetricsPage() {
                       .map((row) => (
                         <TableRow
                           key={`${row.provider}-${row.language}-${row.month}`}
-                          sx={row.needs_investigation ? { bgcolor: "warning.light" } : undefined}
+                          sx={
+                            row.needs_investigation
+                              ? {
+                                  bgcolor: (theme) =>
+                                    theme.palette.mode === "dark"
+                                      ? "rgba(245, 158, 11, 0.16)"
+                                      : "rgba(217, 119, 6, 0.12)",
+                                }
+                              : undefined
+                          }
                         >
                           <TableCell>{row.provider}</TableCell>
                           <TableCell>{row.language}</TableCell>

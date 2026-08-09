@@ -3,6 +3,7 @@ import { getKeprixColors, type ThemeMode } from "./tokens/colors";
 import {
   ensureInteractiveAccent,
   ensureMutedText,
+  ensurePrimaryText,
   parseHex,
   relativeLuminance,
 } from "./contrast";
@@ -47,7 +48,10 @@ export function paletteFromCssVars(mode: ThemeMode): KeprixPalette {
     paper,
     mode,
   );
-  const foreground = readVar("--foreground", fallback.textPrimary);
+  // Prefer card-foreground when skins set it; always enforce contrast on paper.
+  const foregroundRaw =
+    readVar("--card-foreground", "") || readVar("--foreground", fallback.textPrimary);
+  const foreground = ensurePrimaryText(foregroundRaw, paper, mode);
   const border = readVar("--border", fallback.border);
   const muted = ensureMutedText(
     readVar("--muted-foreground", fallback.textSecondary),

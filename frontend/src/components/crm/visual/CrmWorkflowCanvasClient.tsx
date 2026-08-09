@@ -14,6 +14,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 import {
   Background,
   Controls,
@@ -105,15 +106,21 @@ function CanvasInner({
   onSelect: (id: string | null) => void;
   onNodeMoved?: (id: string, x: number, y: number) => void;
 }) {
+  const theme = useTheme();
+  const nodeBg = theme.palette.background.paper;
+  const nodeFg = theme.palette.text.primary;
+  const nodeBorder = theme.palette.divider;
+  const selectedBorder = theme.palette.primary.main;
   const flowNodes: Node[] = nodes.map((n) => ({
     id: n.id,
     position: { x: n.x ?? 0, y: n.y ?? 0 },
     data: { label: `${n.label || n.type || n.id}\n[${n.family || "node"}]` },
     style: {
-      border: selectedId === n.id ? "2px solid #1976d2" : "1px solid #999",
+      border: selectedId === n.id ? `2px solid ${selectedBorder}` : `1px solid ${nodeBorder}`,
       borderRadius: 8,
       padding: 8,
-      background: "#fff",
+      background: nodeBg,
+      color: nodeFg,
       fontSize: 12,
       whiteSpace: "pre-line",
       minWidth: 140,

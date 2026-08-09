@@ -61,11 +61,11 @@ export default function CodeBlock({ language, content }: CodeBlockProps) {
           borderColor: "divider",
         }}
       >
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant="caption" sx={{ color: "#9ca3af" }}>
           {language}
         </Typography>
         <Tooltip title={copied ? "Copied" : "Copy"}>
-          <IconButton size="small" onClick={onCopy} aria-label="Copy code">
+          <IconButton size="small" onClick={onCopy} aria-label="Copy code" sx={{ color: "#9ca3af" }}>
             <ContentCopyIcon fontSize="small" />
           </IconButton>
         </Tooltip>

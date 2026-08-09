@@ -60,10 +60,18 @@ function parseUnifiedDiff(diff: string): DiffFile[] {
 
 function lineSx(type: DiffLine["type"]) {
   if (type === "add") {
-    return { bgcolor: "success.light", color: "success.contrastText" };
+    return {
+      bgcolor: (theme: { palette: { mode: string } }) =>
+        theme.palette.mode === "dark" ? "rgba(16, 185, 129, 0.18)" : "rgba(5, 150, 105, 0.12)",
+      color: "text.primary",
+    };
   }
   if (type === "remove") {
-    return { bgcolor: "error.light", color: "error.contrastText" };
+    return {
+      bgcolor: (theme: { palette: { mode: string } }) =>
+        theme.palette.mode === "dark" ? "rgba(239, 68, 68, 0.18)" : "rgba(239, 68, 68, 0.12)",
+      color: "text.primary",
+    };
   }
   return { bgcolor: "transparent", color: "text.secondary" };
 }

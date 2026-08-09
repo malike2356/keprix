@@ -6,13 +6,14 @@ export function syncKeprixCssAliases() {
   }
   const root = document.documentElement;
   const styles = getComputedStyle(root);
+  const dark = root.classList.contains("dark");
   const read = (name: string, fallback: string) => styles.getPropertyValue(name).trim() || fallback;
 
   const primary = read("--primary", "#7c3aed");
-  const background = read("--background", "#ffffff");
-  const foreground = read("--foreground", "#111827");
-  const muted = read("--muted-foreground", "#6b7280");
-  const border = read("--border", "rgba(0, 0, 0, 0.12)");
+  const background = read("--background", dark ? "#0a0a0a" : "#ffffff");
+  const foreground = read("--foreground", dark ? "#fafafa" : "#111827");
+  const muted = read("--muted-foreground", dark ? "#a1a1a1" : "#6b7280");
+  const border = read("--border", dark ? "#262626" : "rgba(0, 0, 0, 0.12)");
   const card = read("--card", background);
   const secondary = read("--secondary", "#06b6d4");
   const radius = read("--radius", "0.75rem");
