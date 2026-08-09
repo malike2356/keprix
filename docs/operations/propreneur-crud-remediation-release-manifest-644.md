@@ -91,14 +91,14 @@ Additive only. List applied on Contabo during deploy (fill from `php artisan mig
 
 | Dimension | Status |
 | --- | --- |
-| Engine readiness | PENDING_LIVE |
-| CRUD readiness | PENDING_LIVE (local evidence GREEN) |
-| Domain coverage | LIVE + APPROVAL_REQUIRED per matrix; forbidden explicit |
-| Owner-controlled limitations | Hard delete, vault binary, payment post, outbound send |
-| RAG freshness | Local docs/tests green; live reindex owner/ops |
-| Deployment parity | PENDING after push+deploy |
-| Remaining external owner configuration | Restricted live mutation canary tenant + soak window |
+| Engine readiness | READY (Contabo pack health + public APIs 200) |
+| CRUD readiness | LOCAL READY; Contabo live mutate OWNER_PENDING (`PROPRENEUR_PRODUCT_API_URL` unset) |
+| Domain coverage | READY (live + approval_required + forbidden classified; 3 not_configured remaining) |
+| Owner-controlled limitations | READY (documented: hard delete, vault binary, payment post, outbound send) |
+| RAG freshness | LOCAL READY (61 paths; retrieval tests); Contabo reindex owner/ops |
+| Deployment parity | READY (SHAs pushed; Contabo rsync/compose; carinaai.uk 200) |
+| Remaining external owner configuration | OPEN (connector URL, allowlist, restricted synthetic canary, soak) |
 
 ## Sign-off
 
-Extracted by agent session 2026-08-09; owner review required for live mutation canary and soak close.
+Extracted by agent session 2026-08-09; owner review required for Contabo connector env and live mutation canary before general-release GREEN.
