@@ -155,6 +155,12 @@ export type OutreachApproval = {
   requested_at?: string | null;
   requestedAt?: string | null;
   created_at?: string | null;
+  delivery_state?: string | null;
+  provider_message_id?: string | null;
+  provider?: string | null;
+  mailbox?: string | null;
+  send_error?: string | null;
+  message_id?: string | null;
 };
 
 export type OutreachControlState = {
@@ -163,6 +169,16 @@ export type OutreachControlState = {
   updated_at?: string | null;
   updatedAt?: string | null;
   updated_by?: string | null;
+  default_email_account_id?: string | null;
+  allow_open_tracking?: boolean;
+  allow_click_tracking?: boolean;
+  settings?: {
+    allow_open_tracking?: boolean;
+    allow_click_tracking?: boolean;
+    tracking_opens?: boolean;
+    tracking_clicks?: boolean;
+    [key: string]: unknown;
+  };
 };
 
 export type OutreachOverview = {

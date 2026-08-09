@@ -531,6 +531,13 @@ export type OutreachSchedulerHealth = {
   retrying_count?: number;
   oldest_due_age_seconds?: number | null;
   heartbeat?: Record<string, unknown> | null;
+  delivery?: {
+    dry_run?: boolean;
+    not_configured?: boolean;
+    sender_mode?: string;
+    drift_count?: number;
+    expired_approvals?: number;
+  };
 };
 
 export async function fetchOutreachSchedulerHealth(workspaceId = DEFAULT_WORKSPACE) {

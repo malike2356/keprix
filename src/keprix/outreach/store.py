@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS outreach_campaigns (
     require_approval INTEGER DEFAULT 0,
     default_sequence_id TEXT,
     default_booking_link TEXT,
+    email_account_id TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -122,7 +123,30 @@ CREATE TABLE IF NOT EXISTS outreach_messages (
     approval_status TEXT DEFAULT 'none',
     approval_id TEXT,
     idempotency_key TEXT,
+    provider TEXT,
+    provider_message_id TEXT,
+    provider_thread_id TEXT,
+    mailbox TEXT,
+    delivery_state TEXT DEFAULT 'draft',
+    last_provider_event_at TEXT,
+    send_error TEXT,
+    correlation_id TEXT,
     created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS outreach_provider_events (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    provider TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL,
+    provider_message_id TEXT,
+    message_id TEXT,
+    payload_json TEXT,
+    received_at TEXT NOT NULL,
+    applied_at TEXT,
+    signature_ok INTEGER DEFAULT 1,
+    UNIQUE(workspace_id, idempotency_key)
 );
 
 CREATE TABLE IF NOT EXISTS outreach_scheduler_heartbeats (
@@ -159,6 +183,9 @@ CREATE INDEX IF NOT EXISTS ix_outreach_messages_ws ON outreach_messages(workspac
 CREATE UNIQUE INDEX IF NOT EXISTS ix_outreach_messages_idem
     ON outreach_messages(workspace_id, idempotency_key)
     WHERE idempotency_key IS NOT NULL AND idempotency_key != '';
+CREATE INDEX IF NOT EXISTS ix_outreach_provider_events_ws ON outreach_provider_events(workspace_id);
+CREATE INDEX IF NOT EXISTS ix_outreach_messages_provider_mid
+    ON outreach_messages(workspace_id, provider_message_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_replies_ws ON outreach_replies(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_steps_ws ON outreach_sequence_steps(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_scheduler_hb_ws ON outreach_scheduler_heartbeats(workspace_id);
@@ -370,6 +397,115 @@ def ensure_scheduler_columns(conn) -> None:
         pass
 
 
+def ensure_delivery_columns(conn) -> None:
+    """Additive delivery / provider-event columns for older outreach DBs."""
+
+    def _cols(table: str) -> set[str]:
+        try:
+            rows = conn.execute(
+                """
+                SELECT column_name AS name
+                FROM information_schema.columns
+                WHERE table_schema = 'public' AND table_name = ?
+                """,
+                (table,),
+            ).fetchall()
+            if rows:
+                names: set[str] = set()
+                for r in rows:
+                    if hasattr(r, "keys"):
+                        names.add(str(r["name"] if "name" in r.keys() else r[0]))
+                    else:
+                        names.add(str(r[0]))
+                return names
+        except Exception:
+            pass
+        try:
+            return {str(r[1]) for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+        except Exception:
+            return set()
+
+    campaign_alters = (("email_account_id", "TEXT"),)
+    camp_cols = _cols("outreach_campaigns")
+    for name, ddl in campaign_alters:
+        if name not in camp_cols:
+            try:
+                conn.execute(f"ALTER TABLE outreach_campaigns ADD COLUMN {name} {ddl}")
+            except Exception:
+                pass
+
+    message_alters = (
+        ("provider", "TEXT"),
+        ("provider_message_id", "TEXT"),
+        ("provider_thread_id", "TEXT"),
+        ("mailbox", "TEXT"),
+        ("delivery_state", "TEXT DEFAULT 'draft'"),
+        ("last_provider_event_at", "TEXT"),
+        ("send_error", "TEXT"),
+        ("correlation_id", "TEXT"),
+    )
+    msg_cols = _cols("outreach_messages")
+    for name, ddl in message_alters:
+        if name not in msg_cols:
+            try:
+                conn.execute(f"ALTER TABLE outreach_messages ADD COLUMN {name} {ddl}")
+            except Exception:
+                pass
+
+    control_alters = (
+        ("default_email_account_id", "TEXT"),
+        ("settings_json", "TEXT"),
+    )
+    ctl_cols = _cols("outreach_control")
+    for name, ddl in control_alters:
+        if name not in ctl_cols:
+            try:
+                conn.execute(f"ALTER TABLE outreach_control ADD COLUMN {name} {ddl}")
+            except Exception:
+                pass
+
+    try:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS outreach_provider_events (
+                id TEXT PRIMARY KEY,
+                workspace_id TEXT NOT NULL,
+                provider TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                idempotency_key TEXT NOT NULL,
+                provider_message_id TEXT,
+                message_id TEXT,
+                payload_json TEXT,
+                received_at TEXT NOT NULL,
+                applied_at TEXT,
+                signature_ok INTEGER DEFAULT 1,
+                UNIQUE(workspace_id, idempotency_key)
+            )
+            """
+        )
+    except Exception:
+        pass
+    try:
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS ix_outreach_provider_events_ws ON outreach_provider_events(workspace_id)"
+        )
+    except Exception:
+        pass
+    try:
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS ix_outreach_messages_provider_mid
+            ON outreach_messages(workspace_id, provider_message_id)
+            """
+        )
+    except Exception:
+        pass
+    try:
+        conn.commit()
+    except Exception:
+        pass
+
+
 class OutreachStore:
     def __init__(self, path: Path | None = None) -> None:
         from keprix.crm.durable import resolve_crm_backend
@@ -393,6 +529,10 @@ class OutreachStore:
                 ensure_scheduler_columns(self._conn)
             except Exception:
                 pass
+            try:
+                ensure_delivery_columns(self._conn)
+            except Exception:
+                pass
         else:
             assert self._path is not None
             self._path.parent.mkdir(parents=True, exist_ok=True)
@@ -407,6 +547,10 @@ class OutreachStore:
                 pass
             try:
                 ensure_scheduler_columns(self._conn)
+            except Exception:
+                pass
+            try:
+                ensure_delivery_columns(self._conn)
             except Exception:
                 pass
 
@@ -442,8 +586,8 @@ class OutreachStore:
                 INSERT INTO outreach_campaigns (
                     id, workspace_id, name, status, source_type, daily_cap, timezone,
                     business_hours_only, warmup_days, require_approval, default_sequence_id,
-                    default_booking_link, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    default_booking_link, email_account_id, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     row_id,
@@ -458,6 +602,7 @@ class OutreachStore:
                     1 if fields.get("require_approval") else 0,
                     fields.get("default_sequence_id"),
                     fields.get("default_booking_link"),
+                    fields.get("email_account_id"),
                     now,
                     now,
                 ),
@@ -489,6 +634,7 @@ class OutreachStore:
             "require_approval",
             "default_sequence_id",
             "default_booking_link",
+            "email_account_id",
         }
         updates = {k: v for k, v in fields.items() if k in allowed and v is not None}
         if not updates:
@@ -1191,8 +1337,10 @@ class OutreachStore:
                     INSERT INTO outreach_messages (
                         id, workspace_id, enrollment_id, step_id, step_order, channel, subject, body,
                         sent_at, delivered_at, opened_at, clicked_at, bounced,
-                        approval_status, approval_id, idempotency_key, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        approval_status, approval_id, idempotency_key,
+                        provider, provider_message_id, provider_thread_id, mailbox,
+                        delivery_state, last_provider_event_at, send_error, correlation_id, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         msg_id,
@@ -1211,6 +1359,14 @@ class OutreachStore:
                         fields.get("approval_status") or "none",
                         fields.get("approval_id"),
                         idem_key,
+                        fields.get("provider"),
+                        fields.get("provider_message_id"),
+                        fields.get("provider_thread_id"),
+                        fields.get("mailbox"),
+                        fields.get("delivery_state") or "draft",
+                        fields.get("last_provider_event_at"),
+                        fields.get("send_error"),
+                        fields.get("correlation_id"),
                         now,
                     ),
                 )
@@ -1232,6 +1388,169 @@ class OutreachStore:
             "SELECT * FROM outreach_messages WHERE id = ? AND workspace_id = ?",
             (msg_id, ws),
         )  # type: ignore[return-value]
+
+    def get_message(self, workspace_id: str, message_id: str) -> dict[str, Any] | None:
+        return self._fetchone(
+            "SELECT * FROM outreach_messages WHERE id = ? AND workspace_id = ?",
+            (message_id, workspace_id),
+        )
+
+    def update_message(self, workspace_id: str, message_id: str, **fields: Any) -> dict[str, Any] | None:
+        allowed = {
+            "sent_at",
+            "delivered_at",
+            "opened_at",
+            "clicked_at",
+            "bounced",
+            "approval_status",
+            "approval_id",
+            "provider",
+            "provider_message_id",
+            "provider_thread_id",
+            "mailbox",
+            "delivery_state",
+            "last_provider_event_at",
+            "send_error",
+            "correlation_id",
+            "subject",
+            "body",
+        }
+        updates = {k: v for k, v in fields.items() if k in allowed}
+        if "bounced" in updates:
+            updates["bounced"] = 1 if updates["bounced"] else 0
+        if not updates:
+            return self.get_message(workspace_id, message_id)
+        cols = ", ".join(f"{k} = ?" for k in updates)
+        with self._lock:
+            self._conn.execute(
+                f"UPDATE outreach_messages SET {cols} WHERE id = ? AND workspace_id = ?",
+                (*updates.values(), message_id, workspace_id),
+            )
+            self._conn.commit()
+        return self.get_message(workspace_id, message_id)
+
+    def find_message_by_provider_message_id(
+        self, workspace_id: str, provider_message_id: str
+    ) -> dict[str, Any] | None:
+        return self._fetchone(
+            """
+            SELECT * FROM outreach_messages
+            WHERE workspace_id = ? AND provider_message_id = ?
+            ORDER BY created_at DESC LIMIT 1
+            """,
+            (workspace_id, provider_message_id),
+        )
+
+    def list_stuck_delivery_messages(
+        self,
+        *,
+        workspace_id: str | None = None,
+        older_than_iso: str,
+        limit: int = 200,
+    ) -> list[dict[str, Any]]:
+        ws_clause = " AND workspace_id = ?" if workspace_id else ""
+        params: list[Any] = [older_than_iso]
+        if workspace_id:
+            params.append(workspace_id)
+        params.append(int(limit))
+        return self._fetchall(
+            f"""
+            SELECT * FROM outreach_messages
+            WHERE delivery_state IN ('sent', 'accepted')
+              AND sent_at IS NOT NULL
+              AND sent_at <= ?
+              AND delivered_at IS NULL
+              AND COALESCE(bounced, 0) = 0
+              {ws_clause}
+            ORDER BY sent_at ASC
+            LIMIT ?
+            """,
+            tuple(params),
+        )
+
+    def record_provider_event(
+        self,
+        *,
+        workspace_id: str,
+        provider: str,
+        event_type: str,
+        idempotency_key: str,
+        provider_message_id: str | None = None,
+        message_id: str | None = None,
+        payload: Any = None,
+        signature_ok: bool = True,
+        applied_at: str | None = None,
+    ) -> dict[str, Any]:
+        existing = self.get_provider_event_by_idempotency(workspace_id, idempotency_key)
+        if existing:
+            return existing
+        row_id = str(uuid.uuid4())
+        now = _utcnow()
+        with self._lock:
+            try:
+                self._conn.execute(
+                    """
+                    INSERT INTO outreach_provider_events (
+                        id, workspace_id, provider, event_type, idempotency_key,
+                        provider_message_id, message_id, payload_json, received_at,
+                        applied_at, signature_ok
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        row_id,
+                        workspace_id,
+                        provider,
+                        event_type,
+                        idempotency_key,
+                        provider_message_id,
+                        message_id,
+                        json.dumps(payload if payload is not None else {}),
+                        now,
+                        applied_at,
+                        1 if signature_ok else 0,
+                    ),
+                )
+                self._conn.commit()
+            except Exception:
+                self._conn.rollback()
+                existing = self.get_provider_event_by_idempotency(workspace_id, idempotency_key)
+                if existing:
+                    return existing
+                raise
+        return self.get_provider_event(workspace_id, row_id)  # type: ignore[return-value]
+
+    def get_provider_event(self, workspace_id: str, event_id: str) -> dict[str, Any] | None:
+        return self._fetchone(
+            "SELECT * FROM outreach_provider_events WHERE id = ? AND workspace_id = ?",
+            (event_id, workspace_id),
+        )
+
+    def get_provider_event_by_idempotency(
+        self, workspace_id: str, idempotency_key: str
+    ) -> dict[str, Any] | None:
+        return self._fetchone(
+            """
+            SELECT * FROM outreach_provider_events
+            WHERE workspace_id = ? AND idempotency_key = ?
+            """,
+            (workspace_id, idempotency_key),
+        )
+
+    def mark_provider_event_applied(
+        self, workspace_id: str, event_id: str, *, applied_at: str | None = None
+    ) -> dict[str, Any] | None:
+        now = applied_at or _utcnow()
+        with self._lock:
+            self._conn.execute(
+                """
+                UPDATE outreach_provider_events
+                SET applied_at = ?
+                WHERE id = ? AND workspace_id = ?
+                """,
+                (now, event_id, workspace_id),
+            )
+            self._conn.commit()
+        return self.get_provider_event(workspace_id, event_id)
 
     def count_messages_for_enrollment_step(self, enrollment_id: str, step_order: int) -> int:
         row = self._fetchone(

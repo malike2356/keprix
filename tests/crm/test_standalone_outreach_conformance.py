@@ -20,15 +20,15 @@ CONTRACT_SCHEMA = ROOT / "schemas/standalone-lead-outreach/contract.schema.json"
 
 # Known gaps that must remain visible until later prompts close them.
 KNOWN_GAPS: dict[str, str] = {
-    "live_email_send": "PARTIAL: dry-run default / incomplete account bind (625)",
-    "provider_events": "MISSING: no ESP webhook normalizer (625)",
     "automatic_mailbox_scan": "PARTIAL: stub/cron prompt only (626)",
     "channel_attachment_import": "SIMULATED: email_ingest stub (627)",
 }
 
-# Prompt 624 closed campaign_scheduler; do not list it as an open gap.
+# Prompt 624 closed campaign_scheduler; 625 closed live send + provider events.
 CLOSED_CAPABILITIES: dict[str, str] = {
     "campaign_scheduler": "REAL: claim-lease process-due + Soft Wall park (624)",
+    "live_email_send": "REAL: Soft Wall approve + SMTP bind / honest dry-run default (625)",
+    "provider_events": "REAL: SES/SendGrid/Mailgun normalizer + apply + idempotency (625)",
 }
 
 
@@ -73,12 +73,25 @@ def test_known_gaps_catalogued_and_not_false_ready() -> None:
     """Gap catalog must stay non-empty until 628; readiness stays false."""
     assert KNOWN_GAPS, "gap catalog emptied prematurely"
     assert "campaign_scheduler" not in KNOWN_GAPS
+    assert "live_email_send" not in KNOWN_GAPS
+    assert "provider_events" not in KNOWN_GAPS
     assert CLOSED_CAPABILITIES.get("campaign_scheduler", "").startswith("REAL")
+    assert CLOSED_CAPABILITIES.get("live_email_send", "").startswith("REAL")
+    assert CLOSED_CAPABILITIES.get("provider_events", "").startswith("REAL")
     readiness = False
     for key, note in KNOWN_GAPS.items():
         assert note, key
         assert any(tag in note for tag in ("MISSING", "PARTIAL", "SIMULATED")), note
     assert readiness is False, "do not claim standalone_outreach_ready at Prompt 620"
+
+
+def test_delivery_docs_and_module_exist() -> None:
+    delivery_doc = ROOT / "docs/architecture/standalone-lead-outreach-delivery.md"
+    assert delivery_doc.is_file()
+    assert (ROOT / "src/keprix/outreach/delivery.py").is_file()
+    assert (ROOT / "src/keprix/outreach/provider_events.py").is_file()
+    text = MATRIX.read_text(encoding="utf-8")
+    assert "delivery.send_approved_message" in text or "provider_events" in text
 
 
 def test_scheduler_docs_and_module_exist() -> None:

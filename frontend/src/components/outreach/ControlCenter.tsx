@@ -42,6 +42,10 @@ export function ControlCenter({
   const queueDepth = Number(schedulerHealth?.queue_depth ?? 0);
   const deadLetters = Number(schedulerHealth?.dead_letter_count ?? 0);
   const oldest = schedulerHealth?.oldest_due_age_seconds;
+  const delivery = schedulerHealth?.delivery;
+  const driftCount = Number(delivery?.drift_count ?? 0);
+  const trackingOpens = Boolean(control?.allow_open_tracking || control?.settings?.allow_open_tracking);
+  const trackingClicks = Boolean(control?.allow_click_tracking || control?.settings?.allow_click_tracking);
 
   return (
     <Card variant="outlined">
@@ -89,8 +93,37 @@ export function ControlCenter({
                     variant="outlined"
                     label={`Oldest due ${formatAge(oldest)}`}
                   />
+                  {delivery ? (
+                    <>
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={delivery.dry_run ? "Dry-run" : `Send ${delivery.sender_mode || "live"}`}
+                        color={delivery.dry_run ? "default" : "success"}
+                      />
+                      {delivery.not_configured ? (
+                        <Chip size="small" variant="outlined" label="Not configured" color="warning" />
+                      ) : null}
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={`Drift ${driftCount}`}
+                        color={driftCount > 0 ? "warning" : "default"}
+                      />
+                    </>
+                  ) : null}
                 </>
               ) : null}
+              <Chip
+                size="small"
+                variant="outlined"
+                label={trackingOpens ? "Open tracking on (optional)" : "Open tracking off (optional)"}
+              />
+              <Chip
+                size="small"
+                variant="outlined"
+                label={trackingClicks ? "Click tracking on (optional)" : "Click tracking off (optional)"}
+              />
               {control?.reason ? (
                 <Typography variant="caption" color="text.secondary">
                   {control.reason}

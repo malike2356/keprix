@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS outreach_campaigns (
     require_approval INTEGER DEFAULT 0,
     default_sequence_id TEXT,
     default_booking_link TEXT,
+    email_account_id TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -102,7 +103,30 @@ CREATE TABLE IF NOT EXISTS outreach_messages (
     approval_status TEXT DEFAULT 'none',
     approval_id TEXT,
     idempotency_key TEXT,
+    provider TEXT,
+    provider_message_id TEXT,
+    provider_thread_id TEXT,
+    mailbox TEXT,
+    delivery_state TEXT DEFAULT 'draft',
+    last_provider_event_at TEXT,
+    send_error TEXT,
+    correlation_id TEXT,
     created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS outreach_provider_events (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    provider TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    idempotency_key TEXT NOT NULL,
+    provider_message_id TEXT,
+    message_id TEXT,
+    payload_json TEXT,
+    received_at TEXT NOT NULL,
+    applied_at TEXT,
+    signature_ok INTEGER DEFAULT 1,
+    UNIQUE(workspace_id, idempotency_key)
 );
 
 CREATE TABLE IF NOT EXISTS outreach_replies (
@@ -124,7 +148,9 @@ CREATE TABLE IF NOT EXISTS outreach_control (
     paused INTEGER NOT NULL DEFAULT 0,
     reason TEXT,
     updated_by TEXT,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    default_email_account_id TEXT,
+    settings_json TEXT
 );
 
 CREATE TABLE IF NOT EXISTS outreach_lists (
@@ -192,6 +218,8 @@ CREATE INDEX IF NOT EXISTS ix_outreach_enrollments_due ON outreach_enrollments(w
 CREATE INDEX IF NOT EXISTS ix_outreach_enrollments_lease ON outreach_enrollments(status, locked_until);
 CREATE INDEX IF NOT EXISTS ix_outreach_messages_ws ON outreach_messages(workspace_id);
 CREATE UNIQUE INDEX IF NOT EXISTS ix_outreach_messages_idem ON outreach_messages(workspace_id, idempotency_key);
+CREATE INDEX IF NOT EXISTS ix_outreach_messages_provider_mid ON outreach_messages(workspace_id, provider_message_id);
+CREATE INDEX IF NOT EXISTS ix_outreach_provider_events_ws ON outreach_provider_events(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_replies_ws ON outreach_replies(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_lists_ws ON outreach_lists(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_list_members_ws ON outreach_list_members(workspace_id);
@@ -222,6 +250,7 @@ OUTREACH_TABLE_NAMES: tuple[str, ...] = (
     "outreach_leads",
     "outreach_enrollments",
     "outreach_messages",
+    "outreach_provider_events",
     "outreach_replies",
     "outreach_control",
     "outreach_lists",
@@ -285,6 +314,7 @@ def ensure_outreach_pg_schema(conn) -> None:
         conn.commit()
     except Exception:
         pass
-    from keprix.outreach.store import ensure_scheduler_columns
+    from keprix.outreach.store import ensure_delivery_columns, ensure_scheduler_columns
 
     ensure_scheduler_columns(conn)
+    ensure_delivery_columns(conn)

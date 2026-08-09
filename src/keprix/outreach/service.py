@@ -214,18 +214,56 @@ class OutreachService:
         subject: str,
         body: str,
         dry_run: bool,
+        workspace_id: str | None = None,
+        campaign: dict[str, Any] | None = None,
+        control: dict[str, Any] | None = None,
+        idempotency_key: str | None = None,
+        existing_message: dict[str, Any] | None = None,
+        account_override: dict[str, Any] | None = None,
+        correlation_id: str | None = None,
     ) -> dict[str, Any]:
-        if dry_run or os.environ.get("KEPRIX_OUTREACH_DRY_RUN", "1") not in ("0", "false", "False"):
-            return {"sent": True, "dry_run": True, "to": to_email}
-        try:
-            # Optional live SMTP when explicitly enabled and account helpers exist
-            from keprix.email.helpers import send_smtp_message  # noqa: F401
+        from keprix.outreach.delivery import send_approved_message
 
-            logger.info("outreach live send requested to %s (subject=%s)", to_email, subject[:80])
-            # Without a configured account binding, keep dry_run semantics
-            return {"sent": True, "dry_run": True, "to": to_email, "note": "no_account_bound"}
-        except Exception as exc:
-            return {"sent": False, "dry_run": True, "error": str(exc), "to": to_email}
+        return send_approved_message(
+            workspace_id=str(workspace_id or ""),
+            to_email=to_email,
+            subject=subject,
+            body=body,
+            campaign=campaign,
+            control=control,
+            idempotency_key=idempotency_key,
+            dry_run=dry_run,
+            account_override=account_override,
+            existing_message=existing_message,
+            correlation_id=correlation_id,
+        )
+
+    def _stamp_message_send(
+        self,
+        workspace_id: str,
+        message_id: str | None,
+        send_result: dict[str, Any],
+        *,
+        now_iso: str,
+    ) -> None:
+        if not message_id:
+            return
+        if not (send_result.get("sent") or send_result.get("dry_run")):
+            return
+        if send_result.get("reason") == "not_configured":
+            return
+        fields: dict[str, Any] = {
+            "sent_at": now_iso,
+            "provider": send_result.get("provider"),
+            "provider_message_id": send_result.get("provider_message_id"),
+            "provider_thread_id": send_result.get("provider_thread_id"),
+            "mailbox": send_result.get("mailbox"),
+            "delivery_state": send_result.get("delivery_state")
+            or ("sent" if send_result.get("dry_run") else "accepted"),
+            "send_error": None,
+            "correlation_id": send_result.get("correlation_id"),
+        }
+        self.store.update_message(workspace_id, str(message_id), **fields)
 
     def revalidate_enrollment_send(
         self,
@@ -532,18 +570,37 @@ class OutreachService:
                         locked_by=None,
                     )
                 else:
+                    control = ops.get_control(ws)
                     send_result = self._send_message(
                         to_email=str(lead_row["email"]),
                         subject=subject,
                         body=body,
                         dry_run=False,
+                        workspace_id=ws,
+                        campaign=campaign,
+                        control=control,
+                        idempotency_key=idem_key,
+                        existing_message=message,
+                        correlation_id=str(enrollment.get("correlation_id") or ""),
                     )
-                    if send_result.get("sent"):
-                        self.store._conn.execute(
-                            "UPDATE outreach_messages SET sent_at = ?, approval_status = 'none' WHERE id = ?",
-                            (now_iso, message["id"]),
+                    if send_result.get("reason") == "not_configured":
+                        self.store.update_message(
+                            ws,
+                            str(message["id"]),
+                            send_error="not_configured",
+                            delivery_state="failed",
                         )
-                        self.store._conn.commit()
+                        self.store.update_enrollment(
+                            eid,
+                            status="active",
+                            next_run_at=_iso(now_dt + timedelta(minutes=15)),
+                            last_error="not_configured",
+                            locked_until=None,
+                            locked_by=None,
+                        )
+                        action = "not_configured"
+                    elif send_result.get("sent"):
+                        self._stamp_message_send(ws, message.get("id"), send_result, now_iso=now_iso)
                         action = "sent_step"
                         self._advance_enrollment_after_step(
                             enrollment_id=eid,
@@ -558,6 +615,12 @@ class OutreachService:
                         attempts = int(enrollment.get("attempt_count") or 0) + 1
                         err = str(send_result.get("error") or "send_failed")
                         permanent = bool(send_result.get("permanent"))
+                        self.store.update_message(
+                            ws,
+                            str(message["id"]),
+                            send_error=err,
+                            delivery_state="failed" if permanent else "queued",
+                        )
                         if permanent or attempts >= max_att:
                             self.store.update_enrollment(
                                 eid,
@@ -587,6 +650,7 @@ class OutreachService:
                     "send_failed",
                     "retry_backoff",
                     "dead_letter",
+                    "not_configured",
                 ):
                     self.store.update_lead_status(ws, str(lead_row["id"]), "contacted")
 
@@ -751,39 +815,79 @@ class OutreachService:
         step_index = int(gate["step_index"])
         subject = str(approval.get("subject") or step.get("subject") or "")
         body = str(approval.get("draft_body") or step.get("body") or "")
+        control = ops.get_control(workspace_id)
+        message = None
+        if approval.get("message_id"):
+            message = self.store.get_message(workspace_id, str(approval["message_id"]))
+        idem_key = (message or {}).get("idempotency_key") or f"approval:{approval_id}"
 
         send_result = self._send_message(
             to_email=str(lead_row.get("email") or approval.get("recipient") or ""),
             subject=subject,
             body=body,
             dry_run=dry_run,
+            workspace_id=workspace_id,
+            campaign=campaign,
+            control=control,
+            idempotency_key=str(idem_key) if idem_key else None,
+            existing_message=message,
+            correlation_id=str(enrollment.get("correlation_id") or ""),
         )
-        # Mark approved (and stamp sent_at when send reports success / dry)
-        resolved = ops.resolve_approval(workspace_id, approval_id, "approved")
-        if not send_result.get("sent") and not send_result.get("dry_run"):
-            # Keep enrollment parked / retryable without advancing
+
+        if send_result.get("reason") == "not_configured":
+            # Keep Soft Wall park + pending approval; do not advance step.
             self.store.update_enrollment(
                 str(enrollment_id),
-                status="active",
-                next_run_at=_iso(now_dt + timedelta(minutes=5)),
-                last_error=str(send_result.get("error") or "send_failed"),
+                status="awaiting_approval",
+                next_run_at=None,
+                last_error="not_configured",
                 locked_until=None,
                 locked_by=None,
             )
+            if approval.get("message_id"):
+                self.store.update_message(
+                    workspace_id,
+                    str(approval["message_id"]),
+                    send_error="not_configured",
+                )
+            return {
+                "ok": False,
+                "reason": "not_configured",
+                "send": send_result,
+                "approval": approval,
+            }
+
+        if not send_result.get("sent") and not send_result.get("dry_run"):
+            # Keep enrollment parked / retryable without advancing; leave approval pending.
+            err = str(send_result.get("error") or "send_failed")
+            self.store.update_enrollment(
+                str(enrollment_id),
+                status="awaiting_approval",
+                next_run_at=None,
+                last_error=err,
+                locked_until=None,
+                locked_by=None,
+            )
+            if approval.get("message_id"):
+                self.store.update_message(
+                    workspace_id,
+                    str(approval["message_id"]),
+                    send_error=err,
+                    delivery_state="failed" if send_result.get("permanent") else "queued",
+                )
             return {
                 "ok": False,
                 "reason": "send_failed",
                 "send": send_result,
-                "approval": resolved,
+                "approval": approval,
             }
 
+        # Mark approved only after honest send / explicit dry_run success
+        resolved = ops.resolve_approval(workspace_id, approval_id, "approved")
         if send_result.get("sent") or send_result.get("dry_run"):
-            if approval.get("message_id"):
-                self.store._conn.execute(
-                    "UPDATE outreach_messages SET sent_at = COALESCE(sent_at, ?) WHERE id = ?",
-                    (now_iso, approval["message_id"]),
-                )
-                self.store._conn.commit()
+            self._stamp_message_send(
+                workspace_id, approval.get("message_id"), send_result, now_iso=now_iso
+            )
 
         self._advance_enrollment_after_step(
             enrollment_id=str(enrollment_id),

@@ -56,6 +56,11 @@ in **Install minimum** above.
 | `KEPRIX_CRM_BACKEND` | CRM/outreach durable store: `auto` / `sqlite` / `postgres` | `auto` | no |
 | `KEPRIX_CRM_DB_PATH` | Optional SQLite path override for CRM | `(empty)` | no |
 | `KEPRIX_CRM_FORCE_PG` | Force Postgres backend (including under pytest) | `0` | no |
+| `KEPRIX_OUTREACH_DRY_RUN` | Outreach send dry-run (default on for Contabo/prod safety) | `1` | no |
+| `KEPRIX_OUTREACH_SOFT_WALL` | Park cold sends for Soft Wall approval | `1` | no |
+| `SENDGRID_API_KEY` | Optional SendGrid ESP (empty = not_configured for that provider) | `(empty)` | no |
+| `MAILGUN_API_KEY` / `MAILGUN_DOMAIN` | Optional Mailgun ESP | `(empty)` | no |
+| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_SES_REGION` | Optional SES ESP | `(empty)` | no |
 | `KEPRIX_TEST_DATABASE_URL` | Optional Postgres URL for CRM durable tests | `(empty)` | no |
 | `POSTGRES_PASSWORD` | Database | `REPLACE_ME_POSTGRES` | no |
 | `POSTGRES_BIND` | Database | `127.0.0.1` | no |

@@ -49,8 +49,8 @@ Honesty rule: UI presence or mocked tests alone never mark REAL. Conformance sui
 | Campaigns / sequences | REAL | Outreach store + GUI |
 | Scheduling / process-due | REAL | Durable claim-lease scheduler (`outreach/scheduler.py`, `claim_due_enrollments`, Soft Wall park); see `standalone-lead-outreach-scheduler.md` |
 | Soft Wall approvals | REAL | CRM gates + outreach send approvals |
-| Live email send | PARTIAL | Default `KEPRIX_OUTREACH_DRY_RUN=1`; account bind incomplete (Prompt 625) |
-| Provider events (bounce/complaint) | MISSING | No SES/SendGrid/Mailgun normalizer (Prompt 625) |
+| Live email send | REAL | Soft Wall approve → `delivery.send_approved_message`; SMTP via `email_accounts` when bound; default `KEPRIX_OUTREACH_DRY_RUN=1` (honest dry-run); ESP live BLOCKED_OPTIONAL_CREDENTIALS without keys; see `standalone-lead-outreach-delivery.md` |
+| Provider events (bounce/complaint) | REAL | Normalizer + apply + idempotency (`provider_events.py`); signed webhooks when verify keys set; fixtures cover SES/SendGrid/Mailgun |
 | Reply ingest API | REAL | Manual/API inbound classify |
 | Automatic mailbox reply scan | PARTIAL | Stub / agent prompt seed (Prompt 626) |
 | Bookings (viCal) | REAL | CRM offer-booking + outreach bookings |

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 
 from keprix.api.auth import require_api_auth
 from keprix.outreach.ops import get_outreach_ops_store
@@ -93,13 +93,43 @@ def patch_control(
 ) -> dict[str, Any]:
     ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id)
     action = str(body.get("action") or "").strip().lower()
-    if action not in ("pause", "resume"):
+    settings = body.get("settings") if isinstance(body.get("settings"), dict) else None
+    # Optional tracking toggles (labelled optional in UI)
+    if any(
+        k in body
+        for k in (
+            "allow_open_tracking",
+            "allow_click_tracking",
+            "tracking_opens",
+            "tracking_clicks",
+            "default_email_account_id",
+        )
+    ):
+        settings = dict(settings or {})
+        for src, dst in (
+            ("allow_open_tracking", "allow_open_tracking"),
+            ("tracking_opens", "allow_open_tracking"),
+            ("allow_click_tracking", "allow_click_tracking"),
+            ("tracking_clicks", "allow_click_tracking"),
+        ):
+            if src in body:
+                settings[dst] = bool(body[src])
+    paused = None
+    reason = body.get("reason")
+    if action in ("pause", "resume"):
+        paused = action == "pause"
+        reason = reason or f"Operator {action} from control center"
+    elif action and action not in ("pause", "resume", "update", "settings"):
+        raise HTTPException(status_code=422, detail="action must be pause, resume, or update")
+    elif not action and settings is None and body.get("default_email_account_id") is None:
         raise HTTPException(status_code=422, detail="action must be pause or resume")
     state = _ops().set_control(
         ws,
-        paused=(action == "pause"),
-        reason=body.get("reason") or (f"Operator {action} from control center"),
+        paused=paused if paused is not None else None,
+        reason=reason,
         updated_by=str(_user or "web-ui"),
+        default_email_account_id=body.get("default_email_account_id"),
+        settings=settings,
     )
     return {"state": {**state, "paused": bool(state.get("paused"))}}
 
@@ -761,7 +791,20 @@ def list_approvals(
 ) -> dict[str, Any]:
     ws = _workspace(workspace_id, x_workspace_id)
     items = _ops().list_approvals(ws, status=status)
-    return {"workspace_id": ws, "approvals": items, "count": len(items)}
+    enriched = []
+    for item in items:
+        row = dict(item)
+        mid = row.get("message_id")
+        if mid:
+            msg = _store().get_message(ws, str(mid))
+            if msg:
+                row["delivery_state"] = msg.get("delivery_state")
+                row["provider_message_id"] = msg.get("provider_message_id")
+                row["provider"] = msg.get("provider")
+                row["mailbox"] = msg.get("mailbox")
+                row["send_error"] = msg.get("send_error")
+        enriched.append(row)
+    return {"workspace_id": ws, "approvals": enriched, "count": len(enriched)}
 
 
 @router.post("/approvals/{approval_id}/approve")
@@ -808,6 +851,100 @@ def reject_send(
     return {"ok": True, **result}
 
 
+@router.post("/approvals/{approval_id}/modify")
+def modify_approval(
+    approval_id: str,
+    body: dict[str, Any],
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    """Update pending Soft Wall draft subject/body before approve."""
+    ws = _workspace(workspace_id, x_workspace_id)
+    pending = _ops().list_approvals(ws, status="pending")
+    approval = next((r for r in pending if r.get("id") == approval_id), None)
+    if not approval:
+        raise HTTPException(status_code=404, detail="approval_not_found")
+    subject = body.get("subject")
+    draft_body = body.get("draft_body") if "draft_body" in body else body.get("body")
+    updates: dict[str, Any] = {}
+    if subject is not None:
+        updates["subject"] = str(subject)
+    if draft_body is not None:
+        updates["draft_body"] = str(draft_body)
+    if not updates:
+        raise HTTPException(status_code=422, detail="subject or draft_body required")
+    with _ops()._lock:
+        cols = ", ".join(f"{k} = ?" for k in updates)
+        _ops()._conn.execute(
+            f"UPDATE outreach_approvals SET {cols} WHERE id = ? AND workspace_id = ?",
+            (*updates.values(), approval_id, ws),
+        )
+        if approval.get("message_id"):
+            msg_updates = {}
+            if "subject" in updates:
+                msg_updates["subject"] = updates["subject"]
+            if "draft_body" in updates:
+                msg_updates["body"] = updates["draft_body"]
+            if msg_updates:
+                _store().update_message(ws, str(approval["message_id"]), **msg_updates)
+        _ops()._conn.commit()
+    refreshed = next(
+        (r for r in _ops().list_approvals(ws, status="pending") if r.get("id") == approval_id),
+        None,
+    )
+    return {"ok": True, "approval": refreshed}
+
+
+@router.post("/approvals/{approval_id}/expire")
+def expire_approval(
+    approval_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id)
+    row = _ops().resolve_approval(ws, approval_id, "expired")
+    if not row:
+        raise HTTPException(status_code=404, detail="approval_not_found")
+    if row.get("enrollment_id"):
+        _store().update_enrollment(
+            str(row["enrollment_id"]),
+            status="active",
+            last_error="approval_expired",
+        )
+    return {"ok": True, "approval": row}
+
+
+@router.post("/messages/preview")
+def preview_message(
+    body: dict[str, Any],
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    from keprix.outreach.delivery import preview_message as _preview
+
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id)
+    lead_id = str(body.get("lead_id") or "").strip()
+    if not lead_id:
+        raise HTTPException(status_code=422, detail="lead_id is required")
+    lead = _store().get_lead(ws, lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail="lead_not_found")
+    template = body.get("template") or {
+        "subject": body.get("subject"),
+        "body": body.get("body"),
+        "cta": body.get("cta"),
+        "link": body.get("link"),
+    }
+    campaign = None
+    if lead.get("campaign_id"):
+        campaign = _store().get_campaign(ws, str(lead["campaign_id"]))
+    result = _preview(template, lead, campaign=campaign)
+    return {"workspace_id": ws, "lead_id": lead_id, **result}
+
+
 # ── Process due + Companies House ──────────────────────────────
 
 
@@ -839,8 +976,89 @@ def scheduler_health(
     x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
     _user: str = Depends(require_api_auth),
 ) -> dict[str, Any]:
+    from keprix.outreach.reconcile import delivery_health
+
     ws = _workspace(workspace_id, x_workspace_id)
-    return _svc().get_scheduler_health(ws)
+    return delivery_health(workspace_id=ws)
+
+
+@router.get("/delivery/health")
+def delivery_health_route(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    from keprix.outreach.reconcile import delivery_health
+
+    ws = _workspace(workspace_id, x_workspace_id)
+    return delivery_health(workspace_id=ws)
+
+
+@router.post("/delivery/reconcile")
+def delivery_reconcile(
+    body: dict[str, Any] | None = None,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    from keprix.outreach.reconcile import reconcile_delivery
+
+    body = body or {}
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id)
+    return reconcile_delivery(
+        workspace_id=ws,
+        older_than_minutes=int(body.get("older_than_minutes") or 30),
+        expire_approvals_hours=body.get("expire_approvals_hours"),
+    )
+
+
+@router.post("/webhooks/{provider}")
+async def outreach_provider_webhook(
+    provider: str,
+    request: Request,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+) -> dict[str, Any]:
+    """Public ESP webhook. Signature validated when verify keys are configured."""
+    from keprix.outreach.provider_events import ingest_provider_webhook
+
+    ws = _workspace(workspace_id, x_workspace_id)
+    raw = await request.body()
+    headers = {k: v for k, v in request.headers.items()}
+    try:
+        payload = await request.json()
+    except Exception:
+        try:
+            import json as _json
+
+            payload = _json.loads(raw.decode() or "{}")
+        except Exception:
+            payload = {"raw": raw.decode(errors="replace")}
+    result = ingest_provider_webhook(
+        ws,
+        provider,
+        payload=payload,
+        headers=headers,
+        body=raw,
+    )
+    if not result.get("ok") and result.get("reason") == "invalid_signature":
+        raise HTTPException(status_code=401, detail="invalid_signature")
+    return result
+
+
+@router.post("/provider-events/apply")
+def apply_provider_event_internal(
+    body: dict[str, Any],
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    """Internal/test apply for a normalized provider event."""
+    from keprix.outreach.provider_events import apply_provider_event
+
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id)
+    event = body.get("event") or body
+    return apply_provider_event(ws, event, signature_ok=bool(body.get("signature_ok", True)))
 
 
 @router.post("/enrollments/{enrollment_id}/pause")

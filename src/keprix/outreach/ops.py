@@ -23,7 +23,9 @@ CREATE TABLE IF NOT EXISTS outreach_control (
     paused INTEGER NOT NULL DEFAULT 0,
     reason TEXT,
     updated_by TEXT,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    default_email_account_id TEXT,
+    settings_json TEXT
 );
 
 CREATE TABLE IF NOT EXISTS outreach_lists (
@@ -129,6 +131,12 @@ class OutreachOpsStore:
             except Exception:
                 pass
             self._ensure_message_columns()
+            try:
+                from keprix.outreach.store import ensure_delivery_columns
+
+                ensure_delivery_columns(self._conn)
+            except Exception:
+                pass
 
     @property
     def backend(self) -> str:
@@ -169,33 +177,132 @@ class OutreachOpsStore:
                 "reason": None,
                 "updated_by": None,
                 "updated_at": _utcnow(),
+                "default_email_account_id": None,
+                "settings": {},
+                "settings_json": "{}",
+                "allow_open_tracking": False,
+                "allow_click_tracking": False,
             }
+        settings: dict[str, Any] = {}
+        raw = row.get("settings_json")
+        if isinstance(raw, str) and raw.strip():
+            try:
+                settings = json.loads(raw)
+            except json.JSONDecodeError:
+                settings = {}
+        elif isinstance(raw, dict):
+            settings = raw
+        row["settings"] = settings
+        row["allow_open_tracking"] = bool(
+            settings.get("allow_open_tracking") or settings.get("tracking_opens")
+        )
+        row["allow_click_tracking"] = bool(
+            settings.get("allow_click_tracking") or settings.get("tracking_clicks")
+        )
         return row
 
     def set_control(
         self,
         workspace_id: str,
         *,
-        paused: bool,
+        paused: bool | None = None,
         reason: str | None = None,
         updated_by: str | None = None,
+        default_email_account_id: str | None = None,
+        settings: dict[str, Any] | None = None,
+        merge_settings: bool = True,
     ) -> dict[str, Any]:
         now = _utcnow()
+        current = self.get_control(workspace_id)
+        paused_val = current.get("paused") if paused is None else paused
+        reason_val = current.get("reason") if reason is None else reason
+        account_val = (
+            current.get("default_email_account_id")
+            if default_email_account_id is None
+            else default_email_account_id
+        )
+        settings_val = dict(current.get("settings") or {})
+        if settings is not None:
+            settings_val = {**settings_val, **settings} if merge_settings else dict(settings)
         with self._lock:
             self._conn.execute(
                 """
-                INSERT INTO outreach_control (workspace_id, paused, reason, updated_by, updated_at)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO outreach_control (
+                    workspace_id, paused, reason, updated_by, updated_at,
+                    default_email_account_id, settings_json
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(workspace_id) DO UPDATE SET
                     paused = excluded.paused,
                     reason = excluded.reason,
                     updated_by = excluded.updated_by,
-                    updated_at = excluded.updated_at
+                    updated_at = excluded.updated_at,
+                    default_email_account_id = excluded.default_email_account_id,
+                    settings_json = excluded.settings_json
                 """,
-                (workspace_id, 1 if paused else 0, reason, updated_by, now),
+                (
+                    workspace_id,
+                    1 if paused_val else 0,
+                    reason_val,
+                    updated_by if updated_by is not None else current.get("updated_by"),
+                    now,
+                    account_val,
+                    json.dumps(settings_val),
+                ),
             )
             self._conn.commit()
         return self.get_control(workspace_id)
+
+    def expire_stale_approvals(
+        self,
+        *,
+        workspace_id: str | None = None,
+        older_than_iso: str,
+    ) -> int:
+        """Mark pending approvals older than cutoff as expired; return count."""
+        params: list[Any] = [older_than_iso]
+        ws_clause = ""
+        if workspace_id:
+            ws_clause = " AND workspace_id = ?"
+            params.append(workspace_id)
+        with self._lock:
+            # Collect ids first for enrollment updates
+            rows = self._fetchall(
+                f"""
+                SELECT * FROM outreach_approvals
+                WHERE status = 'pending' AND created_at <= ?{ws_clause}
+                """,
+                tuple(params),
+            )
+            if not rows:
+                return 0
+            now = _utcnow()
+            for row in rows:
+                self._conn.execute(
+                    """
+                    UPDATE outreach_approvals
+                    SET status = 'expired', resolved_at = ?
+                    WHERE id = ? AND status = 'pending'
+                    """,
+                    (now, row["id"]),
+                )
+                eid = row.get("enrollment_id")
+                if eid:
+                    try:
+                        self._conn.execute(
+                            """
+                            UPDATE outreach_enrollments
+                            SET status = 'active',
+                                next_run_at = COALESCE(next_run_at, ?),
+                                last_error = 'approval_expired'
+                            WHERE id = ? AND status = 'awaiting_approval'
+                            """,
+                            (now, eid),
+                        )
+                    except Exception:
+                        pass
+            self._conn.commit()
+        return len(rows)
 
     # Lists
     def list_lists(self, workspace_id: str) -> list[dict[str, Any]]:
@@ -419,15 +526,14 @@ class OutreachOpsStore:
                 (status, now, approval_id, workspace_id),
             )
             if row.get("message_id"):
-                sent_at = now if status == "approved" else None
-                approval_status = "approved" if status == "approved" else "rejected"
+                approval_status = "approved" if status == "approved" else status
                 self._conn.execute(
                     """
                     UPDATE outreach_messages
-                    SET approval_status = ?, sent_at = COALESCE(?, sent_at)
+                    SET approval_status = ?
                     WHERE id = ?
                     """,
-                    (approval_status, sent_at, row["message_id"]),
+                    (approval_status, row["message_id"]),
                 )
             self._conn.commit()
         return self._fetchone(

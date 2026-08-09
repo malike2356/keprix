@@ -37,11 +37,22 @@ OUTREACH_CRON_JOBS: tuple[dict[str, Any], ...] = (
         ),
         "enabled_toolsets": ["outreach"],
     },
+    {
+        "name": "outreach-delivery-reconcile",
+        "schedule": "0 4 * * *",
+        "prompt": (
+            "Run outreach delivery reconciliation: flag stuck sent/accepted "
+            "messages without delivered/bounce events, expire stale Soft Wall "
+            "approvals, and summarize dry_run / not_configured / drift counts. "
+            "Do not auto-resend; Soft Wall remains the cold-send gate."
+        ),
+        "enabled_toolsets": ["outreach"],
+    },
 )
 
 
 def ensure_outreach_cron_jobs() -> list[dict[str, Any]]:
-    """Idempotently create the three outreach cron jobs."""
+    """Idempotently create outreach cron jobs."""
     try:
         from cron.jobs import create_job, list_jobs
     except Exception:

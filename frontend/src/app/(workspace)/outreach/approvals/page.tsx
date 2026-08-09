@@ -79,6 +79,14 @@ export default function OutreachApprovalsPage() {
                   <Typography variant="body2" sx={{ mt: 0.5 }}>
                     {item.subject || "(no subject)"}
                   </Typography>
+                  {item.delivery_state || item.provider_message_id ? (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+                      Delivery: {item.delivery_state || "draft"}
+                      {item.provider ? ` · ${item.provider}` : ""}
+                      {item.provider_message_id ? ` · id ${item.provider_message_id}` : ""}
+                      {item.send_error ? ` · ${item.send_error}` : ""}
+                    </Typography>
+                  ) : null}
                   {body ? (
                     <Typography
                       component="pre"

@@ -300,7 +300,7 @@ def send_smtp_message(
     cc_addresses: list[str],
     subject: str,
     body: str,
-) -> None:
+) -> dict[str, Any]:
     access_token = str(account.get("access_token") or "").strip() or None
     password = account.get("password")
     if password is None and account.get("password_encrypted"):
@@ -312,6 +312,11 @@ def send_smtp_message(
     if cc_addresses:
         message["Cc"] = ", ".join(cc_addresses)
     message["Subject"] = subject
+    from email.utils import make_msgid
+
+    domain = from_addr.split("@")[-1] if "@" in from_addr else "keprix.local"
+    message_id = make_msgid(domain=domain)
+    message["Message-ID"] = message_id
     message.attach(MIMEText(body, "plain", "utf-8"))
 
     security = smtp_security_mode(int(account["smtp_port"]), bool(account.get("use_starttls")))
@@ -339,12 +344,13 @@ def send_smtp_message(
         with smtplib.SMTP_SSL(host, port, timeout=IMAP_TIMEOUT) as smtp:
             _smtp_auth(smtp)
             smtp.sendmail(from_addr, recipients, raw)
-        return
-    with smtplib.SMTP(host, port, timeout=IMAP_TIMEOUT) as smtp:
-        if security == "starttls":
-            smtp.starttls()
-        _smtp_auth(smtp)
-        smtp.sendmail(from_addr, recipients, raw)
+    else:
+        with smtplib.SMTP(host, port, timeout=IMAP_TIMEOUT) as smtp:
+            if security == "starttls":
+                smtp.starttls()
+            _smtp_auth(smtp)
+            smtp.sendmail(from_addr, recipients, raw)
+    return {"message_id": str(message_id).strip("<>"), "provider_message_id": str(message_id).strip("<>")}
 
 
 async def resolve_account_connection(account: Any) -> dict[str, Any]:
