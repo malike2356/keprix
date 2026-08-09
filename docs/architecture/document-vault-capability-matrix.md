@@ -48,7 +48,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | Vault tree + revisions APIs | REAL | Parent tree, trash/restore, optimistic revisions, audit, jobs |
 | Local CE + optional object storage | REAL | `LocalStorageAdapter`; S3 adapter when bucket configured |
 | Migration (workspace docs / knowledge vault) | REAL | Idempotent writers gated by `KEPRIX_DOCUMENT_VAULT_MIGRATE` |
-| Format engines / PDF pipeline | PARTIAL | Existing export; 647 expands |
+| Format engines / PDF pipeline | REAL | Registry + safety + engines; PDF artifact revision-linked; CE MD/HTML/TXT/CSV/PDF |
 | Document Vault UI explorer | MISSING | Prompt 648 |
 | Google Drive OAuth sync/push | MISSING | Prompt 649 |
 | Vault Soft Wall agent policy | MISSING | Prompt 650 |
@@ -62,7 +62,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | --- | --- |
 | 645 | This matrix + contract + inventory audit + conformance (no data mutation); **COMPLETED** |
 | 646 | Canonical tree storage, revisions, migration writers; **COMPLETED** |
-| 647 | Format engines, import/export, PDF |
+| 647 | Format engines, import/export, PDF; **COMPLETED** |
 | 648 | Web, desktop, TUI explorer |
 | 649 | Google Drive OAuth sync and push |
 | 650 | Agent tools, policy, approvals |

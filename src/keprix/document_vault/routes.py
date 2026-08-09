@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, File, Header, HTTPException, Query, UploadFile
+from fastapi.responses import Response
 
 from keprix.auth.dependencies import get_current_user
 from keprix.document_vault.flags import load_flags
@@ -334,3 +335,85 @@ def migrate_route(
     if source == "documents" and isinstance(body.get("documents"), list):
         return migrate_workspace_documents(ws, body["documents"], dry_run=dry_run)
     return migrate_from_workspace_repo(ws, dry_run=dry_run)
+
+
+@router.get("/formats")
+def formats_matrix(_user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
+    from keprix.document_vault.formats.registry import capability_matrix_for_clients
+
+    return capability_matrix_for_clients()
+
+
+@router.post("/import")
+async def import_upload(
+    file: UploadFile = File(...),
+    parent_id: str | None = Query(default=None),
+    keep_original: bool = Query(default=True),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    data = await file.read()
+    try:
+        return _svc().import_bytes(
+            ws,
+            data,
+            filename=file.filename or "upload.bin",
+            declared_mime=file.content_type or "",
+            parent_id=parent_id,
+            actor_id=_uid(user),
+            keep_original=keep_original,
+        )
+    except VaultError as exc:
+        _raise(exc)
+        raise
+
+
+@router.post("/items/{item_id}/export")
+def export_item_route(
+    item_id: str,
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> Response:
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    target = str(body.get("format") or body.get("target_format") or "markdown")
+    try:
+        result = _svc().export_item(ws, item_id, target_format=target, actor_id=_uid(user))
+    except VaultError as exc:
+        _raise(exc)
+        raise
+    export = result["export"]
+    headers = {
+        "X-Keprix-Source-Revision": str(result.get("source_revision") or ""),
+        "X-Keprix-Fidelity": str(export.get("fidelity") or ""),
+        "X-Keprix-Converter-Version": str(export.get("converter_version") or ""),
+    }
+    return Response(
+        content=export["data"],
+        media_type=export.get("mime") or "application/octet-stream",
+        headers=headers,
+    )
+
+
+@router.post("/items/{item_id}/pdf")
+def generate_pdf_route(
+    item_id: str,
+    body: dict[str, Any] = Body(default_factory=dict),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id or body.get("workspace_id"), x_workspace_id, user)
+    try:
+        return _svc().generate_pdf_artifact(
+            ws,
+            item_id,
+            actor_id=_uid(user),
+            parent_id=body.get("parent_id"),
+        )
+    except VaultError as exc:
+        _raise(exc)
+        raise
