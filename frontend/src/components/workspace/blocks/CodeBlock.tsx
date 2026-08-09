@@ -5,11 +5,11 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import { alpha, useTheme } from "@mui/material/styles";
 import hljs from "highlight.js/lib/core";
 import python from "highlight.js/lib/languages/python";
 import typescript from "highlight.js/lib/languages/typescript";
 import yaml from "highlight.js/lib/languages/yaml";
-import "highlight.js/styles/github-dark.css";
 import * as React from "react";
 
 hljs.registerLanguage("python", python);
@@ -21,8 +21,28 @@ type CodeBlockProps = {
   content: string;
 };
 
+function useHighlightTheme(mode: "light" | "dark") {
+  React.useEffect(() => {
+    const id = "keprix-hljs-theme";
+    let link = document.getElementById(id) as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+    link.href =
+      mode === "dark"
+        ? "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css"
+        : "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css";
+  }, [mode]);
+}
+
 export default function CodeBlock({ language, content }: CodeBlockProps) {
+  const theme = useTheme();
   const [copied, setCopied] = React.useState(false);
+  useHighlightTheme(theme.palette.mode);
+
   const highlighted = React.useMemo(() => {
     try {
       if (hljs.getLanguage(language)) {
@@ -81,8 +101,12 @@ export default function CodeBlock({ language, content }: CodeBlockProps) {
           overflow: "auto",
           fontSize: 13,
           lineHeight: 1.5,
-          bgcolor: "grey.900",
-          color: "common.white",
+          bgcolor: (t) =>
+            t.palette.mode === "dark"
+              ? alpha(t.palette.common.black, 0.35)
+              : alpha(t.palette.common.black, 0.03),
+          color: "text.primary",
+          "& .hljs": { background: "transparent", color: "inherit" },
         }}
       >
         <Box component="code" sx={{ fontFamily: "monospace" }} dangerouslySetInnerHTML={{ __html: highlighted }} />

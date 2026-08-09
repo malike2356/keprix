@@ -33,7 +33,10 @@ export async function exportBrainAsPNG(
   }
 
   const dataUrl = await toPng(canvasElement, {
-    backgroundColor: "var(--color-base, #0f172a)",
+    backgroundColor:
+      getComputedStyle(document.documentElement).getPropertyValue("--kp-bg").trim() ||
+      getComputedStyle(document.documentElement).getPropertyValue("--background").trim() ||
+      "#ffffff",
     pixelRatio: 2,
   });
 

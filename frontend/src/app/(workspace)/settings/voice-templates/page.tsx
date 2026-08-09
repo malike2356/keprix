@@ -35,10 +35,10 @@ const WORKSPACE_ID = "default";
 
 type CellState = "approved" | "pending" | "empty";
 
-function cellColor(state: CellState): string {
-  if (state === "approved") return "#2e7d32";
-  if (state === "pending") return "#ed6c02";
-  return "#e0e0e0";
+function cellSx(state: CellState): { bgcolor: string; color?: string } {
+  if (state === "approved") return { bgcolor: "success.main", color: "success.contrastText" };
+  if (state === "pending") return { bgcolor: "warning.main", color: "warning.contrastText" };
+  return { bgcolor: "action.disabledBackground" };
 }
 
 function resolveCellState(
@@ -95,8 +95,8 @@ function CoverageGrid({
                           width: 18,
                           height: 18,
                           borderRadius: 0.5,
-                          bgcolor: cellColor(state),
                           mx: "auto",
+                          ...cellSx(state),
                         }}
                       />
                     </Tooltip>

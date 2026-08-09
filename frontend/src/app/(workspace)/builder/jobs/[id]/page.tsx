@@ -90,8 +90,9 @@ export default function BuilderJobPage() {
             sx={{
               p: 2,
               mb: 2,
-              bgcolor: "#0f172a",
-              color: "#e2e8f0",
+              bgcolor: "background.paper",
+              color: "text.primary",
+              borderColor: "divider",
               fontFamily: "monospace",
               fontSize: 13,
               minHeight: 320,

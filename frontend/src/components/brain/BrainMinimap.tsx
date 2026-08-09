@@ -1,6 +1,7 @@
 "use client";
 
 import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material/styles";
 import { useReactFlow, type Node, type XYPosition } from "@xyflow/react";
 import * as React from "react";
 import type { ClusterGroup } from "@/components/brain/clustering";
@@ -55,6 +56,7 @@ export default function BrainMinimap({
   width = 180,
   height = 120,
 }: Props) {
+  const theme = useTheme();
   const { getViewport, setViewport } = useReactFlow();
   const bounds = React.useMemo(() => boundsOfNodes(nodes), [nodes]);
   const spanX = Math.max(1, bounds.maxX - bounds.minX);
@@ -148,7 +150,7 @@ export default function BrainMinimap({
           width={viewportRect.width}
           height={viewportRect.height}
           fill="none"
-          stroke="#e2e8f0"
+          stroke={theme.palette.primary.main}
           strokeWidth={1.5}
         />
       </svg>

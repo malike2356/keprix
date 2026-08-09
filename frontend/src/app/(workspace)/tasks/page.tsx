@@ -494,7 +494,7 @@ export default function TasksPage() {
                             onDrop={(e) => void onColumnDrop(e, column.value, index)}
                             sx={{
                               border: 1,
-                              borderColor: isOverdue(task) ? "error.light" : "divider",
+                              borderColor: isOverdue(task) ? "error.main" : "divider",
                               borderRadius: 1,
                               p: 1.25,
                               bgcolor: "background.default",

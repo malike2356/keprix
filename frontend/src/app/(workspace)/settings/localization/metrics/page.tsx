@@ -22,6 +22,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
@@ -230,9 +231,7 @@ export default function LocalizationMetricsPage() {
                             row.needs_investigation
                               ? {
                                   bgcolor: (theme) =>
-                                    theme.palette.mode === "dark"
-                                      ? "rgba(245, 158, 11, 0.16)"
-                                      : "rgba(217, 119, 6, 0.12)",
+                                    alpha(theme.palette.warning.main, theme.palette.mode === "dark" ? 0.16 : 0.12),
                                 }
                               : undefined
                           }

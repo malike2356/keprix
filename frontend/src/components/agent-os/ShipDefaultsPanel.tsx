@@ -10,6 +10,7 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import * as React from "react";
 import useSWR from "swr";
 import StructuredDataView from "@/components/ui/StructuredDataView";
@@ -115,7 +116,8 @@ export default function ShipDefaultsPanel() {
         mt: 2,
         bgcolor: "action.hover",
         backdropFilter: "blur(8px)",
-        backgroundImage: "linear-gradient(180deg, rgba(255,255,255,0.04), transparent)",
+        backgroundImage: (theme) =>
+          `linear-gradient(180deg, ${alpha(theme.palette.common.white, theme.palette.mode === "dark" ? 0.04 : 0.2)}, transparent)`,
       }}
     >
       <Typography variant="h6" sx={{ mb: 1 }}>

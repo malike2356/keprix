@@ -43,7 +43,7 @@ export function KeprixLogo({ variant = "full", size = "md", onDark = false }: Ke
             fontWeight: 600,
             letterSpacing: "-0.03em",
             fontFamily: keprixTypography.fontFamilyDisplay,
-            color: onDark ? "#f5f7ff" : "text.primary",
+            color: onDark ? "common.white" : "text.primary",
           }}
         >
           Keprix

@@ -3,7 +3,7 @@
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { useTheme } from "@mui/material/styles";
+import { alpha, useTheme, type Theme } from "@mui/material/styles";
 import * as React from "react";
 import { SkeletonDetailPanel } from "@/components/ui/loading";
 import { getBackendBaseUrl } from "@/lib/ce-api";
@@ -50,15 +50,20 @@ type OpenApiExplorerProps = {
   specUrl?: string;
 };
 
-/** High-contrast Swagger overrides for Keprix dark (and light) theme. */
-function swaggerThemeSx(mode: "light" | "dark") {
-  const isDark = mode === "dark";
-  const text = isDark ? "#E8EDF5" : "#1A2332";
-  const muted = isDark ? "#B7C2D4" : "#4A5568";
-  const surface = isDark ? "#141A24" : "#FFFFFF";
-  const surfaceAlt = isDark ? "#1C2433" : "#F7F9FC";
-  const border = isDark ? "#2E3A4F" : "#D0D7E2";
-  const link = isDark ? "#7EB6FF" : "#1565C0";
+/** Swagger overrides driven by the live MUI palette (no forced hex islands). */
+function swaggerThemeSx(theme: Theme) {
+  const isDark = theme.palette.mode === "dark";
+  const text = theme.palette.text.primary;
+  const muted = theme.palette.text.secondary;
+  const surface = theme.palette.background.paper;
+  const surfaceAlt = theme.palette.background.default;
+  const border = theme.palette.divider;
+  const link = theme.palette.primary.main;
+  const success = theme.palette.success.main;
+  const info = theme.palette.info.main;
+  const warning = theme.palette.warning.main;
+  const error = theme.palette.error.main;
+  const verbAlpha = isDark ? 0.18 : 0.1;
 
   return {
     fontFamily: "inherit",
@@ -67,7 +72,7 @@ function swaggerThemeSx(mode: "light" | "dark") {
       color: `${text} !important`,
     },
     "& .info .title small": {
-      background: isDark ? "#2A3548" : "#E8EEF7",
+      background: alpha(theme.palette.primary.main, isDark ? 0.16 : 0.08),
       color: `${muted} !important`,
     },
     "& .scheme-container": {
@@ -80,11 +85,11 @@ function swaggerThemeSx(mode: "light" | "dark") {
     },
     "& .btn.authorize": {
       background: "transparent !important",
-      borderColor: "#2E7D32 !important",
-      color: isDark ? "#81C784 !important" : "#2E7D32 !important",
+      borderColor: `${success} !important`,
+      color: `${success} !important`,
     },
     "& .btn.authorize svg": {
-      fill: isDark ? "#81C784 !important" : "#2E7D32 !important",
+      fill: `${success} !important`,
     },
     "& .opblock-tag": {
       color: `${text} !important`,
@@ -102,7 +107,7 @@ function swaggerThemeSx(mode: "light" | "dark") {
       borderColor: `${border} !important`,
     },
     "& .opblock .opblock-summary-method": {
-      color: "#FFFFFF !important",
+      color: `${theme.palette.common.white} !important`,
       fontWeight: 700,
     },
     "& .opblock .opblock-summary-path, & .opblock .opblock-summary-path__deprecated, & .opblock .opblock-summary-path a, & .opblock .opblock-summary-path span":
@@ -120,20 +125,20 @@ function swaggerThemeSx(mode: "light" | "dark") {
       fill: `${muted} !important`,
     },
     "& .opblock.opblock-get": {
-      background: isDark ? "rgba(49, 109, 176, 0.18) !important" : "rgba(49, 109, 176, 0.08) !important",
-      borderColor: isDark ? "#4A7AB5 !important" : "#61AFFE !important",
+      background: `${alpha(info, verbAlpha)} !important`,
+      borderColor: `${info} !important`,
     },
     "& .opblock.opblock-post": {
-      background: isDark ? "rgba(46, 125, 50, 0.18) !important" : "rgba(46, 125, 50, 0.08) !important",
-      borderColor: isDark ? "#4CAF50 !important" : "#49CC90 !important",
+      background: `${alpha(success, verbAlpha)} !important`,
+      borderColor: `${success} !important`,
     },
     "& .opblock.opblock-put, & .opblock.opblock-patch": {
-      background: isDark ? "rgba(230, 162, 60, 0.16) !important" : "rgba(230, 162, 60, 0.08) !important",
-      borderColor: isDark ? "#E6A23C !important" : "#FCA130 !important",
+      background: `${alpha(warning, verbAlpha)} !important`,
+      borderColor: `${warning} !important`,
     },
     "& .opblock.opblock-delete": {
-      background: isDark ? "rgba(211, 47, 47, 0.16) !important" : "rgba(211, 47, 47, 0.08) !important",
-      borderColor: isDark ? "#E57373 !important" : "#F93E3E !important",
+      background: `${alpha(error, verbAlpha)} !important`,
+      borderColor: `${error} !important`,
     },
     "& .opblock-body, & .opblock-section-header, & .parameters-container, & .responses-wrapper, & .opblock-description-wrapper, & .opblock-external-docs-wrapper":
       {
@@ -153,7 +158,7 @@ function swaggerThemeSx(mode: "light" | "dark") {
     },
     "& .model-box, & .model, & section.models, & section.models.is-open h4, & .model-title, & .prop-type, & .prop-name": {
       color: `${text} !important`,
-      background: isDark ? `${surface} !important` : undefined,
+      background: `${surface} !important`,
     },
     "& section.models": {
       borderColor: `${border} !important`,
@@ -272,7 +277,7 @@ export default function OpenApiExplorer({ specUrl = "/openapi.json" }: OpenApiEx
         sx={{
           minHeight: loading ? 0 : 480,
           height: "100%",
-          "& .swagger-ui": swaggerThemeSx(theme.palette.mode),
+          "& .swagger-ui": swaggerThemeSx(theme),
         }}
       />
     </Box>

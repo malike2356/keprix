@@ -120,7 +120,7 @@ function FrameStrip({ jobId, frames }: { jobId: string; frames: VideoJob["frames
             alt={frames[index]?.label || `Frame ${index}`}
             width={96}
             height={54}
-            style={{ objectFit: "cover", borderRadius: 4, border: "1px solid rgba(0,0,0,0.12)" }}
+            style={{ objectFit: "cover", borderRadius: 4, border: "1px solid var(--kp-border)" }}
           />
         ))}
         {!urls.length ? (

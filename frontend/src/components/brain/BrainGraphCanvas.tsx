@@ -210,11 +210,11 @@ function BrainForceCanvas({
   const health = useBrainHealth({ enabled: !readOnly && healthOverlay });
   const healthFlags = React.useMemo(() => healthFlagsFromReport(health.report), [health.report]);
 
-  const voidBg = dark ? "#14151a" : "#eef1f5";
-  const edgeColor = dark ? "rgba(255,255,255,0.55)" : "rgba(15,23,42,0.45)";
-  const edgeHot = dark ? "rgba(255,255,255,0.9)" : "rgba(15,23,42,0.75)";
-  const labelColor = dark ? "rgba(255,255,255,0.98)" : "rgba(15,23,42,0.95)";
-  const nodeRing = dark ? "rgba(255,255,255,0.75)" : "rgba(15,23,42,0.4)";
+  const voidBg = theme.palette.background.default;
+  const edgeColor = alpha(theme.palette.text.primary, dark ? 0.55 : 0.45);
+  const edgeHot = alpha(theme.palette.text.primary, dark ? 0.9 : 0.75);
+  const labelColor = alpha(theme.palette.text.primary, dark ? 0.98 : 0.95);
+  const nodeRing = alpha(theme.palette.text.primary, dark ? 0.75 : 0.4);
 
   const effectiveActive = replayActiveIds ?? activeIds;
 

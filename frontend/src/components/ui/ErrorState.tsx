@@ -34,7 +34,7 @@ export default function ErrorState({
         py: 6,
         px: 3,
         border: 1,
-        borderColor: "error.light",
+        borderColor: "error.main",
         borderRadius: 1,
         bgcolor: "background.paper",
       }}

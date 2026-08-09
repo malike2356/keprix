@@ -11,6 +11,7 @@ import TableCell from "@mui/material/TableCell";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
@@ -112,7 +113,8 @@ function Panel({
         height: "100%",
         bgcolor: "background.paper",
         backdropFilter: "blur(10px)",
-        backgroundImage: "linear-gradient(160deg, rgba(255,255,255,0.06), transparent 50%)",
+        backgroundImage: (theme) =>
+          `linear-gradient(160deg, ${alpha(theme.palette.common.white, theme.palette.mode === "dark" ? 0.06 : 0.35)}, transparent 50%)`,
       }}
     >
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>

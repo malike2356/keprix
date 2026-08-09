@@ -6,6 +6,7 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import * as React from "react";
 
 type DiffFile = {
@@ -61,15 +62,15 @@ function parseUnifiedDiff(diff: string): DiffFile[] {
 function lineSx(type: DiffLine["type"]) {
   if (type === "add") {
     return {
-      bgcolor: (theme: { palette: { mode: string } }) =>
-        theme.palette.mode === "dark" ? "rgba(16, 185, 129, 0.18)" : "rgba(5, 150, 105, 0.12)",
+      bgcolor: (theme: { palette: { mode: string; success: { main: string } } }) =>
+        alpha(theme.palette.success.main, theme.palette.mode === "dark" ? 0.18 : 0.12),
       color: "text.primary",
     };
   }
   if (type === "remove") {
     return {
-      bgcolor: (theme: { palette: { mode: string } }) =>
-        theme.palette.mode === "dark" ? "rgba(239, 68, 68, 0.18)" : "rgba(239, 68, 68, 0.12)",
+      bgcolor: (theme: { palette: { mode: string; error: { main: string } } }) =>
+        alpha(theme.palette.error.main, theme.palette.mode === "dark" ? 0.18 : 0.12),
       color: "text.primary",
     };
   }

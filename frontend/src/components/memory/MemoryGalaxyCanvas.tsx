@@ -121,9 +121,9 @@ function GalaxyCanvas({
   const [, bump] = React.useState(0);
 
   const voidBg = "var(--kp-bg)";
-  const edgeColor = dark ? "rgba(210,214,228,0.45)" : "rgba(40,40,50,0.28)";
-  const edgeHot = dark ? "rgba(236,240,255,0.88)" : "rgba(30,30,40,0.65)";
-  const labelColor = dark ? "rgba(246,247,252,0.96)" : "rgba(20,20,28,0.9)";
+  const edgeColor = alpha(theme.palette.text.primary, dark ? 0.45 : 0.28);
+  const edgeHot = alpha(theme.palette.text.primary, dark ? 0.88 : 0.65);
+  const labelColor = alpha(theme.palette.text.primary, dark ? 0.96 : 0.9);
 
   const restartSimulation = React.useCallback(() => {
     simRef.current?.stop();

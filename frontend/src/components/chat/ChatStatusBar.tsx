@@ -61,7 +61,7 @@ export default function ChatStatusBar({
         minHeight: 32,
         borderTop: 1,
         borderColor: "divider",
-        bgcolor: (theme) => alpha(theme.palette.common.black, theme.palette.mode === "dark" ? 0.15 : 0.04),
+        bgcolor: (theme) => alpha(theme.palette.text.primary, theme.palette.mode === "dark" ? 0.08 : 0.04),
         color: "text.secondary",
       }}
     >

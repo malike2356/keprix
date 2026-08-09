@@ -37,7 +37,7 @@ export default function DuplicateMerger({ pairs, onMerge }: Props) {
         {pairs.map((pair) => {
           const key = `${pair.left.id}:${pair.right.id}`;
           return (
-            <Box key={key} sx={{ border: 1, borderColor: "warning.light", borderRadius: 1, p: 1.5 }}>
+            <Box key={key} sx={{ border: 1, borderColor: "warning.main", borderRadius: 1, p: 1.5 }}>
               <Typography variant="body2">"{pair.left.label}" ~ "{pair.right.label}"</Typography>
               <Typography variant="caption" color="text.secondary">
                 Similarity: {pair.similarity}%
