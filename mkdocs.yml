@@ -118,6 +118,28 @@ nav:
       - Notebook research bridge: features/notebook-research-bridge.md
       - Graphiti bridge: features/graphiti-bridge.md
       - Obsidian vault starter pack: features/obsidian-vault-starter-pack.md
+      - Agentic CRM: features/agentic-crm.md
+      - CRM compliance: features/crm-compliance.md
+      - Companies House: features/companies-house.md
+  - Troubleshooting:
+      - Overview: troubleshooting/index.md
+      - Install and startup: troubleshooting/install-and-startup.md
+      - Auth and roles: troubleshooting/auth-and-roles.md
+      - Chat and tools: troubleshooting/chat-and-tools.md
+      - UI navigation: troubleshooting/ui-navigation.md
+      - Soft Wall and outreach: troubleshooting/soft-wall-and-outreach.md
+      - Agentic CRM: troubleshooting/agentic-crm.md
+      - Companies House: troubleshooting/companies-house.md
+      - Self-knowledge RAG: troubleshooting/self-knowledge.md
+      - Propreneur sidecar: troubleshooting/propreneur-sidecar.md
+      - Universal sidecar: universal-sidecar/troubleshooting.md
+      - Known issues: troubleshooting/known-issues.md
+  - Sidecars:
+      - Universal Sidecar: universal-sidecar/README.md
+      - Universal troubleshooting: universal-sidecar/troubleshooting.md
+      - Propreneur sidecar: propreneur-sidecar/README.md
+      - Propreneur key rotation: propreneur-sidecar/key-rotation.md
+      - Propreneur canary: propreneur-sidecar/canary-cutover-rollback.md
   - Developer platform: features/developer-platform.md
   - Architecture:
       - Core and product boundary: architecture/core-product-boundary.md

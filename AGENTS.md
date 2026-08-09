@@ -71,5 +71,6 @@ Teach Keprix about itself via the shared RAG corpus (user `__keprix_self__`):
 - Search: `keprix memory search-self "what can you do?"` or `POST /api/rag/self-knowledge/search`
 - Bootstrap on API startup when `KEPRIX_SELF_KNOWLEDGE_BOOTSTRAP=true` (default)
 - Web chat injects retrieved chunks on top of `codebase_context` product brief
+- Operator troubleshooting: `docs/troubleshooting/` (UI navigation, Soft Wall/outreach, CRM, Companies House, sidecars). After adding curated docs, extend `_SELF_DOC_PATHS` in `memory/rag/self_knowledge.py` and re-index.
 
 Do not invent a parallel vector stack; extend `memory/rag/self_knowledge.py` and `codebase_indexer.py`.

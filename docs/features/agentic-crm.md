@@ -7,7 +7,8 @@ commands are helpers, not the only surface.
 
 Architecture lock: `docs/architecture/agentic-crm-gap-map.md`  
 Compliance detail: `docs/features/crm-compliance.md`  
-Pack docs: `docs/features/crm-packs/`
+Pack docs: `docs/features/crm-packs/`  
+Operator help: [CRM troubleshooting](../troubleshooting/agentic-crm.md)
 
 ## What is automated vs Soft Wall
 

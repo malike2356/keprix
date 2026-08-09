@@ -18,6 +18,8 @@ This site is the complete operator and developer reference for every workspace s
 | Protect inbound channels | [Channel Shield](features/channel-shield.md) |
 | Call the REST API | [API reference](reference/api.md), [Developer platform](features/developer-platform.md) |
 | Harden production | [Hardening](security/hardening.md) |
+| Fix a broken click, Soft Wall, CRM, or Companies House issue | [Troubleshooting](troubleshooting/index.md) |
+| Teach the agent about Keprix itself | [Self-knowledge](troubleshooting/self-knowledge.md) (`keprix memory index-self`) |
 
 Marketing site: [https://keprixai.com](https://keprixai.com) (origin may still be provisioning; see public GTM notes).
 
@@ -62,6 +64,11 @@ Requires a public GitHub repository. Until then, clone via SSH and run `bash scr
 | Analytics | `/analytics` | [Analytics workspace](features/analytics-workspace.md) |
 | Observability | `/observability` | [Evals and observability](features/evals.md) |
 | Notebook research | `/research/notebooks` | [Notebook research bridge](features/notebook-research-bridge.md) |
+| Agentic CRM | `/crm` | [Agentic CRM](features/agentic-crm.md), [CRM troubleshooting](troubleshooting/agentic-crm.md) |
+| Outreach / Soft Wall | `/outreach` | [Soft Wall](features/soft-wall-safety.md), [Outreach troubleshooting](troubleshooting/soft-wall-and-outreach.md) |
+| Companies House | `/companies-house`, `/outreach/companies-house` | [Companies House](features/companies-house.md) |
+| Universal Sidecar | product `/v1/products/...` | [Universal Sidecar](universal-sidecar/README.md) |
+| Propreneur sidecar | pack `propreneur` | [Propreneur sidecar](propreneur-sidecar/README.md) |
 
 ### Automations and agent runtime
 
@@ -107,6 +114,8 @@ curl -s http://127.0.0.1:3333/api/health
 
 ## Support
 
+- [Troubleshooting hub](troubleshooting/index.md) for symptom → fix guides
+- [Known issues](troubleshooting/known-issues.md) for dated regressions
 - [GitHub Issues](https://github.com/malike2356/keprix/issues) for bugs
 - [GitHub Discussions](https://github.com/malike2356/keprix/discussions) for questions
 - [Contributing](community/contributing.md) for PR workflow

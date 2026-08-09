@@ -63,6 +63,20 @@ export const DOCS_SECTIONS: DocsSection[] = [
       { title: "Agentic CRM", description: "Pipeline, discovery, outreach, Soft Wall.", href: doc("features/agentic-crm") },
       { title: "Companies House", description: "UK company lookup and enrichment.", href: doc("features/companies-house") },
       { title: "Vical booking", description: "Public booking with Soft Wall enroll.", href: doc("features/vical") },
+      { title: "Soft Wall", description: "Approve-then-retry for high-risk outbound.", href: doc("features/soft-wall-safety") },
+    ],
+  },
+  {
+    title: "Troubleshooting and help",
+    description: "Fix dead clicks, outreach Soft Wall, CRM, Companies House, and RAG answers.",
+    items: [
+      { title: "Troubleshooting hub", description: "Symptom → cause → fix for every major surface.", href: doc("troubleshooting") },
+      { title: "UI navigation", description: "Tabs and cards that do not open pages.", href: doc("troubleshooting/ui-navigation") },
+      { title: "Soft Wall and outreach", description: "Approvals, pause, deliverability, channels.", href: doc("troubleshooting/soft-wall-and-outreach") },
+      { title: "Agentic CRM help", description: "Discover, enrich, enroll, jobs stuck.", href: doc("troubleshooting/agentic-crm") },
+      { title: "Companies House help", description: "API key and empty search results.", href: doc("troubleshooting/companies-house") },
+      { title: "Self-knowledge RAG", description: "Re-index when the agent does not know Keprix.", href: doc("troubleshooting/self-knowledge") },
+      { title: "Known issues", description: "Dated defects and fixed regressions.", href: doc("troubleshooting/known-issues") },
     ],
   },
   {
@@ -79,8 +93,8 @@ export const DOCS_SECTIONS: DocsSection[] = [
       { title: "MCP servers", description: "External tool connectors.", href: doc("integrations/mcp") },
       { title: "n8n sidecar", description: "Run n8n alongside Keprix via MCP bridge.", href: doc("integrations/n8n-sidecar") },
       { title: "Universal Sidecar", description: "Product sidecar health, pairing, jobs, kill switch.", href: doc("universal-sidecar") },
+      { title: "Propreneur sidecar", description: "Property MIS bridge, auth, canary, rollback.", href: doc("propreneur-sidecar") },
       { title: "Channel Shield", description: "Inbound email and messaging protection.", href: doc("features/channel-shield") },
-      { title: "Soft Wall", description: "Approve-then-retry for high-risk actions.", href: doc("features/soft-wall-safety") },
     ],
   },
   {

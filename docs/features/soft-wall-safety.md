@@ -34,5 +34,6 @@ Consent and suppressions are compliance records. Discovery never auto-allows con
 
 ## Related
 
+- Troubleshooting: [Soft Wall and outreach](../troubleshooting/soft-wall-and-outreach.md), [UI navigation](../troubleshooting/ui-navigation.md)
 - CRM Soft Wall: `src/keprix/crm/soft_wall.py`
 - Inventory: `docs/architecture/operator-gui-gap-inventory.md`
