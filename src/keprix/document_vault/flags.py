@@ -21,6 +21,7 @@ class DocumentVaultFlags:
     host_fs_bridge: bool = False
     google_sync: bool = False
     google_shared_drives: bool = False
+    channel_ops: bool = False
 
     def as_env_map(self) -> dict[str, bool]:
         return {
@@ -30,18 +31,27 @@ class DocumentVaultFlags:
             "KEPRIX_DOCUMENT_VAULT_HOST_FS_BRIDGE": self.host_fs_bridge,
             "KEPRIX_DOCUMENT_VAULT_GOOGLE_SYNC": self.google_sync,
             "KEPRIX_DOCUMENT_VAULT_GOOGLE_SHARED_DRIVES": False,
+            "KEPRIX_DOCUMENT_VAULT_CHANNEL_OPS": self.channel_ops,
         }
 
 
 def load_flags() -> DocumentVaultFlags:
     """Load flags. Host FS bridge and Shared Drives stay forced off."""
+    enabled = _env_bool("KEPRIX_DOCUMENT_VAULT_ENABLED", False)
+    # Channel ops follow enabled unless explicitly set.
+    channel_raw = os.environ.get("KEPRIX_DOCUMENT_VAULT_CHANNEL_OPS")
+    if channel_raw is None:
+        channel_ops = enabled
+    else:
+        channel_ops = _env_bool("KEPRIX_DOCUMENT_VAULT_CHANNEL_OPS", False)
     return DocumentVaultFlags(
-        enabled=_env_bool("KEPRIX_DOCUMENT_VAULT_ENABLED", False),
+        enabled=enabled,
         migrate=_env_bool("KEPRIX_DOCUMENT_VAULT_MIGRATE", False),
         cutover=_env_bool("KEPRIX_DOCUMENT_VAULT_CUTOVER", False),
         host_fs_bridge=False,
         google_sync=_env_bool("KEPRIX_DOCUMENT_VAULT_GOOGLE_SYNC", False),
         google_shared_drives=False,
+        channel_ops=channel_ops and enabled,
     )
 
 

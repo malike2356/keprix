@@ -91,7 +91,10 @@ def _compatible(declared: str, detected: str, filename: str) -> bool:
 
 
 def enforce_size_limits(data: bytes, *, max_bytes: int | None = None) -> None:
-    limit = max_bytes if max_bytes is not None else DEFAULT_MAX_BYTES
+    if max_bytes is None:
+        limit = int(os.environ.get("KEPRIX_DOCUMENT_VAULT_MAX_UPLOAD_BYTES") or DEFAULT_MAX_BYTES)
+    else:
+        limit = max_bytes
     if len(data) > limit:
         raise VaultError("quota_exceeded", f"file exceeds {limit} bytes", size=len(data), limit=limit)
 

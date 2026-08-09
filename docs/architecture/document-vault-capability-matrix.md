@@ -45,7 +45,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | TUI recent file actions | PARTIAL | Host/path open_file remains |
 | TUI Document Vault | REAL | Palette + `/vault` slash; browse/CRUD/export; `/vault sync` status (649) |
 | Agent file tools | REAL | Host `file_tools` stay host-only; legacy `vault_tools` redirect when DV on |
-| Channel gateway document cache | PARTIAL | `gateway/platforms/base.py` cache; 651 |
+| Channel gateway document cache | REAL | Gateway cache + `document_vault/channel` import/export contract (651) |
 | Canonical Document Vault service | REAL | `document_vault.store` + `service` + `/api/document-vault/*` (646); flags default off |
 | Vault tree + revisions APIs | REAL | Parent tree, trash/restore, optimistic revisions, audit, jobs |
 | Local CE + optional object storage | REAL | `LocalStorageAdapter`; S3 adapter when bucket configured |
@@ -55,7 +55,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | Google Drive OAuth sync/push | REAL | Encrypted grants + reconciler + webhook/poll (649); Shared Drives gated |
 | Document Vault agent tools | REAL | `document_vault_*` toolset; trusted session context (650) |
 | Vault Soft Wall agent policy | REAL | Rule of Two via CRM Soft Wall for delete/share/bulk/conflict/classified export (650) |
-| Channel / Telegram vault ops | MISSING | Prompt 651 |
+| Channel / Telegram vault ops | REAL | Binding + `/vault` slash + import quarantine/dedup + attach/URL export (651) |
 | Search/RAG/security ops | PARTIAL | Existing indexes; 652 consolidates |
 | E2E package + deploy close | MISSING | Prompt 653 |
 
@@ -69,7 +69,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 | 648 | Web, desktop, TUI explorer; **COMPLETED** |
 | 649 | Google Drive OAuth sync and push; **COMPLETED** |
 | 650 | Agent tools, policy, approvals; **COMPLETED** |
-| 651 | Channel and Telegram vault operations |
+| 651 | Channel and Telegram vault operations; **COMPLETED** |
 | 652 | Search, RAG, security, operations |
 | 653 | E2E, packaging, docs, deploy; flip `document_vault_ready` |
 

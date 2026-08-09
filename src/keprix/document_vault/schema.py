@@ -142,6 +142,53 @@ CREATE TABLE IF NOT EXISTS document_vault_drive_notifications (
 
 CREATE INDEX IF NOT EXISTS ix_dv_drive_notifications_ws
     ON document_vault_drive_notifications(workspace_id, created_at);
+
+CREATE TABLE IF NOT EXISTS document_vault_channel_bindings (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    platform TEXT NOT NULL,
+    channel_user_id TEXT NOT NULL,
+    actor_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active',
+    audience TEXT NOT NULL DEFAULT 'private',
+    grants_json TEXT NOT NULL DEFAULT '[]',
+    metadata_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(platform, channel_user_id)
+);
+
+CREATE INDEX IF NOT EXISTS ix_dv_channel_bindings_ws
+    ON document_vault_channel_bindings(workspace_id, status);
+
+CREATE TABLE IF NOT EXISTS document_vault_channel_events (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    platform TEXT NOT NULL,
+    event_id TEXT NOT NULL,
+    action TEXT NOT NULL,
+    result_item_id TEXT,
+    result_json TEXT NOT NULL DEFAULT '{}',
+    created_at TEXT NOT NULL,
+    UNIQUE(workspace_id, platform, event_id, action)
+);
+
+CREATE INDEX IF NOT EXISTS ix_dv_channel_events_ws
+    ON document_vault_channel_events(workspace_id, created_at);
+
+CREATE TABLE IF NOT EXISTS document_vault_delivery_tokens (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    item_id TEXT NOT NULL,
+    token_hash TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    created_by TEXT,
+    created_at TEXT NOT NULL,
+    consumed_at TEXT
+);
+
+CREATE INDEX IF NOT EXISTS ix_dv_delivery_tokens_hash
+    ON document_vault_delivery_tokens(token_hash);
 """
 
 # Postgres uses the same TEXT schema (CRM-style) so domain SQL stays portable.

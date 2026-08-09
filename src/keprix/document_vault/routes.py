@@ -616,3 +616,70 @@ async def google_webhook(request: Request) -> dict[str, Any]:
     except VaultError as exc:
         _raise(exc)
         raise
+
+
+@router.get("/delivery/{token}")
+def consume_delivery(token: str) -> Response:
+    """Short-lived authenticated export download (Prompt 651). Token is single-use."""
+    import hashlib
+
+    if not load_flags().enabled:
+        raise HTTPException(status_code=503, detail={"error_code": "not_configured"})
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    row = _store().consume_delivery_token(token_hash)
+    if not row:
+        raise HTTPException(status_code=404, detail={"error_code": "delivery_expired"})
+    try:
+        exported = _svc().export_item(
+            row["workspace_id"],
+            row["item_id"],
+            target_format="markdown",
+            actor_id=row.get("created_by") or "delivery",
+        )
+    except VaultError as exc:
+        _raise(exc)
+        raise
+    export = exported.get("export") or {}
+    data = export.get("data") or b""
+    raw = data.encode("utf-8") if isinstance(data, str) else bytes(data)
+    return Response(
+        content=raw,
+        media_type=str(export.get("mime") or "application/octet-stream"),
+        headers={"Content-Disposition": f'attachment; filename="{row["item_id"]}"'},
+    )
+
+
+@router.post("/channel/bindings")
+def upsert_channel_binding_route(
+    body: dict[str, Any] = Body(default_factory=dict),
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Bind a gateway channel identity to a workspace Document Vault."""
+    from keprix.document_vault.channel.binding import bind_channel_identity
+
+    try:
+        row = bind_channel_identity(
+            workspace_id=str(body.get("workspace_id") or _uid(user)),
+            platform=str(body.get("platform") or ""),
+            channel_user_id=str(body.get("channel_user_id") or ""),
+            actor_id=str(body.get("actor_id") or _uid(user)),
+            audience=str(body.get("audience") or "private"),
+            grants=list(body.get("grants") or ["vault.read", "vault.write"]),
+        )
+        return {"ok": True, "binding": row}
+    except VaultError as exc:
+        _raise(exc)
+        raise
+
+
+@router.delete("/channel/bindings/{platform}/{channel_user_id}")
+def revoke_channel_binding_route(
+    platform: str,
+    channel_user_id: str,
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.document_vault.channel.binding import revoke_channel_binding
+
+    _ = user
+    row = revoke_channel_binding(platform, channel_user_id)
+    return {"ok": True, "binding": row}

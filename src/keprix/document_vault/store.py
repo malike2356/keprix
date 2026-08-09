@@ -1045,6 +1045,217 @@ class DocumentVaultStore:
             )
             self._commit()
 
+    # ── Channel bindings / events / delivery (Prompt 651) ───────────
+
+    def get_channel_binding(self, platform: str, channel_user_id: str) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._fetchone(
+                """
+                SELECT * FROM document_vault_channel_bindings
+                WHERE platform = ? AND channel_user_id = ?
+                """,
+                (platform, channel_user_id),
+            )
+        if not row:
+            return None
+        out = dict(row)
+        out["grants"] = _json_loads(out.get("grants_json"), [])
+        out["metadata"] = _json_loads(out.get("metadata_json"), {})
+        return out
+
+    def upsert_channel_binding(
+        self,
+        *,
+        workspace_id: str,
+        platform: str,
+        channel_user_id: str,
+        actor_id: str,
+        audience: str = "private",
+        grants: list[str] | None = None,
+        status: str = "active",
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        now = _utcnow()
+        with self._lock:
+            existing = self._fetchone(
+                """
+                SELECT * FROM document_vault_channel_bindings
+                WHERE platform = ? AND channel_user_id = ?
+                """,
+                (platform, channel_user_id),
+            )
+            if existing:
+                self._execute(
+                    """
+                    UPDATE document_vault_channel_bindings SET
+                        workspace_id = ?, actor_id = ?, status = ?, audience = ?,
+                        grants_json = ?, metadata_json = ?, updated_at = ?
+                    WHERE platform = ? AND channel_user_id = ?
+                    """,
+                    (
+                        workspace_id,
+                        actor_id,
+                        status,
+                        audience,
+                        _json_dumps(grants or []),
+                        _json_dumps(metadata or {}),
+                        now,
+                        platform,
+                        channel_user_id,
+                    ),
+                )
+            else:
+                self._execute(
+                    """
+                    INSERT INTO document_vault_channel_bindings (
+                        id, workspace_id, platform, channel_user_id, actor_id,
+                        status, audience, grants_json, metadata_json, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(uuid.uuid4()),
+                        workspace_id,
+                        platform,
+                        channel_user_id,
+                        actor_id,
+                        status,
+                        audience,
+                        _json_dumps(grants or []),
+                        _json_dumps(metadata or {}),
+                        now,
+                        now,
+                    ),
+                )
+            self._commit()
+        return self.get_channel_binding(platform, channel_user_id) or {}
+
+    def set_channel_binding_status(
+        self,
+        platform: str,
+        channel_user_id: str,
+        *,
+        status: str,
+    ) -> dict[str, Any] | None:
+        with self._lock:
+            self._execute(
+                """
+                UPDATE document_vault_channel_bindings
+                SET status = ?, updated_at = ?
+                WHERE platform = ? AND channel_user_id = ?
+                """,
+                (status, _utcnow(), platform, channel_user_id),
+            )
+            self._commit()
+        return self.get_channel_binding(platform, channel_user_id)
+
+    def get_channel_event(
+        self,
+        workspace_id: str,
+        platform: str,
+        event_id: str,
+        *,
+        action: str,
+    ) -> dict[str, Any] | None:
+        with self._lock:
+            row = self._fetchone(
+                """
+                SELECT * FROM document_vault_channel_events
+                WHERE workspace_id = ? AND platform = ? AND event_id = ? AND action = ?
+                """,
+                (workspace_id, platform, event_id, action),
+            )
+        if not row:
+            return None
+        out = dict(row)
+        out["result"] = _json_loads(out.get("result_json"), {})
+        return out
+
+    def record_channel_event(
+        self,
+        workspace_id: str,
+        *,
+        platform: str,
+        event_id: str,
+        action: str,
+        result_item_id: str | None = None,
+        result: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        now = _utcnow()
+        with self._lock:
+            existing = self.get_channel_event(workspace_id, platform, event_id, action=action)
+            if existing:
+                return existing
+            eid = str(uuid.uuid4())
+            self._execute(
+                """
+                INSERT INTO document_vault_channel_events (
+                    id, workspace_id, platform, event_id, action,
+                    result_item_id, result_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    eid,
+                    workspace_id,
+                    platform,
+                    event_id,
+                    action,
+                    result_item_id,
+                    _json_dumps(result or {}),
+                    now,
+                ),
+            )
+            self._commit()
+        return self.get_channel_event(workspace_id, platform, event_id, action=action) or {"id": eid}
+
+    def create_delivery_token(
+        self,
+        workspace_id: str,
+        *,
+        item_id: str,
+        token_hash: str,
+        expires_at: str,
+        created_by: str | None = None,
+    ) -> dict[str, Any]:
+        tid = str(uuid.uuid4())
+        now = _utcnow()
+        with self._lock:
+            self._execute(
+                """
+                INSERT INTO document_vault_delivery_tokens (
+                    id, workspace_id, item_id, token_hash, expires_at, created_by, created_at, consumed_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)
+                """,
+                (tid, workspace_id, item_id, token_hash, expires_at, created_by, now),
+            )
+            self._commit()
+        return {
+            "id": tid,
+            "workspace_id": workspace_id,
+            "item_id": item_id,
+            "expires_at": expires_at,
+        }
+
+    def consume_delivery_token(self, token_hash: str) -> dict[str, Any] | None:
+        now = _utcnow()
+        with self._lock:
+            row = self._fetchone(
+                """
+                SELECT * FROM document_vault_delivery_tokens
+                WHERE token_hash = ? AND consumed_at IS NULL AND expires_at >= ?
+                """,
+                (token_hash, now),
+            )
+            if not row:
+                return None
+            self._execute(
+                "UPDATE document_vault_delivery_tokens SET consumed_at = ? WHERE id = ?",
+                (now, row["id"]),
+            )
+            self._commit()
+            out = dict(row)
+            out["consumed_at"] = now
+            return out
+
 
 def _split_sql(script: str) -> list[str]:
     parts: list[str] = []

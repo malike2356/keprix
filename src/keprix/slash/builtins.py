@@ -519,6 +519,15 @@ def register_builtin_commands(registry: SlashRegistry) -> None:
             min_role="viewer",
             handler=_crm_ask,
         ),
+        SlashCommand(
+            "vault",
+            aliases=["vault.list", "vault.search", "vault.status"],
+            description="Document Vault over channels (Telegram and matrix)",
+            usage="/vault status | list | search <q> | mkdir <name> | create <name> | export <id> | import | bind <ws>",
+            category="document-vault",
+            min_role="viewer",
+            handler=_vault_channel,
+        ),
     ]
     for entry in entries:
         registry.register(entry)
@@ -534,3 +543,9 @@ async def _crm_ask(ctx: SlashContext) -> SlashResult:
     from keprix.crm.telegram_funnel import handle_crm_command
 
     return await handle_crm_command(ctx)
+
+
+async def _vault_channel(ctx: SlashContext) -> SlashResult:
+    from keprix.document_vault.channel.commands import handle_vault_channel_command
+
+    return await handle_vault_channel_command(ctx)

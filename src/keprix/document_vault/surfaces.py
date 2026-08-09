@@ -191,6 +191,14 @@ SURFACES: tuple[Surface, ...] = (
         "src/keprix/gateway/platforms/base.py",
         True,
         True,
-        "Document cache; channel import in 651",
+        "Document cache; vault import via gateway/vault + channel package (651)",
+    ),
+    Surface(
+        "document_vault_channel",
+        "gateway",
+        "src/keprix/document_vault/channel",
+        True,
+        False,
+        "Trusted bindings, quarantine import, /vault slash, delivery tokens (651)",
     ),
 )
