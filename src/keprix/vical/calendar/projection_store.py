@@ -459,6 +459,78 @@ class ProjectionStore:
             for r in cur.fetchall()
         ]
 
+    def list_dead_letter_notifications(
+        self, *, workspace_id: str | None = None, limit: int = 50
+    ) -> list[dict[str, Any]]:
+        if workspace_id:
+            cur = self._conn.execute(
+                """
+                SELECT * FROM vical_notification_outbox
+                WHERE status IN ('failed', 'dead_letter') AND workspace_id=?
+                ORDER BY updated_at DESC LIMIT ?
+                """,
+                (workspace_id, limit),
+            )
+        else:
+            cur = self._conn.execute(
+                """
+                SELECT * FROM vical_notification_outbox
+                WHERE status IN ('failed', 'dead_letter')
+                ORDER BY updated_at DESC LIMIT ?
+                """,
+                (limit,),
+            )
+        return [
+            {
+                "id": r["id"],
+                "workspaceId": r["workspace_id"],
+                "bookingId": r["booking_id"],
+                "channel": r["channel"],
+                "toAddress": r["to_address"],
+                "subject": r["subject"],
+                "status": r["status"],
+                "attempts": r["attempts"],
+                "lastError": r["last_error"],
+                "evidence": r["evidence"],
+                "updatedAt": r["updated_at"],
+            }
+            for r in cur.fetchall()
+        ]
+
+    def retry_notification(self, notification_id: str) -> dict[str, Any] | None:
+        """Operator retry: re-queue dead-letter / failed rows as pending."""
+        cur = self._conn.execute(
+            "SELECT * FROM vical_notification_outbox WHERE id=?", (notification_id,)
+        )
+        row = cur.fetchone()
+        if not row:
+            return None
+        if row["status"] not in {"failed", "dead_letter", "pending"}:
+            return {
+                "id": row["id"],
+                "ok": False,
+                "error_code": "not_retryable",
+                "status": row["status"],
+            }
+        now = _now()
+        with self._conn:
+            self._conn.execute(
+                """
+                UPDATE vical_notification_outbox SET
+                  status='pending', last_error=NULL, updated_at=?
+                WHERE id=?
+                """,
+                (now, notification_id),
+            )
+        return {"id": notification_id, "ok": True, "status": "pending", "retriedAt": now}
+
+    def mark_dead_letter(
+        self, notification_id: str, *, error: str | None = None
+    ) -> dict[str, Any] | None:
+        return self.mark_notification(
+            notification_id, status="dead_letter", error=error or "max_attempts"
+        )
+
     @staticmethod
     def _map_projection(row: sqlite3.Row) -> dict[str, Any]:
         return {

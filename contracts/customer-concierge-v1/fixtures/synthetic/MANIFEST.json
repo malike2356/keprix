@@ -1,0 +1,61 @@
+{
+  "contractVersion": "1.0.0",
+  "kind": "customer-concierge-v1-synthetic-fixtures",
+  "algorithm": "sha256",
+  "signedAt": "2026-08-09T00:00:00Z",
+  "signature": "d20d2dd128b05b32b848b8d68c55a6eae5b6f376ac69b05d18095d7a0efeed12",
+  "fixtureCount": 10,
+  "fixtures": [
+    {
+      "file": "domain-audience-session.json",
+      "sha256": "1e2f59d72827bb24f771f2528c8e19ffc43dcb31dfde9e836272a566baa92815",
+      "bytes": 346
+    },
+    {
+      "file": "domain-booking-held.json",
+      "sha256": "4a34788687bd180a0d2333cb0dd5f2926684d229a8d65e5c429f7eda7247bf84",
+      "bytes": 483
+    },
+    {
+      "file": "event-booking-action-required.json",
+      "sha256": "ee7295b82b87e7858fabb269ed9b3680bd2e48d71eaf10aad02e7a959f3f9d8f",
+      "bytes": 606
+    },
+    {
+      "file": "event-booking-confirmed.json",
+      "sha256": "b1de79fde31ad3d01a1249467ffa238ce94448786c8c6b4d4e4f190f1bf279ad",
+      "bytes": 531
+    },
+    {
+      "file": "event-booking-held.json",
+      "sha256": "7210d67b03a6ef41058b81f8b1c017af38e9c37985b8f209720b3bcf5483c97b",
+      "bytes": 549
+    },
+    {
+      "file": "event-conversation-started.json",
+      "sha256": "59774e50424a918bd15540ee78f3e793fe1c17c96b25e8bea2dfcce0e68c8af2",
+      "bytes": 425
+    },
+    {
+      "file": "provider-command-zoom-create.json",
+      "sha256": "16d1ff08060ebda425fe966ccdb564133f9e32471f5ae5387a32d020350321d6",
+      "bytes": 396
+    },
+    {
+      "file": "provider-result-zoom-not-configured.json",
+      "sha256": "085da1910d989219d5bdc9f87c977a1b5a569e612c037e8397739303db9e4753",
+      "bytes": 382
+    },
+    {
+      "file": "readiness-all-not-configured.json",
+      "sha256": "f6a05341caeccece087d2df494ecb5c6dec1c7843b828b5b5657c85f36e56557",
+      "bytes": 1378
+    },
+    {
+      "file": "transition-booking-held-to-pending.json",
+      "sha256": "e25c288136342d971278dcd76ef275dd664b4344be15a54c8d017ecb0bcad094",
+      "bytes": 243
+    }
+  ],
+  "note": "Public synthetic fixtures; signature is a content integrity hash, not a secret credential."
+}

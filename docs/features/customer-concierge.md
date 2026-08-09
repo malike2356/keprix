@@ -85,3 +85,14 @@ External visitors use a durable `audience_session` principal (not a workspace me
 - Shared architecture: `/opt/lampp/htdocs/verlox/shared/workspace-governance/AIVA-KEPRIX-CUSTOMER-CONCIERGE-BOOKING.md`
 - Package: `src/keprix/customer_concierge/`
 - Later prompts: knowledge (631), Zoom saga (632), inbox tabs (634)
+
+## E2E packaging and release (Prompt 635)
+
+- Hermetic providers: `customer_concierge/testing/hermetic_providers.py`
+- Signed fixtures: `contracts/customer-concierge-v1/fixtures/synthetic/MANIFEST.json`
+- Journey + ops matrix: `tests/customer_concierge/test_e2e_journey_635.py`
+- Outbox retry/DLQ: `/api/vical/notifications/outbox*`
+- Owner live verify (no secrets): `docs/features/customer-concierge-owner-live-verification.md`
+- Runbook / release evidence: `docs/operations/customer-concierge-runbook.md`, `customer-concierge-release-manifest.md`
+- Smoke: `bash scripts/smoke-customer-concierge-docker.sh`
+

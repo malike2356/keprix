@@ -45,7 +45,9 @@ def test_vendored_contract_exists() -> None:
 
 
 def test_all_synthetic_fixtures_validate() -> None:
-    files = sorted(p.name for p in fixtures_dir().glob("*.json"))
+    files = sorted(
+        p.name for p in fixtures_dir().glob("*.json") if p.name != "MANIFEST.json"
+    )
     assert len(files) >= 8
     for name in files:
         data = json.loads((fixtures_dir() / name).read_text(encoding="utf-8"))

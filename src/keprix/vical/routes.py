@@ -715,3 +715,59 @@ async def renew_calendar_watches(user: dict = Depends(get_current_user)) -> dict
     _ = _uid(user)
     renewed = renew_expiring_watches()
     return {"ok": True, "renewed": renewed}
+
+
+@router.get("/notifications/outbox")
+async def list_notification_outbox(
+    status: str = Query(default="pending"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Operator observability for durable viCal notification outbox (Prompt 635)."""
+    from keprix.vical.calendar.projection_store import get_projection_store
+
+    ws = _uid(user)
+    store = get_projection_store()
+    if status in {"failed", "dead_letter", "dlq"}:
+        items = store.list_dead_letter_notifications(workspace_id=ws)
+    else:
+        items = [n for n in store.list_pending_notifications(limit=100) if n.get("workspaceId") == ws]
+    return {
+        "ok": True,
+        "workspaceId": ws,
+        "status": status,
+        "items": items,
+        "note": "Durable outbox evidence; not an in-memory list.",
+    }
+
+
+@router.post("/notifications/outbox/{notification_id}/retry")
+async def retry_notification_outbox(
+    notification_id: str,
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.vical.calendar.projection_store import get_projection_store
+
+    _ = _uid(user)
+    result = get_projection_store().retry_notification(notification_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="notification not found")
+    if result.get("ok") is False:
+        raise HTTPException(status_code=400, detail=result)
+    return result
+
+
+@router.post("/notifications/outbox/{notification_id}/dead-letter")
+async def dead_letter_notification_outbox(
+    notification_id: str,
+    body: dict[str, Any] | None = None,
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.vical.calendar.projection_store import get_projection_store
+
+    _ = _uid(user)
+    result = get_projection_store().mark_dead_letter(
+        notification_id, error=str((body or {}).get("error") or "operator_dead_letter")
+    )
+    if not result:
+        raise HTTPException(status_code=404, detail="notification not found")
+    return {"ok": True, "notification": result}

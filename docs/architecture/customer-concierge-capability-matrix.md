@@ -27,6 +27,7 @@ Honesty rule: URL templates, in-memory outboxes, and operator-auth support route
 | Operator Bookings/Channels/Analytics UI | REAL | Prompt 634; concierge page tabs + workspace_surface APIs |
 | CRM/Outreach booking mesh | REAL | Prompt 634; capability_mesh + nurture_orchestration |
 | Outreach stop on booking / pause on case | REAL | Soft Wall status booked + paused_support |
+| E2E / packaging (635) | REAL | Hermetic journey, signed fixtures, runbook, Contabo evidence |
 | Carina runtime dependency | OUT_OF_SCOPE | Forbidden; static import scan |
 
 Conformance: `tests/customer_concierge/test_contract_conformance_629.py`.
