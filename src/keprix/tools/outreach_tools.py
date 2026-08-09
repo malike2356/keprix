@@ -115,6 +115,8 @@ def outreach_process_due(args: dict[str, Any], **kwargs: Any) -> str:
         str(workspace_id) if workspace_id else None,
         limit=limit,
         dry_run=None if dry_run is None else bool(dry_run),
+        worker_id=str(args.get("worker_id") or "") or None,
+        lease_seconds=int(args.get("lease_seconds") or 60),
     )
     return _ok(result)
 
@@ -296,13 +298,15 @@ registry.register(
     toolset=TOOLSET,
     schema={
         "name": "outreach_process_due",
-        "description": "Process due sequence steps (cron: every 5 minutes).",
+        "description": "Process due sequence steps via durable claim-lease scheduler (cron: every 5 minutes).",
         "parameters": {
             "type": "object",
             "properties": {
                 "workspace_id": {"type": "string"},
                 "limit": {"type": "integer"},
                 "dry_run": {"type": "boolean"},
+                "worker_id": {"type": "string"},
+                "lease_seconds": {"type": "integer"},
             },
         },
     },

@@ -25,6 +25,7 @@ import {
   fetchOutreachControl,
   fetchOutreachLeads,
   fetchOutreachOverview,
+  fetchOutreachSchedulerHealth,
   fetchOutreachSequences,
   importCompaniesHouseLead,
   importOutreachLeads,
@@ -70,6 +71,9 @@ export default function OutreachOverviewPage() {
 
   const overview = useSWR(["outreach-overview", WORKSPACE], () => fetchOutreachOverview(WORKSPACE));
   const control = useSWR(["outreach-control", WORKSPACE], () => fetchOutreachControl(WORKSPACE));
+  const schedulerHealth = useSWR(["outreach-scheduler-health", WORKSPACE], () =>
+    fetchOutreachSchedulerHealth(WORKSPACE),
+  );
   const leads = useSWR(["outreach-leads", WORKSPACE], () => fetchOutreachLeads(WORKSPACE));
   const sequences = useSWR(["outreach-sequences", WORKSPACE], () => fetchOutreachSequences(WORKSPACE));
 
@@ -84,7 +88,13 @@ export default function OutreachOverviewPage() {
   }, [sequences.data, selectedSequenceId]);
 
   const refresh = async () => {
-    await Promise.all([overview.mutate(), control.mutate(), leads.mutate(), sequences.mutate()]);
+    await Promise.all([
+      overview.mutate(),
+      control.mutate(),
+      schedulerHealth.mutate(),
+      leads.mutate(),
+      sequences.mutate(),
+    ]);
   };
 
   const run = async (fn: () => Promise<void>, success: string) => {
@@ -205,6 +215,7 @@ export default function OutreachOverviewPage() {
 
       <ControlCenter
         control={control.data?.state ?? null}
+        schedulerHealth={schedulerHealth.data ?? null}
         busy={busy}
         onProcessDue={onProcessDue}
         onTogglePause={onTogglePause}

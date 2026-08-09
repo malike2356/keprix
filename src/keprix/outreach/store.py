@@ -95,7 +95,14 @@ CREATE TABLE IF NOT EXISTS outreach_enrollments (
     current_step INTEGER NOT NULL DEFAULT 0,
     next_run_at TEXT,
     status TEXT NOT NULL DEFAULT 'active',
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    locked_until TEXT,
+    locked_by TEXT,
+    attempt_count INTEGER DEFAULT 0,
+    last_error TEXT,
+    last_claimed_at TEXT,
+    dead_letter_at TEXT,
+    correlation_id TEXT
 );
 
 CREATE TABLE IF NOT EXISTS outreach_messages (
@@ -103,6 +110,7 @@ CREATE TABLE IF NOT EXISTS outreach_messages (
     workspace_id TEXT NOT NULL DEFAULT '',
     enrollment_id TEXT NOT NULL,
     step_id TEXT,
+    step_order INTEGER,
     channel TEXT NOT NULL,
     subject TEXT,
     body TEXT NOT NULL,
@@ -111,7 +119,19 @@ CREATE TABLE IF NOT EXISTS outreach_messages (
     opened_at TEXT,
     clicked_at TEXT,
     bounced INTEGER DEFAULT 0,
+    approval_status TEXT DEFAULT 'none',
+    approval_id TEXT,
+    idempotency_key TEXT,
     created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS outreach_scheduler_heartbeats (
+    workspace_id TEXT NOT NULL DEFAULT '',
+    worker_id TEXT NOT NULL,
+    last_beat_at TEXT NOT NULL,
+    queue_depth INTEGER DEFAULT 0,
+    metadata_json TEXT,
+    PRIMARY KEY (workspace_id, worker_id)
 );
 
 CREATE TABLE IF NOT EXISTS outreach_replies (
@@ -133,10 +153,15 @@ CREATE INDEX IF NOT EXISTS ix_outreach_sequences_workspace ON outreach_sequences
 CREATE INDEX IF NOT EXISTS ix_outreach_leads_workspace ON outreach_leads(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_leads_email ON outreach_leads(workspace_id, email);
 CREATE INDEX IF NOT EXISTS ix_outreach_enrollments_due ON outreach_enrollments(status, next_run_at);
+CREATE INDEX IF NOT EXISTS ix_outreach_enrollments_lease ON outreach_enrollments(status, locked_until);
 CREATE INDEX IF NOT EXISTS ix_outreach_enrollments_ws ON outreach_enrollments(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_messages_ws ON outreach_messages(workspace_id);
+CREATE UNIQUE INDEX IF NOT EXISTS ix_outreach_messages_idem
+    ON outreach_messages(workspace_id, idempotency_key)
+    WHERE idempotency_key IS NOT NULL AND idempotency_key != '';
 CREATE INDEX IF NOT EXISTS ix_outreach_replies_ws ON outreach_replies(workspace_id);
 CREATE INDEX IF NOT EXISTS ix_outreach_steps_ws ON outreach_sequence_steps(workspace_id);
+CREATE INDEX IF NOT EXISTS ix_outreach_scheduler_hb_ws ON outreach_scheduler_heartbeats(workspace_id);
 """
 
 
@@ -228,6 +253,84 @@ def ensure_outreach_workspace_columns(conn) -> None:
     conn.commit()
 
 
+def ensure_scheduler_columns(conn) -> None:
+    """Additive scheduler / Soft Wall columns + indexes for older outreach DBs."""
+
+    def _cols(table: str) -> set[str]:
+        try:
+            return {str(r[1]) for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+        except Exception:
+            return set()
+
+    enrollment_alters = (
+        ("locked_until", "TEXT"),
+        ("locked_by", "TEXT"),
+        ("attempt_count", "INTEGER DEFAULT 0"),
+        ("last_error", "TEXT"),
+        ("last_claimed_at", "TEXT"),
+        ("dead_letter_at", "TEXT"),
+        ("correlation_id", "TEXT"),
+    )
+    cols = _cols("outreach_enrollments")
+    for name, ddl in enrollment_alters:
+        if name not in cols:
+            conn.execute(f"ALTER TABLE outreach_enrollments ADD COLUMN {name} {ddl}")
+
+    message_alters = (
+        ("idempotency_key", "TEXT"),
+        ("step_order", "INTEGER"),
+        ("enrollment_id", "TEXT"),
+        ("approval_status", "TEXT DEFAULT 'none'"),
+        ("approval_id", "TEXT"),
+    )
+    msg_cols = _cols("outreach_messages")
+    for name, ddl in message_alters:
+        if name not in msg_cols:
+            conn.execute(f"ALTER TABLE outreach_messages ADD COLUMN {name} {ddl}")
+
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS outreach_scheduler_heartbeats (
+            workspace_id TEXT NOT NULL DEFAULT '',
+            worker_id TEXT NOT NULL,
+            last_beat_at TEXT NOT NULL,
+            queue_depth INTEGER DEFAULT 0,
+            metadata_json TEXT,
+            PRIMARY KEY (workspace_id, worker_id)
+        )
+        """
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS ix_outreach_enrollments_due ON outreach_enrollments(status, next_run_at)"
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS ix_outreach_enrollments_lease ON outreach_enrollments(status, locked_until)"
+    )
+    try:
+        conn.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS ix_outreach_messages_idem
+            ON outreach_messages(workspace_id, idempotency_key)
+            WHERE idempotency_key IS NOT NULL AND idempotency_key != ''
+            """
+        )
+    except Exception:
+        # Postgres / non-partial backends use a non-partial unique index below
+        try:
+            conn.execute(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS ix_outreach_messages_idem_pg
+                ON outreach_messages(workspace_id, idempotency_key)
+                """
+            )
+        except Exception:
+            pass
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS ix_outreach_scheduler_hb_ws ON outreach_scheduler_heartbeats(workspace_id)"
+    )
+    conn.commit()
+
+
 class OutreachStore:
     def __init__(self, path: Path | None = None) -> None:
         from keprix.crm.durable import resolve_crm_backend
@@ -247,6 +350,10 @@ class OutreachStore:
             self._path = None
             self._conn = connect_crm_pg()
             ensure_outreach_pg_schema(self._conn)
+            try:
+                ensure_scheduler_columns(self._conn)
+            except Exception:
+                pass
         else:
             assert self._path is not None
             self._path.parent.mkdir(parents=True, exist_ok=True)
@@ -257,6 +364,10 @@ class OutreachStore:
             self._conn.commit()
             try:
                 ensure_outreach_workspace_columns(self._conn)
+            except Exception:
+                pass
+            try:
+                ensure_scheduler_columns(self._conn)
             except Exception:
                 pass
 
@@ -590,14 +701,26 @@ class OutreachStore:
             """
             SELECT e.* FROM outreach_enrollments e
             WHERE e.status = 'active' AND e.next_run_at IS NOT NULL AND e.next_run_at <= ?
+              AND (e.locked_until IS NULL OR e.locked_until < ?)
             ORDER BY e.next_run_at ASC
             LIMIT ?
             """,
-            (now, limit),
+            (now, now, limit),
         )
 
     def update_enrollment(self, enrollment_id: str, **fields: Any) -> dict[str, Any] | None:
-        allowed = {"current_step", "next_run_at", "status"}
+        allowed = {
+            "current_step",
+            "next_run_at",
+            "status",
+            "locked_until",
+            "locked_by",
+            "attempt_count",
+            "last_error",
+            "last_claimed_at",
+            "dead_letter_at",
+            "correlation_id",
+        }
         updates = {k: v for k, v in fields.items() if k in allowed}
         existing = self.get_enrollment(enrollment_id)
         if not existing:
@@ -620,6 +743,367 @@ class OutreachStore:
             self._conn.commit()
         return self.get_enrollment(enrollment_id, workspace_id=ws or None)
 
+    def _parse_iso_dt(self, value: str) -> datetime:
+        raw = value.replace("Z", "+00:00") if value.endswith("Z") else value
+        dt = datetime.fromisoformat(raw)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+
+    def claim_due_enrollments(
+        self,
+        *,
+        now_iso: str,
+        limit: int,
+        worker_id: str,
+        lease_seconds: int = 60,
+        workspace_id: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Atomically claim due active enrollments with a short lease."""
+        from datetime import timedelta
+
+        now_dt = self._parse_iso_dt(now_iso)
+        locked_until = (now_dt + timedelta(seconds=max(1, int(lease_seconds)))).replace(
+            microsecond=0
+        ).isoformat()
+        claimed: list[dict[str, Any]] = []
+        worker = str(worker_id or "worker").strip() or "worker"
+        lim = max(1, int(limit))
+
+        with self._lock:
+            if self._backend == "postgres":
+                try:
+                    claimed = self._claim_due_postgres(
+                        now_iso=now_iso,
+                        locked_until=locked_until,
+                        worker_id=worker,
+                        limit=lim,
+                        workspace_id=workspace_id,
+                    )
+                    if claimed is not None:
+                        return claimed
+                except Exception:
+                    claimed = []
+
+            sql = """
+                SELECT e.* FROM outreach_enrollments e
+                WHERE e.status = 'active'
+                  AND e.next_run_at IS NOT NULL
+                  AND e.next_run_at <= ?
+                  AND (e.locked_until IS NULL OR e.locked_until < ?)
+            """
+            params: list[Any] = [now_iso, now_iso]
+            if workspace_id:
+                sql += " AND e.workspace_id = ?"
+                params.append(workspace_id)
+            sql += " ORDER BY e.next_run_at ASC LIMIT ?"
+            params.append(lim)
+            candidates = self._fetchall(sql, tuple(params))
+            for row in candidates:
+                cur = self._conn.execute(
+                    """
+                    UPDATE outreach_enrollments
+                    SET locked_until = ?, locked_by = ?, last_claimed_at = ?
+                    WHERE id = ?
+                      AND status = 'active'
+                      AND next_run_at IS NOT NULL
+                      AND next_run_at <= ?
+                      AND (locked_until IS NULL OR locked_until < ?)
+                    """,
+                    (locked_until, worker, now_iso, row["id"], now_iso, now_iso),
+                )
+                if int(getattr(cur, "rowcount", 0) or 0) > 0:
+                    refreshed = self._fetchone(
+                        "SELECT * FROM outreach_enrollments WHERE id = ?",
+                        (row["id"],),
+                    )
+                    if refreshed:
+                        claimed.append(refreshed)
+            self._conn.commit()
+        return claimed
+
+    def _claim_due_postgres(
+        self,
+        *,
+        now_iso: str,
+        locked_until: str,
+        worker_id: str,
+        limit: int,
+        workspace_id: str | None,
+    ) -> list[dict[str, Any]] | None:
+        """Prefer SKIP LOCKED claim; return None to fall back to CAS loop."""
+        ws_filter = " AND workspace_id = %s" if workspace_id else ""
+        params: list[Any] = [now_iso, now_iso]
+        if workspace_id:
+            params.append(workspace_id)
+        params.extend([locked_until, worker_id, now_iso, limit])
+        # pg_compat uses ? placeholders typically; try both styles.
+        try:
+            sql = f"""
+                UPDATE outreach_enrollments
+                SET locked_until = ?, locked_by = ?, last_claimed_at = ?
+                WHERE id IN (
+                    SELECT id FROM outreach_enrollments
+                    WHERE status = 'active'
+                      AND next_run_at IS NOT NULL
+                      AND next_run_at <= ?
+                      AND (locked_until IS NULL OR locked_until < ?)
+                      {ws_filter.replace('%s', '?') if workspace_id else ''}
+                    ORDER BY next_run_at ASC
+                    FOR UPDATE SKIP LOCKED
+                    LIMIT ?
+                )
+                RETURNING *
+            """
+            # Build params for UPDATE SET then subquery WHERE then LIMIT
+            # Reorder: SET values first, then subquery filters, then limit
+            if workspace_id:
+                exec_params = (
+                    locked_until,
+                    worker_id,
+                    now_iso,
+                    now_iso,
+                    now_iso,
+                    workspace_id,
+                    limit,
+                )
+            else:
+                exec_params = (
+                    locked_until,
+                    worker_id,
+                    now_iso,
+                    now_iso,
+                    now_iso,
+                    limit,
+                )
+            cur = self._conn.execute(sql, exec_params)
+            rows = cur.fetchall()
+            self._conn.commit()
+            out: list[dict[str, Any]] = []
+            for r in rows:
+                d = _row_to_dict(r) if not isinstance(r, dict) else r
+                if d:
+                    out.append(d)
+            return out
+        except Exception:
+            return None
+
+    def release_enrollment_lock(self, enrollment_id: str, worker_id: str | None = None) -> dict[str, Any] | None:
+        existing = self.get_enrollment(enrollment_id)
+        if not existing:
+            return None
+        with self._lock:
+            if worker_id:
+                self._conn.execute(
+                    """
+                    UPDATE outreach_enrollments
+                    SET locked_until = NULL, locked_by = NULL
+                    WHERE id = ? AND (locked_by IS NULL OR locked_by = ?)
+                    """,
+                    (enrollment_id, worker_id),
+                )
+            else:
+                self._conn.execute(
+                    """
+                    UPDATE outreach_enrollments
+                    SET locked_until = NULL, locked_by = NULL
+                    WHERE id = ?
+                    """,
+                    (enrollment_id,),
+                )
+            self._conn.commit()
+        return self.get_enrollment(enrollment_id)
+
+    def reclaim_stale_enrollment_locks(self, *, now_iso: str) -> int:
+        with self._lock:
+            cur = self._conn.execute(
+                """
+                UPDATE outreach_enrollments
+                SET locked_until = NULL, locked_by = NULL
+                WHERE locked_until IS NOT NULL AND locked_until < ?
+                """,
+                (now_iso,),
+            )
+            self._conn.commit()
+            return int(getattr(cur, "rowcount", 0) or 0)
+
+    def record_scheduler_heartbeat(
+        self,
+        *,
+        workspace_id: str,
+        worker_id: str,
+        queue_depth: int = 0,
+        metadata: dict[str, Any] | None = None,
+        now_iso: str | None = None,
+    ) -> None:
+        now = now_iso or _utcnow()
+        ws = str(workspace_id or "")
+        wid = str(worker_id or "worker")
+        meta = json.dumps(metadata or {})
+        with self._lock:
+            self._conn.execute(
+                """
+                INSERT INTO outreach_scheduler_heartbeats (
+                    workspace_id, worker_id, last_beat_at, queue_depth, metadata_json
+                ) VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(workspace_id, worker_id) DO UPDATE SET
+                    last_beat_at = excluded.last_beat_at,
+                    queue_depth = excluded.queue_depth,
+                    metadata_json = excluded.metadata_json
+                """,
+                (ws, wid, now, int(queue_depth), meta),
+            )
+            self._conn.commit()
+
+    def get_scheduler_health(self, workspace_id: str | None = None) -> dict[str, Any]:
+        now = _utcnow()
+        ws_clause = " AND workspace_id = ?" if workspace_id else ""
+        ws_params: tuple[Any, ...] = (workspace_id,) if workspace_id else ()
+
+        due_row = self._fetchone(
+            f"""
+            SELECT COUNT(*) AS c FROM outreach_enrollments
+            WHERE status = 'active'
+              AND next_run_at IS NOT NULL
+              AND next_run_at <= ?
+              AND (locked_until IS NULL OR locked_until < ?)
+              {ws_clause}
+            """,
+            (now, now, *ws_params),
+        )
+        awaiting = self._fetchone(
+            f"SELECT COUNT(*) AS c FROM outreach_enrollments WHERE status = 'awaiting_approval'{ws_clause}",
+            ws_params,
+        )
+        dead = self._fetchone(
+            f"SELECT COUNT(*) AS c FROM outreach_enrollments WHERE status = 'dead_letter'{ws_clause}",
+            ws_params,
+        )
+        retrying = self._fetchone(
+            f"""
+            SELECT COUNT(*) AS c FROM outreach_enrollments
+            WHERE status = 'active' AND COALESCE(attempt_count, 0) > 0{ws_clause}
+            """,
+            ws_params,
+        )
+        oldest = self._fetchone(
+            f"""
+            SELECT next_run_at FROM outreach_enrollments
+            WHERE status = 'active' AND next_run_at IS NOT NULL AND next_run_at <= ?
+              {ws_clause}
+            ORDER BY next_run_at ASC LIMIT 1
+            """,
+            (now, *ws_params),
+        )
+        oldest_age = None
+        if oldest and oldest.get("next_run_at"):
+            try:
+                due_at = self._parse_iso_dt(str(oldest["next_run_at"]))
+                oldest_age = max(0, int((self._parse_iso_dt(now) - due_at).total_seconds()))
+            except Exception:
+                oldest_age = None
+
+        hb_sql = "SELECT * FROM outreach_scheduler_heartbeats"
+        hb_params: tuple[Any, ...] = ()
+        if workspace_id:
+            hb_sql += " WHERE workspace_id = ?"
+            hb_params = (workspace_id,)
+        hb_sql += " ORDER BY last_beat_at DESC LIMIT 5"
+        heartbeats = self._fetchall(hb_sql, hb_params)
+        latest = heartbeats[0] if heartbeats else None
+        return {
+            "workspace_id": workspace_id,
+            "at": now,
+            "queue_depth": int((due_row or {}).get("c") or 0),
+            "awaiting_approval_count": int((awaiting or {}).get("c") or 0),
+            "dead_letter_count": int((dead or {}).get("c") or 0),
+            "retrying_count": int((retrying or {}).get("c") or 0),
+            "oldest_due_age_seconds": oldest_age,
+            "heartbeat": latest,
+            "heartbeats": heartbeats,
+        }
+
+    def pause_enrollment(self, enrollment_id: str, *, reason: str | None = None) -> dict[str, Any] | None:
+        return self.update_enrollment(
+            enrollment_id,
+            status="paused",
+            next_run_at=None,
+            locked_until=None,
+            locked_by=None,
+            last_error=reason,
+        )
+
+    def resume_enrollment(self, enrollment_id: str, *, next_run_at: str | None = None) -> dict[str, Any] | None:
+        return self.update_enrollment(
+            enrollment_id,
+            status="active",
+            next_run_at=next_run_at or _utcnow(),
+            last_error=None,
+            locked_until=None,
+            locked_by=None,
+        )
+
+    def cancel_enrollment(self, enrollment_id: str, *, reason: str | None = None) -> dict[str, Any] | None:
+        return self.update_enrollment(
+            enrollment_id,
+            status="cancelled",
+            next_run_at=None,
+            locked_until=None,
+            locked_by=None,
+            last_error=reason,
+        )
+
+    def retry_dead_letter(self, enrollment_id: str, *, next_run_at: str | None = None) -> dict[str, Any] | None:
+        existing = self.get_enrollment(enrollment_id)
+        if not existing or existing.get("status") != "dead_letter":
+            return existing
+        return self.update_enrollment(
+            enrollment_id,
+            status="active",
+            next_run_at=next_run_at or _utcnow(),
+            attempt_count=0,
+            last_error=None,
+            dead_letter_at=None,
+            locked_until=None,
+            locked_by=None,
+        )
+
+    def drain_enrollments(
+        self,
+        *,
+        workspace_id: str | None = None,
+        campaign_id: str | None = None,
+    ) -> int:
+        """Cancel all active enrollments for a workspace or campaign."""
+        with self._lock:
+            if campaign_id:
+                cur = self._conn.execute(
+                    """
+                    UPDATE outreach_enrollments
+                    SET status = 'cancelled', next_run_at = NULL, locked_until = NULL, locked_by = NULL
+                    WHERE status = 'active'
+                      AND lead_id IN (
+                        SELECT id FROM outreach_leads
+                        WHERE campaign_id = ?
+                          AND (? IS NULL OR workspace_id = ?)
+                      )
+                    """,
+                    (campaign_id, workspace_id, workspace_id),
+                )
+            elif workspace_id:
+                cur = self._conn.execute(
+                    """
+                    UPDATE outreach_enrollments
+                    SET status = 'cancelled', next_run_at = NULL, locked_until = NULL, locked_by = NULL
+                    WHERE status = 'active' AND workspace_id = ?
+                    """,
+                    (workspace_id,),
+                )
+            else:
+                return 0
+            self._conn.commit()
+            return int(getattr(cur, "rowcount", 0) or 0)
+
     def active_enrollments_for_lead(
         self, lead_id: str, *, workspace_id: str | None = None
     ) -> list[dict[str, Any]]:
@@ -638,7 +1122,6 @@ class OutreachStore:
 
     # ── Messages / replies ─────────────────────────────────────
     def create_message(self, **fields: Any) -> dict[str, Any]:
-        msg_id = str(uuid.uuid4())
         now = _utcnow()
         enrollment_id = fields["enrollment_id"]
         ws = fields.get("workspace_id")
@@ -649,35 +1132,77 @@ class OutreachStore:
             )
             ws = str((enr or {}).get("workspace_id") or "")
         ws = self._require_workspace(ws)
+        idem = fields.get("idempotency_key")
+        idem_key = str(idem).strip() if idem else None
         with self._lock:
-            self._conn.execute(
-                """
-                INSERT INTO outreach_messages (
-                    id, workspace_id, enrollment_id, step_id, channel, subject, body,
-                    sent_at, delivered_at, opened_at, clicked_at, bounced, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    msg_id,
-                    ws,
-                    enrollment_id,
-                    fields.get("step_id"),
-                    fields.get("channel") or "email",
-                    fields.get("subject"),
-                    fields.get("body") or "",
-                    fields.get("sent_at"),
-                    fields.get("delivered_at"),
-                    fields.get("opened_at"),
-                    fields.get("clicked_at"),
-                    1 if fields.get("bounced") else 0,
-                    now,
-                ),
-            )
-            self._conn.commit()
+            if idem_key:
+                existing = self._fetchone(
+                    """
+                    SELECT * FROM outreach_messages
+                    WHERE workspace_id = ? AND idempotency_key = ?
+                    """,
+                    (ws, idem_key),
+                )
+                if existing:
+                    return existing
+            msg_id = str(uuid.uuid4())
+            try:
+                self._conn.execute(
+                    """
+                    INSERT INTO outreach_messages (
+                        id, workspace_id, enrollment_id, step_id, step_order, channel, subject, body,
+                        sent_at, delivered_at, opened_at, clicked_at, bounced,
+                        approval_status, approval_id, idempotency_key, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        msg_id,
+                        ws,
+                        enrollment_id,
+                        fields.get("step_id"),
+                        fields.get("step_order"),
+                        fields.get("channel") or "email",
+                        fields.get("subject"),
+                        fields.get("body") or "",
+                        fields.get("sent_at"),
+                        fields.get("delivered_at"),
+                        fields.get("opened_at"),
+                        fields.get("clicked_at"),
+                        1 if fields.get("bounced") else 0,
+                        fields.get("approval_status") or "none",
+                        fields.get("approval_id"),
+                        idem_key,
+                        now,
+                    ),
+                )
+                self._conn.commit()
+            except Exception:
+                self._conn.rollback()
+                if idem_key:
+                    existing = self._fetchone(
+                        """
+                        SELECT * FROM outreach_messages
+                        WHERE workspace_id = ? AND idempotency_key = ?
+                        """,
+                        (ws, idem_key),
+                    )
+                    if existing:
+                        return existing
+                raise
         return self._fetchone(
             "SELECT * FROM outreach_messages WHERE id = ? AND workspace_id = ?",
             (msg_id, ws),
         )  # type: ignore[return-value]
+
+    def count_messages_for_enrollment_step(self, enrollment_id: str, step_order: int) -> int:
+        row = self._fetchone(
+            """
+            SELECT COUNT(*) AS c FROM outreach_messages
+            WHERE enrollment_id = ? AND step_order = ?
+            """,
+            (enrollment_id, step_order),
+        )
+        return int((row or {}).get("c") or 0)
 
     def count_messages_sent_today(self, campaign_id: str, day_prefix: str) -> int:
         row = self._fetchone(

@@ -47,6 +47,7 @@ async def ensure_outreach_tables() -> list[str]:
                 "outreach_list_members",
                 "outreach_bookings",
                 "outreach_approvals",
+                "outreach_scheduler_heartbeats",
             ]
         )
         logger.info("outreach postgres TEXT tables verified")

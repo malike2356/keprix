@@ -9,9 +9,11 @@ import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import type { OutreachControlState } from "@/components/outreach/types";
+import type { OutreachSchedulerHealth } from "@/lib/outreach-api";
 
 type ControlCenterProps = {
   control: OutreachControlState | null;
+  schedulerHealth?: OutreachSchedulerHealth | null;
   busy?: boolean;
   error?: string | null;
   onProcessDue: () => void;
@@ -19,8 +21,16 @@ type ControlCenterProps = {
   approvalsHref?: string;
 };
 
+function formatAge(seconds: number | null | undefined): string {
+  if (seconds == null || Number.isNaN(seconds)) return "n/a";
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  return `${Math.floor(seconds / 3600)}h`;
+}
+
 export function ControlCenter({
   control,
+  schedulerHealth,
   busy,
   error,
   onProcessDue,
@@ -29,6 +39,9 @@ export function ControlCenter({
 }: ControlCenterProps) {
   const paused = Boolean(control?.paused);
   const updatedAt = control?.updated_at || control?.updatedAt;
+  const queueDepth = Number(schedulerHealth?.queue_depth ?? 0);
+  const deadLetters = Number(schedulerHealth?.dead_letter_count ?? 0);
+  const oldest = schedulerHealth?.oldest_due_age_seconds;
 
   return (
     <Card variant="outlined">
@@ -57,6 +70,27 @@ export function ControlCenter({
                 color={paused ? "warning" : "success"}
                 variant="outlined"
               />
+              {schedulerHealth ? (
+                <>
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={`Queue ${queueDepth}`}
+                    color={queueDepth > 0 ? "info" : "default"}
+                  />
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={`Dead letters ${deadLetters}`}
+                    color={deadLetters > 0 ? "warning" : "default"}
+                  />
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    label={`Oldest due ${formatAge(oldest)}`}
+                  />
+                </>
+              ) : null}
               {control?.reason ? (
                 <Typography variant="caption" color="text.secondary">
                   {control.reason}

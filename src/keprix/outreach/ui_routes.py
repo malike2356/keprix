@@ -767,29 +767,45 @@ def list_approvals(
 @router.post("/approvals/{approval_id}/approve")
 def approve_send(
     approval_id: str,
+    body: dict[str, Any] | None = None,
     workspace_id: str | None = Query(default=None),
     x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
     _user: str = Depends(require_api_auth),
 ) -> dict[str, Any]:
     ws = _workspace(workspace_id, x_workspace_id)
-    row = _ops().resolve_approval(ws, approval_id, "approved")
-    if not row:
-        raise HTTPException(status_code=404, detail="approval_not_found")
-    return {"ok": True, "approval": row}
+    body = body or {}
+    try:
+        result = _svc().approve_soft_wall(
+            ws,
+            approval_id,
+            dry_run=bool(body.get("dry_run") or False),
+        )
+    except LookupError:
+        raise HTTPException(status_code=404, detail="approval_not_found") from None
+    if not result.get("ok"):
+        return {**result, "approval": result.get("approval")}
+    return {"ok": True, **result}
 
 
 @router.post("/approvals/{approval_id}/reject")
 def reject_send(
     approval_id: str,
+    body: dict[str, Any] | None = None,
     workspace_id: str | None = Query(default=None),
     x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
     _user: str = Depends(require_api_auth),
 ) -> dict[str, Any]:
     ws = _workspace(workspace_id, x_workspace_id)
-    row = _ops().resolve_approval(ws, approval_id, "rejected")
-    if not row:
-        raise HTTPException(status_code=404, detail="approval_not_found")
-    return {"ok": True, "approval": row}
+    body = body or {}
+    try:
+        result = _svc().reject_soft_wall(
+            ws,
+            approval_id,
+            stop_status=str(body.get("stop_status") or "cancelled"),
+        )
+    except LookupError:
+        raise HTTPException(status_code=404, detail="approval_not_found") from None
+    return {"ok": True, **result}
 
 
 # ── Process due + Companies House ──────────────────────────────
@@ -808,7 +824,83 @@ def process_due(
     dry_run = body.get("dry_run")
     if dry_run is None:
         dry_run = False
-    return _svc().process_due(ws, limit=int(body.get("limit") or 50), dry_run=bool(dry_run))
+    return _svc().process_due(
+        ws,
+        limit=int(body.get("limit") or 50),
+        dry_run=bool(dry_run),
+        worker_id=str(body.get("worker_id") or "") or None,
+        lease_seconds=int(body.get("lease_seconds") or 60),
+    )
+
+
+@router.get("/scheduler/health")
+def scheduler_health(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id)
+    return _svc().get_scheduler_health(ws)
+
+
+@router.post("/enrollments/{enrollment_id}/pause")
+def pause_enrollment(
+    enrollment_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id)
+    row = _store().get_enrollment(enrollment_id, workspace_id=ws)
+    if not row:
+        raise HTTPException(status_code=404, detail="enrollment_not_found")
+    updated = _store().pause_enrollment(enrollment_id, reason="operator_pause")
+    return {"ok": True, "enrollment": updated}
+
+
+@router.post("/enrollments/{enrollment_id}/resume")
+def resume_enrollment(
+    enrollment_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id)
+    row = _store().get_enrollment(enrollment_id, workspace_id=ws)
+    if not row:
+        raise HTTPException(status_code=404, detail="enrollment_not_found")
+    updated = _store().resume_enrollment(enrollment_id)
+    return {"ok": True, "enrollment": updated}
+
+
+@router.post("/enrollments/{enrollment_id}/cancel")
+def cancel_enrollment(
+    enrollment_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id)
+    row = _store().get_enrollment(enrollment_id, workspace_id=ws)
+    if not row:
+        raise HTTPException(status_code=404, detail="enrollment_not_found")
+    updated = _store().cancel_enrollment(enrollment_id, reason="operator_cancel")
+    return {"ok": True, "enrollment": updated}
+
+
+@router.post("/enrollments/{enrollment_id}/retry")
+def retry_enrollment(
+    enrollment_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: str = Depends(require_api_auth),
+) -> dict[str, Any]:
+    ws = _workspace(workspace_id, x_workspace_id)
+    row = _store().get_enrollment(enrollment_id, workspace_id=ws)
+    if not row:
+        raise HTTPException(status_code=404, detail="enrollment_not_found")
+    updated = _store().retry_dead_letter(enrollment_id)
+    return {"ok": True, "enrollment": updated}
 
 
 @router.post("/companies-house/import-lead")

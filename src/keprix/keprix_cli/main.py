@@ -314,6 +314,7 @@ from keprix_cli.subcommands.builder import build_builder_parser
 from keprix_cli.subcommands.ingest import build_ingest_parser
 from keprix_cli.subcommands.crm_ingest import build_crm_ingest_parser
 from keprix_cli.subcommands.crm_migrate import build_crm_migrate_parser
+from keprix_cli.subcommands.outreach_scheduler import build_outreach_scheduler_parser
 from keprix_cli.subcommands.vault import build_vault_parser
 from keprix_cli.subcommands.integrations import build_integrations_parser
 from keprix_cli.subcommands.upstream import build_upstream_parser
@@ -344,6 +345,7 @@ from keprix_cli import builder_commands
 from keprix_cli import ingest_commands
 from keprix_cli import crm_ingest_commands
 from keprix_cli import crm_migrate_commands
+from keprix_cli import outreach_scheduler_commands
 from keprix_cli import vault_commands
 from keprix_cli import integrations_commands
 from keprix_cli import upstream_commands
@@ -11919,6 +11921,10 @@ def main():
     build_crm_migrate_parser(
         subparsers,
         cmd_crm_migrate=crm_migrate_commands.cmd_crm_migrate,
+    )
+    build_outreach_scheduler_parser(
+        subparsers,
+        cmd_outreach_scheduler=outreach_scheduler_commands.cmd_outreach_scheduler,
     )
 
     build_agent_os_parser(

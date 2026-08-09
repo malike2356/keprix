@@ -12,9 +12,10 @@ OUTREACH_CRON_JOBS: tuple[dict[str, Any], ...] = (
         "name": "outreach-process-due",
         "schedule": "every 5m",
         "prompt": (
-            "Run outreach_process_due for active workspaces. "
-            "Process due sequence steps and send pending messages. "
-            "Summarize processed and skipped counts."
+            "Run outreach_process_due for active workspaces using the durable "
+            "claim-lease campaign scheduler. Process due sequence steps "
+            "(Soft Wall park or dry-run as configured). "
+            "Summarize processed, skipped, claimed, and dead-letter counts."
         ),
         "enabled_toolsets": ["outreach"],
     },

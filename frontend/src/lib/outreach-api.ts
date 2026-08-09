@@ -522,6 +522,24 @@ export async function processOutreachDue(workspaceId = DEFAULT_WORKSPACE, dryRun
   );
 }
 
+export type OutreachSchedulerHealth = {
+  workspace_id?: string | null;
+  at?: string;
+  queue_depth?: number;
+  awaiting_approval_count?: number;
+  dead_letter_count?: number;
+  retrying_count?: number;
+  oldest_due_age_seconds?: number | null;
+  heartbeat?: Record<string, unknown> | null;
+};
+
+export async function fetchOutreachSchedulerHealth(workspaceId = DEFAULT_WORKSPACE) {
+  return parseJson<OutreachSchedulerHealth>(
+    await ceApi(`/api/outreach/scheduler/health${qs(workspaceParams(workspaceId))}`),
+    "Failed to load scheduler health",
+  );
+}
+
 export async function importCompaniesHouseLead(
   body: {
     company_number: string;

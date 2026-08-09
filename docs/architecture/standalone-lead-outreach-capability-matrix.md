@@ -47,7 +47,7 @@ Honesty rule: UI presence or mocked tests alone never mark REAL. Conformance sui
 | Spreadsheet CRM editable grid | REAL | `/crm/leads` DataGrid + keyset/bulk/views/export/ingest APIs (`CrmLeadsDataGrid`, `tests/crm/test_leads_grid_api.py`) |
 | Lists | REAL | CRM + outreach lists |
 | Campaigns / sequences | REAL | Outreach store + GUI |
-| Scheduling / process-due | REAL | `process_due` + cron seeds |
+| Scheduling / process-due | REAL | Durable claim-lease scheduler (`outreach/scheduler.py`, `claim_due_enrollments`, Soft Wall park); see `standalone-lead-outreach-scheduler.md` |
 | Soft Wall approvals | REAL | CRM gates + outreach send approvals |
 | Live email send | PARTIAL | Default `KEPRIX_OUTREACH_DRY_RUN=1`; account bind incomplete (Prompt 625) |
 | Provider events (bounce/complaint) | MISSING | No SES/SendGrid/Mailgun normalizer (Prompt 625) |

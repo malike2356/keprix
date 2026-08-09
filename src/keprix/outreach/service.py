@@ -6,6 +6,7 @@ import csv
 import io
 import logging
 import os
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -226,6 +227,174 @@ class OutreachService:
         except Exception as exc:
             return {"sent": False, "dry_run": True, "error": str(exc), "to": to_email}
 
+    def revalidate_enrollment_send(
+        self,
+        enrollment: dict[str, Any],
+        *,
+        now: datetime | None = None,
+        defer_outside_hours: bool = True,
+        defer_daily_cap: bool = True,
+    ) -> dict[str, Any]:
+        """Return {ok: True, ...ctx} or {ok: False, reason, stop?, defer_until?}."""
+        from keprix.outreach.ops import get_outreach_ops_store
+        from keprix.outreach.scheduler import next_midnight_in_tz, next_open_business_window
+
+        now_dt = now or _utcnow()
+        lead_id = str(enrollment["lead_id"])
+        lead_row = self.store._fetchone("SELECT * FROM outreach_leads WHERE id = ?", (lead_id,))
+        if not lead_row:
+            return {"ok": False, "reason": "lead_missing", "stop": False}
+        ws = str(lead_row["workspace_id"])
+        ops = get_outreach_ops_store()
+        control = ops.get_control(ws)
+        if control.get("paused"):
+            return {"ok": False, "reason": "outreach_paused", "stop": False, "workspace_id": ws}
+
+        campaign = None
+        if lead_row.get("campaign_id"):
+            campaign = self.store.get_campaign(ws, str(lead_row["campaign_id"]))
+            if campaign and campaign.get("status") in ("paused", "archived", "stopped"):
+                return {
+                    "ok": False,
+                    "reason": "campaign_not_active",
+                    "stop": False,
+                    "workspace_id": ws,
+                    "lead": lead_row,
+                    "campaign": campaign,
+                }
+
+        try:
+            from keprix.crm.store import get_crm_store
+
+            cstore = get_crm_store()
+            if cstore.is_kill_switch_on(ws, scope="workspace"):
+                return {"ok": False, "reason": "workspace_kill_switch", "stop": False, "workspace_id": ws}
+            email = str(lead_row.get("email") or "").strip().lower()
+            if email and cstore.is_suppressed(ws, channel="email", address=email):
+                return {
+                    "ok": False,
+                    "reason": "crm_suppressed",
+                    "stop": True,
+                    "stop_status": "stopped_suppressed",
+                    "workspace_id": ws,
+                    "lead": lead_row,
+                    "campaign": campaign,
+                }
+            from keprix.crm.nurture import cadence_allows_send
+
+            ok_cadence, cadence_reason = cadence_allows_send(
+                ws, email, crm_store=cstore, outreach_store=self.store, now=now_dt
+            )
+            if not ok_cadence:
+                return {
+                    "ok": False,
+                    "reason": cadence_reason or "cadence_cap",
+                    "stop": False,
+                    "workspace_id": ws,
+                    "lead": lead_row,
+                    "campaign": campaign,
+                }
+        except Exception:
+            pass
+
+        sequence = self.store.get_sequence(ws, str(enrollment["sequence_id"]))
+        if not sequence:
+            return {"ok": False, "reason": "sequence_missing", "stop": False, "workspace_id": ws}
+
+        # stop_on_reply / booking / unsubscribe via lead status
+        lead_status = str(lead_row.get("status") or "")
+        if sequence.get("stop_on_unsubscribe") and lead_status == "unsubscribed":
+            return {
+                "ok": False,
+                "reason": "unsubscribed",
+                "stop": True,
+                "stop_status": "stopped_unsubscribe",
+                "workspace_id": ws,
+                "lead": lead_row,
+                "campaign": campaign,
+                "sequence": sequence,
+            }
+        if sequence.get("stop_on_reply") and lead_status in ("replied", "interested"):
+            return {
+                "ok": False,
+                "reason": "already_replied",
+                "stop": True,
+                "stop_status": "stopped_reply",
+                "workspace_id": ws,
+                "lead": lead_row,
+                "campaign": campaign,
+                "sequence": sequence,
+            }
+        if sequence.get("stop_on_booking") and lead_status in ("booking", "booked", "attended"):
+            return {
+                "ok": False,
+                "reason": "already_booked",
+                "stop": True,
+                "stop_status": "stopped_booking",
+                "workspace_id": ws,
+                "lead": lead_row,
+                "campaign": campaign,
+                "sequence": sequence,
+            }
+
+        tz_name = str((campaign or {}).get("timezone") or "Europe/London")
+        if (
+            defer_outside_hours
+            and campaign
+            and campaign.get("business_hours_only")
+            and not _in_business_hours(tz_name, now_dt)
+        ):
+            return {
+                "ok": False,
+                "reason": "outside_business_hours",
+                "stop": False,
+                "defer_until": _iso(next_open_business_window(tz_name, now_dt)),
+                "workspace_id": ws,
+                "lead": lead_row,
+                "campaign": campaign,
+                "sequence": sequence,
+            }
+
+        if defer_daily_cap and campaign:
+            day_prefix = now_dt.astimezone(timezone.utc).strftime("%Y-%m-%d")
+            sent_today = self.store.count_messages_sent_today(str(campaign["id"]), day_prefix)
+            if sent_today >= int(campaign.get("daily_cap") or 50):
+                return {
+                    "ok": False,
+                    "reason": "daily_cap",
+                    "stop": False,
+                    "defer_until": _iso(next_midnight_in_tz(tz_name, now_dt)),
+                    "workspace_id": ws,
+                    "lead": lead_row,
+                    "campaign": campaign,
+                    "sequence": sequence,
+                }
+
+        steps = sequence.get("steps") or []
+        step_index = int(enrollment.get("current_step") or 0)
+        if step_index >= len(steps):
+            return {
+                "ok": False,
+                "reason": "completed",
+                "stop": True,
+                "stop_status": "completed",
+                "workspace_id": ws,
+                "lead": lead_row,
+                "campaign": campaign,
+                "sequence": sequence,
+            }
+
+        return {
+            "ok": True,
+            "workspace_id": ws,
+            "lead": lead_row,
+            "campaign": campaign,
+            "sequence": sequence,
+            "step": steps[step_index],
+            "step_index": step_index,
+            "steps": steps,
+        }
+
     def process_due(
         self,
         workspace_id: str | None = None,
@@ -233,192 +402,246 @@ class OutreachService:
         limit: int = 50,
         now: datetime | None = None,
         dry_run: bool | None = None,
+        worker_id: str | None = None,
+        lease_seconds: int = 60,
+        max_attempts: int | None = None,
     ) -> dict[str, Any]:
         from keprix.outreach.ops import get_outreach_ops_store
+        from keprix.outreach.scheduler import backoff_seconds, DEFAULT_MAX_ATTEMPTS
 
         now_dt = now or _utcnow()
         now_iso = _iso(now_dt)
         dry = True if dry_run is None else dry_run
         soft_wall_default = os.environ.get("KEPRIX_OUTREACH_SOFT_WALL", "1") not in ("0", "false", "False")
         ops = get_outreach_ops_store()
-        due = self.store.list_due_enrollments(now_iso=now_iso, limit=limit)
+        worker = str(worker_id or f"worker-{uuid.uuid4().hex[:8]}")
+        max_att = int(max_attempts if max_attempts is not None else os.environ.get("KEPRIX_OUTREACH_MAX_ATTEMPTS") or DEFAULT_MAX_ATTEMPTS)
+
+        claimed = self.store.claim_due_enrollments(
+            now_iso=now_iso,
+            limit=limit,
+            worker_id=worker,
+            lease_seconds=lease_seconds,
+            workspace_id=workspace_id,
+        )
         processed: list[dict[str, Any]] = []
         skipped: list[dict[str, Any]] = []
 
-        for enrollment in due:
-            lead_id = str(enrollment["lead_id"])
-            lead_row = self.store._fetchone("SELECT * FROM outreach_leads WHERE id = ?", (lead_id,))
-            if not lead_row:
-                skipped.append({"enrollment_id": enrollment["id"], "reason": "lead_missing"})
-                continue
-            ws = str(lead_row["workspace_id"])
-            if workspace_id and ws != workspace_id:
-                continue
-
-            control = ops.get_control(ws)
-            if control.get("paused"):
-                skipped.append({"enrollment_id": enrollment["id"], "reason": "outreach_paused"})
-                continue
-
-            # CRM suppression + kill switch recheck at send time (442/448)
+        for enrollment in claimed:
+            eid = str(enrollment["id"])
             try:
-                from keprix.crm.store import get_crm_store
-
-                cstore = get_crm_store()
-                if cstore.is_kill_switch_on(ws, scope="workspace"):
-                    skipped.append({"enrollment_id": enrollment["id"], "reason": "workspace_kill_switch"})
+                gate = self.revalidate_enrollment_send(enrollment, now=now_dt)
+                if not gate.get("ok"):
+                    reason = str(gate.get("reason") or "ineligible")
+                    if gate.get("stop"):
+                        self.store.update_enrollment(
+                            eid,
+                            status=str(gate.get("stop_status") or "cancelled"),
+                            next_run_at=None,
+                            locked_until=None,
+                            locked_by=None,
+                        )
+                    elif gate.get("defer_until"):
+                        self.store.update_enrollment(
+                            eid,
+                            next_run_at=str(gate["defer_until"]),
+                            locked_until=None,
+                            locked_by=None,
+                        )
+                    else:
+                        # pause / campaign inactive: release lock, keep due for later
+                        self.store.release_enrollment_lock(eid, worker)
+                    skipped.append({"enrollment_id": eid, "reason": reason})
                     continue
-                email = str(lead_row.get("email") or "").strip().lower()
-                if email and cstore.is_suppressed(ws, channel="email", address=email):
-                    skipped.append({"enrollment_id": enrollment["id"], "reason": "crm_suppressed"})
-                    self.store.update_enrollment(enrollment["id"], status="stopped_suppressed", next_run_at=None)
+
+                if workspace_id and gate["workspace_id"] != workspace_id:
+                    self.store.release_enrollment_lock(eid, worker)
                     continue
-                from keprix.crm.nurture import cadence_allows_send
 
-                ok_cadence, cadence_reason = cadence_allows_send(
-                    ws, email, crm_store=cstore, outreach_store=self.store, now=now_dt
-                )
-                if not ok_cadence:
-                    skipped.append({"enrollment_id": enrollment["id"], "reason": cadence_reason or "cadence_cap"})
-                    continue
-            except Exception:
-                pass
+                ws = str(gate["workspace_id"])
+                lead_row = gate["lead"]
+                campaign = gate.get("campaign")
+                sequence = gate["sequence"]
+                step = gate["step"]
+                step_index = int(gate["step_index"])
+                steps = gate["steps"]
+                step_order = int(step.get("step_order") or (step_index + 1))
 
-            sequence = self.store.get_sequence(ws, str(enrollment["sequence_id"]))
-            if not sequence:
-                skipped.append({"enrollment_id": enrollment["id"], "reason": "sequence_missing"})
-                continue
+                subject = _render_template(str(step.get("subject") or ""), lead_row, campaign)
+                body = _render_template(str(step.get("body") or ""), lead_row, campaign)
+                if step.get("cta"):
+                    body = f"{body}\n\n{step['cta']}"
+                if step.get("link"):
+                    body = f"{body}\n{step['link']}"
 
-            campaign = None
-            if lead_row.get("campaign_id"):
-                campaign = self.store.get_campaign(ws, str(lead_row["campaign_id"]))
-                if campaign and campaign.get("status") not in ("active", "draft"):
-                    # allow draft for testing; skip only if explicitly paused/archived
-                    if campaign.get("status") in ("paused", "archived", "stopped"):
-                        skipped.append({"enrollment_id": enrollment["id"], "reason": "campaign_not_active"})
-                        continue
-                if campaign and campaign.get("business_hours_only") and not _in_business_hours(
-                    str(campaign.get("timezone") or "Europe/London"), now_dt
-                ):
-                    self.store.update_enrollment(
-                        enrollment["id"],
-                        next_run_at=_iso(now_dt + timedelta(hours=1)),
-                    )
-                    skipped.append({"enrollment_id": enrollment["id"], "reason": "outside_business_hours"})
-                    continue
-                if campaign:
-                    day_prefix = now_dt.astimezone(timezone.utc).strftime("%Y-%m-%d")
-                    sent_today = self.store.count_messages_sent_today(str(campaign["id"]), day_prefix)
-                    if sent_today >= int(campaign.get("daily_cap") or 50):
-                        skipped.append({"enrollment_id": enrollment["id"], "reason": "daily_cap"})
-                        continue
+                require_approval = soft_wall_default or bool((campaign or {}).get("require_approval"))
+                use_soft_wall = require_approval and not dry
+                idem_key = f"enrollment:{eid}:step:{step_order}"
 
-            steps = sequence.get("steps") or []
-            step_index = int(enrollment.get("current_step") or 0)
-            if step_index >= len(steps):
-                self.store.update_enrollment(enrollment["id"], status="completed", next_run_at=None)
-                processed.append({"enrollment_id": enrollment["id"], "action": "completed"})
-                continue
-
-            step = steps[step_index]
-            subject = _render_template(str(step.get("subject") or ""), lead_row, campaign)
-            body = _render_template(str(step.get("body") or ""), lead_row, campaign)
-            if step.get("cta"):
-                body = f"{body}\n\n{step['cta']}"
-            if step.get("link"):
-                body = f"{body}\n{step['link']}"
-
-            require_approval = soft_wall_default or bool((campaign or {}).get("require_approval"))
-            use_soft_wall = require_approval and not dry
-
-            message = self.store.create_message(
-                enrollment_id=enrollment["id"],
-                step_id=step.get("id"),
-                channel=step.get("channel") or "email",
-                subject=subject,
-                body=body,
-                sent_at=None,
-            )
-
-            send_result: dict[str, Any]
-            approval = None
-            if dry:
-                send_result = {"sent": False, "dry_run": True, "to": lead_row["email"]}
-                action = "dry_run_queued"
-            elif use_soft_wall:
-                approval = ops.create_approval(
-                    ws,
-                    message_id=message.get("id"),
-                    enrollment_id=enrollment["id"],
-                    lead_id=lead_id,
-                    recipient=str(lead_row["email"]),
-                    subject=subject,
-                    draft_body=body,
-                    campaign_id=str(lead_row.get("campaign_id") or (campaign or {}).get("id") or "") or None,
-                )
-                send_result = {
-                    "sent": False,
-                    "soft_wall": True,
-                    "approval_id": approval.get("id"),
-                    "to": lead_row["email"],
-                }
-                action = "soft_wall_queued"
-            else:
-                send_result = self._send_message(
-                    to_email=str(lead_row["email"]),
+                message = self.store.create_message(
+                    enrollment_id=eid,
+                    workspace_id=ws,
+                    step_id=step.get("id"),
+                    step_order=step_order,
+                    channel=step.get("channel") or "email",
                     subject=subject,
                     body=body,
-                    dry_run=False,
+                    sent_at=None,
+                    idempotency_key=idem_key,
                 )
-                if send_result.get("sent"):
-                    self.store._conn.execute(
-                        "UPDATE outreach_messages SET sent_at = ?, approval_status = 'none' WHERE id = ?",
-                        (now_iso, message["id"]),
+
+                send_result: dict[str, Any]
+                approval = None
+                action = "queued"
+
+                if dry:
+                    send_result = {"sent": False, "dry_run": True, "to": lead_row["email"]}
+                    action = "dry_run_queued"
+                    self._advance_enrollment_after_step(
+                        enrollment_id=eid,
+                        step_index=step_index,
+                        steps=steps,
+                        step=step,
+                        now_dt=now_dt,
+                        clear_attempts=True,
                     )
-                    self.store._conn.commit()
-                action = "sent_step"
-
-            next_step = step_index + 1
-            if next_step >= len(steps):
-                self.store.update_enrollment(
-                    enrollment["id"], current_step=next_step, status="completed", next_run_at=None
-                )
-                if action.startswith("sent"):
-                    action = "sent_final"
-            else:
-                delay_hours = int(step.get("delay_hours") or 24)
-                self.store.update_enrollment(
-                    enrollment["id"],
-                    current_step=next_step,
-                    next_run_at=_iso(now_dt + timedelta(hours=delay_hours)),
-                    status="active",
-                )
-
-            if lead_row.get("status") in ("new", "enrolled"):
-                self.store.update_lead_status(ws, lead_id, "contacted")
-
-            if send_result.get("sent"):
-                try:
-                    from keprix.aiva_analytics.metrics import record_outreach_email_sent
-
-                    record_outreach_email_sent(
+                elif use_soft_wall:
+                    approval = ops.create_approval(
                         ws,
-                        campaign_id=str(lead_row.get("campaign_id") or (campaign or {}).get("id") or ""),
+                        message_id=message.get("id"),
+                        enrollment_id=eid,
+                        lead_id=str(lead_row["id"]),
+                        recipient=str(lead_row["email"]),
+                        subject=subject,
+                        draft_body=body,
+                        campaign_id=str(lead_row.get("campaign_id") or (campaign or {}).get("id") or "") or None,
                     )
+                    send_result = {
+                        "sent": False,
+                        "soft_wall": True,
+                        "approval_id": approval.get("id"),
+                        "to": lead_row["email"],
+                    }
+                    action = "soft_wall_queued"
+                    # Park: do NOT advance current_step
+                    self.store.update_enrollment(
+                        eid,
+                        status="awaiting_approval",
+                        next_run_at=None,
+                        locked_until=None,
+                        locked_by=None,
+                    )
+                else:
+                    send_result = self._send_message(
+                        to_email=str(lead_row["email"]),
+                        subject=subject,
+                        body=body,
+                        dry_run=False,
+                    )
+                    if send_result.get("sent"):
+                        self.store._conn.execute(
+                            "UPDATE outreach_messages SET sent_at = ?, approval_status = 'none' WHERE id = ?",
+                            (now_iso, message["id"]),
+                        )
+                        self.store._conn.commit()
+                        action = "sent_step"
+                        self._advance_enrollment_after_step(
+                            enrollment_id=eid,
+                            step_index=step_index,
+                            steps=steps,
+                            step=step,
+                            now_dt=now_dt,
+                            clear_attempts=True,
+                        )
+                    else:
+                        action = "send_failed"
+                        attempts = int(enrollment.get("attempt_count") or 0) + 1
+                        err = str(send_result.get("error") or "send_failed")
+                        permanent = bool(send_result.get("permanent"))
+                        if permanent or attempts >= max_att:
+                            self.store.update_enrollment(
+                                eid,
+                                status="dead_letter",
+                                next_run_at=None,
+                                attempt_count=attempts,
+                                last_error=err,
+                                dead_letter_at=now_iso,
+                                locked_until=None,
+                                locked_by=None,
+                            )
+                            action = "dead_letter"
+                        else:
+                            delay = backoff_seconds(attempts)
+                            self.store.update_enrollment(
+                                eid,
+                                status="active",
+                                next_run_at=_iso(now_dt + timedelta(seconds=delay)),
+                                attempt_count=attempts,
+                                last_error=err,
+                                locked_until=None,
+                                locked_by=None,
+                            )
+                            action = "retry_backoff"
+
+                if lead_row.get("status") in ("new", "enrolled") and action not in (
+                    "send_failed",
+                    "retry_backoff",
+                    "dead_letter",
+                ):
+                    self.store.update_lead_status(ws, str(lead_row["id"]), "contacted")
+
+                if send_result.get("sent"):
+                    try:
+                        from keprix.aiva_analytics.metrics import record_outreach_email_sent
+
+                        record_outreach_email_sent(
+                            ws,
+                            campaign_id=str(lead_row.get("campaign_id") or (campaign or {}).get("id") or ""),
+                        )
+                    except Exception:
+                        pass
+
+                # Ensure lock cleared when advance path already cleared it; no-op otherwise
+                self.store.release_enrollment_lock(eid, worker)
+
+                if action == "dry_run_queued":
+                    action = "sent_final" if int(gate["step_index"]) + 1 >= len(steps) else "sent_step"
+                elif action.startswith("sent") and int(gate["step_index"]) + 1 >= len(steps):
+                    action = "sent_final"
+
+                processed.append(
+                    {
+                        "enrollment_id": eid,
+                        "lead_id": str(lead_row["id"]),
+                        "step_order": step_order,
+                        "message_id": message.get("id"),
+                        "approval_id": (approval or {}).get("id"),
+                        "action": action,
+                        "send": send_result,
+                        "idempotency_key": idem_key,
+                    }
+                )
+            except Exception as exc:
+                logger.exception("scheduler tick failed for enrollment %s", eid)
+                try:
+                    self.store.release_enrollment_lock(eid, worker)
                 except Exception:
                     pass
+                skipped.append({"enrollment_id": eid, "reason": f"tick_error:{exc}"})
 
-            processed.append(
-                {
-                    "enrollment_id": enrollment["id"],
-                    "lead_id": lead_id,
-                    "step_order": step.get("step_order"),
-                    "message_id": message.get("id"),
-                    "approval_id": (approval or {}).get("id"),
-                    "action": action,
-                    "send": send_result,
-                }
+        try:
+            depth = int(
+                (self.store.get_scheduler_health(workspace_id) or {}).get("queue_depth") or 0
             )
+            self.store.record_scheduler_heartbeat(
+                workspace_id=str(workspace_id or ""),
+                worker_id=worker,
+                queue_depth=depth,
+                metadata={"processed": len(processed), "skipped": len(skipped)},
+                now_iso=now_iso,
+            )
+        except Exception:
+            pass
 
         return {
             "processed": len(processed),
@@ -427,7 +650,188 @@ class OutreachService:
             "skipped_items": skipped,
             "at": now_iso,
             "soft_wall": soft_wall_default,
+            "worker_id": worker,
+            "claimed": len(claimed),
         }
+
+    def _advance_enrollment_after_step(
+        self,
+        *,
+        enrollment_id: str,
+        step_index: int,
+        steps: list[dict[str, Any]],
+        step: dict[str, Any],
+        now_dt: datetime,
+        clear_attempts: bool = False,
+    ) -> None:
+        next_step = step_index + 1
+        fields: dict[str, Any] = {
+            "locked_until": None,
+            "locked_by": None,
+        }
+        if clear_attempts:
+            fields["attempt_count"] = 0
+            fields["last_error"] = None
+        if next_step >= len(steps):
+            fields.update(current_step=next_step, status="completed", next_run_at=None)
+        else:
+            delay_hours = int(step.get("delay_hours") or 24)
+            fields.update(
+                current_step=next_step,
+                next_run_at=_iso(now_dt + timedelta(hours=delay_hours)),
+                status="active",
+            )
+        self.store.update_enrollment(enrollment_id, **fields)
+
+    def approve_soft_wall(
+        self,
+        workspace_id: str,
+        approval_id: str,
+        *,
+        now: datetime | None = None,
+        dry_run: bool = False,
+    ) -> dict[str, Any]:
+        """Revalidate then approve Soft Wall draft; advance enrollment only if eligible."""
+        from keprix.outreach.ops import get_outreach_ops_store
+
+        ops = get_outreach_ops_store()
+        now_dt = now or _utcnow()
+        now_iso = _iso(now_dt)
+        approval = None
+        for row in ops.list_approvals(workspace_id, status="pending"):
+            if row.get("id") == approval_id:
+                approval = row
+                break
+        if not approval:
+            # also allow already-fetched
+            all_rows = ops.list_approvals(workspace_id, status="")
+            approval = next((r for r in all_rows if r.get("id") == approval_id), None)
+        if not approval:
+            raise LookupError("approval_not_found")
+        if approval.get("status") != "pending":
+            return {"ok": False, "reason": "not_pending", "approval": approval}
+
+        enrollment_id = approval.get("enrollment_id")
+        enrollment = self.store.get_enrollment(str(enrollment_id), workspace_id=workspace_id) if enrollment_id else None
+        if not enrollment:
+            ops.resolve_approval(workspace_id, approval_id, "rejected")
+            return {"ok": False, "reason": "enrollment_missing", "approval": approval}
+
+        # Temporarily treat awaiting_approval as active for revalidation of stop rules
+        probe = {**enrollment, "status": "active"}
+        gate = self.revalidate_enrollment_send(
+            probe, now=now_dt, defer_outside_hours=False, defer_daily_cap=True
+        )
+        if not gate.get("ok"):
+            reason = str(gate.get("reason") or "ineligible")
+            if gate.get("defer_until"):
+                self.store.update_enrollment(
+                    str(enrollment_id),
+                    status="active",
+                    next_run_at=str(gate["defer_until"]),
+                    locked_until=None,
+                    locked_by=None,
+                )
+                return {"ok": False, "reason": reason, "deferred": True, "approval": approval}
+            if gate.get("stop"):
+                self.store.update_enrollment(
+                    str(enrollment_id),
+                    status=str(gate.get("stop_status") or "cancelled"),
+                    next_run_at=None,
+                    locked_until=None,
+                    locked_by=None,
+                )
+            ops.resolve_approval(workspace_id, approval_id, "rejected")
+            return {"ok": False, "reason": reason, "stopped": bool(gate.get("stop")), "approval": approval}
+
+        lead_row = gate["lead"]
+        campaign = gate.get("campaign")
+        step = gate["step"]
+        steps = gate["steps"]
+        step_index = int(gate["step_index"])
+        subject = str(approval.get("subject") or step.get("subject") or "")
+        body = str(approval.get("draft_body") or step.get("body") or "")
+
+        send_result = self._send_message(
+            to_email=str(lead_row.get("email") or approval.get("recipient") or ""),
+            subject=subject,
+            body=body,
+            dry_run=dry_run,
+        )
+        # Mark approved (and stamp sent_at when send reports success / dry)
+        resolved = ops.resolve_approval(workspace_id, approval_id, "approved")
+        if not send_result.get("sent") and not send_result.get("dry_run"):
+            # Keep enrollment parked / retryable without advancing
+            self.store.update_enrollment(
+                str(enrollment_id),
+                status="active",
+                next_run_at=_iso(now_dt + timedelta(minutes=5)),
+                last_error=str(send_result.get("error") or "send_failed"),
+                locked_until=None,
+                locked_by=None,
+            )
+            return {
+                "ok": False,
+                "reason": "send_failed",
+                "send": send_result,
+                "approval": resolved,
+            }
+
+        if send_result.get("sent") or send_result.get("dry_run"):
+            if approval.get("message_id"):
+                self.store._conn.execute(
+                    "UPDATE outreach_messages SET sent_at = COALESCE(sent_at, ?) WHERE id = ?",
+                    (now_iso, approval["message_id"]),
+                )
+                self.store._conn.commit()
+
+        self._advance_enrollment_after_step(
+            enrollment_id=str(enrollment_id),
+            step_index=step_index,
+            steps=steps,
+            step=step,
+            now_dt=now_dt,
+            clear_attempts=True,
+        )
+        if lead_row.get("status") in ("new", "enrolled"):
+            self.store.update_lead_status(workspace_id, str(lead_row["id"]), "contacted")
+        return {
+            "ok": True,
+            "approval": resolved,
+            "send": send_result,
+            "enrollment": self.store.get_enrollment(str(enrollment_id)),
+        }
+
+    def reject_soft_wall(
+        self,
+        workspace_id: str,
+        approval_id: str,
+        *,
+        stop_status: str = "cancelled",
+    ) -> dict[str, Any]:
+        from keprix.outreach.ops import get_outreach_ops_store
+
+        ops = get_outreach_ops_store()
+        pending = ops.list_approvals(workspace_id, status="pending")
+        approval = next((r for r in pending if r.get("id") == approval_id), None)
+        if not approval:
+            raise LookupError("approval_not_found")
+        resolved = ops.resolve_approval(workspace_id, approval_id, "rejected")
+        enrollment_id = approval.get("enrollment_id")
+        enrollment = None
+        if enrollment_id:
+            enrollment = self.store.update_enrollment(
+                str(enrollment_id),
+                status=stop_status,
+                next_run_at=None,
+                locked_until=None,
+                locked_by=None,
+                last_error="soft_wall_rejected",
+            )
+        return {"ok": True, "approval": resolved, "enrollment": enrollment}
+
+    def get_scheduler_health(self, workspace_id: str | None = None) -> dict[str, Any]:
+        return self.store.get_scheduler_health(workspace_id)
 
     def get_overview(self, workspace_id: str) -> dict[str, Any]:
         from keprix.outreach.ops import get_outreach_ops_store
@@ -462,6 +866,7 @@ class OutreachService:
         )
         default_campaign = campaigns[0] if campaigns else None
         default_sequence = sequences[0] if sequences else None
+        scheduler = self.store.get_scheduler_health(workspace_id)
         return {
             "workspace_id": workspace_id,
             "summary": {
@@ -473,12 +878,15 @@ class OutreachService:
                 "upcoming_bookings": len(upcoming),
                 "scheduled_reminders": 0,
                 "follow_up": follow_up,
+                "scheduler_queue_depth": int(scheduler.get("queue_depth") or 0),
+                "scheduler_dead_letters": int(scheduler.get("dead_letter_count") or 0),
             },
             "pendingApprovals": pending_approvals,
             "activeEnrollments": int((active_enrollments or {}).get("c") or 0),
             "openReplyReviews": int((open_replies or {}).get("c") or 0),
             "upcomingBookings": len(upcoming),
             "scheduledReminders": 0,
+            "scheduler": scheduler,
             "pipeline": pipeline,
             "defaults": {
                 "campaign": default_campaign,
