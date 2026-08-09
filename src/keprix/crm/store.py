@@ -28,6 +28,7 @@ JSON_DICT_FIELDS = frozenset(
     {
         "scores",
         "metadata",
+        "custom_fields",
         "proposal_json",
         "params_json",
         "result_counts_json",
@@ -37,8 +38,72 @@ JSON_DICT_FIELDS = frozenset(
         "snapshot_json",
         "field_diff_json",
         "value_json",
+        "metadata_json",
     }
 )
+
+LEAD_INGESTION_FIELD_NAMES = frozenset(
+    {
+        "website",
+        "niche",
+        "locality",
+        "google_maps_url",
+        "google_reviews",
+        "google_rating",
+        "website_score",
+        "ranks_top3",
+        "weakness",
+        "priority",
+        "notes",
+        "source_type",
+        "source_name",
+        "source_url",
+        "source_captured_at",
+        "source_job_id",
+        "owner_agent_id",
+        "owner_user_id",
+        "list_id",
+        "campaign_id",
+        "sequence_id",
+        "pipeline_stage",
+        "last_contacted_at",
+        "last_reply_at",
+        "next_action_at",
+        "consent_status",
+        "suppression_reason",
+        "custom_fields",
+        "merged_at",
+        "converted_at",
+        "archived_at",
+    }
+)
+
+LEAD_UPDATE_ALLOWED = frozenset(
+    {
+        "account_id",
+        "name",
+        "company_name",
+        "company_number",
+        "emails",
+        "phones",
+        "source",
+        "domain_pack",
+        "stage",
+        "scores",
+        "tags",
+        "assigned_agent",
+        "last_touch_at",
+        "external_source_id",
+        "actor_type",
+        "actor_id",
+        "team_id",
+        "sla_due_at",
+        "sla_state",
+        "icp_id",
+        "icp_version",
+        "preferred_locale",
+    }
+) | LEAD_INGESTION_FIELD_NAMES
 
 
 def _utcnow() -> str:
@@ -117,6 +182,13 @@ def _row_to_dict(row: sqlite3.Row | None) -> dict[str, Any] | None:
         data["field_diff"] = data.pop("field_diff_json")
     if "value_json" in data:
         data["value"] = data.pop("value_json")
+    if "metadata_json" in data:
+        data["metadata"] = data.pop("metadata_json")
+        if isinstance(data["metadata"], str):
+            try:
+                data["metadata"] = json.loads(data["metadata"] or "{}")
+            except json.JSONDecodeError:
+                data["metadata"] = {}
     return data
 
 
@@ -148,6 +220,38 @@ def _primary_email(emails: list[Any]) -> str | None:
     return None
 
 
+def _phones_from_fields(fields: dict[str, Any]) -> list[Any]:
+    phones = fields.get("phones")
+    if phones is None and fields.get("phone"):
+        return [{"number": str(fields["phone"]).strip(), "primary": True}]
+    if isinstance(phones, str):
+        return [{"number": phones.strip(), "primary": True}]
+    return list(phones or [])
+
+
+def _primary_phone(phones: list[Any]) -> str | None:
+    for item in phones:
+        if isinstance(item, dict):
+            num = item.get("number") or item.get("phone") or item.get("value")
+            if num:
+                return str(num).strip() or None
+        elif isinstance(item, str) and item.strip():
+            return item.strip()
+    return None
+
+
+def _normalise_website(value: str | None) -> str | None:
+    if not value:
+        return None
+    text = str(value).strip().lower()
+    if not text:
+        return None
+    for prefix in ("https://", "http://"):
+        if text.startswith(prefix):
+            text = text[len(prefix) :]
+    return text.rstrip("/") or None
+
+
 class CrmStore:
     """Central workspace-scoped CRM repository. Callers must pass workspace_id."""
 
@@ -160,6 +264,12 @@ class CrmStore:
         self._conn.execute("PRAGMA foreign_keys = ON")
         self._conn.executescript(SQLITE_SCHEMA)
         self._conn.commit()
+        try:
+            from keprix.crm.schema import ensure_crm_lead_ingestion_columns
+
+            ensure_crm_lead_ingestion_columns(self._conn)
+        except Exception:
+            pass
         try:
             from keprix.crm.nice_schema import ensure_nice_schema
 
@@ -296,6 +406,7 @@ class CrmStore:
                 "snapshot",
                 "field_diff",
                 "value",
+                "metadata",
             ):
                 col = {
                     "proposal": "proposal_json",
@@ -307,6 +418,7 @@ class CrmStore:
                     "snapshot": "snapshot_json",
                     "field_diff": "field_diff_json",
                     "value": "value_json",
+                    "metadata": "metadata_json",
                 }.get(key, key)
                 clean[col] = _dumps(value)
             elif key in ("verified", "spf_ok", "dkim_ok", "dmarc_ok", "enabled", "reversible"):
@@ -317,14 +429,26 @@ class CrmStore:
             return existing
         clean["updated_at"] = _utcnow()
         cols = self._columns(table)
+        # Drop keys that are not real columns (after JSON remaps above).
+        clean = {k: v for k, v in clean.items() if k in cols or k == "updated_at"}
+        if "updated_at" in cols:
+            clean["updated_at"] = _utcnow()
+        elif "updated_at" in clean:
+            clean.pop("updated_at", None)
+        if not clean:
+            return existing
         if "version" in cols:
             set_sql = ", ".join([*(f"{k} = ?" for k in clean), "version = version + 1"])
         else:
             set_sql = ", ".join(f"{k} = ?" for k in clean)
+        where = "id = ? AND workspace_id = ?"
+        params: list[Any] = [*clean.values(), row_id, ws]
+        if "deleted_at" in cols:
+            where += " AND deleted_at IS NULL"
         with self._lock:
             self._conn.execute(
-                f"UPDATE {table} SET {set_sql} WHERE id = ? AND workspace_id = ? AND deleted_at IS NULL",
-                (*clean.values(), row_id, ws),
+                f"UPDATE {table} SET {set_sql} WHERE {where}",
+                tuple(params),
             )
             self._conn.commit()
         return self._get(table, ws, row_id)
@@ -441,28 +565,35 @@ class CrmStore:
 
     # ── Leads ─────────────────────────────────────────────────
     def create_lead(self, workspace_id: str, **fields: Any) -> dict[str, Any]:
-        return self._insert_party(
-            "crm_leads",
-            workspace_id,
-            {
-                "account_id": fields.get("account_id"),
-                "name": fields.get("name"),
-                "company_name": fields.get("company_name"),
-                "company_number": fields.get("company_number"),
-                "emails": _emails_from_fields(fields),
-                "phones": list(fields.get("phones") or []),
-                "source": fields.get("source"),
-                "domain_pack": fields.get("domain_pack") or DEFAULT_DOMAIN_PACK,
-                "stage": fields.get("stage") or CrmStage.DISCOVERED,
-                "scores": fields.get("scores") or {},
-                "tags": list(fields.get("tags") or []),
-                "assigned_agent": fields.get("assigned_agent"),
-                "last_touch_at": fields.get("last_touch_at"),
-                "external_source_id": fields.get("external_source_id"),
-                "actor_type": fields.get("actor_type"),
-                "actor_id": fields.get("actor_id"),
-            },
-        )
+        payload: dict[str, Any] = {
+            "account_id": fields.get("account_id"),
+            "name": fields.get("name"),
+            "company_name": fields.get("company_name"),
+            "company_number": fields.get("company_number"),
+            "emails": _emails_from_fields(fields),
+            "phones": _phones_from_fields(fields),
+            "source": fields.get("source"),
+            "domain_pack": fields.get("domain_pack") or DEFAULT_DOMAIN_PACK,
+            "stage": fields.get("stage") or CrmStage.DISCOVERED,
+            "scores": fields.get("scores") or {},
+            "tags": list(fields.get("tags") or []),
+            "assigned_agent": fields.get("assigned_agent"),
+            "last_touch_at": fields.get("last_touch_at"),
+            "external_source_id": fields.get("external_source_id"),
+            "actor_type": fields.get("actor_type"),
+            "actor_id": fields.get("actor_id"),
+        }
+        for key in LEAD_INGESTION_FIELD_NAMES:
+            if key in fields and fields[key] is not None:
+                payload[key] = fields[key]
+        # Keep pipeline_stage in sync with stage when omitted.
+        if payload.get("pipeline_stage") is None and payload.get("stage"):
+            payload["pipeline_stage"] = payload["stage"]
+        elif payload.get("stage") and fields.get("pipeline_stage") is None:
+            payload["pipeline_stage"] = payload["stage"]
+        if payload.get("custom_fields") is None:
+            payload["custom_fields"] = {}
+        return self._insert_party("crm_leads", workspace_id, payload)
 
     def get_lead(self, workspace_id: str, lead_id: str) -> dict[str, Any] | None:
         return self._get("crm_leads", workspace_id, lead_id)
@@ -478,30 +609,24 @@ class CrmStore:
         expected_version: int | None = None,
         **fields: Any,
     ) -> dict[str, Any] | None:
+        clean = dict(fields)
+        if "email" in clean and "emails" not in clean:
+            clean["emails"] = _emails_from_fields(clean)
+            clean.pop("email", None)
+        if "phone" in clean and "phones" not in clean:
+            clean["phones"] = _phones_from_fields(clean)
+            clean.pop("phone", None)
+        if clean.get("stage") and clean.get("pipeline_stage") is None:
+            clean["pipeline_stage"] = clean["stage"]
+        elif clean.get("pipeline_stage") and clean.get("stage") is None:
+            clean["stage"] = clean["pipeline_stage"]
         return self._bump_update(
             "crm_leads",
             workspace_id,
             lead_id,
-            fields,
+            clean,
             expected_version=expected_version,
-            allowed={
-                "account_id",
-                "name",
-                "company_name",
-                "company_number",
-                "emails",
-                "phones",
-                "source",
-                "domain_pack",
-                "stage",
-                "scores",
-                "tags",
-                "assigned_agent",
-                "last_touch_at",
-                "external_source_id",
-                "actor_type",
-                "actor_id",
-            },
+            allowed=LEAD_UPDATE_ALLOWED,
         )
 
     def delete_lead(self, workspace_id: str, lead_id: str) -> dict[str, Any] | None:
@@ -535,10 +660,86 @@ class CrmStore:
                 return row
         email = _primary_email(_emails_from_fields(fields))
         if email:
-            for row in self.list_leads(workspace_id, limit=500):
+            for row in self.list_leads(workspace_id, limit=2000):
                 if _primary_email(row.get("emails") or []) == email:
                     return row
+        phone = _primary_phone(_phones_from_fields(fields))
+        if phone:
+            phone_digits = "".join(ch for ch in phone if ch.isdigit())
+            if phone_digits:
+                for row in self.list_leads(workspace_id, limit=2000):
+                    existing_phone = _primary_phone(row.get("phones") or [])
+                    if not existing_phone:
+                        continue
+                    existing_digits = "".join(ch for ch in existing_phone if ch.isdigit())
+                    if not existing_digits:
+                        continue
+                    if existing_digits == phone_digits:
+                        return row
+                    # Match national vs E.164 when one is a suffix of the other.
+                    shorter, longer = sorted([existing_digits, phone_digits], key=len)
+                    if len(shorter) >= 7 and longer.endswith(shorter):
+                        return row
+        website = _normalise_website(fields.get("website"))
+        company = str(fields.get("company_name") or "").strip().lower()
+        locality = str(fields.get("locality") or "").strip().lower()
+        if website and company:
+            for row in self.list_leads(workspace_id, limit=2000):
+                row_web = _normalise_website(row.get("website"))
+                row_co = str(row.get("company_name") or "").strip().lower()
+                row_loc = str(row.get("locality") or "").strip().lower()
+                if row_web == website and row_co == company:
+                    if not locality or not row_loc or row_loc == locality:
+                        return row
         return None
+
+    def create_ingestion_job(self, workspace_id: str, **fields: Any) -> dict[str, Any]:
+        return self._insert_party(
+            "crm_ingestion_jobs",
+            workspace_id,
+            {
+                "source_type": fields.get("source_type"),
+                "source_name": fields.get("source_name"),
+                "content_hash": fields.get("content_hash"),
+                "status": fields.get("status") or "queued",
+                "created_count": int(fields.get("created_count") or 0),
+                "updated_count": int(fields.get("updated_count") or 0),
+                "duplicate_count": int(fields.get("duplicate_count") or 0),
+                "rejected_count": int(fields.get("rejected_count") or 0),
+                "warning_count": int(fields.get("warning_count") or 0),
+                "actor_id": fields.get("actor_id"),
+                "error_summary": fields.get("error_summary"),
+                "metadata": fields.get("metadata") or {},
+            },
+        )
+
+    def update_ingestion_job(
+        self,
+        workspace_id: str,
+        job_id: str,
+        **fields: Any,
+    ) -> dict[str, Any] | None:
+        allowed = {
+            "source_type",
+            "source_name",
+            "content_hash",
+            "status",
+            "created_count",
+            "updated_count",
+            "duplicate_count",
+            "rejected_count",
+            "warning_count",
+            "actor_id",
+            "error_summary",
+            "metadata",
+        }
+        return self._bump_update(
+            "crm_ingestion_jobs",
+            workspace_id,
+            job_id,
+            fields,
+            allowed=allowed,
+        )
 
     # ── Contacts ──────────────────────────────────────────────
     def create_contact(self, workspace_id: str, display_name: str, **fields: Any) -> dict[str, Any]:
@@ -1619,6 +1820,7 @@ class CrmStore:
                     "snapshot": "snapshot_json",
                     "field_diff": "field_diff_json",
                     "value": "value_json",
+                    "metadata": "metadata_json",
                 }.get(key)
                 if mapped and mapped in cols:
                     payload[mapped] = _dumps(value or {})

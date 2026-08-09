@@ -281,9 +281,34 @@ def _execute_crm_plan(
             elif et == "lead":
                 if row_index in account_by_row and not fields.get("account_id"):
                     fields["account_id"] = account_by_row[row_index]
-                lead = store.upsert_lead(workspace_id, **fields)
-                lead_ids.append(lead["id"])
-                created["leads"].append(lead["id"])
+                # Prefer canonical ingestion upsert (Prompt 621) when available.
+                try:
+                    from keprix.crm.ingestion.service import IngestOptions, ingest_row_array
+
+                    result = ingest_row_array(
+                        workspace_id,
+                        [fields],
+                        store=store,
+                        options=IngestOptions(
+                            source_type="sheet_preprocess",
+                            source_name=f"job:{job_id}",
+                            actor_id=actor_id,
+                            actor_type=actor_type,
+                            domain_pack=domain_pack,
+                        ),
+                    )
+                    lids = list(result.get("created_ids") or []) + list(result.get("updated_ids") or [])
+                    if lids:
+                        lead_ids.append(lids[0])
+                        created["leads"].append(lids[0])
+                    else:
+                        lead = store.upsert_lead(workspace_id, **fields)
+                        lead_ids.append(lead["id"])
+                        created["leads"].append(lead["id"])
+                except Exception:
+                    lead = store.upsert_lead(workspace_id, **fields)
+                    lead_ids.append(lead["id"])
+                    created["leads"].append(lead["id"])
             elif et == "contact":
                 if row_index in account_by_row and not fields.get("account_id"):
                     fields["account_id"] = account_by_row[row_index]

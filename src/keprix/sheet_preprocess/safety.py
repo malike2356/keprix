@@ -21,7 +21,7 @@ DEFAULT_MAX_PROCESSING_SECONDS = 120.0
 DEFAULT_MAX_DECOMPRESSED_CELLS = 5_000_000
 
 FORMULA_INJECTION_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
-SUPPORTED_READ_SUFFIXES = frozenset({".csv", ".tsv", ".xlsx"})
+SUPPORTED_READ_SUFFIXES = frozenset({".csv", ".tsv", ".xlsx", ".xls", ".ods"})
 MACRO_SUFFIXES = frozenset({".xlsm"})
 
 
@@ -179,6 +179,13 @@ def enforce_file_limits(path: str | Path, limits: SheetLimits | None = None) -> 
                 f"available sheets: {', '.join(worksheets)}"
             )
         selected = worksheets[0] if len(worksheets) == 1 else None
+    elif suffix in {".xls", ".ods"}:
+        worksheets = ["sheet1"]
+        selected = "sheet1"
+        flattened = True
+        warnings.append(
+            "Legacy spreadsheet will be flattened; formulas are kept as text and never evaluated"
+        )
     elif suffix in {".csv", ".tsv"}:
         payload = source.read_bytes()
         text, encoding = decode_csv_bytes(payload)

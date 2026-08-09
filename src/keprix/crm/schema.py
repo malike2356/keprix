@@ -49,7 +49,57 @@ CREATE TABLE IF NOT EXISTS crm_leads (
     version INTEGER NOT NULL DEFAULT 1,
     deleted_at TEXT,
     created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL
+    updated_at TEXT NOT NULL,
+    website TEXT,
+    niche TEXT,
+    locality TEXT,
+    google_maps_url TEXT,
+    google_reviews TEXT,
+    google_rating TEXT,
+    website_score TEXT,
+    ranks_top3 TEXT,
+    weakness TEXT,
+    priority TEXT,
+    notes TEXT,
+    source_type TEXT,
+    source_name TEXT,
+    source_url TEXT,
+    source_captured_at TEXT,
+    source_job_id TEXT,
+    owner_agent_id TEXT,
+    owner_user_id TEXT,
+    list_id TEXT,
+    campaign_id TEXT,
+    sequence_id TEXT,
+    pipeline_stage TEXT,
+    last_contacted_at TEXT,
+    last_reply_at TEXT,
+    next_action_at TEXT,
+    consent_status TEXT,
+    suppression_reason TEXT,
+    custom_fields TEXT NOT NULL DEFAULT '{}',
+    merged_at TEXT,
+    converted_at TEXT,
+    archived_at TEXT
+);
+
+CREATE TABLE IF NOT EXISTS crm_ingestion_jobs (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    source_type TEXT,
+    source_name TEXT,
+    content_hash TEXT,
+    status TEXT NOT NULL DEFAULT 'queued',
+    created_count INTEGER NOT NULL DEFAULT 0,
+    updated_count INTEGER NOT NULL DEFAULT 0,
+    duplicate_count INTEGER NOT NULL DEFAULT 0,
+    rejected_count INTEGER NOT NULL DEFAULT 0,
+    warning_count INTEGER NOT NULL DEFAULT 0,
+    actor_id TEXT,
+    error_summary TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    metadata_json TEXT NOT NULL DEFAULT '{}'
 );
 
 CREATE TABLE IF NOT EXISTS crm_contacts (
@@ -392,6 +442,8 @@ CREATE INDEX IF NOT EXISTS ix_crm_accounts_ext ON crm_accounts(workspace_id, ext
 CREATE INDEX IF NOT EXISTS ix_crm_leads_ws ON crm_leads(workspace_id, deleted_at);
 CREATE INDEX IF NOT EXISTS ix_crm_leads_ext ON crm_leads(workspace_id, external_source_id);
 CREATE INDEX IF NOT EXISTS ix_crm_leads_ch ON crm_leads(workspace_id, company_number);
+CREATE INDEX IF NOT EXISTS ix_crm_leads_website ON crm_leads(workspace_id, website);
+CREATE INDEX IF NOT EXISTS ix_crm_ingestion_jobs_ws ON crm_ingestion_jobs(workspace_id, created_at);
 CREATE INDEX IF NOT EXISTS ix_crm_contacts_ws ON crm_contacts(workspace_id, deleted_at);
 CREATE INDEX IF NOT EXISTS ix_crm_contacts_ext ON crm_contacts(workspace_id, external_source_id);
 CREATE INDEX IF NOT EXISTS ix_crm_deals_ws ON crm_deals(workspace_id, deleted_at);
@@ -404,3 +456,79 @@ CREATE INDEX IF NOT EXISTS ix_crm_merge_pending ON crm_merge_suggestions(workspa
 CREATE INDEX IF NOT EXISTS ix_crm_discovery_ws ON crm_discovery_jobs(workspace_id, status);
 CREATE INDEX IF NOT EXISTS ix_crm_suppress_addr ON crm_suppression_entries(workspace_id, channel, address);
 """
+
+# Additive lead columns for existing DBs (Prompt 621).
+LEAD_INGESTION_COLUMNS: tuple[tuple[str, str], ...] = (
+    ("website", "website TEXT"),
+    ("niche", "niche TEXT"),
+    ("locality", "locality TEXT"),
+    ("google_maps_url", "google_maps_url TEXT"),
+    ("google_reviews", "google_reviews TEXT"),
+    ("google_rating", "google_rating TEXT"),
+    ("website_score", "website_score TEXT"),
+    ("ranks_top3", "ranks_top3 TEXT"),
+    ("weakness", "weakness TEXT"),
+    ("priority", "priority TEXT"),
+    ("notes", "notes TEXT"),
+    ("source_type", "source_type TEXT"),
+    ("source_name", "source_name TEXT"),
+    ("source_url", "source_url TEXT"),
+    ("source_captured_at", "source_captured_at TEXT"),
+    ("source_job_id", "source_job_id TEXT"),
+    ("owner_agent_id", "owner_agent_id TEXT"),
+    ("owner_user_id", "owner_user_id TEXT"),
+    ("list_id", "list_id TEXT"),
+    ("campaign_id", "campaign_id TEXT"),
+    ("sequence_id", "sequence_id TEXT"),
+    ("pipeline_stage", "pipeline_stage TEXT"),
+    ("last_contacted_at", "last_contacted_at TEXT"),
+    ("last_reply_at", "last_reply_at TEXT"),
+    ("next_action_at", "next_action_at TEXT"),
+    ("consent_status", "consent_status TEXT"),
+    ("suppression_reason", "suppression_reason TEXT"),
+    ("custom_fields", "custom_fields TEXT NOT NULL DEFAULT '{}'"),
+    ("merged_at", "merged_at TEXT"),
+    ("converted_at", "converted_at TEXT"),
+    ("archived_at", "archived_at TEXT"),
+)
+
+INGESTION_JOBS_DDL = """
+CREATE TABLE IF NOT EXISTS crm_ingestion_jobs (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    source_type TEXT,
+    source_name TEXT,
+    content_hash TEXT,
+    status TEXT NOT NULL DEFAULT 'queued',
+    created_count INTEGER NOT NULL DEFAULT 0,
+    updated_count INTEGER NOT NULL DEFAULT 0,
+    duplicate_count INTEGER NOT NULL DEFAULT 0,
+    rejected_count INTEGER NOT NULL DEFAULT 0,
+    warning_count INTEGER NOT NULL DEFAULT 0,
+    actor_id TEXT,
+    error_summary TEXT,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    metadata_json TEXT NOT NULL DEFAULT '{}'
+);
+CREATE INDEX IF NOT EXISTS ix_crm_ingestion_jobs_ws ON crm_ingestion_jobs(workspace_id, created_at);
+CREATE INDEX IF NOT EXISTS ix_crm_leads_website ON crm_leads(workspace_id, website);
+"""
+
+
+def ensure_crm_lead_ingestion_columns(conn) -> None:
+    """ADD COLUMN missing lead ingestion fields and ensure ingestion jobs table.
+
+    Safe to call repeatedly. ``conn`` is a sqlite3 connection (or compatible).
+    """
+    conn.executescript(INGESTION_JOBS_DDL)
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(crm_leads)").fetchall()}
+    for name, ddl in LEAD_INGESTION_COLUMNS:
+        if name not in existing:
+            # SQLite cannot ADD COLUMN with NOT NULL on existing tables without default
+            # when rows exist; use nullable for alter path when DEFAULT is present.
+            alter_ddl = ddl
+            if name == "custom_fields" and "NOT NULL" in ddl:
+                alter_ddl = "custom_fields TEXT DEFAULT '{}'"
+            conn.execute(f"ALTER TABLE crm_leads ADD COLUMN {alter_ddl}")
+    conn.commit()

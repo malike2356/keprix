@@ -17,6 +17,13 @@ from keprix.discovery.models import (
     LeadCandidate,
 )
 
+try:
+    from keprix.crm.ingestion.canonical import ALIASES, map_headers, normalize_header
+except Exception:  # pragma: no cover - soft fallback
+    ALIASES = {}
+    map_headers = None  # type: ignore[assignment]
+    normalize_header = None  # type: ignore[assignment]
+
 
 _COLUMN_ALIASES: dict[str, tuple[str, ...]] = {
     "company": ("company", "company_name", "organisation", "organization", "business", "name"),
@@ -29,8 +36,20 @@ _COLUMN_ALIASES: dict[str, tuple[str, ...]] = {
     "postcode": ("postcode", "postal_code", "zip"),
 }
 
+# Map discovery logical fields onto canonical ingestion keys.
+_CANONICAL_TO_LOGICAL = {
+    "company_name": "company",
+    "email": "email",
+    "phone": "phone",
+    "website": "url",
+    "name": "contact_name",
+    "locality": "locality",
+}
+
 
 def _norm_header(value: str) -> str:
+    if normalize_header is not None:
+        return normalize_header(value)
     return "".join(ch if ch.isalnum() else "_" for ch in value.strip().lower()).strip("_")
 
 
@@ -174,6 +193,20 @@ class CsvDiscoveryAdapter:
             if col in row:
                 return row.get(col)
             return _pick(row, _norm_header(col))
+        # Prefer canonical SEO header map (Prompt 621) when available.
+        if map_headers is not None:
+            mapping = map_headers([str(h) for h in row.keys()])
+            for header, canonical in mapping.items():
+                if _CANONICAL_TO_LOGICAL.get(canonical) == logical:
+                    value = row.get(header)
+                    if value not in (None, ""):
+                        return value
+            # Also accept already-canonical keys via ALIASES reverse.
+            for header, value in row.items():
+                norm = _norm_header(str(header))
+                canonical = ALIASES.get(norm)
+                if canonical and _CANONICAL_TO_LOGICAL.get(canonical) == logical and value not in (None, ""):
+                    return value
         aliases = _COLUMN_ALIASES.get(logical, (logical,))
         return _pick(row, *[_norm_header(a) for a in aliases])
 

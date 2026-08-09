@@ -1,0 +1,3 @@
+Company,Niche,Town/City,Website,Contact Name,Email,Phone,Google Reviews,Google Rating,Google Maps URL,Website Score,Ranks Top3?,Weakness,Priority,Status,Date Added,Notes,Extra Column
+Acme Dental,Dental,Manchester,https://www.acme-dental.example,Ada Lovelace,ada@acme-dental.example,+44 161 555 0100,42,4.6,https://maps.google.com/?q=acme,78,Yes,Slow site,High,discovered,2026-08-01,Synthetic fixture row,keep-me
+Beta Plumbers,Plumbing,Leeds,beta-plumbers.example,Bob Builder,bob@beta-plumbers.example,0113 555 0199,12,4.1,https://maps.google.com/?q=beta,55,No,No SSL,Medium,enriched,2026-08-02,Second synthetic row,also-keep

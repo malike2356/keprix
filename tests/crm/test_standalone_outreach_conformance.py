@@ -23,9 +23,7 @@ KNOWN_GAPS: dict[str, str] = {
     "live_email_send": "PARTIAL: dry-run default / incomplete account bind (625)",
     "provider_events": "MISSING: no ESP webhook normalizer (625)",
     "automatic_mailbox_scan": "PARTIAL: stub/cron prompt only (626)",
-    "xls_import": "MISSING: legacy .xls (621)",
-    "ods_import": "MISSING: ODS reader (621)",
-    "channel_attachment_import": "SIMULATED: email_ingest stub (621)",
+    "channel_attachment_import": "SIMULATED: email_ingest stub (627)",
     "crm_postgres_migration": "PARTIAL: CRM SQLite bootstrap; outreach has Alembic 024 (622)",
     "spreadsheet_grid_crm": "PARTIAL: tables exist; full sheet CRM is 623",
 }

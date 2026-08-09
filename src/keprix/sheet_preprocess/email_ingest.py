@@ -58,6 +58,7 @@ def poll_once(*, workspace_id: str = "default") -> dict[str, Any]:
         "ingested": [],
         "hint": (
             "Configure IMAP credentials and implement poller body; "
-            "attachments must call save_upload then propose_sheet."
+            "authorised spreadsheet attachments must call "
+            "keprix.crm.ingestion.ingest_channel_attachment (same canonical path)."
         ),
     }

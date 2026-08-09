@@ -1421,3 +1421,6 @@ registry.register(
     handler=crm_data_quality_summary,
     check_fn=check_crm_requirements,
 )
+
+# Register ingestion tools alongside CRM tools (Prompt 621).
+import keprix.tools.crm_ingest_tools  # noqa: E402,F401

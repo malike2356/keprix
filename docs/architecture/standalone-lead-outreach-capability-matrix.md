@@ -31,13 +31,13 @@ Honesty rule: UI presence or mocked tests alone never mark REAL. Conformance sui
 | CSV import | REAL | Discovery CSV, sheet upload, outreach lead import |
 | TSV import | REAL | Sheet preprocess suffixes |
 | XLSX import | REAL | openpyxl path |
-| XLS (legacy) | MISSING | Not in supported suffixes |
-| ODS | MISSING | No reader |
+| XLS (legacy) | REAL | `crm/ingestion/readers.py` via xlrd (`keprix[analytics]`) |
+| ODS | REAL | `crm/ingestion/readers.py` via odfpy (`keprix[analytics]`) |
 | Google Sheet | BLOCKED_OPTIONAL_CREDENTIALS | Routes exist; needs Google credentials |
-| Pasted-row import | PARTIAL | Outreach text/lines import; not first-class CRM sheet paste |
-| API import | REAL | CRM upsert + discovery + integrations |
-| Channel-attachment import | SIMULATED | `sheet_preprocess/email_ingest.py` stub |
-| Exact dedup | REAL | `crm/identity.py` email/domain/company_number |
+| Pasted-row import | REAL | `ingest_row_array` / tools `crm_ingest_import` rows payload |
+| API import | REAL | CRM upsert + discovery + ingest tools |
+| Channel-attachment import | PARTIAL | Parser path REAL via `ingest_channel_attachment`; mailbox poller still stub (`email_ingest.py`) |
+| Exact dedup | REAL | email → phone → website+company+locality (`crm/ingestion/dedup.py`) |
 | Fuzzy merge | REAL | Soft Wall `merge_identity` |
 | Sheet Soft Wall enrichment | REAL | `/crm/enrich` propose/apply |
 | Licensed enrichment providers | BLOCKED_OPTIONAL_CREDENTIALS | Connection slots; Soft Wall without live keys |
@@ -59,7 +59,7 @@ Honesty rule: UI presence or mocked tests alone never mark REAL. Conformance sui
 | Attribution | REAL | `/crm/attribution` |
 | Agent tool initiation | REAL | crm / outreach / sheet / discovery tools |
 | Channel (Telegram) initiation | PARTIAL | Funnel intents; not full sheet→campaign journey (Prompt 627) |
-| CLI initiation | PARTIAL | Agent/tools path; no first-class `keprix crm` verb |
+| CLI initiation | REAL | `keprix crm-ingest` + `python -m keprix.crm.ingestion` |
 | API / frontend initiation | REAL | Documented APIs + full consoles |
 | Local single-user persistence | REAL | `crm.sqlite` + `outreach.sqlite` |
 | Hosted multi-workspace persistence | PARTIAL | `workspace_id` isolation REAL; CRM still SQLite bootstrap (Prompt 622 Postgres path) |
