@@ -17,8 +17,27 @@ from keprix.agent.carina_bridge import (
     LlmTurn,
     ProviderPool,
     SessionStore,
+    _honest_assistant_message,
 )
 from keprix.api import carina_agent_routes
+
+
+def test_honest_assistant_message_preserves_tool_failure_reason() -> None:
+    message = _honest_assistant_message(
+        "failed",
+        {
+            "tool": "gmail",
+            "error": {
+                "code": "missing_grant",
+                "message": "No Gmail account is granted to this worker",
+            },
+        },
+        "gmail",
+    )
+
+    assert "gmail failed" in message
+    assert "No Gmail account is granted to this worker" in message
+    assert message != "The operation failed and was not completed."
 
 
 class _StubResponse:

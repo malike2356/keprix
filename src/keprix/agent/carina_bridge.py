@@ -576,7 +576,17 @@ class CarinaAgentBridge:
 
                 # Do not let the model narrate pending/failed/denied as completed.
                 if batch_terminal is not None:
-                    honest = _honest_assistant_message(batch_terminal["status"])
+                    payload = batch_terminal.get("payload")
+                    tool_name = (
+                        str(payload.get("tool") or "").strip()
+                        if isinstance(payload, dict)
+                        else None
+                    )
+                    honest = _honest_assistant_message(
+                        batch_terminal["status"],
+                        payload,
+                        tool_name,
+                    )
                     conversation.append({"role": "assistant", "content": honest})
                     await self.session_store.save(
                         workspace_id, session_id, _persistable_messages(conversation)
@@ -756,17 +766,41 @@ def _classify_tool_result(result_text: str) -> dict[str, Any]:
     return {"status": "completed", "success": True, "payload": payload}
 
 
-def _honest_assistant_message(status: str) -> str:
+def _honest_assistant_message(
+    status: str,
+    payload: Any | None = None,
+    tool_name: str | None = None,
+) -> str:
+    detail = ""
+    if isinstance(payload, dict):
+        error = payload.get("error")
+        if isinstance(error, dict):
+            code = str(error.get("code") or "").strip()
+            message = str(error.get("message") or "").strip()
+            detail = ": ".join(part for part in (code, message) if part)
+        elif error:
+            detail = str(error).strip()
+        if not detail and payload.get("message"):
+            detail = str(payload["message"]).strip()
+    detail = " ".join(detail.split())[:320]
+    prefix = f"{tool_name} failed" if tool_name else "The requested tool failed"
+
     if status == "awaiting_approval":
         return (
             "This action requires Soft Wall approval and is pending. "
             "It has not been completed yet."
         )
     if status == "denied":
+        if detail:
+            return f"{prefix}: {detail}. The operation was denied and was not completed."
         return "The operation was denied and was not completed."
     if status == "not_configured":
+        if detail:
+            return f"{prefix}: {detail}. This capability is not configured yet and was not completed."
         return "This capability is not configured yet and was not completed."
-    return "The operation failed and was not completed."
+    if detail:
+        return f"{prefix}: {detail}. The operation was not completed."
+    return "The operation failed and was not completed because the tool did not provide a reason."
 
 
 def _provider_chain(model: str, overrides: list[tuple[str, str]] | None) -> list[tuple[str, str]]:
