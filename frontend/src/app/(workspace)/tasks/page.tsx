@@ -508,7 +508,7 @@ export default function TasksPage() {
                             <Box sx={{ display: "flex", alignItems: "flex-start", gap: 0.5 }}>
                               <DragIndicatorIcon
                                 fontSize="small"
-                                sx={{ color: "text.disabled", mt: 0.25, flexShrink: 0 }}
+                                sx={{ color: "text.secondary", mt: 0.25, flexShrink: 0 }}
                               />
                               <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>
                                 {task.title}

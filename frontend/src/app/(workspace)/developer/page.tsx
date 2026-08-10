@@ -417,7 +417,7 @@ export default function DeveloperPage() {
                       </Button>
                     }
                   >
-                    <Icon size={28} stroke={1.5} style={{ opacity: 0.6 }} />
+                    <Icon size={28} stroke={1.5} style={{ color: "var(--kp-text-secondary)" }} />
                   </DashboardCard>
                 </Grid>
               );

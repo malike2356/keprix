@@ -115,7 +115,7 @@ export function createKeprixTheme(mode: ThemeMode = "dark", paletteOverride?: Ke
         active: c.textSecondary,
         hover: alpha(c.textPrimary, mode === "dark" ? 0.08 : 0.04),
         selected: alpha(c.primary, mode === "dark" ? 0.16 : 0.1),
-        disabled: alpha(c.textPrimary, mode === "dark" ? 0.38 : 0.42),
+        disabled: alpha(c.textPrimary, mode === "dark" ? 0.45 : 0.48),
         disabledBackground: alpha(c.textPrimary, mode === "dark" ? 0.12 : 0.08),
         focus: alpha(c.primary, 0.2),
       },
@@ -504,6 +504,26 @@ export function createKeprixTheme(mode: ThemeMode = "dark", paletteOverride?: Ke
       MuiDialogContentText: {
         styleOverrides: {
           root: ({ theme }) => ({ color: theme.palette.text.secondary }),
+        },
+      },
+      MuiTablePagination: {
+        styleOverrides: {
+          root: ({ theme }) => ({ color: theme.palette.text.secondary }),
+          selectLabel: ({ theme }) => ({ color: theme.palette.text.secondary }),
+          displayedRows: ({ theme }) => ({ color: theme.palette.text.secondary }),
+        },
+      },
+      MuiFormLabel: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            color: theme.palette.text.secondary,
+            "&.Mui-focused": {
+              color: ensureContrast(theme.palette.primary.main, theme.palette.background.paper),
+            },
+            "&.Mui-disabled": {
+              color: theme.palette.action.disabled,
+            },
+          }),
         },
       },
       MuiTooltip: {

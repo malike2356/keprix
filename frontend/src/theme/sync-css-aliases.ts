@@ -31,6 +31,10 @@ export function syncKeprixCssAliases() {
   root.style.setProperty("--kp-bg-paper", card);
   root.style.setProperty("--kp-text-primary", foreground);
   root.style.setProperty("--kp-text-secondary", muted);
+  // Keep raw skin vars aligned so Tailwind / CSS utilities using --muted-foreground stay readable.
+  root.style.setProperty("--muted-foreground", muted);
+  root.style.setProperty("--foreground", foreground);
+  root.style.setProperty("--card-foreground", foreground);
   root.style.setProperty("--kp-border", border);
   root.style.setProperty("--kp-radius-card", radius);
   root.style.setProperty("--kp-radius-chip", "9999px");

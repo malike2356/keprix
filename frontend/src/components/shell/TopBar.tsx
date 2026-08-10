@@ -139,7 +139,7 @@ export default function TopBar({
         <Box sx={{ flexGrow: 1 }} />
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-          <IconRobot size={18} stroke={1.75} style={{ opacity: 0.7 }} />
+          <IconRobot size={18} stroke={1.75} style={{ color: "var(--kp-text-secondary)" }} />
           <StatusPill status={agentStatus} />
         </Box>
 

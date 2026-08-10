@@ -106,7 +106,7 @@ function OssPricingSection({ c }: { c: ReturnType<typeof getMarketingColors> }) 
             sx={{
               mb: 2,
               bgcolor: alpha(c.bgPaper, 0.8),
-              color: alpha(c.textSecondary, 0.7),
+              color: c.textSecondary,
               border: `1px solid ${alpha(c.divider, 0.5)}`,
               fontWeight: 600,
             }}

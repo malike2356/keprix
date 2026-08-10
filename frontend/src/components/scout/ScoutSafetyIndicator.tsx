@@ -13,7 +13,7 @@ const ICON_COLORS: Record<string, string> = {
   loading: "text.secondary",
   unknown: "text.secondary",
   self_governed: "info.main",
-  ungoverned: "text.disabled",
+  ungoverned: "warning.main",
   governed: "success.main",
   degraded: "warning.main",
   kill_active: "error.main",

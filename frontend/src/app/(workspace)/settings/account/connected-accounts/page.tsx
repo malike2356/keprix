@@ -206,7 +206,7 @@ export default function ConnectedAccountsPage() {
                 )}
 
                 {!isConfigured && !isLinked ? (
-                  <Typography variant="caption" color="text.disabled" sx={{ mt: 0.5, display: "block" }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
                     Admin: set {def.envHint} in the API .env to enable this provider.
                   </Typography>
                 ) : null}

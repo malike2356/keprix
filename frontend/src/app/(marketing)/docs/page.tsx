@@ -267,7 +267,7 @@ export default function DocsPage() {
               mx: "auto",
             }}
           >
-            <Typography sx={{ fontSize: "0.75rem", color: alpha(c.textSecondary, 0.5), mr: 0.5, alignSelf: "center", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 700 }}>
+            <Typography sx={{ fontSize: "0.75rem", color: c.textSecondary, mr: 0.5, alignSelf: "center", letterSpacing: "0.06em", textTransform: "uppercase", fontWeight: 700 }}>
               Popular:
             </Typography>
             {QUICK_LINKS.map((ql) => (
@@ -313,7 +313,7 @@ export default function DocsPage() {
             fontWeight: 700,
             textTransform: "uppercase",
             letterSpacing: "0.12em",
-            color: alpha(c.textSecondary, 0.5),
+            color: c.textSecondary,
             mb: 4,
           }}
         >
@@ -389,7 +389,7 @@ export default function DocsPage() {
                         bgcolor: alpha(c.textPrimary, 0.04),
                       }}
                     >
-                      <Typography sx={{ fontSize: "0.72rem", fontWeight: 600, color: alpha(c.textSecondary, 0.6) }}>
+                      <Typography sx={{ fontSize: "0.72rem", fontWeight: 600, color: c.textSecondary }}>
                         {section.items.length} articles
                       </Typography>
                     </Box>
@@ -419,7 +419,7 @@ export default function DocsPage() {
                         key={item.href}
                         sx={{
                           fontSize: "0.8rem",
-                          color: alpha(c.textSecondary, 0.7),
+                          color: c.textSecondary,
                           "&::before": { content: '"- "', color: alpha(meta.color, 0.6) },
                         }}
                       >
@@ -550,7 +550,7 @@ export default function DocsPage() {
               fontFamily: "monospace",
             }}
           >
-            <Typography sx={{ fontSize: "0.72rem", color: alpha(c.textSecondary, 0.6), mb: 2, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            <Typography sx={{ fontSize: "0.72rem", color: c.textSecondary, mb: 2, fontWeight: 600, letterSpacing: "0.06em", textTransform: "uppercase" }}>
               Quick install
             </Typography>
             <Box

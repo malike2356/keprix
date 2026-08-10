@@ -19,7 +19,7 @@ export default function GraphEmptyState() {
       }}
     >
       <Box sx={{ maxWidth: 420 }}>
-        <AccountTreeOutlinedIcon sx={{ fontSize: 40, color: "text.disabled", mb: 1.5 }} />
+        <AccountTreeOutlinedIcon sx={{ fontSize: 40, color: "text.secondary", mb: 1.5 }} />
           <Typography variant="h6" sx={{ fontWeight: 600, letterSpacing: -0.2 }}>
             No connections yet
           </Typography>

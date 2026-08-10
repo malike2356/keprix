@@ -37,7 +37,7 @@ export default function EmptyState({
       }}
     >
       {icon && (
-        <Box sx={{ mb: 2, color: "text.secondary", opacity: 0.7 }}>{icon}</Box>
+        <Box sx={{ mb: 2, color: "text.secondary" }}>{icon}</Box>
       )}
       <Typography variant="h6" gutterBottom>
         {title}

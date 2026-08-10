@@ -137,7 +137,7 @@ function TextHoverEffect({ text, duration = 0 }: { text: string; duration?: numb
         style={{
           ...textStyle,
           fill: "transparent",
-          stroke: alpha(c.textSecondary, 0.55),
+          stroke: c.textSecondary,
           opacity: hovered ? 0.7 : 0,
           transition: "opacity 0.2s",
         }}
@@ -210,7 +210,7 @@ function FooterLink({ href, label }: { href: string; label: string }) {
         target={external ? "_blank" : undefined}
         rel={external ? "noopener noreferrer" : undefined}
         sx={{
-          color: alpha(c.textSecondary, 0.9),
+          color: c.textSecondary,
           fontSize: "0.875rem",
           textDecoration: "none",
           transition: "color 0.15s",
@@ -271,7 +271,7 @@ export function Footer() {
                 Self-hosted, MIT-licensed AI agent OS. Agent OS, Channel Shield, Agentic CRM, Universal
                 Sidecar, Soft Wall, and reviewable self-coding on your infrastructure.
               </Typography>
-              <Typography sx={{ fontSize: "0.75rem", color: alpha(c.textSecondary, 0.8), lineHeight: 1.6, maxWidth: 280 }}>
+              <Typography sx={{ fontSize: "0.75rem", color: c.textSecondary, lineHeight: 1.6, maxWidth: 280 }}>
                 {DEVELOPER_ECOSYSTEM_LABEL}:{" "}
                 {DEVELOPER_ECOSYSTEM.map((item, index) => (
                   <React.Fragment key={item.label}>

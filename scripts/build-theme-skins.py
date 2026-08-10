@@ -39,6 +39,91 @@ def label_from_id(skin_id: str) -> str:
     return skin_id.replace("-", " ").title()
 
 
+def _parse_hex(hex_str: str) -> tuple[int, int, int] | None:
+    raw = hex_str.strip().lstrip("#")
+    if len(raw) == 3:
+        raw = "".join(ch * 2 for ch in raw)
+    if not re.fullmatch(r"[0-9a-fA-F]{6}", raw):
+        return None
+    return tuple(int(raw[i : i + 2], 16) for i in (0, 2, 4))  # type: ignore[return-value]
+
+
+def _to_hex(rgb: list[float]) -> str:
+    return "#" + "".join(f"{max(0, min(255, int(round(c)))):02x}" for c in rgb)
+
+
+def _lin(channel: float) -> float:
+    c = channel / 255
+    return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+
+
+def _lum(hex_str: str) -> float:
+    rgb = _parse_hex(hex_str)
+    if not rgb:
+        return 0.0
+    r, g, b = rgb
+    return 0.2126 * _lin(r) + 0.7152 * _lin(g) + 0.0722 * _lin(b)
+
+
+def _contrast(a: str, b: str) -> float:
+    la, lb = _lum(a), _lum(b)
+    lighter, darker = max(la, lb), min(la, lb)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def _mix(a: str, b: str, t: float) -> str:
+    ra, rb = _parse_hex(a), _parse_hex(b)
+    if not ra or not rb:
+        return a
+    return _to_hex([ra[i] + (rb[i] - ra[i]) * t for i in range(3)])
+
+
+def ensure_contrast(color: str, background: str, min_ratio: float = 5.5) -> str:
+    if not _parse_hex(color) or not _parse_hex(background):
+        return color
+    if _contrast(color, background) >= min_ratio:
+        return color
+    toward_dark = _mix(color, "#0a0a0a", 0.08)
+    toward_light = _mix(color, "#ffffff", 0.08)
+    prefer_dark = _contrast(toward_dark, background) >= _contrast(toward_light, background)
+    target = "#0a0a0a" if prefer_dark else "#ffffff"
+    for step in [i / 50 for i in range(1, 51)]:
+        nxt = _mix(color, target, step)
+        if _contrast(nxt, background) >= min_ratio:
+            return nxt
+    return "#111827" if prefer_dark else "#f9fafb"
+
+
+def clamp_light_text_vars(block: str) -> str:
+    """Raise pale light-mode text tokens so captions stay readable on paper."""
+    vars_map = parse_vars(block)
+    paper = vars_map.get("--card") or vars_map.get("--background") or "#ffffff"
+    sidebar = vars_map.get("--sidebar") or paper
+    replacements = {
+        "--muted-foreground": (paper, 5.5),
+        "--secondary-foreground": (paper, 4.5),
+        "--sidebar-foreground": (sidebar, 4.5),
+        "--foreground": (paper, 7.0),
+        "--card-foreground": (paper, 7.0),
+        "--popover-foreground": (paper, 7.0),
+    }
+    lines: list[str] = []
+    for line in block.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("--") and ":" in stripped:
+            name, value = stripped.split(":", 1)
+            key = name.strip()
+            val = value.strip().rstrip(";").strip()
+            if key in replacements and _parse_hex(val):
+                bg, ratio = replacements[key]
+                nxt = ensure_contrast(val, bg, ratio)
+                indent = line[: len(line) - len(line.lstrip())]
+                lines.append(f"{indent}{key}: {nxt};")
+                continue
+        lines.append(line)
+    return "\n".join(lines)
+
+
 def main() -> None:
     skins: list[dict[str, str]] = []
     css_parts: list[str] = [
@@ -56,6 +141,7 @@ def main() -> None:
         if not light_block:
             continue
 
+        light_block = clamp_light_text_vars(light_block)
         light_vars = parse_vars(light_block)
         css_parts.append(f'html[data-skin="{skin_id}"] {{')
         css_parts.append(f"  {light_block}")

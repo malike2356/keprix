@@ -184,6 +184,11 @@ html.keprix-skin-pulse body {
   }
 
   html.keprix-skin-pulse body {
-    animation: none;
+  animation: none;
   }
+}
+
+/* Map utility muted text to clamped shell secondary (light skins often ship pale #6b7280). */
+.text-muted-foreground {
+  color: var(--kp-text-secondary) !important;
 }

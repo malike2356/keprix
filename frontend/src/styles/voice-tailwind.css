@@ -6,8 +6,8 @@
 
 .kp-voice-root {
   --kp-voice-text: var(--kp-text-primary);
-  --kp-voice-text-muted: color-mix(in srgb, var(--kp-text-primary) 70%, transparent);
-  --kp-voice-text-faint: color-mix(in srgb, var(--kp-text-primary) 30%, transparent);
+  --kp-voice-text-muted: var(--kp-text-secondary);
+  --kp-voice-text-faint: color-mix(in srgb, var(--kp-text-secondary) 75%, transparent);
   --kp-voice-hover: color-mix(in srgb, var(--kp-text-primary) 10%, transparent);
   --kp-voice-bar-active: color-mix(in srgb, var(--kp-text-primary) 50%, transparent);
   --kp-voice-bar-idle: color-mix(in srgb, var(--kp-text-primary) 10%, transparent);

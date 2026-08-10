@@ -73,7 +73,7 @@ function FeatureRow({
         <Typography sx={{ color: c.textSecondary, fontSize: "0.9rem", lineHeight: 1.65, mb: 0.75 }}>
           {feature.description}
         </Typography>
-        <Typography sx={{ color: alpha(c.textSecondary, 0.9), fontSize: "0.82rem", lineHeight: 1.55 }}>
+        <Typography sx={{ color: c.textSecondary, fontSize: "0.82rem", lineHeight: 1.55 }}>
           <Box component="span" sx={{ fontWeight: 600, color: c.textPrimary }}>
             Used for:{" "}
           </Box>

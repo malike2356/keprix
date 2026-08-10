@@ -291,7 +291,7 @@ export function ChangelogView({ releases }: ChangelogViewProps) {
                                 {release.isUnreleased ? "Unreleased" : `v${release.version}`}
                               </Typography>
                               {release.date && (
-                                <Typography sx={{ color: alpha(c.textSecondary, 0.8), fontSize: "0.85rem" }}>
+                                <Typography sx={{ color: c.textSecondary, fontSize: "0.85rem" }}>
                                   {formatDate(release.date)}
                                 </Typography>
                               )}

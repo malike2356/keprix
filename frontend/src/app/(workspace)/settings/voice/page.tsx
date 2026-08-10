@@ -534,7 +534,7 @@ export default function VoiceSettingsPage() {
                             Get key
                           </Button>
                         ) : (
-                          <Typography variant="caption" color="text.disabled">
+                          <Typography variant="caption" color="text.secondary">
 ;
                           </Typography>
                         )}

@@ -140,7 +140,7 @@ export function Integrations() {
               fontWeight: 700,
               textTransform: "uppercase",
               letterSpacing: "0.12em",
-              color: alpha(c.textSecondary, 0.6),
+              color: c.textSecondary,
               mb: 6,
             }}
           >
