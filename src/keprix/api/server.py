@@ -799,6 +799,12 @@ def create_app() -> FastAPI:
             app.include_router(feature_health_router)
         except Exception:
             logger.exception("feature health routes failed to load")
+        try:
+            from keprix.conveyor.routes import router as conveyor_router
+
+            app.include_router(conveyor_router)
+        except Exception:
+            logger.exception("conveyor routes failed to load")
         from keprix.discovery import bootstrap_discovery
 
         try:
