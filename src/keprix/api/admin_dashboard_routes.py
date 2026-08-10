@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
+import os
+import signal
+import uuid
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Any
@@ -20,6 +24,35 @@ from keprix.usage.filters import UsageQueryFilters
 from keprix.workspace.repository import workspace_repo
 
 router = APIRouter(prefix="/api/admin", tags=["admin-dashboard"])
+
+_restart_scheduled = False
+
+
+async def _restart_process_after_response() -> None:
+    global _restart_scheduled
+    await asyncio.sleep(0.75)
+    os.kill(os.getpid(), signal.SIGTERM)
+
+
+@router.post("/runtime/restart", status_code=202)
+async def admin_restart_runtime(_admin: dict = Depends(require_admin)) -> dict[str, Any]:
+    """Gracefully restart the Keprix API process through its container policy.
+
+    The response is returned first so the admin UI can show a controlled
+    transition. Docker's ``unless-stopped`` policy starts the healthy backend
+    again after the process exits.
+    """
+    global _restart_scheduled
+    if _restart_scheduled:
+        return {"ok": True, "status": "already_restarting"}
+    _restart_scheduled = True
+    asyncio.create_task(_restart_process_after_response())
+    return {
+        "ok": True,
+        "status": "restarting",
+        "restart_id": str(uuid.uuid4()),
+        "message": "Keprix is restarting. The service should be healthy again shortly.",
+    }
 
 
 def _session_day(raw: Any) -> str | None:

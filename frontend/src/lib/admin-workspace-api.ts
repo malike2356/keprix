@@ -366,6 +366,20 @@ export async function saveAdminSettings(settings: Partial<AdminSettings>) {
   );
 }
 
+export async function restartKeprixEngine() {
+  return parseJson<{ ok: boolean; status: string; restart_id?: string; message?: string }>(
+    await ceApi("/api/admin/runtime/restart", { method: "POST" }),
+    "restart Keprix",
+  );
+}
+
+export async function fetchKeprixHealth() {
+  return parseJson<{ status: string; service?: string; version?: string }>(
+    await ceApi("/api/health"),
+    "Keprix health",
+  );
+}
+
 export async function saveProviderSettings(
   providerId: string,
   body: { api_key?: string; default_model?: string },

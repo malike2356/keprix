@@ -9,6 +9,7 @@ import {
   IconKey,
   IconLayoutDashboard,
   IconMessages,
+  IconPlayerPlay,
   IconSettings,
   IconTools,
   IconUsers,
@@ -46,6 +47,7 @@ export const ADMIN_NAV_ITEMS: AdminNavEntry[] = [
   { type: "item", title: "Billing", href: "/admin/billing", icon: IconCreditCard },
   { type: "item", title: "Hermes upstream", href: "/admin/upstream", icon: IconGitBranch },
   { type: "item", title: "Settings", href: "/admin/settings", icon: IconSettings },
+  { type: "item", title: "Engine control", href: "/admin/engine", icon: IconPlayerPlay },
 ];
 
 export const ADMIN_SIDEBAR_WIDTH = 260;
