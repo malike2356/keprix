@@ -11,6 +11,13 @@ depends_on = None
 
 
 def upgrade() -> None:
+    # Alembic creates version_num as VARCHAR(32) by default. This revision id is
+    # longer than that, so widen the control column before Alembic records the
+    # completed revision at the end of this transaction.
+    op.execute(
+        "ALTER TABLE alembic_version "
+        "ALTER COLUMN version_num TYPE VARCHAR(128)"
+    )
     op.execute(
         """
         CREATE TABLE IF NOT EXISTS generation_log (

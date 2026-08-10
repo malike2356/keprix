@@ -54,10 +54,9 @@ def upgrade() -> None:
         ("claimed_by", "TEXT"),
         ("claimed_at", "TEXT"),
     ):
-        try:
-            op.execute(f"ALTER TABLE document_vault_jobs ADD COLUMN {col} {ddl}")
-        except Exception:
-            pass
+        op.execute(
+            f"ALTER TABLE document_vault_jobs ADD COLUMN IF NOT EXISTS {col} {ddl}"
+        )
 
 
 def downgrade() -> None:

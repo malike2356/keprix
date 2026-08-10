@@ -48,4 +48,14 @@ fi
 # Ensure the non-mounted home dir itself is reachable after UID remap.
 chown keprix:keprix /home/keprix 2>/dev/null || true
 
+# Apply the versioned database schema before starting the API. The Contabo
+# application compose has one backend replica, so startup migration is the
+# authoritative release gate and prevents background jobs from querying tables
+# that have not been created yet. Operators can disable this only for a
+# deliberate external migration workflow.
+if [ "${KEPRIX_RUN_MIGRATIONS:-true}" = "true" ]; then
+  echo "[entrypoint] Applying database migrations"
+  gosu keprix alembic upgrade head
+fi
+
 exec gosu keprix "$@"
