@@ -28,6 +28,7 @@ const NAV_LINKS = [
   { label: "Integrations", href: "/#integrations" },
   { label: "Runtime", href: "/#compare" },
   { label: "Proof", href: "/proof" },
+  { label: "Status", href: "/status" },
   { label: "Docs", href: "/docs" },
   { label: "Blog", href: "/blog" },
 ] as const;

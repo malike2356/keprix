@@ -22,6 +22,7 @@ const FOOTER_COLS = [
       { label: "Integrations", href: "/#integrations" },
       { label: "Pricing", href: "/pricing" },
       { label: "Proof", href: "/proof" },
+      { label: "Status", href: "/status" },
       { label: "Changelog", href: "/changelog" },
       { label: "Roadmap", href: "/docs" },
     ],
