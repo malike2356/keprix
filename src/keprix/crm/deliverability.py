@@ -4,11 +4,16 @@ from __future__ import annotations
 
 from typing import Any
 
-# Policy thresholds (percent). Soft Wall approve should block when breached.
+from keprix.email.deliverability_auth import POLICY
+
+# Aligned with shared/email/policy.json (complaint 0.1%, bounce 2%).
 DEFAULT_THRESHOLDS = {
-    "bounce_rate_pct": 5.0,
-    "complaint_rate_pct": 0.3,
+    "bounce_rate_pct": float((POLICY.get("thresholds") or {}).get("bounceRateMaxPct", 2.0)),
+    "complaint_rate_pct": float(
+        (POLICY.get("thresholds") or {}).get("spamComplaintRateMaxPct", 0.1)
+    ),
     "unsubscribe_rate_pct": 2.0,
+    "inbox_rate_min_pct": float((POLICY.get("thresholds") or {}).get("inboxRateMinPct", 99.0)),
 }
 
 
@@ -68,7 +73,15 @@ def compute_deliverability_snapshot(store: Any, workspace_id: str) -> dict[str, 
         "bounce_rate_pct": pct(bounce_n),
         "complaint_rate_pct": pct(complaint_n),
         "unsubscribe_rate_pct": pct(unsub_n),
-        "note": "Rates are 0 when no sends or no matching suppressions exist (honest empty).",
+        "inbox_rate_proxy_pct": (
+            round((100.0 * sent_count) / max(sent_count + bounce_n + complaint_n, 1), 1)
+            if sent_count or bounce_n or complaint_n
+            else None
+        ),
+        "note": (
+            "Rates are 0 when no sends or no matching suppressions exist (honest empty). "
+            "inbox_rate_proxy_pct is not Postmaster placement; label as proxy."
+        ),
     }
 
     breaches: list[str] = []
@@ -87,6 +100,15 @@ def compute_deliverability_snapshot(store: Any, workspace_id: str) -> dict[str, 
             f"unsubscribe_rate_pct {rates['unsubscribe_rate_pct']} exceeds "
             f"{DEFAULT_THRESHOLDS['unsubscribe_rate_pct']}"
         )
+    if (
+        rates["inbox_rate_proxy_pct"] is not None
+        and rates["inbox_rate_proxy_pct"] < DEFAULT_THRESHOLDS["inbox_rate_min_pct"]
+        and (sent_count + bounce_n + complaint_n) >= 20
+    ):
+        breaches.append(
+            f"inbox_rate_proxy_pct {rates['inbox_rate_proxy_pct']} below "
+            f"{DEFAULT_THRESHOLDS['inbox_rate_min_pct']}"
+        )
 
     workspace_killed = any(
         sw.get("enabled") and str(sw.get("scope") or "") == "workspace" for sw in switches
@@ -101,6 +123,7 @@ def compute_deliverability_snapshot(store: Any, workspace_id: str) -> dict[str, 
         "dmarc_ok_any": any(r.get("dmarc_ok") for r in readiness),
         "workspace_kill_switch_off": not workspace_killed,
         "rates_within_policy": len(breaches) == 0,
+        "transactional_marketing_separated": _domains_separated(readiness),
     }
 
     soft_wall_block = len(breaches) > 0 or workspace_killed or not checklist["has_sender_domain"]
@@ -110,6 +133,8 @@ def compute_deliverability_snapshot(store: Any, workspace_id: str) -> dict[str, 
         "kill_switches": switches,
         "rates": rates,
         "thresholds": dict(DEFAULT_THRESHOLDS),
+        "policy_version": POLICY.get("version"),
+        "dmarc_ladder": list(POLICY.get("dmarcLadder") or ["none", "quarantine", "reject"]),
         "breaches": breaches,
         "checklist": checklist,
         "soft_wall_block_cold_send": soft_wall_block,
@@ -127,3 +152,12 @@ def compute_deliverability_snapshot(store: Any, workspace_id: str) -> dict[str, 
             )
         ),
     }
+
+
+def _domains_separated(readiness: list[dict[str, Any]]) -> bool:
+    """True when at least two distinct sender domains exist, or roles are tagged."""
+    domains = {str(r.get("domain") or "").lower() for r in readiness if r.get("domain")}
+    if len(domains) >= 2:
+        return True
+    roles = {str(r.get("role") or r.get("purpose") or "").lower() for r in readiness}
+    return "transactional" in roles and "marketing" in roles

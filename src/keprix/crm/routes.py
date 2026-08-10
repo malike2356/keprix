@@ -1732,6 +1732,58 @@ async def list_deliverability(
     return compute_deliverability_snapshot(_store(), ws)
 
 
+@router.post("/deliverability/validate-dns")
+async def validate_sender_dns(
+    body: dict[str, Any],
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "edit")
+    _workspace(workspace_id, x_workspace_id, user)
+    domain = str(body.get("domain") or "").strip()
+    if not domain:
+        raise HTTPException(status_code=400, detail={"error_code": "domain_required"})
+    from keprix.email.deliverability_auth import validate_dns_records
+
+    result = validate_dns_records(
+        domain,
+        dkim_selector=str(body.get("dkim_selector") or "mail"),
+    )
+    return {"ok": True, "result": result}
+
+
+@router.get("/deliverability/domain-plan")
+async def deliverability_domain_plan(
+    app_domain: str = Query(...),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "view")
+    _workspace(workspace_id, x_workspace_id, user)
+    from keprix.email.deliverability_auth import (
+        POLICY,
+        configure_marketing_domain,
+        configure_transactional_domain,
+        generate_setup_guide,
+    )
+
+    tx = configure_transactional_domain(app_domain)
+    mkt = configure_marketing_domain(app_domain)
+    return {
+        "ok": True,
+        "policy_version": POLICY.get("version"),
+        "transactional": tx,
+        "marketing": mkt,
+        "setup_guide": generate_setup_guide(
+            domain=app_domain,
+            transactional_domain=tx["sending_domain"],
+            marketing_domain=mkt["sending_domain"],
+        ),
+    }
+
+
 @router.put("/deliverability/sender-readiness")
 async def upsert_sender_readiness(
     body: dict[str, Any],
@@ -1744,6 +1796,18 @@ async def upsert_sender_readiness(
     domain = str(body.get("domain") or "")
     if not domain:
         raise HTTPException(status_code=400, detail={"error_code": "domain_required"})
+    # Optional live DNS refresh when validate_dns=true.
+    if body.get("validate_dns"):
+        from keprix.email.deliverability_auth import validate_dns_records
+
+        dns = validate_dns_records(domain, dkim_selector=str(body.get("dkim_selector") or "mail"))
+        body = {
+            **body,
+            "spf_ok": dns["spf"]["ok"],
+            "dkim_ok": dns["dkim"]["ok"],
+            "dmarc_ok": dns["dmarc"]["ok"],
+            "verified": dns["all_ok"],
+        }
     row = _store().upsert_sender_readiness(ws, domain, actor_type="user", actor_id=_uid(user), **body)
     return {"sender_readiness": row}
 

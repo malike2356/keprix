@@ -343,6 +343,30 @@ def enroll_list(
     except Exception:
         pass
 
+    # Cold enroll is marketing-class; reject From on transactional mail.* domain.
+    try:
+        import os
+
+        from keprix.email.deliverability_auth import enforce_domain_separation
+
+        app_domain = (os.environ.get("KEPRIX_EMAIL_APP_DOMAIN") or "").strip()
+        from_address = ""
+        if campaign_id:
+            camp = outreach_store.get_campaign(workspace_id, str(campaign_id)) or {}
+            from_address = str(camp.get("from_address") or camp.get("from_email") or "").strip()
+            app_domain = app_domain or str(camp.get("app_domain") or "").strip()
+        if from_address and app_domain:
+            enforce_domain_separation("marketing", from_address, app_domain)
+    except ValueError as exc:
+        return {
+            "blocked": True,
+            "error_code": "domain_separation_violated",
+            "message": str(exc),
+            "deep_link": "/crm/deliverability",
+        }
+    except Exception:
+        pass
+
     report = preflight_crm_list_enroll(
         workspace_id=workspace_id,
         list_id=list_id,
