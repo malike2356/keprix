@@ -331,8 +331,26 @@ export async function fetchActiveSessions(): Promise<ActiveSession[]> {
     const body = await response.json().catch(() => ({}));
     throw new Error(parseApiErrorMessage(body, "Failed to load sessions"));
   }
-  const data = (await response.json()) as { sessions?: ActiveSession[] };
+  const data = (await response.json()) as {
+    sessions?: ActiveSession[];
+    newLoginBanner?: string | null;
+  };
+  if (typeof window !== "undefined" && data.newLoginBanner) {
+    window.sessionStorage.setItem("keprix.newLoginBanner", data.newLoginBanner);
+  }
   return data.sessions || [];
+}
+
+export async function revokeEverywhere(): Promise<{ removed: number }> {
+  const response = await ceApi("/api/auth/sessions/revoke-everywhere", {
+    method: "POST",
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(parseApiErrorMessage(body, "Failed to revoke sessions"));
+  }
+  const data = (await response.json()) as { removed?: number };
+  return { removed: data.removed ?? 0 };
 }
 
 export async function revokeActiveSession(sessionId: string): Promise<void> {

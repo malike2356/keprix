@@ -46,14 +46,15 @@ async def change_password(
         raise HTTPException(status_code=status, detail=message)
 
     current_token = getattr(request.state, "auth_token", None)
-    auth_manager.revoke_other_sessions(str(user["username"]), keep_token=current_token)
+    _ = current_token
+    auth_manager.revoke_all_user_sessions(str(user["id"]), reason="password_changed")
 
     await audit_log(
         "password_changed",
         user_id=user.get("id"),
         ip_address=request.client.host if request.client else None,
     )
-    return {"ok": True, "message": message}
+    return {"ok": True, "message": message, "sessions_revoked": True}
 
 
 @router.post("/password/forgot")
@@ -101,7 +102,7 @@ async def reset_password(body: ResetPasswordRequest, request: Request) -> dict[s
 
     user = auth_manager.get_user_by_id(user_id)
     if user:
-        auth_manager.revoke_other_sessions(str(user["username"]))
+        auth_manager.revoke_all_user_sessions(user_id, reason="password_changed")
 
     await audit_log(
         "password_reset_completed",

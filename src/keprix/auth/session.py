@@ -34,6 +34,17 @@ _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _RECOVERY_CODE_RE = re.compile(r"[^a-f0-9]")
 
 
+class ConcurrentSessionLimitError(RuntimeError):
+    """Raised when a new login is blocked by the concurrent session policy."""
+
+
+def _session_policy() -> dict[str, Any]:
+    from keprix.sessions import resolve_session_config
+
+    return resolve_session_config()
+
+
+
 def _normalize_recovery_code(code: str) -> str:
     return _RECOVERY_CODE_RE.sub("", code.lower())[:8]
 
@@ -200,26 +211,110 @@ class AuthManager:
         *,
         device_label: str | None = None,
         ip_address: str | None = None,
+        user_agent: str | None = None,
+        location: str | None = None,
     ) -> str:
+        from keprix.sessions import (
+            NEW_DEVICE_NOTIFIER,
+            append_revocation_log,
+            enforce_concurrent_limit,
+            format_new_login_message,
+            parse_device_info,
+        )
+
+        policy = _session_policy()
+        absolute_s = max(60, int(policy["absolute_max_ms"] / 1000))
+        idle_s = max(60, int(policy["idle_timeout_ms"] / 1000))
+        device = parse_device_info(
+            user_agent=user_agent or device_label,
+            ip=ip_address,
+            location=location,
+            device_label=device_label,
+        )
         token = secrets.token_urlsafe(32)
         now = time.time()
         session_id = str(uuid4())
+        user_key = username.strip().lower()
         with self._sessions_lock:
+            active: list[dict[str, Any]] = []
+            for existing_token, meta in list(self._sessions.items()):
+                if str(meta.get("username") or "").strip().lower() != user_key:
+                    continue
+                if float(meta.get("expiry") or 0) <= now:
+                    self._sessions.pop(existing_token, None)
+                    continue
+                active.append(
+                    {
+                        "session_id": str(meta.get("session_id") or ""),
+                        "created_at": float(meta.get("created_at") or now),
+                        "token": existing_token,
+                        "revoked_at": None,
+                    }
+                )
+            limit = enforce_concurrent_limit(active, policy)
+            if not limit.get("allowed"):
+                raise ConcurrentSessionLimitError(
+                    "Too many active sessions; log out another device first"
+                )
+            killed_ids = set(limit.get("killed_session_ids") or [])
+            if killed_ids:
+                for existing_token, meta in list(self._sessions.items()):
+                    if str(meta.get("session_id") or "") in killed_ids:
+                        self._sessions.pop(existing_token, None)
+                        append_revocation_log(
+                            user_id=str((self.get_user(user_key) or {}).get("id") or user_key),
+                            session_id=str(meta.get("session_id") or ""),
+                            reason="concurrent_limit",
+                            initiated_by="system",
+                        )
+            known = False
+            for _tok, meta in self._sessions.items():
+                if str(meta.get("username") or "").strip().lower() != user_key:
+                    continue
+                same_label = str(meta.get("device_label") or "").lower() == str(device["device_label"]).lower()
+                same_ip = bool(ip_address) and str(meta.get("ip_address") or "") == ip_address
+                if same_label or same_ip:
+                    known = True
+                    break
+
             self._sessions[token] = {
-                "username": username,
+                "username": user_key,
                 "token_hash": hash_token(token),
                 "session_id": session_id,
-                "expiry": now + TOKEN_TTL_SECONDS,
-                "device_label": device_label,
+                "expiry": now + absolute_s,
+                "idle_expiry": now + idle_s,
+                "device_label": device["device_label"],
                 "ip_address": ip_address,
+                "user_agent": device.get("user_agent"),
+                "location": device.get("location"),
+                "browser": device.get("browser"),
+                "os": device.get("os"),
                 "created_at": now,
                 "last_seen_at": now,
             }
             self._save_sessions()
+
+        if not known:
+            event = {
+                "user_id": str((self.get_user(user_key) or {}).get("id") or user_key),
+                "session_id": session_id,
+                "browser": device.get("browser"),
+                "os": device.get("os"),
+                "location": device.get("location"),
+                "ip": ip_address,
+            }
+            message = format_new_login_message(
+                browser=str(device.get("browser") or "Unknown browser"),
+                os_name=str(device.get("os") or "Unknown OS"),
+                location=str(device.get("location") or "Unknown location"),
+            )
+            NEW_DEVICE_NOTIFIER.notify(event, message)
         return token
 
     def touch_session(self, token: str) -> None:
         now = time.time()
+        policy = _session_policy()
+        idle_s = max(60, int(policy["idle_timeout_ms"] / 1000))
         with self._sessions_lock:
             meta = self._sessions.get(token)
             if not meta:
@@ -228,6 +323,7 @@ class AuthManager:
             if now - last_seen < SESSION_TOUCH_INTERVAL_SECONDS:
                 return
             meta["last_seen_at"] = now
+            meta["idle_expiry"] = now + idle_s
             self._save_sessions()
 
     def list_sessions(self, user_id: str, *, current_token: str | None = None) -> list[dict[str, Any]]:
@@ -315,7 +411,13 @@ class AuthManager:
             meta = self._sessions.get(token)
             if not meta:
                 return None
-            if meta.get("expiry", 0) <= time.time():
+            now = time.time()
+            if meta.get("expiry", 0) <= now:
+                self._sessions.pop(token, None)
+                self._save_sessions()
+                return None
+            idle_expiry = float(meta.get("idle_expiry") or meta.get("expiry") or 0)
+            if idle_expiry and idle_expiry <= now:
                 self._sessions.pop(token, None)
                 self._save_sessions()
                 return None
@@ -328,11 +430,25 @@ class AuthManager:
 
     def revoke_token(self, token: str) -> None:
         with self._sessions_lock:
-            self._sessions.pop(token, None)
+            meta = self._sessions.pop(token, None)
             self._save_sessions()
+        if meta:
+            from keprix.sessions import append_revocation_log
+
+            user = self.get_user(str(meta.get("username") or ""))
+            append_revocation_log(
+                user_id=str((user or {}).get("id") or meta.get("username") or ""),
+                session_id=str(meta.get("session_id") or ""),
+                reason="logout",
+                initiated_by="user",
+            )
 
     def revoke_other_sessions(self, username: str, *, keep_token: str | None = None) -> int:
+        from keprix.sessions import append_revocation_log
+
         user_key = username.strip().lower()
+        user = self.get_user(user_key)
+        user_id = str((user or {}).get("id") or user_key)
         removed = 0
         with self._sessions_lock:
             for session_token, meta in list(self._sessions.items()):
@@ -341,6 +457,37 @@ class AuthManager:
                 if keep_token and session_token == keep_token:
                     continue
                 self._sessions.pop(session_token, None)
+                append_revocation_log(
+                    user_id=user_id,
+                    session_id=str(meta.get("session_id") or ""),
+                    reason="user_request",
+                    initiated_by="user",
+                )
+                removed += 1
+            if removed:
+                self._save_sessions()
+        return removed
+
+    def revoke_all_user_sessions(self, user_id: str, *, reason: str = "password_changed") -> int:
+        """Instant revoke of every session for the user (including current)."""
+        from keprix.sessions import append_revocation_log
+
+        user = self.get_user_by_id(user_id)
+        if not user:
+            return 0
+        user_key = str(user["username"]).strip().lower()
+        removed = 0
+        with self._sessions_lock:
+            for session_token, meta in list(self._sessions.items()):
+                if str(meta.get("username") or "").strip().lower() != user_key:
+                    continue
+                self._sessions.pop(session_token, None)
+                append_revocation_log(
+                    user_id=str(user_id),
+                    session_id=str(meta.get("session_id") or ""),
+                    reason=reason,
+                    initiated_by="system",
+                )
                 removed += 1
             if removed:
                 self._save_sessions()
@@ -436,7 +583,10 @@ class AuthManager:
         if not ok:
             return None, None, totp_error
 
-        token = self.create_session(user_key, device_label=device_label, ip_address=ip_address)
+        try:
+            token = self.create_session(user_key, device_label=device_label, ip_address=ip_address)
+        except ConcurrentSessionLimitError as exc:
+            return None, None, str(exc)
         user["last_login_at"] = time.time()
         self._save()
         return token, dict(user), None
@@ -721,16 +871,24 @@ class AuthManager:
         ]
 
     def update_user(self, user_id: str, **fields: Any) -> dict[str, Any] | None:
+        role_changed = False
         with self._config_lock:
             for user in self._config.get("users", {}).values():
                 if user.get("id") != user_id:
                     continue
+                if "role" in fields and fields["role"] != user.get("role"):
+                    role_changed = True
                 for key in ("role", "is_approved", "is_active", "email"):
                     if key in fields:
                         user[key] = fields[key]
                 self._save()
-                return user
-        return None
+                updated = dict(user)
+                break
+            else:
+                return None
+        if role_changed:
+            self.revoke_all_user_sessions(user_id, reason="role_changed")
+        return updated
 
     def attach_handoff_metadata(
         self,

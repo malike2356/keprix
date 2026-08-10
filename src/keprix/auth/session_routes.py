@@ -18,9 +18,30 @@ async def list_active_sessions(
     request: Request,
     user: dict = Depends(get_current_user),
 ) -> dict[str, Any]:
+    from keprix.sessions import NEW_DEVICE_NOTIFIER, resolve_session_config
+
     token = getattr(request.state, "auth_token", None)
     sessions = auth_manager.list_sessions(str(user["id"]), current_token=token)
-    return {"sessions": sessions}
+    return {
+        "sessions": sessions,
+        "newLoginBanner": NEW_DEVICE_NOTIFIER.banners.get(str(user["id"])),
+        "config": resolve_session_config(),
+    }
+
+
+@router.post("/sessions/revoke-everywhere")
+async def revoke_everywhere(
+    request: Request,
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    removed = auth_manager.revoke_all_user_sessions(str(user["id"]), reason="user_request")
+    await audit_log(
+        "sessions_revoked_everywhere",
+        user_id=user.get("id"),
+        ip_address=request.client.host if request.client else None,
+        event_data={"removed": removed},
+    )
+    return {"ok": True, "removed": removed}
 
 
 @router.delete("/sessions/{session_id}")
