@@ -843,6 +843,12 @@ def create_app() -> FastAPI:
             app.include_router(status_page_router)
         except Exception:
             logger.exception("status page routes failed to load")
+        try:
+            from keprix.migrations_zdt.routes import router as migrations_zdt_router
+
+            app.include_router(migrations_zdt_router)
+        except Exception:
+            logger.exception("migrations-zdt routes failed to load")
         from keprix.discovery import bootstrap_discovery
 
         try:
