@@ -831,6 +831,12 @@ def create_app() -> FastAPI:
             app.include_router(errors_router)
         except Exception:
             logger.exception("errors routes failed to load")
+        try:
+            from keprix.social_proof.routes import router as social_proof_router
+
+            app.include_router(social_proof_router)
+        except Exception:
+            logger.exception("social proof routes failed to load")
         from keprix.discovery import bootstrap_discovery
 
         try:

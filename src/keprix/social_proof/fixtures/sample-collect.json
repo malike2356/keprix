@@ -1,0 +1,38 @@
+{
+  "twitter": [
+    {
+      "text": "Carina cut our agent ops noise overnight. The audit trail alone is worth the switch.",
+      "author": "ops_lead_demo",
+      "authorTitle": "Ops lead",
+      "platform": "twitter",
+      "url": "https://twitter.com/example/status/1001",
+      "date": "2026-07-01",
+      "tags": ["ops", "audit"],
+      "product": "carina"
+    }
+  ],
+  "linkedin": [
+    {
+      "text": "We evaluated three agent platforms. Keprix was the only one we could self-host without rewriting our tools.",
+      "author": "Platform Architect",
+      "authorTitle": "Enterprise platform",
+      "platform": "linkedin",
+      "url": "https://www.linkedin.com/feed/update/urn:li:activity:1002",
+      "date": "2026-07-08",
+      "tags": ["self-host", "enterprise"],
+      "product": "keprix"
+    }
+  ],
+  "github": [
+    {
+      "text": "Thanks, the install docs were clear and the health endpoint made debugging painless.",
+      "author": "contributor-demo",
+      "authorTitle": "malike2356/keprix contributor",
+      "platform": "github",
+      "url": "https://github.com/malike2356/keprix/issues/1#issuecomment-1003",
+      "date": "2026-07-12",
+      "tags": ["docs", "install"],
+      "product": "keprix"
+    }
+  ]
+}
