@@ -793,6 +793,12 @@ def create_app() -> FastAPI:
         from keprix.crm.nice_routes import router as crm_nice_router
 
         app.include_router(crm_nice_router)
+        try:
+            from keprix.feature_health.routes import router as feature_health_router
+
+            app.include_router(feature_health_router)
+        except Exception:
+            logger.exception("feature health routes failed to load")
         from keprix.discovery import bootstrap_discovery
 
         try:
