@@ -363,12 +363,22 @@ export default function DeveloperPage() {
                   Create API key
                 </Button>
               </Box>
-              <Box sx={{ p: 2, border: 1, borderColor: "divider", borderRadius: 1, opacity: hasActiveKey ? 1 : 0.7 }}>
+              <Box
+                sx={{
+                  p: 2,
+                  border: 1,
+                  borderColor: "divider",
+                  borderRadius: 1,
+                  bgcolor: hasActiveKey ? "transparent" : "action.hover",
+                }}
+              >
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
                   2. Copy a code sample
                 </Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-                  Use OpenAI-compatible clients pointed at your Keprix base URL.
+                  {hasActiveKey
+                    ? "Use OpenAI-compatible clients pointed at your Keprix base URL."
+                    : "Create an API key first, then copy a ready-to-run client sample."}
                 </Typography>
                 <Button variant="outlined" size="small" onClick={() => setTab("code")} disabled={!hasActiveKey}>
                   View code samples

@@ -23,7 +23,12 @@ describe("theme contrast helpers", () => {
 
   it("keeps muted text readable on paper", () => {
     const muted = ensureMutedText("#c4b5fd", "#ffffff", "light");
-    expect(contrastRatio(muted, "#ffffff")).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(muted, "#ffffff")).toBeGreaterThanOrEqual(5.5);
+  });
+
+  it("strengthens pale light-mode muted tokens", () => {
+    const muted = ensureMutedText("#737373", "#ffffff", "light");
+    expect(contrastRatio(muted, "#ffffff")).toBeGreaterThanOrEqual(5.5);
   });
 
   it("rejects dark foreground on dark paper", () => {

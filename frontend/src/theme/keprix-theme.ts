@@ -111,6 +111,14 @@ export function createKeprixTheme(mode: ThemeMode = "dark", paletteOverride?: Ke
         secondary: c.textSecondary,
       },
       divider: c.border,
+      action: {
+        active: c.textSecondary,
+        hover: alpha(c.textPrimary, mode === "dark" ? 0.08 : 0.04),
+        selected: alpha(c.primary, mode === "dark" ? 0.16 : 0.1),
+        disabled: alpha(c.textPrimary, mode === "dark" ? 0.38 : 0.42),
+        disabledBackground: alpha(c.textPrimary, mode === "dark" ? 0.12 : 0.08),
+        focus: alpha(c.primary, 0.2),
+      },
     },
     typography: {
       fontFamily: keprixTypography.fontFamily,
@@ -164,11 +172,110 @@ export function createKeprixTheme(mode: ThemeMode = "dark", paletteOverride?: Ke
       },
       MuiButton: {
         styleOverrides: {
-          root: { textTransform: "none", fontWeight: 500, borderRadius: 8 },
+          root: ({ theme }) => ({
+            textTransform: "none",
+            fontWeight: 500,
+            borderRadius: 8,
+            "&.Mui-disabled": {
+              opacity: 1,
+              color: theme.palette.text.secondary,
+              borderColor: theme.palette.divider,
+              backgroundColor:
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.common.white, 0.06)
+                  : alpha(theme.palette.common.black, 0.04),
+            },
+          }),
           containedPrimary: ({ theme }) => ({
             backgroundColor: theme.palette.primary.main,
             color: theme.palette.primary.contrastText,
             "&:hover": { backgroundColor: theme.palette.primary.dark },
+          }),
+          outlined: ({ theme }) => ({
+            borderColor: theme.palette.divider,
+            color: theme.palette.text.primary,
+            "&:hover": {
+              borderColor: theme.palette.text.secondary,
+              backgroundColor: theme.palette.action.hover,
+            },
+          }),
+          text: ({ theme }) => ({
+            color: theme.palette.text.primary,
+          }),
+        },
+      },
+      MuiTab: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            // MUI defaults inactive tabs to opacity 0.6, which fails light-mode contrast.
+            opacity: 1,
+            color: theme.palette.text.secondary,
+            fontWeight: 500,
+            "&.Mui-selected": {
+              color: theme.palette.text.primary,
+              fontWeight: 600,
+            },
+            "&.Mui-disabled": {
+              opacity: 1,
+              color: theme.palette.action.disabled,
+            },
+          }),
+        },
+      },
+      MuiTabs: {
+        styleOverrides: {
+          indicator: ({ theme }) => ({
+            backgroundColor: theme.palette.primary.main,
+          }),
+        },
+      },
+      MuiListItemIcon: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            color: theme.palette.text.secondary,
+            minWidth: 36,
+          }),
+        },
+      },
+      MuiListItemText: {
+        styleOverrides: {
+          primary: ({ theme }) => ({
+            color: theme.palette.text.primary,
+          }),
+          secondary: ({ theme }) => ({
+            color: theme.palette.text.secondary,
+          }),
+        },
+      },
+      MuiSvgIcon: {
+        styleOverrides: {
+          colorAction: ({ theme }) => ({
+            color: theme.palette.text.secondary,
+          }),
+          colorDisabled: ({ theme }) => ({
+            color: theme.palette.action.disabled,
+          }),
+        },
+      },
+      MuiBreadcrumbs: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            color: theme.palette.text.secondary,
+            "& a": {
+              color: theme.palette.text.secondary,
+            },
+          }),
+          li: ({ theme }) => ({
+            "& > .MuiTypography-root": {
+              color: theme.palette.text.primary,
+            },
+          }),
+        },
+      },
+      MuiLink: {
+        styleOverrides: {
+          root: ({ theme }) => ({
+            color: ensureContrast(theme.palette.primary.main, theme.palette.background.paper),
           }),
         },
       },

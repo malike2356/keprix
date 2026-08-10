@@ -50,11 +50,11 @@ export default function WorkspaceFooter() {
           Buy us a coffee
         </Box>
         {" "}
-        <Box component="span" sx={{ opacity: 0.75 }}>
+        <Box component="span" sx={{ color: "text.secondary" }}>
           (from £1)
         </Box>
       </Typography>
-      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5, fontSize: "0.65rem" }}>
+      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5, fontSize: "0.7rem" }}>
         {DEVELOPER_ECOSYSTEM_LABEL}:{" "}
         {DEVELOPER_ECOSYSTEM.map((item, index) => (
           <Box component="span" key={item.label}>

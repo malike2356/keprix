@@ -81,7 +81,7 @@ export default function SidebarNavGroup({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          color: "text.secondary",
+          color: "text.primary",
           cursor: "pointer",
           "&:focus-visible": {
             outline: 2,
@@ -90,10 +90,11 @@ export default function SidebarNavGroup({
           },
           "&:hover": {
             bgcolor: "action.hover",
+            color: "text.primary",
           },
         }}
       >
-        <Typography variant="overline" sx={{ lineHeight: 1.4 }}>
+        <Typography variant="overline" sx={{ lineHeight: 1.4, color: "text.secondary", fontWeight: 700 }}>
           {label}
         </Typography>
         {expanded ? <IconChevronDown size={16} stroke={1.75} /> : <IconChevronRight size={16} stroke={1.75} />}

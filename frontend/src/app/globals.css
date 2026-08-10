@@ -11,12 +11,12 @@
   --kp-primary: var(--primary, #7c3aed);
   --kp-primary-light: var(--ring, #a78bfa);
   --kp-secondary: var(--secondary, #06b6d4);
-  /* Dark-first fallbacks: html defaults to class "dark". Light mode skins override --background/--foreground. */
-  --kp-bg: var(--background, #0a0a0a);
-  --kp-bg-paper: var(--card, #0a0a0a);
-  --kp-text-primary: var(--foreground, #fafafa);
-  --kp-text-secondary: var(--muted-foreground, #a1a1a1);
-  --kp-border: var(--border, #262626);
+  /* Fallbacks match light paper until a skin + mode sync runs. Dark mode overrides via html.dark / sync. */
+  --kp-bg: var(--background, #ffffff);
+  --kp-bg-paper: var(--card, #ffffff);
+  --kp-text-primary: var(--foreground, #111827);
+  --kp-text-secondary: var(--muted-foreground, #374151);
+  --kp-border: var(--border, rgba(0, 0, 0, 0.12));
   --kp-radius-card: var(--radius, 12px);
   --kp-radius-chip: 9999px;
   --font-ai-studio-sans: "Google Sans Flex", "Google Sans Text", var(--font-inter-tight), "Inter Tight", var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -25,14 +25,19 @@
   --font-mono: var(--font-ai-studio-mono);
 }
 
+html.dark {
+  color-scheme: dark;
+  --kp-bg: var(--background, #0a0a0a);
+  --kp-bg-paper: var(--card, #0a0a0a);
+  --kp-text-primary: var(--foreground, #fafafa);
+  --kp-text-secondary: var(--muted-foreground, #d1d5db);
+  --kp-border: var(--border, #262626);
+}
+
 /* Default skin: force AI Studio fonts even when skins.css sets system stacks. */
 html[data-skin="default"] {
   --font-sans: var(--font-ai-studio-sans);
   --font-mono: var(--font-ai-studio-mono);
-}
-
-html.dark {
-  color-scheme: dark;
 }
 
 @layer base {

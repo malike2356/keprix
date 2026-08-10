@@ -73,10 +73,12 @@ export function ensureInteractiveAccent(color: string, paper: string, mode: "lig
 }
 
 export function ensureMutedText(color: string, paper: string, mode: "light" | "dark"): string {
+  // Light mode needs stronger secondary copy (captions, tabs, sidebar groups).
   const paperBg = parseHex(paper) ? paper : mode === "light" ? "#ffffff" : "#1a1d23";
   const fallback = mode === "light" ? "#374151" : "#d1d5db";
+  const minRatio = mode === "light" ? 5.5 : 4.5;
   if (!parseHex(color)) return fallback;
-  return ensureContrast(color, paperBg, 4.5);
+  return ensureContrast(color, paperBg, minRatio);
 }
 
 export function ensurePrimaryText(color: string, paper: string, mode: "light" | "dark"): string {
