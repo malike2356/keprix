@@ -23,23 +23,24 @@ const QUICK_LINKS = [
 ];
 
 export default function HomePageShell() {
-  const { data: sessions } = useSWR<WorkspaceSession[]>(
+  const { data: sessions, error: sessionsError } = useSWR<WorkspaceSession[]>(
     "home-conversations",
     () => fetchConversations(5),
-    { revalidateOnFocus: false },
+    { revalidateOnFocus: false, shouldRetryOnError: false, dedupingInterval: 10_000 },
   );
 
   const { data: stats } = useSWR<HomeBrainStats>(
     "home-brain-stats",
     fetchHomeBrainStats,
-    { revalidateOnFocus: false },
+    { revalidateOnFocus: false, shouldRetryOnError: false, dedupingInterval: 10_000 },
   );
 
   const conversationCount = sessions?.length ?? 0;
   const memoryCount = stats?.memoryCount ?? 0;
   const toolCount = stats?.toolCount ?? 0;
 
-  const isEmpty = sessions !== undefined && sessions.length === 0;
+  // Treat failed loads as non-empty so the dashboard shell still paints.
+  const isEmpty = !sessionsError && sessions !== undefined && sessions.length === 0;
 
   if (isEmpty) {
     return (

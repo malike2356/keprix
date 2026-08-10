@@ -83,7 +83,7 @@ export default function RecentConversationsWidget() {
   const { data: sessions, isLoading, error } = useSWR<WorkspaceSession[]>(
     "home-conversations",
     () => fetchConversations(5),
-    { revalidateOnFocus: false },
+    { revalidateOnFocus: false, shouldRetryOnError: false, dedupingInterval: 10_000 },
   );
 
   return (

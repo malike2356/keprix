@@ -83,10 +83,19 @@ export default function OnboardingBanner() {
             {next?.copy || `${data.completed_count} of ${data.total_count} steps complete.`}
           </Typography>
         </Box>
-        <Button href={next?.action_url || "/agent-os/onboarding"} variant="contained" size="small">
+        <Button
+          href={next?.action_url || "/agent-os/onboarding"}
+          variant="contained"
+          size="small"
+          sx={{
+            color: "primary.contrastText",
+            bgcolor: "primary.main",
+            "&:hover": { bgcolor: "primary.dark", color: "primary.contrastText" },
+          }}
+        >
           {next ? "Continue" : "Open activation"}
         </Button>
-        <Button size="small" onClick={() => void dismiss()}>
+        <Button size="small" color="inherit" onClick={() => void dismiss()}>
           Skip for now
         </Button>
         <IconButton size="small" aria-label="Dismiss onboarding" onClick={() => void dismiss()}>

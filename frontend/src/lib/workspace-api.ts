@@ -551,11 +551,23 @@ export async function createConversation(title = "New conversation"): Promise<{ 
 }
 
 export async function fetchConversations(limit = 50): Promise<WorkspaceSession[]> {
-  const data = await parseJson<{ items: WorkspaceSession[] }>(
-    await ceApi(`/api/conversations?limit=${limit}&sort=created_at:desc`),
-    "conversations",
-  );
-  return data.items;
+  const safeLimit = Math.min(Math.max(1, limit), 100);
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timer =
+    controller != null
+      ? setTimeout(() => controller.abort(), 12_000)
+      : null;
+  try {
+    const data = await parseJson<{ items: WorkspaceSession[] }>(
+      await ceApi(`/api/conversations?limit=${safeLimit}&sort=updated_at:desc`, {
+        signal: controller?.signal,
+      }),
+      "conversations",
+    );
+    return Array.isArray(data.items) ? data.items : [];
+  } finally {
+    if (timer != null) clearTimeout(timer);
+  }
 }
 
 export async function fetchConversation(sessionId: string): Promise<{ messages: WorkspaceMessage[]; title: string }> {

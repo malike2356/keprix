@@ -229,7 +229,7 @@ async def models_available(_user: dict = Depends(get_current_user)) -> dict[str,
 @router.get("/api/conversations")
 async def list_conversations(
     user: dict = Depends(get_current_user),
-    limit: int = Query(20, ge=1, le=50),
+    limit: int = Query(20, ge=1, le=100),
     sort: str = Query("updated_at:desc"),
 ) -> dict[str, Any]:
     rows = workspace_repo.list_sessions(user, limit=limit, offset=0)

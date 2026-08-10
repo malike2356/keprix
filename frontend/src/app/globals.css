@@ -112,6 +112,15 @@ a {
   text-decoration: none;
 }
 
+/*
+  Unlayered `a { color: inherit }` beats @layer mui, so MUI Buttons rendered as
+  anchors (href / component="a") lose palette.contrastText and become unreadable
+  on contained primary fills. Revert those anchors to the MUI layer.
+*/
+a.MuiButton-root {
+  color: revert-layer;
+}
+
 :focus-visible {
   outline: 2px solid var(--kp-primary);
   outline-offset: 2px;
