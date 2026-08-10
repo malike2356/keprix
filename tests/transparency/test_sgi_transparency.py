@@ -68,6 +68,8 @@ def test_migration_revokes_update_delete():
     )
     source = migration.read_text(encoding="utf-8")
     assert "REVOKE UPDATE, DELETE ON generation_log" in source
+    assert "forbid_generation_log_mutation" in source
+    assert "generation_log_no_update" in source
     assert "app_user" in source
     assert "keprix" in source
 

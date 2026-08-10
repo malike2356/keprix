@@ -47,6 +47,8 @@ def upgrade() -> None:
     )
 
     # Application roles may INSERT/SELECT only. UPDATE and DELETE are revoked.
+    # Table owners in Postgres retain mutation rights even after REVOKE, so also
+    # install a BEFORE UPDATE/DELETE trigger that hard-blocks mutations.
     op.execute(
         """
         DO $$
@@ -62,6 +64,36 @@ def upgrade() -> None:
             END LOOP;
         END
         $$;
+        """
+    )
+    op.execute(
+        """
+        CREATE OR REPLACE FUNCTION forbid_generation_log_mutation()
+        RETURNS trigger
+        LANGUAGE plpgsql
+        AS $$
+        BEGIN
+            RAISE EXCEPTION 'generation_log is append-only; UPDATE and DELETE are forbidden';
+        END;
+        $$;
+        """
+    )
+    op.execute("DROP TRIGGER IF EXISTS generation_log_no_update ON generation_log")
+    op.execute("DROP TRIGGER IF EXISTS generation_log_no_delete ON generation_log")
+    op.execute(
+        """
+        CREATE TRIGGER generation_log_no_update
+        BEFORE UPDATE ON generation_log
+        FOR EACH ROW
+        EXECUTE FUNCTION forbid_generation_log_mutation()
+        """
+    )
+    op.execute(
+        """
+        CREATE TRIGGER generation_log_no_delete
+        BEFORE DELETE ON generation_log
+        FOR EACH ROW
+        EXECUTE FUNCTION forbid_generation_log_mutation()
         """
     )
 
