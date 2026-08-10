@@ -43,8 +43,6 @@ def estimate_confidence(
     if hits:
         score -= min(0.55, 0.18 * hits)
 
-    if len(text) < 40 and "?" in text:
-        score -= 0.15
     if "as an ai" in lower or "language model" in lower:
         score -= 0.1
 

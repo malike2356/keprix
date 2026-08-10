@@ -39,6 +39,20 @@ def test_confidence_explicit_overrides() -> None:
     assert score == 0.4
 
 
+@pytest.mark.parametrize(
+    "assistant_text",
+    [
+        "Hi. How can I help?",
+        "Hello. What would you like to work on?",
+        "Which campaign do you mean?",
+    ],
+)
+def test_normal_short_questions_do_not_trigger_escalation(assistant_text: str) -> None:
+    score = estimate_confidence(assistant_text=assistant_text)
+    assert score >= 0.7
+    assert should_escalate(score, 0.7) is False
+
+
 def test_escalate_when_below_threshold(esc: EscalationService) -> None:
     result = esc.maybe_escalate_turn(
         workspace_id="ws_1",
