@@ -49,6 +49,7 @@ _SELF_DOC_PATHS: tuple[str, ...] = (
     "docs/features/colleague-memory-continuity.md",
     "docs/features/agent-context-task-state.md",
     "docs/features/ai-transparency-sgi.md",
+    "docs/features/machine-readable-product-discovery.md",
     "docs/features/agentic-crm.md",
     "docs/features/crm-compliance.md",
     "docs/architecture/standalone-lead-outreach-capability-matrix.md",

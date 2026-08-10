@@ -1,0 +1,11 @@
+{
+  "name": "Keprix",
+  "version": "1.0.0",
+  "productSpec": "/productSpec.json",
+  "install": "/install.json",
+  "openapi": "https://app.keprixai.com/openapi.json",
+  "schema": "https://app.keprixai.com/api/product-schema.json",
+  "llmsTxt": "/llms.txt",
+  "app": "https://app.keprixai.com",
+  "home": "https://keprixai.com"
+}

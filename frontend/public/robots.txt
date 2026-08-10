@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /productSpec.json
+Allow: /install.json
+Allow: /llms.txt
+Allow: /ai.txt
+Allow: /.well-known/
+Sitemap: https://keprixai.com/sitemap.xml

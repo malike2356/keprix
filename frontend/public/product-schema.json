@@ -1,0 +1,210 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://keprixai.com#software",
+      "name": "Keprix",
+      "applicationCategory": "DeveloperApplication",
+      "applicationSubCategory": "AI agent operating system",
+      "operatingSystem": "Linux, macOS, Windows (Docker)",
+      "description": "Self-hosted AI agent OS with tools, playbooks, memory, governance, and optional hosted plans. Community Edition is free (BYOK); hosted Pro starts at 49 GBP/month.",
+      "url": "https://keprixai.com",
+      "downloadUrl": "https://github.com/malike2356/keprix",
+      "installUrl": "https://keprixai.com/install.json",
+      "softwareVersion": "1.0.0",
+      "license": "https://opensource.org/licenses/MIT",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Community",
+          "price": 0,
+          "priceCurrency": "GBP",
+          "url": "https://keprixai.com/pricing",
+          "availability": "https://schema.org/InStock",
+          "category": "community"
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "price": 49,
+          "priceCurrency": "GBP",
+          "url": "https://keprixai.com/pricing",
+          "availability": "https://schema.org/InStock",
+          "category": "pro_month",
+          "billingDuration": "P1M",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": 49,
+            "priceCurrency": "GBP",
+            "billingDuration": "P1M",
+            "unitText": "month"
+          }
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro (annual)",
+          "price": 449,
+          "priceCurrency": "GBP",
+          "url": "https://keprixai.com/pricing",
+          "availability": "https://schema.org/InStock",
+          "category": "pro_year",
+          "billingDuration": "P1Y",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": 449,
+            "priceCurrency": "GBP",
+            "billingDuration": "P1Y",
+            "unitText": "year"
+          }
+        },
+        {
+          "@type": "Offer",
+          "name": "Team",
+          "price": 129,
+          "priceCurrency": "GBP",
+          "url": "https://keprixai.com/pricing",
+          "availability": "https://schema.org/InStock",
+          "category": "team_month",
+          "billingDuration": "P1M",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": 129,
+            "priceCurrency": "GBP",
+            "billingDuration": "P1M",
+            "unitText": "month"
+          }
+        },
+        {
+          "@type": "Offer",
+          "name": "Team (annual)",
+          "price": 1290,
+          "priceCurrency": "GBP",
+          "url": "https://keprixai.com/pricing",
+          "availability": "https://schema.org/InStock",
+          "category": "team_year",
+          "billingDuration": "P1Y",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": 1290,
+            "priceCurrency": "GBP",
+            "billingDuration": "P1Y",
+            "unitText": "year"
+          }
+        }
+      ],
+      "featureList": "agent_runtime, tool_calling, playbooks, memory_rag, mcp_host, cron, self_hosted, docker_compose, governance_audit, credential_vault, domain_packs, customer_concierge, ai_transparency_sgi",
+      "provider": {
+        "@type": "Organization",
+        "name": "Verlox Ltd",
+        "url": "https://verlox.uk",
+        "email": "billing@verlox.uk"
+      },
+      "isAccessibleForFree": true
+    },
+    {
+      "@type": "Product",
+      "@id": "https://keprixai.com#product",
+      "name": "Keprix",
+      "description": "Self-hosted AI agent OS with tools, playbooks, memory, governance, and optional hosted plans. Community Edition is free (BYOK); hosted Pro starts at 49 GBP/month.",
+      "brand": {
+        "@type": "Brand",
+        "name": "Keprix"
+      },
+      "category": "AI agent operating system",
+      "url": "https://keprixai.com",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Community",
+          "price": 0,
+          "priceCurrency": "GBP",
+          "url": "https://keprixai.com/pricing",
+          "availability": "https://schema.org/InStock",
+          "category": "community"
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "price": 49,
+          "priceCurrency": "GBP",
+          "url": "https://keprixai.com/pricing",
+          "availability": "https://schema.org/InStock",
+          "category": "pro_month",
+          "billingDuration": "P1M",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": 49,
+            "priceCurrency": "GBP",
+            "billingDuration": "P1M",
+            "unitText": "month"
+          }
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro (annual)",
+          "price": 449,
+          "priceCurrency": "GBP",
+          "url": "https://keprixai.com/pricing",
+          "availability": "https://schema.org/InStock",
+          "category": "pro_year",
+          "billingDuration": "P1Y",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": 449,
+            "priceCurrency": "GBP",
+            "billingDuration": "P1Y",
+            "unitText": "year"
+          }
+        },
+        {
+          "@type": "Offer",
+          "name": "Team",
+          "price": 129,
+          "priceCurrency": "GBP",
+          "url": "https://keprixai.com/pricing",
+          "availability": "https://schema.org/InStock",
+          "category": "team_month",
+          "billingDuration": "P1M",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": 129,
+            "priceCurrency": "GBP",
+            "billingDuration": "P1M",
+            "unitText": "month"
+          }
+        },
+        {
+          "@type": "Offer",
+          "name": "Team (annual)",
+          "price": 1290,
+          "priceCurrency": "GBP",
+          "url": "https://keprixai.com/pricing",
+          "availability": "https://schema.org/InStock",
+          "category": "team_year",
+          "billingDuration": "P1Y",
+          "priceSpecification": {
+            "@type": "UnitPriceSpecification",
+            "price": 1290,
+            "priceCurrency": "GBP",
+            "billingDuration": "P1Y",
+            "unitText": "year"
+          }
+        }
+      ]
+    },
+    {
+      "@type": "WebAPI",
+      "@id": "https://app.keprixai.com#webapi",
+      "name": "Keprix HTTP API",
+      "description": "OpenAPI-described Keprix agent OS HTTP API",
+      "documentation": "https://app.keprixai.com/openapi.json",
+      "url": "https://app.keprixai.com/openapi.json",
+      "provider": {
+        "@type": "Organization",
+        "name": "Verlox Ltd",
+        "url": "https://verlox.uk"
+      }
+    }
+  ]
+}

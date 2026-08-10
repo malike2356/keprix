@@ -17,12 +17,20 @@ EXEMPT_PREFIXES = (
     "/api/health",
     "/api/auth/",
     "/api/v1/auth/",
+    "/api/discovery/",
+    "/api/product-schema.json",
+    "/api/transparency/",
     "/legal/",
     "/review/",
     "/api/governance/webhook",
     "/openapi.json",
     "/docs",
     "/redoc",
+    "/productSpec.json",
+    "/install.json",
+    "/llms.txt",
+    "/ai.txt",
+    "/.well-known/",
 )
 
 

@@ -1,0 +1,79 @@
+{
+  "version": "1.0.0",
+  "name": "keprix",
+  "displayName": "Keprix",
+  "description": "Self-hosted AI agent OS with tools, playbooks, memory, governance, and optional hosted plans. Community Edition is free (BYOK); hosted Pro starts at 49 GBP/month.",
+  "homepage": "https://keprixai.com",
+  "repository": "https://github.com/malike2356/keprix",
+  "license": "MIT",
+  "installCommand": "git clone https://github.com/malike2356/keprix.git && cd keprix && bash scripts/install.sh",
+  "alternateInstallCommands": [
+    {
+      "id": "docker_compose",
+      "command": "docker compose -f docker/docker-compose.yml up -d --build",
+      "docs": "https://keprixai.com/guide/"
+    },
+    {
+      "id": "pipx_cli",
+      "command": "pipx install '.[tui]' --force && keprix --version"
+    }
+  ],
+  "apiKeySetup": {
+    "byok": true,
+    "envFile": ".env",
+    "notes": "Community is BYOK. Set at least one provider key (OPENAI_API_KEY, ANTHROPIC_API_KEY, DEEPSEEK_API_KEY, or GEMINI_API_KEY)."
+  },
+  "requiredEnvVars": [
+    {
+      "name": "DEEPSEEK_API_KEY",
+      "required": false,
+      "description": "DeepSeek API key (common default provider)"
+    },
+    {
+      "name": "OPENAI_API_KEY",
+      "required": false,
+      "description": "OpenAI API key"
+    },
+    {
+      "name": "ANTHROPIC_API_KEY",
+      "required": false,
+      "description": "Anthropic API key"
+    },
+    {
+      "name": "KEPRIX_HOME",
+      "required": false,
+      "description": "Override data home (default ~/.keprix)"
+    }
+  ],
+  "postInstallChecks": [
+    {
+      "id": "health",
+      "command": "curl -fsS http://127.0.0.1:3333/api/health",
+      "expectHttp": 200
+    },
+    {
+      "id": "cli_version",
+      "command": "keprix --version"
+    },
+    {
+      "id": "product_spec",
+      "url": "https://keprixai.com/productSpec.json",
+      "expectJsonKeys": [
+        "name",
+        "pricingTiers",
+        "version"
+      ]
+    }
+  ],
+  "discovery": {
+    "productSpecUrl": "https://keprixai.com/productSpec.json",
+    "openapiUrl": "https://app.keprixai.com/openapi.json",
+    "schemaUrl": "https://app.keprixai.com/api/product-schema.json",
+    "llmsTxtUrl": "https://keprixai.com/llms.txt"
+  },
+  "configureHints": [
+    "Copy .env.example to .env and add a provider API key",
+    "For hosted SaaS use https://app.keprixai.com instead of local install",
+    "Grant AI feature consent under Privacy when KEPRIX_AI_CONSENT_REQUIRED=true"
+  ]
+}

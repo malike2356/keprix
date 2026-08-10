@@ -25,6 +25,17 @@ PUBLIC_PATHS = frozenset(
         "/openapi.json",
         "/docs",
         "/redoc",
+        "/api/product-schema.json",
+        "/api/discovery/product-spec",
+        "/api/discovery/install",
+        "/api/discovery/llms.txt",
+        "/api/discovery/ai.txt",
+        "/api/discovery/schema-validation",
+        "/productSpec.json",
+        "/install.json",
+        "/llms.txt",
+        "/ai.txt",
+        "/.well-known/keprix.json",
     }
 )
 

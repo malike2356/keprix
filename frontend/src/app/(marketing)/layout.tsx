@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Box from "@mui/material/Box";
+import JsonLd from "@/components/marketing/JsonLd";
 import { Navbar } from "@/components/marketing/Navbar";
 import { Footer } from "@/components/marketing/Footer";
 
@@ -24,6 +25,7 @@ export const metadata: Metadata = {
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <JsonLd />
       <Navbar />
       <Box component="main" sx={{ flex: 1, width: "100%", overflowX: "hidden" }}>
         {children}
