@@ -12,7 +12,6 @@ import RecentConversationsWidget from "@/components/home/RecentConversationsWidg
 import MemoryStatsWidget from "@/components/home/MemoryStatsWidget";
 import TasksWidget from "@/components/home/TasksWidget";
 import DiscoveryCard from "@/components/home/DiscoveryCard";
-import WelcomeEmptyState from "@/components/home/WelcomeEmptyState";
 import { fetchConversations, type WorkspaceSession } from "@/lib/workspace-api";
 import { fetchHomeBrainStats, type HomeBrainStats } from "@/lib/home-api";
 
@@ -23,7 +22,7 @@ const QUICK_LINKS = [
 ];
 
 export default function HomePageShell() {
-  const { data: sessions, error: sessionsError } = useSWR<WorkspaceSession[]>(
+  const { data: sessions } = useSWR<WorkspaceSession[]>(
     "home-conversations",
     () => fetchConversations(5),
     { revalidateOnFocus: false, shouldRetryOnError: false, dedupingInterval: 10_000 },
@@ -39,20 +38,8 @@ export default function HomePageShell() {
   const memoryCount = stats?.memoryCount ?? 0;
   const toolCount = stats?.toolCount ?? 0;
 
-  // Treat failed loads as non-empty so the dashboard shell still paints.
-  const isEmpty = !sessionsError && sessions !== undefined && sessions.length === 0;
-
-  if (isEmpty) {
-    return (
-      <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-        <Box sx={{ px: 4, pt: 4, pb: 3, borderBottom: "1px solid", borderColor: "divider" }}>
-          <GreetingBar />
-        </Box>
-        <WelcomeEmptyState />
-      </Box>
-    );
-  }
-
+  // Always keep the home dashboard shell. Do not swap to the chat welcome empty
+  // state after conversations resolve; that caused a visible layout jump on /home.
   return (
     <Box sx={{ maxWidth: 1080, mx: "auto", px: { xs: 2, sm: 4 }, py: 4, pb: 12 }}>
       <GreetingBar />
