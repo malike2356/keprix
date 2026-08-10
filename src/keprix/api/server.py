@@ -395,6 +395,26 @@ def _error_payload(status_code: int, detail: Any) -> dict[str, Any]:
 def create_app() -> FastAPI:
     _load_runtime_dotenv()
 
+    try:
+        from keprix.errors import install_global_uncaught_handler, on_error_logged
+        import logging as _logging_errors
+
+        install_global_uncaught_handler()
+        _err_log = _logging_errors.getLogger(__name__)
+
+        def _spike_hook(entry: dict, spike: dict) -> None:
+            if spike.get("triggered"):
+                _err_log.error(
+                    "error spike: %s ref=%s route=%s",
+                    spike.get("message"),
+                    entry.get("errorReference"),
+                    entry.get("route"),
+                )
+
+        on_error_logged(_spike_hook)
+    except Exception:
+        pass
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         try:
@@ -805,6 +825,12 @@ def create_app() -> FastAPI:
             app.include_router(conveyor_router)
         except Exception:
             logger.exception("conveyor routes failed to load")
+        try:
+            from keprix.errors.routes import router as errors_router
+
+            app.include_router(errors_router)
+        except Exception:
+            logger.exception("errors routes failed to load")
         from keprix.discovery import bootstrap_discovery
 
         try:
@@ -1001,27 +1027,52 @@ def create_app() -> FastAPI:
     app.include_router(intent_router)
 
     @app.exception_handler(HTTPException)
-    async def http_exception_handler(_request: Request, exc: HTTPException) -> JSONResponse:
+    async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
+        from keprix.errors import public_http_payload
+
+        body = public_http_payload(
+            exc.status_code,
+            exc.detail,
+            request_path=str(request.url.path),
+            method=request.method,
+        )
         return JSONResponse(
             status_code=exc.status_code,
-            content=_error_payload(exc.status_code, exc.detail),
+            content=body,
             headers=getattr(exc, "headers", None) or {},
         )
 
     @app.exception_handler(RequestValidationError)
     async def validation_exception_handler(
-        _request: Request, exc: RequestValidationError
+        request: Request, exc: RequestValidationError
     ) -> JSONResponse:
+        from keprix.errors import public_http_payload
+
         return JSONResponse(
             status_code=422,
-            content=_error_payload(422, exc.errors()),
+            content=public_http_payload(
+                422,
+                "Something wasn't right with your request",
+                request_path=str(request.url.path),
+                method=request.method,
+                request_body=None,
+                log_exception=exc,
+            ),
         )
 
     @app.exception_handler(Exception)
-    async def unhandled_exception_handler(_request: Request, exc: Exception) -> JSONResponse:
+    async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        from keprix.errors import public_http_payload
+
         return JSONResponse(
             status_code=500,
-            content=_error_payload(500, str(exc)),
+            content=public_http_payload(
+                500,
+                None,
+                request_path=str(request.url.path),
+                method=request.method,
+                log_exception=exc,
+            ),
         )
 
     @app.post("/api/v1/security/validate-path")
