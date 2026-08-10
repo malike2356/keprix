@@ -13,6 +13,8 @@ SRC_KEPRIX = SRC / "keprix"
 os.environ.setdefault("KEPRIX_DATA_DIR", str(ROOT / ".pytest-data"))
 os.environ.setdefault("KEPRIX_USE_MEMORY_STORE", "1")
 os.environ.setdefault("KEPRIX_DATABASE_URL", "")
+# Transparency tests opt into the consent gate explicitly; keep the wider suite unblocked.
+os.environ.setdefault("KEPRIX_AI_CONSENT_REQUIRED", "0")
 Path(os.environ["KEPRIX_DATA_DIR"]).mkdir(parents=True, exist_ok=True)
 
 for path in (str(SRC), str(SRC_KEPRIX)):

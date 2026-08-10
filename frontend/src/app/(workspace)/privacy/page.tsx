@@ -27,6 +27,18 @@ async function fetchConsents() {
   return response.json();
 }
 
+async function fetchAiConsent() {
+  const response = await ceApi("/api/transparency/consent");
+  if (!response.ok) throw new Error("Failed to load AI consent");
+  return response.json();
+}
+
+async function fetchAiFeatures() {
+  const response = await ceApi("/api/transparency/features");
+  if (!response.ok) throw new Error("Failed to load AI features");
+  return response.json();
+}
+
 async function fetchDsar() {
   const response = await ceApi("/api/privacy/dsar");
   if (!response.ok) throw new Error("Failed to load DSAR requests");
@@ -53,11 +65,16 @@ type RetentionPolicy = {
 
 export default function PrivacyPage() {
   const { data: consents, mutate: mutateConsents } = useSWR("privacy-consents", fetchConsents);
+  const { data: aiConsent, mutate: mutateAiConsent } = useSWR("ai-consent", fetchAiConsent);
+  const { data: aiFeatures } = useSWR("ai-features", fetchAiFeatures);
   const { data: dsar, mutate: mutateDsar } = useSWR("privacy-dsar", fetchDsar);
   const { data: health, mutate: mutateHealth } = useSWR("privacy-health", fetchHealth);
   const { data: retention, mutate: mutateRetention } = useSWR("privacy-retention", fetchRetention);
   const [purpose, setPurpose] = React.useState("analytics");
   const [granted, setGranted] = React.useState(true);
+  // Affirmative AI consent: never pre-checked.
+  const [aiAffirmative, setAiAffirmative] = React.useState(false);
+  const [aiFeature, setAiFeature] = React.useState("text_generation");
   const [eraseConfirm, setEraseConfirm] = React.useState(false);
   const [dryRunResult, setDryRunResult] = React.useState<unknown | null>(null);
   const [policyEdits, setPolicyEdits] = React.useState<Record<string, RetentionPolicy>>({});
@@ -78,6 +95,23 @@ export default function PrivacyPage() {
       body: JSON.stringify({ purpose, granted }),
     });
     await mutateConsents();
+  };
+
+  const recordAiConsent = async (action: "granted" | "withdrawn") => {
+    if (action === "granted" && !aiAffirmative) {
+      return;
+    }
+    await ceApi("/api/transparency/consent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        feature: aiFeature,
+        action,
+        affirmative: action === "granted" ? true : aiAffirmative,
+      }),
+    });
+    setAiAffirmative(false);
+    await mutateAiConsent();
   };
 
   const requestDsar = async () => {
@@ -134,6 +168,63 @@ export default function PrivacyPage() {
             {health.last_retention_run || "never"}.
           </Alert>
         ) : null}
+
+        <Card variant="outlined">
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              AI processing consent (EU AI Act / SGI)
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Affirmative, per-feature opt-in is required before your input is sent to an AI model.
+              Withdrawal appends a new immutable log entry; consents are never deleted.
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1, alignItems: "center" }}>
+              <TextField
+                select
+                size="small"
+                label="AI feature"
+                value={aiFeature}
+                onChange={(event) => setAiFeature(event.target.value)}
+                sx={{ minWidth: 220 }}
+              >
+                {(aiFeatures?.features || [
+                  "text_generation",
+                  "image_generation",
+                  "code_generation",
+                  "audio_generation",
+                  "video_generation",
+                  "embeddings",
+                ]).map((feature: string) => (
+                  <MenuItem key={feature} value={feature}>
+                    {feature}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={aiAffirmative}
+                    onChange={(event) => setAiAffirmative(event.target.checked)}
+                  />
+                }
+                label="I affirmatively consent to this AI feature"
+              />
+              <Button
+                variant="contained"
+                disabled={!aiAffirmative}
+                onClick={() => void recordAiConsent("granted")}
+              >
+                Grant consent
+              </Button>
+              <Button variant="outlined" onClick={() => void recordAiConsent("withdrawn")}>
+                Withdraw
+              </Button>
+            </Box>
+            {aiConsent?.features ? (
+              <StructuredDataView data={aiConsent.features} />
+            ) : null}
+          </CardContent>
+        </Card>
 
         <Card variant="outlined">
           <CardContent>

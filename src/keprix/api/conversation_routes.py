@@ -188,7 +188,21 @@ async def _stream_assistant_reply(
         return
     except Exception as exc:
         from keprix.quotas.actor_enforcer import ActorQuotaExceeded
+        from keprix.transparency.consent_gate import ConsentRequiredError
 
+        if isinstance(exc, ConsentRequiredError):
+            yield {
+                "event": "error",
+                "content": (
+                    f"AI consent required for '{exc.feature}'. "
+                    "Open Privacy and grant affirmative consent for this AI feature."
+                ),
+                "code": 403,
+                "ai_consent_required": True,
+                "feature": exc.feature,
+            }
+            yield {"event": "text_done"}
+            return
         if isinstance(exc, ActorQuotaExceeded):
             detail = exc.to_http_detail()
             msg = (

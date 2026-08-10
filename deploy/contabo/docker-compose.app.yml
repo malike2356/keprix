@@ -68,6 +68,10 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - KEPRIX_DEFAULT_PROVIDER=${KEPRIX_DEFAULT_PROVIDER:-deepseek}
       - KEPRIX_DEFAULT_MODEL=${KEPRIX_DEFAULT_MODEL:-deepseek-chat}
+      # EU AI Act SGI: consent gate + generation log + visible labeling
+      - KEPRIX_AI_CONSENT_REQUIRED=${KEPRIX_AI_CONSENT_REQUIRED:-true}
+      - KEPRIX_AI_LABELING_ENABLED=${KEPRIX_AI_LABELING_ENABLED:-true}
+      - KEPRIX_AI_GENERATION_LOG_ENABLED=${KEPRIX_AI_GENERATION_LOG_ENABLED:-true}
       # GUI Admin Settings writes LLM keys here (bind-mounted KEPRIX_HOME).
       - KEPRIX_ENV_FILE=${KEPRIX_ENV_FILE:-/home/keprix/.keprix/.env}
     env_file:

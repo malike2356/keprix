@@ -421,6 +421,9 @@ async def stream_chat_completion(
     include_codebase_context: bool = True,
 ) -> AsyncIterator[str]:
     started = time.perf_counter()
+    from keprix.transparency.pipeline import prepare_ai_call
+
+    prepare_ai_call(user_id, "text_generation")
     provider, model = parse_model_id(model_id)
     if not _provider_configured(provider):
         raise RuntimeError(
@@ -455,6 +458,7 @@ async def stream_chat_completion(
     usage_holder: dict[str, int] = {}
     resolved_model = model
     output_chars = 0
+    output_parts: list[str] = []
     quota_product_id = "keprix"
     scheduler_token = None
     estimated_input_tokens = _estimate_message_tokens(messages)
@@ -551,8 +555,10 @@ async def stream_chat_completion(
                             usage_holder.update(parsed)
                         text = _extract_delta_text(chunk)
                         if text:
-                            output_chars += len(text)
-                            yield redact_assistant_text(text)
+                            redacted = redact_assistant_text(text)
+                            output_chars += len(redacted)
+                            output_parts.append(redacted)
+                            yield redacted
             except ImportError as exc:
                 raise RuntimeError("OpenAI client is required for custom providers") from exc
         else:
@@ -587,15 +593,19 @@ async def stream_chat_completion(
                                 usage_holder.update(parsed)
                             text = _extract_delta_text(chunk)
                             if text:
-                                output_chars += len(text)
-                                yield redact_assistant_text(text)
+                                redacted = redact_assistant_text(text)
+                                output_chars += len(redacted)
+                                output_parts.append(redacted)
+                                yield redacted
                 else:
                     async for token in _stream_via_thread(client, resolved_model, messages, usage_holder):
                         output_chars += len(token)
+                        output_parts.append(token)
                         yield token
             except ImportError:
                 async for token in _stream_via_thread(client, resolved_model, messages, usage_holder):
                     output_chars += len(token)
+                    output_parts.append(token)
                     yield token
     finally:
         duration_ms = int((time.perf_counter() - started) * 1000)
@@ -638,6 +648,23 @@ async def stream_chat_completion(
                 note="stream completed without usage chunk",
                 channel=channel,
             )
+        except Exception:
+            pass
+        try:
+            from keprix.transparency.config import generation_log_enabled
+            from keprix.transparency.generation_log import get_generation_log_store
+
+            if generation_log_enabled() and output_parts:
+                get_generation_log_store().log_generation(
+                    input_payload=user_text,
+                    output_payload="".join(output_parts),
+                    model_name=str(resolved_model or model or provider or "unknown"),
+                    user_id=user_id or "local",
+                    content_type="text",
+                    feature_endpoint="chat",
+                    session_id=session_id,
+                    metadata={"channel": channel, "provider": provider},
+                )
         except Exception:
             pass
         try:

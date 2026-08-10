@@ -221,6 +221,7 @@ from keprix.security.vault_routes import router as vault_router
 from keprix.export.routes import router as export_router
 import keprix.export.export_tool  # noqa: F401 - registers export_document tool on import
 from keprix.privacy.routes import router as privacy_router
+from keprix.transparency.routes import router as transparency_router
 from keprix.review_gateway.routes import api_router as review_gateway_router
 from keprix.review_gateway.routes import public_router as review_public_router
 from keprix.legal.routes import router as legal_router
@@ -872,6 +873,7 @@ def create_app() -> FastAPI:
     app.include_router(cron_router)
     app.include_router(export_router)
     app.include_router(privacy_router)
+    app.include_router(transparency_router)
     app.include_router(review_gateway_router)
     app.include_router(review_public_router)
     app.include_router(legal_router)

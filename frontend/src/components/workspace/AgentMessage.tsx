@@ -1,5 +1,6 @@
 "use client";
 
+import AiGeneratedDisclosure from "@/components/transparency/AiGeneratedDisclosure";
 import FileOutputBlock from "@/components/workspace/blocks/FileOutputBlock";
 import MutationCard from "@/components/workspace/blocks/MutationCard";
 import TextBlock from "@/components/workspace/blocks/TextBlock";
@@ -65,6 +66,7 @@ export default function AgentMessage({
           boxShadow: 1,
         }}
       >
+        <AiGeneratedDisclosure contentType="text" />
         {message.content.map((block, index) => {
           if (block.type === "thinking") {
             return (
