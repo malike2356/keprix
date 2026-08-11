@@ -12,7 +12,7 @@ from keprix.api.codebase_context import build_codebase_system_prompt, redact_ass
 from keprix.memory.rag.self_knowledge import format_self_knowledge_context, retrieve_self_knowledge
 
 PROVIDER_DEFAULT_MODELS: dict[str, str] = {
-    "deepseek": "deepseek-chat",
+    "deepseek": "deepseek-v4-pro",
     "openai": "gpt-4.1-mini",
     "anthropic": "claude-sonnet-4-6",
     "gemini": "gemini-2.5-pro",
