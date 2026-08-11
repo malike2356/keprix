@@ -1921,10 +1921,30 @@ def _resolve_gateway_model(config: dict | None = None) -> str:
     cfg = config if config is not None else _load_gateway_config()
     model_cfg = cfg.get("model", {})
     if isinstance(model_cfg, str):
-        return model_cfg
+        configured = model_cfg.strip()
     elif isinstance(model_cfg, dict):
-        return model_cfg.get("default") or model_cfg.get("model") or ""
-    return ""
+        configured = str(model_cfg.get("default") or model_cfg.get("model") or "").strip()
+    else:
+        configured = ""
+
+    # The public API container can run without a mounted config.yaml.  In
+    # that deployment shape the provider is deliberately configured through
+    # environment variables, so an empty config model must not become an
+    # empty OpenAI-compatible `model` field.  Resolve the same canonical
+    # defaults used by the web inference API.
+    if configured:
+        return configured
+    for env_name in ("KEPRIX_MODEL", "KEPRIX_DEFAULT_MODEL", "DEEPSEEK_MODEL"):
+        value = os.getenv(env_name, "").strip()
+        if value:
+            return value
+    try:
+        from keprix.api.chat_inference import PROVIDER_DEFAULT_MODELS
+
+        provider = os.getenv("KEPRIX_DEFAULT_PROVIDER", "deepseek").strip().lower()
+        return PROVIDER_DEFAULT_MODELS.get(provider, PROVIDER_DEFAULT_MODELS["deepseek"])
+    except Exception:
+        return "deepseek-v4-pro"
 
 
 def _resolve_keprix_bin() -> Optional[list[str]]:
