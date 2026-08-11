@@ -63,6 +63,7 @@ services:
       - KEPRIX_ADMIN_USERNAME=${KEPRIX_ADMIN_USERNAME:-}
       # LLM for Carina/Aiva product sidecar (and shared backend brain)
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - DEEPSEEK_MODEL=${DEEPSEEK_MODEL:-deepseek-v4-pro}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
