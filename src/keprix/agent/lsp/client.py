@@ -366,6 +366,7 @@ class LSPClient:
                     "hover": {"contentFormat": ["markdown", "plaintext"]},
                     "definition": {"linkSupport": True},
                     "references": {},
+                    "rename": {"dynamicRegistration": False, "prepareSupport": True},
                     "documentSymbol": {"hierarchicalDocumentSymbolSupport": True},
                 },
                 "general": {"positionEncodings": ["utf-16"]},
@@ -753,6 +754,32 @@ class LSPClient:
             "textDocument/didSave",
             {"textDocument": {"uri": file_uri(abs_path)}},
         )
+
+    async def rename(self, path: str, line: int, character: int, new_name: str) -> dict:
+        """Request a server-validated semantic rename workspace edit."""
+        if not self.is_running:
+            raise LSPProtocolError("client not running")
+        capabilities = (self._initialize_result or {}).get("capabilities") or {}
+        provider = capabilities.get("renameProvider")
+        if not provider:
+            raise LSPProtocolError(f"rename not supported by {self.server_id}")
+        if not new_name or any(ch in new_name for ch in "\r\n\x00"):
+            raise ValueError("new_name must be a single non-empty line")
+        abs_path = os.path.abspath(path)
+        if abs_path not in self._files:
+            await self.open_file(abs_path)
+        result = await self._send_request_with_retry(
+            "textDocument/rename",
+            {
+                "textDocument": {"uri": file_uri(abs_path)},
+                "position": {"line": int(line), "character": int(character)},
+                "newName": new_name,
+            },
+            timeout=DIAGNOSTICS_REQUEST_TIMEOUT,
+        )
+        if not isinstance(result, dict):
+            raise LSPProtocolError("language server returned an invalid rename edit")
+        return result
 
     # ------------------------------------------------------------------
     # diagnostics: pull + wait

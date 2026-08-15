@@ -383,6 +383,40 @@ class LSPService:
             eventlog.log_clean(server_id, file_path)
         return diags
 
+    def rename_sync(
+        self,
+        file_path: str,
+        line: int,
+        character: int,
+        new_name: str,
+        *,
+        timeout: float = 10.0,
+    ) -> Dict[str, Any]:
+        """Return a semantic workspace edit without applying it to disk.
+
+        Applying the returned edit belongs to the coding edit transaction so
+        callers can validate every file and roll back atomically.
+        """
+        if not self.enabled_for(file_path):
+            raise RuntimeError("LSP is not enabled for this file")
+        try:
+            return self._loop.run(
+                self._rename_async(file_path, line, character, new_name),
+                timeout=timeout,
+            )
+        except asyncio.TimeoutError as exc:
+            raise RuntimeError("semantic rename timed out") from exc
+
+    async def _rename_async(
+        self, file_path: str, line: int, character: int, new_name: str
+    ) -> Dict[str, Any]:
+        client = await self._get_or_spawn(file_path)
+        if client is None:
+            raise RuntimeError("language server is unavailable")
+        result = await client.rename(file_path, line, character, new_name)
+        self._last_used[(client.server_id, client.workspace_root)] = time.time()
+        return result
+
     def _mark_broken_for_file(self, file_path: str, exc: BaseException) -> None:
         """Mark the (server_id, workspace_root) pair as broken so subsequent
         edits skip it instantly instead of re-paying timeout cost.
