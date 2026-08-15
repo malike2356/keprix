@@ -11,6 +11,7 @@ from pathlib import Path
 
 class EditOperation(str, Enum):
     REPLACE_EXACT = "replace_exact"
+    REPLACE_HASHED = "replace_hashed"
     INSERT_BEFORE = "insert_before"
     INSERT_AFTER = "insert_after"
     APPEND = "append"
@@ -31,6 +32,18 @@ class EditResult:
 
 def _hash_content(content: str) -> str:
     return hashlib.sha256(content.encode("utf-8")).hexdigest()
+
+
+def hash_anchor(text: str, *, length: int = 8) -> str:
+    """Return the short, stable hash used by hash-anchored edits.
+
+    The short value is only a locator.  Callers must still compare the full
+    anchor text before writing so a truncated-hash collision cannot mutate a
+    different region.
+    """
+    if not 4 <= length <= 64:
+        raise ValueError("anchor hash length must be between 4 and 64")
+    return _hash_content(text)[:length]
 
 
 def _diff_preview(old: str, new: str, path: str) -> str:
@@ -60,6 +73,43 @@ def replace_exact_block(repo_root: Path, rel_path: str, old_block: str, new_bloc
         )
     new_content = old_content.replace(old_block, new_block, 1)
     return _prepare_result(rel_path, EditOperation.REPLACE_EXACT, old_content, new_content, path)
+
+
+def replace_hashed_block(
+    repo_root: Path,
+    rel_path: str,
+    anchor_hash: str,
+    old_block: str,
+    new_block: str,
+) -> EditResult:
+    """Replace a block only when its content hash still matches the anchor.
+
+    The full block is required as the collision-safe verification step.  A
+    failed match never writes the file and includes a bounded surrounding
+    context so an agent can re-anchor without dumping the whole file.
+    """
+    path = (repo_root / rel_path).resolve()
+    _ensure_in_repo(path, repo_root)
+    old_content = _read(path)
+    operation = EditOperation.REPLACE_HASHED
+    current_hash = hash_anchor(old_block, length=len(anchor_hash)) if anchor_hash else ""
+    if not anchor_hash or current_hash.lower() != anchor_hash.lower() or old_block not in old_content:
+        preview = _anchor_context(old_content, old_block)
+        return EditResult(
+            ok=False,
+            path=rel_path,
+            operation=operation,
+            old_content_hash=_hash_content(old_content),
+            new_content_hash=_hash_content(old_content),
+            diff_preview="",
+            rollback_data={},
+            error=(
+                f"Stale anchor; file changed (expected {anchor_hash or '<empty>'}, "
+                f"current {current_hash or '<missing>'}). Context:\n{preview}"
+            ),
+        )
+    new_content = old_content.replace(old_block, new_block, 1)
+    return _prepare_result(rel_path, operation, old_content, new_content, path)
 
 
 def insert_before(repo_root: Path, rel_path: str, marker: str, insertion: str) -> EditResult:
@@ -127,6 +177,20 @@ def _prepare_result(rel_path: str, operation: EditOperation, old_content: str, n
         diff_preview=_diff_preview(old_content, new_content, rel_path),
         rollback_data={"old_content": old_content, "new_content": new_content, "path": str(path)},
     )
+
+
+def _anchor_context(content: str, anchor: str, *, radius: int = 240) -> str:
+    """Return bounded current text around the expected anchor location."""
+    if not content:
+        return "<empty file>"
+    marker = anchor.splitlines()[0].strip() if anchor.splitlines() else ""
+    index = content.find(marker) if marker else -1
+    if index < 0:
+        index = min(len(content), radius)
+        start = max(0, index - radius)
+    else:
+        start = max(0, index - radius)
+    return content[start : min(len(content), start + radius * 2)].strip()
 
 
 def _ensure_in_repo(path: Path, repo_root: Path) -> None:
