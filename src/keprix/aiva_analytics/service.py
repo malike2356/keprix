@@ -119,6 +119,73 @@ class AnalyticsService:
             "campaign_stats": campaign_stats,
         }
 
+    def acceptance_rate(self, workspace_id: str, *, days: int = 30, channel: str | None = None) -> dict[str, Any]:
+        """Return social connection acceptance totals, safely yielding zeroes."""
+        since = _since_days(days)
+        sent = self.store.query_events(workspace_id, metric_name=m.AIVA_SOCIAL_CONNECTION_SENT, since=since, limit=20000)
+        accepted = self.store.query_events(workspace_id, metric_name=m.AIVA_SOCIAL_CONNECTION_ACCEPTED, since=since, limit=20000)
+
+        def totals(rows: list[dict[str, Any]]) -> dict[str, float]:
+            out: dict[str, float] = {}
+            for row in rows:
+                labels = row.get("labels") or {}
+                key = str(labels.get("channel") or "unknown")
+                if channel and key != channel:
+                    continue
+                out[key] = out.get(key, 0.0) + float(row.get("metric_value") or 0)
+            return out
+
+        sent_by = totals(sent)
+        accepted_by = totals(accepted)
+        channels = sorted(set(sent_by) | set(accepted_by))
+        items = []
+        for key in channels:
+            sent_count = sent_by.get(key, 0.0)
+            accepted_count = accepted_by.get(key, 0.0)
+            items.append({"channel": key, "sent": sent_count, "accepted": accepted_count, "acceptance_rate": round(accepted_count / sent_count, 4) if sent_count else 0.0})
+        total_sent = sum(sent_by.values())
+        total_accepted = sum(accepted_by.values())
+        return {
+            "workspace_id": workspace_id,
+            "days": days,
+            "channel": channel,
+            "sent": total_sent,
+            "accepted": total_accepted,
+            "acceptance_rate": round(total_accepted / total_sent, 4) if total_sent else 0.0,
+            "items": items,
+        }
+
+    def daily_timeseries(self, workspace_id: str, *, days: int = 30, channel: str | None = None) -> dict[str, Any]:
+        """Bucket outreach and social funnel events by UTC day (the store's canonical zone)."""
+        since = _since_days(days)
+        names = {
+            m.AIVA_OUTREACH_SENT: "sends",
+            m.AIVA_OUTREACH_REPLIES: "replies",
+            m.AIVA_OUTREACH_OPENED: "opens",
+            "aiva_outreach_bounces_total": "bounces",
+            m.AIVA_SOCIAL_CONNECTION_ACCEPTED: "accepts",
+        }
+        buckets: dict[str, dict[str, float]] = {}
+        for row in self.store.query_events(workspace_id, since=since, limit=50000):
+            metric = row.get("metric_name")
+            key = names.get(metric)
+            if not key:
+                continue
+            labels = row.get("labels") or {}
+            if channel and str(labels.get("channel") or "") != channel:
+                continue
+            day = _day_key(str(row.get("recorded_at") or ""))
+            if not day:
+                continue
+            bucket = buckets.setdefault(day, {name: 0.0 for name in set(names.values())})
+            bucket[key] += float(row.get("metric_value") or 0)
+        start = (datetime.now(timezone.utc) - timedelta(days=max(1, int(days)) - 1)).date()
+        series = []
+        for offset in range(max(1, int(days))):
+            day = (start + timedelta(days=offset)).isoformat()
+            series.append({"day": day, **buckets.get(day, {name: 0.0 for name in set(names.values())})})
+        return {"workspace_id": workspace_id, "days": days, "channel": channel, "series": series}
+
     def worker(self, workspace_id: str, *, worker_id: str | None = None, days: int = 30) -> dict[str, Any]:
         since = _since_days(days)
         wid = worker_id or ""

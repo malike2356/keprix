@@ -11,12 +11,16 @@ from fastapi.testclient import TestClient
 from keprix.aiva_analytics.cron_seed import ANALYTICS_CRON_JOBS
 from keprix.aiva_analytics.metrics import (
     AIVA_AGENT_CALLS,
+    AIVA_OUTREACH_OPENED,
     AIVA_OUTREACH_SENT,
+    AIVA_SOCIAL_CONNECTION_ACCEPTED,
+    AIVA_SOCIAL_CONNECTION_SENT,
     record_agent_call,
     record_outreach_email_sent,
     record_outreach_reply,
     record_worker_escalation,
     record_worker_message,
+    record_metric,
 )
 from keprix.aiva_analytics.service import AnalyticsService, reset_analytics_service_for_tests
 from keprix.aiva_analytics.store import reset_analytics_store_for_tests
@@ -108,6 +112,22 @@ def test_daily_aggregate(analytics: AnalyticsService) -> None:
     assert result["rows_upserted"] >= 1
     daily = analytics.store.list_daily("ws_1")
     assert any(r["metric_name"] == AIVA_AGENT_CALLS for r in daily)
+
+
+def test_acceptance_rate_and_daily_timeseries_include_empty_days(analytics: AnalyticsService) -> None:
+    record_metric("ws_1", AIVA_SOCIAL_CONNECTION_SENT, labels={"channel": "linkedin"}, store=analytics.store)
+    record_metric("ws_1", AIVA_SOCIAL_CONNECTION_SENT, labels={"channel": "linkedin"}, store=analytics.store)
+    record_metric("ws_1", AIVA_SOCIAL_CONNECTION_ACCEPTED, labels={"channel": "linkedin"}, store=analytics.store)
+    record_metric("ws_1", AIVA_OUTREACH_SENT, labels={"channel": "email"}, store=analytics.store)
+    record_metric("ws_1", AIVA_OUTREACH_OPENED, labels={"channel": "email"}, store=analytics.store)
+
+    acceptance = analytics.acceptance_rate("ws_1", days=7)
+    assert acceptance["acceptance_rate"] == 0.5
+    assert acceptance["items"] == [{"channel": "linkedin", "sent": 2.0, "accepted": 1.0, "acceptance_rate": 0.5}]
+    series = analytics.daily_timeseries("ws_1", days=7)
+    assert len(series["series"]) == 7
+    assert sum(item["sends"] for item in series["series"]) == 1
+    assert sum(item["opens"] for item in series["series"]) == 1
 
 
 def test_cron_seed_spec() -> None:

@@ -64,3 +64,25 @@ async def usage(
     _user: dict = Depends(get_current_user),
 ) -> dict[str, Any]:
     return get_analytics_service().usage(_resolve_workspace(workspace_id, x_workspace_id), days=days)
+
+
+@router.get("/acceptance-rate")
+async def acceptance_rate(
+    days: int = Query(30, ge=1, le=365),
+    channel: str | None = Query(default=None),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    return get_analytics_service().acceptance_rate(_resolve_workspace(workspace_id, x_workspace_id), days=days, channel=channel)
+
+
+@router.get("/daily-timeseries")
+async def daily_timeseries(
+    days: int = Query(30, ge=1, le=365),
+    channel: str | None = Query(default=None),
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    _user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    return get_analytics_service().daily_timeseries(_resolve_workspace(workspace_id, x_workspace_id), days=days, channel=channel)
