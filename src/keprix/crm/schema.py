@@ -547,6 +547,37 @@ CREATE TABLE IF NOT EXISTS crm_ingestion_jobs (
 );
 CREATE INDEX IF NOT EXISTS ix_crm_ingestion_jobs_ws ON crm_ingestion_jobs(workspace_id, created_at);
 CREATE INDEX IF NOT EXISTS ix_crm_leads_website ON crm_leads(workspace_id, website);
+CREATE TABLE IF NOT EXISTS crm_capture_links (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    token_hash TEXT NOT NULL UNIQUE,
+    label TEXT NOT NULL DEFAULT '',
+    default_source TEXT NOT NULL DEFAULT 'capture',
+    redirect_url TEXT NOT NULL DEFAULT '',
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL,
+    rotated_at TEXT NOT NULL DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS ix_crm_capture_links_ws ON crm_capture_links(workspace_id, active);
+CREATE TABLE IF NOT EXISTS crm_capture_events (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    token_hash TEXT NOT NULL,
+    email TEXT NOT NULL,
+    fullname TEXT NOT NULL DEFAULT '',
+    company TEXT NOT NULL DEFAULT '',
+    phone TEXT NOT NULL DEFAULT '',
+    source TEXT NOT NULL DEFAULT 'capture',
+    campaign TEXT NOT NULL DEFAULT '',
+    utm TEXT NOT NULL DEFAULT '',
+    referrer TEXT NOT NULL DEFAULT '',
+    consent INTEGER NOT NULL DEFAULT 0,
+    ip_hash TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'new',
+    lead_id TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_crm_capture_events_rate ON crm_capture_events(token_hash, ip_hash, created_at);
 """
 
 
