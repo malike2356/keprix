@@ -796,10 +796,12 @@ def create_app() -> FastAPI:
         from keprix.crm.routes import router as crm_router
         from keprix.crm.capture_routes import public_router as crm_capture_public_router
         from keprix.crm.capture_routes import router as crm_capture_router
+        from keprix.crm.enrichment_routes import router as crm_enrichment_router
 
         app.include_router(crm_router)
         app.include_router(crm_capture_router)
         app.include_router(crm_capture_public_router)
+        app.include_router(crm_enrichment_router)
         try:
             from keprix.customer_concierge.routes import public_router as concierge_public_router
             from keprix.customer_concierge.routes import router as concierge_router
