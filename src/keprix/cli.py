@@ -1653,14 +1653,14 @@ def _prune_orphaned_branches(repo_root: str) -> None:
 # ============================================================================
 
 # Color palette (hex colors for Rich markup):
-# - Gold: #FFD700 (headers, highlights)
-# - Amber: #FFBF00 (secondary highlights)
-# - Bronze: #CD7F32 (tertiary elements)
-# - Light: #FFF8DC (text)
-# - Dim: #B8860B (muted text)
+# - Bright cyan: #00D9FF / #00E5FF (headers, highlights)
+# - Sky blue: #33AAFF (secondary highlights)
+# - Deep blue: #0066FF (tertiary elements)
+# - Light: #E0F7FF (text)
+# - Dim: #1B6FA8 (muted text)
 
 # ANSI building blocks for conversation display
-_ACCENT_ANSI_DEFAULT = "\033[1;38;2;255;215;0m"  # True-color #FFD700 bold — fallback
+_ACCENT_ANSI_DEFAULT = "\033[1;38;2;0;217;255m"  # True-color #00D9FF bold — fallback
 _BOLD = "\033[1m"
 _RST = "\033[0m"
 _STREAM_PAD = "    "  # 4-space indent for streamed response text (matches Panel padding)
@@ -1867,6 +1867,14 @@ def _detect_light_mode() -> bool:
 # become invisible the OTHER direction (dark gray on dark navy).
 _LIGHT_MODE_REMAP: dict[str, str] = {
     # Original (dark-mode) -> Light-mode replacement (darker, readable)
+    "#E0F7FF": "#0D2B36",   # ice-cyan text -> near-black teal
+    "#00D9FF": "#00738C",   # bright cyan (title/border) -> darker cyan
+    "#00E5FF": "#00738C",   # bright cyan (logo top band)
+    "#33AAFF": "#0A5FA8",   # sky blue (accent) -> darker blue
+    "#1B6FA8": "#0D4D7A",   # muted blue (dim) -> deeper blue
+    "#4FC3F7": "#0277BD",   # light blue (labels) -> darker blue
+    "#0066FF": "#0047AB",   # deep blue (border/rule) -> darker cobalt
+    "#5C7A94": "#33475B",   # session border (cool grey-blue) -> darker
     "#FFF8DC": "#1A1A1A",   # cornsilk -> near-black
     "#FFD700": "#9A6B00",   # gold -> dark goldenrod (readable on cream)
     "#FFBF00": "#8A5A00",   # amber -> dark amber
@@ -2963,29 +2971,26 @@ class ChatConsole:
         yield self
 
 # ASCII Art - KEPRIX-AGENT logo (full width, single line - requires ~95 char terminal)
-KEPRIX_AGENT_LOGO = """[bold #FFD700]██╗  ██╗███████╗██████╗ ███╗   ███╗███████╗███████╗       █████╗  ██████╗ ███████╗███╗   ██╗████████╗[/]
-[bold #FFD700]██║  ██║██╔════╝██╔══██╗████╗ ████║██╔════╝██╔════╝      ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝[/]
-[#FFBF00]███████║█████╗  ██████╔╝██╔████╔██║█████╗  ███████╗█████╗███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║[/]
-[#FFBF00]██╔══██║██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══╝  ╚════██║╚════╝██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║[/]
-[#CD7F32]██║  ██║███████╗██║  ██║██║ ╚═╝ ██║███████╗███████║      ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║[/]
-[#CD7F32]╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚══════╝      ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝[/]"""
+KEPRIX_AGENT_LOGO = """[bold #00E5FF]██╗  ██╗███████╗██████╗ ██████╗ ██╗ ██╗  ██╗       █████╗  ██████╗ ███████╗███╗   ██╗████████╗[/]
+[bold #00E5FF]██║ ██╔╝██╔════╝██╔══██╗██╔══██╗██║ ╚██╗██╔╝      ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝[/]
+[#33AAFF]█████╔╝ █████╗  ██████╔╝██████╔╝██║  ╚███╔╝ █████╗███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║[/]
+[#33AAFF]██╔═██╗ ██╔══╝  ██╔═══╝ ██╔══██╗██║  ██╔██╗ ╚════╝██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║[/]
+[#0066FF]██║  ██╗███████╗██║     ██║  ██║██║ ██╔╝ ██╗      ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║[/]
+[#0066FF]╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝ ╚═╝  ╚═╝      ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝[/]"""
 
-# ASCII Art - Keprix Caduceus (compact, fits in left panel)
-KEPRIX_CADUCEUS = """[#CD7F32]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⡀⠀⣀⣀⠀⢀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#CD7F32]⠀⠀⠀⠀⠀⠀⢀⣠⣴⣾⣿⣿⣇⠸⣿⣿⠇⣸⣿⣿⣷⣦⣄⡀⠀⠀⠀⠀⠀⠀[/]
-[#FFBF00]⠀⢀⣠⣴⣶⠿⠋⣩⡿⣿⡿⠻⣿⡇⢠⡄⢸⣿⠟⢿⣿⢿⣍⠙⠿⣶⣦⣄⡀⠀[/]
-[#FFBF00]⠀⠀⠉⠉⠁⠶⠟⠋⠀⠉⠀⢀⣈⣁⡈⢁⣈⣁⡀⠀⠉⠀⠙⠻⠶⠈⠉⠉⠀⠀[/]
-[#FFD700]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⣿⡿⠛⢁⡈⠛⢿⣿⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#FFD700]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠿⣿⣦⣤⣈⠁⢠⣴⣿⠿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#FFBF00]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠻⢿⣿⣦⡉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#FFBF00]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢷⣦⣈⠛⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#CD7F32]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣴⠦⠈⠙⠿⣦⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#CD7F32]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⣤⡈⠁⢤⣿⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#B8860B]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠷⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#B8860B]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⠑⢶⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#B8860B]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠁⢰⡆⠈⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#B8860B]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠳⠈⣡⠞⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#B8860B]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]"""
+# ASCII Art - Keprix hero mark: a hexagon with a "K" monogram (compact, fits in left panel)
+KEPRIX_HERO_MARK = """[bold #00E5FF]      ________      [/]
+[bold #00E5FF]    /          \\    [/]
+[bold #00E5FF]  /              \\  [/]
+[bold #00E5FF] /    ██╗ ██╗     \\ [/]
+[#33AAFF]|     ██║██╔╝      |[/]
+[#33AAFF]|     █████╔╝      |[/]
+[#33AAFF]|     ██╔═██╗      |[/]
+[#33AAFF]|     ██║ ██╗      |[/]
+[#0066FF] \\    ╚═╝ ╚═╝     / [/]
+[#0066FF]  \\              /  [/]
+[#0066FF]    \\          /    [/]
+[#0066FF]      \\________/    [/]"""
 
 
 
@@ -3003,8 +3008,8 @@ def _build_compact_banner() -> str:
     dim_color = _skin.get_color("banner_dim", "#B8860B") if _skin else "#B8860B"
 
     if skin_name == "default":
-        line1 = "⚕ Keprix - AI Agent OS"
-        tiny_line = "⚕ KEPRIX"
+        line1 = "⬡ Keprix - AI Agent OS"
+        tiny_line = "⬡ KEPRIX"
     else:
         agent_name = _skin.get_branding("agent_name", "Keprix") if _skin else "Keprix"
         line1 = f"{agent_name} - AI Agent Framework"
@@ -4178,12 +4183,12 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
 
             yolo_active = self._is_session_yolo_active()
             if width < 52:
-                text = f"⚕ {snapshot['model_short']} · {duration_label}"
+                text = f"⬡ {snapshot['model_short']} · {duration_label}"
                 if yolo_active:
                     text += " · ⚠ YOLO"
                 return self._trim_status_bar_text(text, width)
             if width < 76:
-                parts = [f"⚕ {snapshot['model_short']}", percent_label]
+                parts = [f"⬡ {snapshot['model_short']}", percent_label]
                 compressions = snapshot.get("compressions", 0)
                 if compressions:
                     parts.append(f"🗜️ {compressions}")
@@ -4206,7 +4211,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                 context_label = "ctx --"
 
             compressions = snapshot.get("compressions", 0)
-            parts = [f"⚕ {snapshot['model_short']}", context_label, percent_label]
+            parts = [f"⬡ {snapshot['model_short']}", context_label, percent_label]
             if compressions:
                 parts.append(f"🗜️ {compressions}")
             bg_count = snapshot.get("active_background_tasks", 0)
@@ -4226,7 +4231,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                 parts.append("⚠ YOLO")
             return self._trim_status_bar_text(" │ ".join(parts), width)
         except Exception:
-            return f"⚕ {self.model if getattr(self, 'model', None) else 'Keprix'}"
+            return f"⬡ {self.model if getattr(self, 'model', None) else 'Keprix'}"
 
     def _get_status_bar_fragments(self):
         if not self._status_bar_visible or getattr(self, '_model_picker_state', None):
@@ -4244,7 +4249,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
 
             if width < 52:
                 frags = [
-                    ("class:status-bar", " ⚕ "),
+                    ("class:status-bar", " ⬡ "),
                     ("class:status-bar-strong", snapshot["model_short"]),
                     ("class:status-bar-dim", " · "),
                     ("class:status-bar-dim", duration_label),
@@ -4261,7 +4266,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                     bg_count = snapshot.get("active_background_tasks", 0)
                     bg_proc_count = snapshot.get("active_background_processes", 0)
                     frags = [
-                        ("class:status-bar", " ⚕ "),
+                        ("class:status-bar", " ⬡ "),
                         ("class:status-bar-strong", snapshot["model_short"]),
                         ("class:status-bar-dim", " · "),
                         (self._status_bar_context_style(percent), percent_label),
@@ -4296,7 +4301,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                     bg_count = snapshot.get("active_background_tasks", 0)
                     bg_proc_count = snapshot.get("active_background_processes", 0)
                     frags = [
-                        ("class:status-bar", " ⚕ "),
+                        ("class:status-bar", " ⬡ "),
                         ("class:status-bar-strong", snapshot["model_short"]),
                         ("class:status-bar-dim", " │ "),
                         ("class:status-bar-dim", context_label),
@@ -4358,7 +4363,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                 if normalized_model and normalized_model != current_model:
                     if not self._model_is_default:
                         self._console_print(
-                            f"[yellow]⚠️  Normalized model '{current_model}' to '{normalized_model}' for {resolved_provider}.[/]"
+                            f"[#33AAFF]⚠️  Normalized model '{current_model}' to '{normalized_model}' for {resolved_provider}.[/]"
                         )
                     self.model = normalized_model
                     current_model = normalized_model
@@ -4374,7 +4379,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                 if canonical and canonical != current_model:
                     if not self._model_is_default:
                         self._console_print(
-                            f"[yellow]⚠️  Normalized Copilot model '{current_model}' to '{canonical}'.[/]"
+                            f"[#33AAFF]⚠️  Normalized Copilot model '{current_model}' to '{canonical}'.[/]"
                         )
                     self.model = canonical
                     current_model = canonical
@@ -4396,7 +4401,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                 if canonical and canonical != current_model:
                     if not self._model_is_default:
                         self._console_print(
-                            f"[yellow]⚠️  Stripped provider prefix from '{current_model}'; using '{canonical}' for {resolved_provider}.[/]"
+                            f"[#33AAFF]⚠️  Stripped provider prefix from '{current_model}'; using '{canonical}' for {resolved_provider}.[/]"
                         )
                     self.model = canonical
                     current_model = canonical
@@ -4418,7 +4423,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
             slug = current_model.split("/", 1)[1]
             if not self._model_is_default:
                 self._console_print(
-                    f"[yellow]⚠️  Stripped provider prefix from '{current_model}'; "
+                    f"[#33AAFF]⚠️  Stripped provider prefix from '{current_model}'; "
                     f"using '{slug}' for OpenAI Codex.[/]"
                 )
             self.model = slug
@@ -4876,10 +4881,10 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
             try:
                 from keprix_cli.skin_engine import get_active_skin
                 _skin = get_active_skin()
-                label = _skin.get_branding("response_label", "⚕ Keprix")
+                label = _skin.get_branding("response_label", "⬡ Keprix")
                 _text_hex = _skin.get_color("banner_text", "#FFF8DC")
             except Exception:
-                label = "⚕ Keprix"
+                label = "⬡ Keprix"
                 _text_hex = "#FFF8DC"
             # Build a true-color ANSI escape for the response text color
             # so streamed content matches the Rich Panel appearance.
@@ -5192,7 +5197,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
         if ctx_len and ctx_len < MINIMUM_CONTEXT_LENGTH:
             self._console_print()
             self._console_print(
-                f"[yellow]⚠️  Context length is only {ctx_len:,} tokens — "
+                f"[#33AAFF]⚠️  Context length is only {ctx_len:,} tokens — "
                 f"this is likely too low for agent use with tools.[/]"
             )
             self._console_print(
@@ -5219,7 +5224,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
         if is_nous_hermes_non_agentic(model_name):
             self._console_print()
             self._console_print(
-                "[bold yellow]⚠  Nous Research Keprix 3 & 4 models are NOT agentic and are not "
+                "[bold #33AAFF]⚠  Nous Research Keprix 3 & 4 models are NOT agentic and are not "
                 "designed for use with Keprix.[/]"
             )
             self._console_print(
@@ -5469,7 +5474,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
             
             if api_key_missing:
                 self._console_print()
-                self._console_print("[yellow]⚠️  Some tools disabled (missing API keys):[/]")
+                self._console_print("[#33AAFF]⚠️  Some tools disabled (missing API keys):[/]")
                 for item in api_key_missing:
                     tools_str = ", ".join(item["tools"][:2])  # Show first 2 tools
                     if len(item["tools"]) > 2:
@@ -7733,7 +7738,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                     )
                     if missing:
                         ChatConsole().print(
-                            f"[yellow]Skipped missing skills: {', '.join(missing)}[/]"
+                            f"[#33AAFF]Skipped missing skills: {', '.join(missing)}[/]"
                         )
                     if hasattr(self, '_pending_input'):
                         self._pending_input.put(msg)
@@ -10165,7 +10170,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                     if not _streaming_box_opened:
                         _streaming_box_opened = True
                         w = self._scrollback_box_width(getattr(self.console, "width", 80))
-                        label = " ⚕ Keprix "
+                        label = " ⬡ Keprix "
                         if self.show_timestamps:
                             label = f"{label}{datetime.now().strftime('%H:%M')} "
                         fill = w - 2 - KeprixCLI._status_bar_display_width(label)
@@ -10507,11 +10512,11 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                 try:
                     from keprix_cli.skin_engine import get_active_skin
                     _skin = get_active_skin()
-                    label = _skin.get_branding("response_label", "⚕ Keprix")
+                    label = _skin.get_branding("response_label", "⬡ Keprix")
                     _resp_color = _maybe_remap_for_light_mode(_skin.get_color("response_border", "#CD7F32"))
                     _resp_text = _maybe_remap_for_light_mode(_skin.get_color("banner_text", "#FFF8DC"))
                 except Exception:
-                    label = "⚕ Keprix"
+                    label = "⬡ Keprix"
                     _resp_color = _maybe_remap_for_light_mode("#CD7F32")
                     _resp_text = _maybe_remap_for_light_mode("#FFF8DC")
 
@@ -10709,9 +10714,9 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
         else:
             try:
                 from keprix_cli.skin_engine import get_active_goodbye
-                goodbye = get_active_goodbye("Goodbye! ⚕")
+                goodbye = get_active_goodbye("Goodbye! ⬡")
             except Exception:
-                goodbye = "Goodbye! ⚕"
+                goodbye = "Goodbye! ⬡"
             print(goodbye)
 
     def _get_tui_prompt_symbols(self) -> tuple[str, str]:
@@ -10800,7 +10805,7 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
         if self._command_running:
             return _state_fragment("class:prompt-working", self._command_spinner_frame())
         if self._agent_running:
-            return _state_fragment("class:prompt-working", "⚕")
+            return _state_fragment("class:prompt-working", "⬡")
         if self._voice_mode:
             return _state_fragment("class:voice-prompt", "🎤")
         return [("class:prompt", symbol)]

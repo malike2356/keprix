@@ -17,29 +17,29 @@ All fields are optional. Missing values inherit from the ``default`` skin.
 
     # Colors: hex values for Rich markup (banner, UI, response box)
     colors:
-      banner_border: "#CD7F32"            # Panel border color
-      banner_title: "#FFD700"             # Panel title text color
-      banner_accent: "#FFBF00"            # Section headers (Available Tools, etc.)
-      banner_dim: "#B8860B"               # Dim/muted text (separators, labels)
-      banner_text: "#FFF8DC"              # Body text (tool names, skill names)
-      ui_accent: "#FFBF00"               # General UI accent
-      ui_label: "#DAA520"                # UI labels (warm gold; teal clashed w/ default banner gold)
+      banner_border: "#0066FF"            # Panel border color
+      banner_title: "#00D9FF"             # Panel title text color
+      banner_accent: "#33AAFF"            # Section headers (Available Tools, etc.)
+      banner_dim: "#1B6FA8"               # Dim/muted text (separators, labels)
+      banner_text: "#E0F7FF"              # Body text (tool names, skill names)
+      ui_accent: "#33AAFF"               # General UI accent
+      ui_label: "#4FC3F7"                # UI labels (sky blue; matches default banner cyan)
       ui_ok: "#4caf50"                   # Success indicators
       ui_error: "#ef5350"                # Error indicators
       ui_warn: "#ffa726"                 # Warning indicators
-      prompt: "#FFF8DC"                  # Prompt text color
-      input_rule: "#CD7F32"              # Input area horizontal rule
-      response_border: "#FFD700"         # Response box border (ANSI)
+      prompt: "#E0F7FF"                  # Prompt text color
+      input_rule: "#0066FF"              # Input area horizontal rule
+      response_border: "#00D9FF"         # Response box border (ANSI)
       status_bar_bg: "#1a1a2e"           # Status bar background
       status_bar_text: "#C0C0C0"         # Status bar default text
-      status_bar_strong: "#FFD700"       # Status bar highlighted text
-      status_bar_dim: "#8B8682"          # Status bar separators/muted text
+      status_bar_strong: "#00D9FF"       # Status bar highlighted text
+      status_bar_dim: "#5C7A94"          # Status bar separators/muted text
       status_bar_good: "#8FBC8F"         # Healthy context usage
-      status_bar_warn: "#FFD700"         # Warning context usage
+      status_bar_warn: "#00D9FF"         # Warning context usage
       status_bar_bad: "#FF8C00"          # High context usage
       status_bar_critical: "#FF6B6B"     # Critical context usage
-      session_label: "#DAA520"           # Session label color
-      session_border: "#8B8682"          # Session ID dim color
+      session_label: "#4FC3F7"           # Session label color
+      session_border: "#5C7A94"          # Session ID dim color
       status_bar_bg: "#1a1a2e"          # TUI status/usage bar background
       voice_status_bg: "#1a1a2e"        # TUI voice status background
       selection_bg: "#333355"           # TUI mouse-selection highlight background
@@ -67,8 +67,8 @@ All fields are optional. Missing values inherit from the ``default`` skin.
     branding:
       agent_name: "Keprix"          # Banner title, status display
       welcome: "Welcome message"          # Shown at CLI startup
-      goodbye: "Goodbye! ⚕"              # Shown on exit
-      response_label: " ⚕ Keprix "       # Response box header label
+      goodbye: "Goodbye! ⬡"              # Shown on exit
+      response_label: " ⬡ Keprix "       # Response box header label
       prompt_symbol: "❯"                 # Input prompt symbol (bare token; renderers add trailing space)
       help_header: "(^_^)? Commands"      # /help header text
 
@@ -98,7 +98,7 @@ USAGE
 BUILT-IN SKINS
 ==============
 
-- ``default`` — Classic Keprix gold/kawaii (the current look)
+- ``default`` — Classic Keprix cyan/sleek (the current look)
 - ``ares``    — Crimson/bronze war-god theme with custom spinner wings
 - ``mono``    — Clean grayscale monochrome
 - ``slate``   — Cool blue developer-focused theme
@@ -137,7 +137,7 @@ class SkinConfig:
     tool_prefix: str = "┊"
     tool_emojis: Dict[str, str] = field(default_factory=dict)  # per-tool emoji overrides
     banner_logo: str = ""    # Rich-markup ASCII art logo (replaces KEPRIX_AGENT_LOGO)
-    banner_hero: str = ""    # Rich-markup hero art (replaces KEPRIX_CADUCEUS)
+    banner_hero: str = ""    # Rich-markup hero art (replaces KEPRIX_HERO_MARK)
 
     def get_color(self, key: str, fallback: str = "") -> str:
         """Get a color value with fallback."""
@@ -164,24 +164,24 @@ class SkinConfig:
 _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
     "default": {
         "name": "default",
-        "description": "Classic Keprix — gold and kawaii",
+        "description": "Classic Keprix — cyan and sleek",
         "colors": {
-            "banner_border": "#CD7F32",
-            "banner_title": "#FFD700",
-            "banner_accent": "#FFBF00",
-            "banner_dim": "#B8860B",
-            "banner_text": "#FFF8DC",
-            "ui_accent": "#FFBF00",
-            "ui_label": "#DAA520",
+            "banner_border": "#0066FF",
+            "banner_title": "#00D9FF",
+            "banner_accent": "#33AAFF",
+            "banner_dim": "#1B6FA8",
+            "banner_text": "#E0F7FF",
+            "ui_accent": "#33AAFF",
+            "ui_label": "#4FC3F7",
             "ui_ok": "#4caf50",
             "ui_error": "#ef5350",
             "ui_warn": "#ffa726",
-            "prompt": "#FFF8DC",
-            "input_rule": "#CD7F32",
-            "response_border": "#FFD700",
+            "prompt": "#E0F7FF",
+            "input_rule": "#0066FF",
+            "response_border": "#00D9FF",
             "status_bar_bg": "#1a1a2e",
-            "session_label": "#DAA520",
-            "session_border": "#8B8682",
+            "session_label": "#4FC3F7",
+            "session_border": "#5C7A94",
         },
         "spinner": {
             # Empty = use hardcoded defaults in display.py
@@ -189,8 +189,8 @@ _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
         "branding": {
             "agent_name": "Keprix",
             "welcome": "Welcome to Keprix! Type your message or /help for commands.",
-            "goodbye": "Goodbye! ⚕",
-            "response_label": " ⚕ Keprix ",
+            "goodbye": "Goodbye! ⬡",
+            "response_label": " ⬡ Keprix ",
             "prompt_symbol": "❯",
             "help_header": "(^_^)? Available Commands",
         },
@@ -300,8 +300,8 @@ _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
         "branding": {
             "agent_name": "Keprix",
             "welcome": "Welcome to Keprix! Type your message or /help for commands.",
-            "goodbye": "Goodbye! ⚕",
-            "response_label": " ⚕ Keprix ",
+            "goodbye": "Goodbye! ⬡",
+            "response_label": " ⬡ Keprix ",
             "prompt_symbol": "❯",
             "help_header": "[?] Available Commands",
         },
@@ -339,8 +339,8 @@ _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
         "branding": {
             "agent_name": "Keprix",
             "welcome": "Welcome to Keprix! Type your message or /help for commands.",
-            "goodbye": "Goodbye! ⚕",
-            "response_label": " ⚕ Keprix ",
+            "goodbye": "Goodbye! ⬡",
+            "response_label": " ⬡ Keprix ",
             "prompt_symbol": "❯",
             "help_header": "(^_^)? Available Commands",
         },
@@ -376,8 +376,8 @@ _BUILTIN_SKINS: Dict[str, Dict[str, Any]] = {
         "branding": {
             "agent_name": "Keprix",
             "welcome": "Welcome to Keprix! Type your message or /help for commands.",
-            "goodbye": "Goodbye! ⚕",
-            "response_label": " ⚕ Keprix ",
+            "goodbye": "Goodbye! ⬡",
+            "response_label": " ⬡ Keprix ",
             "prompt_symbol": "❯",
             "help_header": "[?] Available Commands",
         },
@@ -834,7 +834,7 @@ def get_active_help_header(fallback: str = "(^_^)? Available Commands") -> str:
 
 
 
-def get_active_goodbye(fallback: str = "Goodbye! ⚕") -> str:
+def get_active_goodbye(fallback: str = "Goodbye! ⬡") -> str:
     """Get the goodbye line from the active skin."""
     try:
         return get_active_skin().get_branding("goodbye", fallback)
@@ -859,9 +859,9 @@ def get_prompt_toolkit_style_overrides() -> Dict[str, str]:
     # color schemes).  Skins can opt into a colored prompt by setting
     # `prompt` explicitly in their YAML.
     prompt = skin.get_color("prompt", "")
-    input_rule = skin.get_color("input_rule", "#CD7F32")
-    title = skin.get_color("banner_title", "#FFD700")
-    text = skin.get_color("banner_text", "#FFF8DC")
+    input_rule = skin.get_color("input_rule", "#0066FF")
+    title = skin.get_color("banner_title", "#00D9FF")
+    text = skin.get_color("banner_text", "#E0F7FF")
     dim = skin.get_color("banner_dim", "#555555")
     label = skin.get_color("ui_label", title)
     warn = skin.get_color("ui_warn", "#FF8C00")

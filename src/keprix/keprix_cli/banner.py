@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 # ANSI building blocks for conversation display
 # =========================================================================
 
-_GOLD = "\033[1;38;2;255;215;0m"  # True-color #FFD700 bold
+_GOLD = "\033[1;38;2;0;217;255m"  # True-color #00D9FF bold
 _BOLD = "\033[1m"
 _DIM = "\033[2m"
 _RST = "\033[0m"
@@ -61,28 +61,27 @@ def _skin_color(key: str, fallback: str) -> str:
 
 from keprix_cli import __version__ as VERSION, __release_date__ as RELEASE_DATE
 
-KEPRIX_AGENT_LOGO = """[bold #FFD700]██╗  ██╗███████╗██████╗ ███╗   ███╗███████╗███████╗       █████╗  ██████╗ ███████╗███╗   ██╗████████╗[/]
-[bold #FFD700]██║  ██║██╔════╝██╔══██╗████╗ ████║██╔════╝██╔════╝      ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝[/]
-[#FFBF00]███████║█████╗  ██████╔╝██╔████╔██║█████╗  ███████╗█████╗███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║[/]
-[#FFBF00]██╔══██║██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══╝  ╚════██║╚════╝██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║[/]
-[#CD7F32]██║  ██║███████╗██║  ██║██║ ╚═╝ ██║███████╗███████║      ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║[/]
-[#CD7F32]╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝╚══════╝      ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝[/]"""
+KEPRIX_AGENT_LOGO = """[bold #00E5FF]██╗  ██╗███████╗██████╗ ██████╗ ██╗ ██╗  ██╗       █████╗  ██████╗ ███████╗███╗   ██╗████████╗[/]
+[bold #00E5FF]██║ ██╔╝██╔════╝██╔══██╗██╔══██╗██║ ╚██╗██╔╝      ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝[/]
+[#33AAFF]█████╔╝ █████╗  ██████╔╝██████╔╝██║  ╚███╔╝ █████╗███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║[/]
+[#33AAFF]██╔═██╗ ██╔══╝  ██╔═══╝ ██╔══██╗██║  ██╔██╗ ╚════╝██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║[/]
+[#0066FF]██║  ██╗███████╗██║     ██║  ██║██║ ██╔╝ ██╗      ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║[/]
+[#0066FF]╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝ ╚═╝  ╚═╝      ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝[/]"""
 
-KEPRIX_CADUCEUS = """[#CD7F32]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⡀⠀⣀⣀⠀⢀⣀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#CD7F32]⠀⠀⠀⠀⠀⠀⢀⣠⣴⣾⣿⣿⣇⠸⣿⣿⠇⣸⣿⣿⣷⣦⣄⡀⠀⠀⠀⠀⠀⠀[/]
-[#FFBF00]⠀⢀⣠⣴⣶⠿⠋⣩⡿⣿⡿⠻⣿⡇⢠⡄⢸⣿⠟⢿⣿⢿⣍⠙⠿⣶⣦⣄⡀⠀[/]
-[#FFBF00]⠀⠀⠉⠉⠁⠶⠟⠋⠀⠉⠀⢀⣈⣁⡈⢁⣈⣁⡀⠀⠉⠀⠙⠻⠶⠈⠉⠉⠀⠀[/]
-[#FFD700]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⣿⡿⠛⢁⡈⠛⢿⣿⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#FFD700]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠿⣿⣦⣤⣈⠁⢠⣴⣿⠿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#FFBF00]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠻⢿⣿⣦⡉⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#FFBF00]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢷⣦⣈⠛⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#CD7F32]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣴⠦⠈⠙⠿⣦⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#CD7F32]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣿⣤⡈⠁⢤⣿⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#B8860B]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠛⠷⠄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#B8860B]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⠑⢶⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#B8860B]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠁⢰⡆⠈⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#B8860B]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠳⠈⣡⠞⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]
-[#B8860B]⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀[/]"""
+# Abstract geometric mark: a hexagon with a "K" monogram inside. No
+# mythological or medical symbolism (replaces the old caduceus hero art).
+KEPRIX_HERO_MARK = """[bold #00E5FF]      ________      [/]
+[bold #00E5FF]    /          \\    [/]
+[bold #00E5FF]  /              \\  [/]
+[bold #00E5FF] /    ██╗ ██╗     \\ [/]
+[#33AAFF]|     ██║██╔╝      |[/]
+[#33AAFF]|     █████╔╝      |[/]
+[#33AAFF]|     ██╔═██╗      |[/]
+[#33AAFF]|     ██║ ██╗      |[/]
+[#0066FF] \\    ╚═╝ ╚═╝     / [/]
+[#0066FF]  \\              /  [/]
+[#0066FF]    \\          /    [/]
+[#0066FF]      \\________/    [/]"""
 
 
 
@@ -561,7 +560,7 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
                          session_id: str = None,
                          get_toolset_for_tool=None,
                          context_length: int = None):
-    """Build and print a welcome banner with caduceus on left and info on right.
+    """Build and print a welcome banner with the hero mark on left and info on right.
 
     Args:
         console: Rich Console instance.
@@ -603,19 +602,19 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
     layout_table.add_column("right", justify="left")
 
     # Resolve skin colors once for the entire banner
-    accent = _skin_color("banner_accent", "#FFBF00")
-    dim = _skin_color("banner_dim", "#B8860B")
-    text = _skin_color("banner_text", "#FFF8DC")
-    session_color = _skin_color("session_border", "#8B8682")
+    accent = _skin_color("banner_accent", "#33AAFF")
+    dim = _skin_color("banner_dim", "#1B6FA8")
+    text = _skin_color("banner_text", "#E0F7FF")
+    session_color = _skin_color("session_border", "#5C7A94")
 
-    # Use skin's custom caduceus art if provided
+    # Use skin's custom hero art if provided
     try:
         from keprix_cli.skin_engine import get_active_skin
         _bskin = get_active_skin()
-        _hero = _bskin.banner_hero if hasattr(_bskin, 'banner_hero') and _bskin.banner_hero else KEPRIX_CADUCEUS
+        _hero = _bskin.banner_hero if hasattr(_bskin, 'banner_hero') and _bskin.banner_hero else KEPRIX_HERO_MARK
     except Exception:
         _bskin = None
-        _hero = KEPRIX_CADUCEUS
+        _hero = KEPRIX_HERO_MARK
     left_lines = ["", _hero, ""]
     model_short = model.split("/")[-1] if "/" in model else model
     if model_short.endswith(".gguf"):
@@ -660,7 +659,7 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
             if name in disabled_tools:
                 colored_names.append(f"[red]{name}[/]")
             elif name in lazy_tools:
-                colored_names.append(f"[yellow]{name}[/]")
+                colored_names.append(f"[#33AAFF]{name}[/]")
             else:
                 colored_names.append(f"[{text}]{name}[/]")
 
@@ -681,7 +680,7 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
                 elif name in disabled_tools:
                     colored_names.append(f"[red]{name}[/]")
                 elif name in lazy_tools:
-                    colored_names.append(f"[yellow]{name}[/]")
+                    colored_names.append(f"[#33AAFF]{name}[/]")
                 else:
                     colored_names.append(f"[{text}]{name}[/]")
             tools_str = ", ".join(colored_names)
@@ -716,7 +715,7 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
             elif status == "connecting":
                 right_lines.append(
                     f"[dim {dim}]{srv['name']}[/] [dim]({srv['transport']})[/] "
-                    f"[yellow]— connecting[/]"
+                    f"[#33AAFF]— connecting[/]"
                 )
             elif status == "configured":
                 right_lines.append(
@@ -786,17 +785,17 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
             if behind > 0:
                 commits_word = "commit" if behind == 1 else "commits"
                 right_lines.append(
-                    f"[bold yellow]⚠ {behind} {commits_word} behind[/]"
-                    f"[dim yellow] — run [bold]{recommended_update_command()}[/bold] to update[/]"
+                    f"[bold #33AAFF]⚠ {behind} {commits_word} behind[/]"
+                    f"[dim #1B6FA8] — run [bold]{recommended_update_command()}[/bold] to update[/]"
                 )
             else:
                 # UPDATE_AVAILABLE_NO_COUNT: nix-built keprix; we know an update
                 # exists but not by how much, and we don't know how the user
                 # installed it (nix run, profile, system flake, home-manager).
                 managed_cmd = get_managed_update_command()
-                line = "[bold yellow]⚠ update available[/]"
+                line = "[bold #33AAFF]⚠ update available[/]"
                 if managed_cmd:
-                    line += f"[dim yellow] — run [bold]{managed_cmd}[/bold][/]"
+                    line += f"[dim #1B6FA8] — run [bold]{managed_cmd}[/bold][/]"
                 right_lines.append(line)
     except Exception:
         pass  # Never break the banner over an update check
@@ -809,8 +808,8 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
         from keprix_cli.config import detect_install_method
         if detect_install_method() == "pip":
             right_lines.append(
-                "[bold yellow]⚠ pip install not officially supported[/]"
-                "[dim yellow] — exists for reasons other than user install; "
+                "[bold #33AAFF]⚠ pip install not officially supported[/]"
+                "[dim #1B6FA8] — exists for reasons other than user install; "
                 "expect instability and an inability to support issues[/]"
             )
     except Exception:
@@ -819,8 +818,8 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
     right_content = "\n".join(right_lines)
     layout_table.add_row(left_content, right_content)
 
-    title_color = _skin_color("banner_title", "#FFD700")
-    border_color = _skin_color("banner_border", "#CD7F32")
+    title_color = _skin_color("banner_title", "#00D9FF")
+    border_color = _skin_color("banner_border", "#0066FF")
     version_label = format_banner_version_label()
     release_info = get_latest_release_tag()
     if release_info:

@@ -348,7 +348,7 @@ def _cmd_migrate(args):
     )
     print(
         color(
-            "│          ⚕ Keprix — OpenClaw Migration                 │",
+            "│          ⬡ Keprix — OpenClaw Migration                 │",
             Colors.MAGENTA,
         )
     )
@@ -574,7 +574,7 @@ def _cmd_cleanup(args):
     )
     print(
         color(
-            "│          ⚕ Keprix — OpenClaw Cleanup                   │",
+            "│          ⬡ Keprix — OpenClaw Cleanup                   │",
             Colors.MAGENTA,
         )
     )
