@@ -297,6 +297,22 @@ export const MARKETING_FEATURE_CATEGORIES: MarketingFeatureCategory[] = [
         docsPath: "features/companies-house",
       },
       {
+        // Dedicated docs page not written yet; docsPath intentionally
+        // omitted rather than pointed at a doc that doesn't cover this.
+        id: "decision-maker",
+        name: "Decision-maker identification",
+        description:
+          "Fills in a missing contact name from a lead's company officers, ranked by role, with a web-search fallback. Fill-empty-only - never invents a name or overwrites one you already have.",
+        usedFor: "Turning a company-only lead into a named contact before outreach.",
+      },
+      {
+        id: "osint-enrichment",
+        name: "OSINT public-footprint enrichment",
+        description:
+          "Optional, policy-gated lookup of a contact's public online footprint. Off by default, requires explicit opt-in plus a lawful-use acknowledgement, and never surfaces breach data or recovery emails/phones.",
+        usedFor: "Extra context on a lead when you've explicitly turned it on for that workspace.",
+      },
+      {
         id: "outreach",
         name: "Outreach",
         description: "Campaigns, sequences, outbox, replies, suppressions, and deliverability.",
