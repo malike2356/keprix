@@ -16,7 +16,12 @@ from keprix.setup.registry import get_catalog, get_item
 from keprix.setup.runtime_config import get_runtime_config
 from keprix.setup.status import setup_status_snapshot
 from keprix.setup.validation import validate_service
-from keprix.setup.wizard import is_setup_complete, mark_setup_complete, wizard_status
+from keprix.setup.wizard import (
+    is_public_setup_disabled,
+    is_setup_complete,
+    mark_setup_complete,
+    wizard_status,
+)
 
 router = APIRouter(prefix="/api/setup", tags=["setup"])
 
@@ -57,6 +62,13 @@ async def get_wizard_status() -> dict[str, Any]:
 
 @router.post("/step/{step}")
 async def wizard_step(step: int, request: Request) -> dict[str, Any]:
+    # Defense in depth for the public marketing/demo instance: refuse
+    # regardless of is_setup_complete()'s current value, so a future reset
+    # of the completion marker can never reopen owner-account creation to
+    # an anonymous visitor there. See is_public_setup_disabled()'s
+    # docstring.
+    if is_public_setup_disabled():
+        raise HTTPException(status_code=403, detail="Setup is not available on this instance")
     if is_setup_complete():
         raise HTTPException(status_code=403, detail="Setup already complete")
 

@@ -28,16 +28,52 @@ export default function AuthSetupPage() {
   const [apiKey, setApiKey] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
+  // null = still checking; true = this is the maintainer's own public
+  // marketing/demo instance, never a place for a visitor to create an
+  // owner account. See keprix.setup.wizard.is_public_setup_disabled().
+  const [publicSetupDisabled, setPublicSetupDisabled] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
     void ceApi("/api/setup/wizard").then(async (response) => {
       if (!response.ok) return;
-      const body = (await response.json()) as { complete?: boolean };
+      const body = (await response.json()) as { complete?: boolean; public_setup_disabled?: boolean };
+      if (body.public_setup_disabled) {
+        setPublicSetupDisabled(true);
+        return;
+      }
+      setPublicSetupDisabled(false);
       if (body.complete) {
         router.replace("/dashboard");
       }
     });
   }, [router]);
+
+  if (publicSetupDisabled === null) {
+    return <AuthLayout>{null}</AuthLayout>;
+  }
+
+  if (publicSetupDisabled) {
+    return (
+      <AuthLayout>
+        <Typography variant="h5" gutterBottom>
+          This is a self-hosted product
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Keprix does not offer hosted accounts. This instance is the
+          maintainer&apos;s own installation, and it already has an owner -
+          there is nothing to set up here for you.
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          To use Keprix, download and run your own copy on your own
+          infrastructure. It is free, MIT-licensed, and takes a few minutes
+          to install.
+        </Typography>
+        <Button variant="contained" href="/download">
+          Get your own copy
+        </Button>
+      </AuthLayout>
+    );
+  }
 
   const postStep = async (step: number, payload: Record<string, unknown> = {}) => {
     const response = await ceApi(`/api/setup/step/${step}`, {

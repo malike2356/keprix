@@ -22,6 +22,19 @@ def is_setup_complete() -> bool:
     return _marker_path().exists()
 
 
+def is_public_setup_disabled() -> bool:
+    """True on a deployment that's reachable by the public but is not an
+    offering of hosted, multi-tenant access - e.g. the maintainer's own
+    keprixai.com/app.keprixai.com marketing/demo instance. Keprix Community
+    is self-hosted software: this instance already has its one owner, and
+    the setup wizard (which creates THE owner account for whichever
+    instance serves it) must never be presented to - or usable by - an
+    anonymous visitor there. Every other self-hosted install leaves this
+    unset and keeps the normal first-run wizard behavior."""
+    env = os.environ.get("KEPRIX_PUBLIC_SETUP_DISABLED", "").strip().lower()
+    return env in {"1", "true", "yes"}
+
+
 def mark_setup_complete(*, owner_email: str | None = None) -> dict[str, Any]:
     base = Path(data_dir())
     base.mkdir(parents=True, exist_ok=True)
@@ -34,7 +47,7 @@ def mark_setup_complete(*, owner_email: str | None = None) -> dict[str, Any]:
 
 
 def wizard_status() -> dict[str, Any]:
-    return {"complete": is_setup_complete()}
+    return {"complete": is_setup_complete(), "public_setup_disabled": is_public_setup_disabled()}
 
 
 def credential_management_options() -> list[dict[str, Any]]:
