@@ -98,7 +98,7 @@ export default function PropreneurPackReadinessPage() {
   return (
     <Box>
       <PageHeader
-        title="Propreneur product pack"
+        title="Property Manager product pack"
         description="Pack readiness is not Universal Sidecar connectivity. Safe full CRUD means domain API access via Soft Wall, not raw database access."
       />
 

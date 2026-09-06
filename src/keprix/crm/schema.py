@@ -353,6 +353,63 @@ CREATE TABLE IF NOT EXISTS crm_discovery_jobs (
     updated_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS crm_replenish_settings (
+    workspace_id TEXT PRIMARY KEY,
+    ratio REAL NOT NULL DEFAULT 1.0,
+    adapter TEXT NOT NULL DEFAULT 'web_directory',
+    domain_pack TEXT NOT NULL DEFAULT 'generic',
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS crm_replenish_events (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    batch_id TEXT NOT NULL,
+    sent_count INTEGER NOT NULL DEFAULT 0,
+    ratio REAL NOT NULL DEFAULT 1.0,
+    enqueued_count INTEGER NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'enqueued',
+    discovery_job_id TEXT,
+    error TEXT,
+    created_at TEXT NOT NULL,
+    UNIQUE (workspace_id, batch_id)
+);
+
+CREATE TABLE IF NOT EXISTS crm_conversations (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    contact_id TEXT NOT NULL DEFAULT '',
+    channel TEXT NOT NULL DEFAULT '',
+    external_chat_id TEXT NOT NULL DEFAULT '',
+    started_at TEXT NOT NULL,
+    last_message_at TEXT NOT NULL DEFAULT ''
+);
+CREATE TABLE IF NOT EXISTS crm_conversation_messages (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    conversation_id TEXT NOT NULL,
+    direction TEXT NOT NULL,
+    body TEXT NOT NULL DEFAULT '',
+    sent_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS crm_conversation_channel_links (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    conversation_id TEXT NOT NULL,
+    channel TEXT NOT NULL,
+    external_chat_id TEXT NOT NULL DEFAULT '',
+    contact_id TEXT NOT NULL DEFAULT '',
+    confidence REAL NOT NULL DEFAULT 1.0,
+    linked_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS crm_conversation_summaries (
+    workspace_id TEXT NOT NULL,
+    conversation_id TEXT NOT NULL,
+    summary TEXT NOT NULL DEFAULT '',
+    generated_at TEXT NOT NULL,
+    PRIMARY KEY (workspace_id, conversation_id)
+);
+
 CREATE TABLE IF NOT EXISTS crm_outbox (
     id TEXT PRIMARY KEY,
     workspace_id TEXT NOT NULL,
@@ -502,6 +559,16 @@ LEAD_INGESTION_COLUMNS: tuple[tuple[str, str], ...] = (
     ("website_score", "website_score TEXT"),
     ("ranks_top3", "ranks_top3 TEXT"),
     ("weakness", "weakness TEXT"),
+    ("first_name", "first_name TEXT NOT NULL DEFAULT ''"),
+    ("last_name", "last_name TEXT NOT NULL DEFAULT ''"),
+    ("linkedin_url", "linkedin_url TEXT NOT NULL DEFAULT ''"),
+    ("social_profiles", "social_profiles TEXT NOT NULL DEFAULT '{}'"),
+    ("research_status", "research_status TEXT NOT NULL DEFAULT ''"),
+    ("research_notes", "research_notes TEXT NOT NULL DEFAULT ''"),
+    ("sic_codes", "sic_codes TEXT NOT NULL DEFAULT '[]'"),
+    ("officers", "officers TEXT NOT NULL DEFAULT '[]'"),
+    ("enrich_confidence", "enrich_confidence TEXT NOT NULL DEFAULT ''"),
+    ("osint_status", "osint_status TEXT NOT NULL DEFAULT ''"),
     ("priority", "priority TEXT"),
     ("notes", "notes TEXT"),
     ("source_type", "source_type TEXT"),
@@ -618,4 +685,68 @@ CREATE INDEX IF NOT EXISTS ix_crm_saved_views_owner ON crm_saved_views(workspace
 def ensure_crm_saved_views(conn) -> None:
     """Ensure spreadsheet CRM saved-views table exists (SQLite or pg_compat)."""
     conn.executescript(SAVED_VIEWS_DDL)
+    conn.commit()
+
+
+OSINT_CACHE_DDL = """
+CREATE TABLE IF NOT EXISTS crm_osint_cache (
+    key TEXT PRIMARY KEY,
+    engine TEXT NOT NULL,
+    result_json TEXT NOT NULL DEFAULT '{}',
+    fetched_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ix_crm_osint_cache_engine ON crm_osint_cache(engine, fetched_at);
+"""
+
+
+def ensure_crm_osint_cache(conn) -> None:
+    """Ensure the OSINT result cache table exists (SQLite or pg_compat)."""
+    conn.executescript(OSINT_CACHE_DDL)
+    conn.commit()
+
+
+SOCIAL_DDL = """
+CREATE TABLE IF NOT EXISTS crm_social_channels (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    channel TEXT NOT NULL,                 -- linkedin|meta_lead_ads|x
+    provider TEXT NOT NULL DEFAULT '',      -- e.g. sendpilot, meta_graph, x_api
+    provider_account_id TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'pending', -- pending|connected|error|disabled
+    decision_json TEXT NOT NULL DEFAULT '{}', -- capability matrix snapshot at connect
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(workspace_id, channel, provider_account_id)
+);
+CREATE INDEX IF NOT EXISTS ix_crm_social_channels_ws ON crm_social_channels(workspace_id, channel);
+CREATE TABLE IF NOT EXISTS crm_social_events (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    channel TEXT NOT NULL,
+    provider_event_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,              -- connection_request.accepted|leadgen|reply|other
+    payload_json TEXT NOT NULL DEFAULT '{}',
+    lead_id TEXT NOT NULL DEFAULT '',
+    processed INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    UNIQUE(workspace_id, channel, provider_event_id)
+);
+CREATE INDEX IF NOT EXISTS ix_crm_social_events_lead ON crm_social_events(workspace_id, lead_id);
+CREATE TABLE IF NOT EXISTS crm_channel_connections (
+    id TEXT PRIMARY KEY,
+    workspace_id TEXT NOT NULL,
+    channel TEXT NOT NULL,
+    provider_account_id TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'connected',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE(workspace_id, channel)
+);
+CREATE INDEX IF NOT EXISTS ix_crm_channel_connections_ws ON crm_channel_connections(workspace_id, channel);
+"""
+
+
+def ensure_crm_social(conn) -> None:
+    """Ensure social channel/event/connection tables exist (SQLite or pg_compat)."""
+    conn.executescript(SOCIAL_DDL)
     conn.commit()

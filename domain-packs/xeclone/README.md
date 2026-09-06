@@ -26,7 +26,7 @@ Fixture product API: `/fixture-product/api/keprix/v1/*` (tenant `owner-laud`).
 ## Tests
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 .venv/bin/pytest domain-packs/xeclone/tests -q
 ```
 

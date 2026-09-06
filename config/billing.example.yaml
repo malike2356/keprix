@@ -54,6 +54,7 @@ plans:
         discount_text: "Save 24%"
         stripe_price_id: "price_YOUR_PRO_YEAR"
     seats: 1
+    regrant_cadence: "monthly"
     metadata:
       highlight: true
       badge: "Most Popular"
@@ -89,6 +90,7 @@ plans:
         discount_text: "Save 17%"
         stripe_price_id: "price_YOUR_TEAM_YEAR"
     seats: 10
+    regrant_cadence: "monthly"
     metadata:
       highlight: false
     feature_flags:

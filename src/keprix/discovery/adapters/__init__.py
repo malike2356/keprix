@@ -10,6 +10,8 @@ if TYPE_CHECKING:
 
 def register_builtin_adapters(registry: DiscoveryRegistry) -> None:
     from keprix.discovery.adapters.companies_house import CompaniesHouseAdapter
+    from keprix.discovery.adapters.google_places import GooglePlacesAdapter
+    from keprix.discovery.adapters.hunter import HunterAdapter
     from keprix.discovery.adapters.csv_import import CsvDiscoveryAdapter
     from keprix.discovery.adapters.fake import FakeDiscoveryAdapter
     from keprix.discovery.adapters.health import (
@@ -33,6 +35,8 @@ def register_builtin_adapters(registry: DiscoveryRegistry) -> None:
     adapters = [
         FakeDiscoveryAdapter(),
         CompaniesHouseAdapter(),
+        GooglePlacesAdapter(),
+        HunterAdapter(),
         CsvDiscoveryAdapter(),
         WebDirectoryAdapter(),
         LinkedInApiAdapter(),

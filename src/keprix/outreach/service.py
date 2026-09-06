@@ -415,6 +415,27 @@ class OutreachService:
                     "campaign": campaign,
                     "sequence": sequence,
                 }
+            # Channel-keyed daily cap (email/linkedin/whatsapp), independent of
+            # the per-campaign cap. Uses the persistent pacing ledger.
+            try:
+                from keprix.crm.channel_pacing import sent_today as channel_sent_today
+
+                channel = str((campaign or {}).get("channel") or "email")
+                channel_cap = int(campaign.get("channel_daily_cap") or campaign.get("daily_cap") or 50)
+                if channel_sent_today(self.store, ws, channel) >= channel_cap:
+                    return {
+                        "ok": False,
+                        "reason": "channel_daily_cap",
+                        "stop": False,
+                        "defer_until": _iso(next_midnight_in_tz(tz_name, now_dt)),
+                        "workspace_id": ws,
+                        "lead": lead_row,
+                        "campaign": campaign,
+                        "sequence": sequence,
+                        "channel": channel,
+                    }
+            except Exception:  # noqa: BLE001 - pacing ledger is best-effort, never blocks
+                pass
 
         steps = sequence.get("steps") or []
         step_index = int(enrollment.get("current_step") or 0)
@@ -472,6 +493,7 @@ class OutreachService:
         )
         processed: list[dict[str, Any]] = []
         skipped: list[dict[str, Any]] = []
+        sent_counts: dict[str, int] = {}
 
         for enrollment in claimed:
             eid = str(enrollment["id"])
@@ -608,8 +630,18 @@ class OutreachService:
                         )
                         action = "not_configured"
                     elif send_result.get("sent"):
+                        sent_counts[ws] = sent_counts.get(ws, 0) + 1
                         self._stamp_message_send(ws, message.get("id"), send_result, now_iso=now_iso)
                         action = "sent_step"
+                        # Record a successful delivery in the channel pacing ledger.
+                        # Only after a real send; never for dry_run or soft_wall.
+                        try:
+                            from keprix.crm.channel_pacing import record_send as record_channel_send
+
+                            channel = str(step.get("channel") or (campaign or {}).get("channel") or "email")
+                            record_channel_send(self.store, ws, channel, str(lead_row["id"]), "email" if channel == "email" else "message", event_id=idem_key)
+                        except Exception:  # noqa: BLE001 - best-effort ledger, never blocks
+                            pass
                         self._advance_enrollment_after_step(
                             enrollment_id=eid,
                             step_index=step_index,
@@ -700,6 +732,21 @@ class OutreachService:
                 except Exception:
                     pass
                 skipped.append({"enrollment_id": eid, "reason": f"tick_error:{exc}"})
+
+        try:
+            if sent_counts:
+                from keprix.crm.replenish import trigger_replenish
+
+                for sent_ws, count in sent_counts.items():
+                    trigger_replenish(
+                        sent_ws,
+                        batch_id=f"outreach:{worker}:{now_iso}",
+                        sent_count=count,
+                        actor_type="system",
+                        actor_id=worker,
+                    )
+        except Exception:
+            logger.exception("replenishment trigger failed")
 
         try:
             depth = int(
@@ -1459,6 +1506,21 @@ class OutreachService:
             record_outreach_reply(workspace_id, classification=label)
         except Exception:
             pass
+
+        # A/B auto-attribution: attribute this reply to the variant that sent it.
+        try:
+            from keprix.crm.ab_attribution import attribute_reply
+            from keprix.crm.store import get_crm_store
+
+            attribute_reply(
+                self.store,
+                get_crm_store(),
+                workspace_id,
+                str(lead["id"]),
+                matched_message_id=matched_message_id or message_id,
+            )
+        except Exception:
+            logger.debug("ab attribution skipped", exc_info=True)
 
         out = {
             "reply": reply,

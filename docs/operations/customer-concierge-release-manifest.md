@@ -23,10 +23,10 @@
 ## Proof commands (local)
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 python -m pytest tests/customer_concierge/ -q
 bash scripts/smoke-customer-concierge-docker.sh
-bash /opt/lampp/htdocs/verlox/scripts/guard-public-github-hygiene.sh
+bash <workspace-root>/scripts/guard-public-github-hygiene.sh
 ```
 
 ## Contabo deploy
@@ -38,7 +38,7 @@ rsync -az --delete \
   --exclude '1st-plan/' --exclude 'apps-on-keprix/' \
   --exclude 'node_modules/' --exclude 'frontend/node_modules/' --exclude 'frontend/.next/' \
   --exclude '.venv/' --exclude 'venv/' --exclude '__pycache__/' \
-  /opt/lampp/htdocs/verlox/keprix/ \
+  <workspace-root>/keprix/ \
   malike@80.190.81.208:/home/malike/apps/keprix/
 
 ssh malike@80.190.81.208 'cd /home/malike/apps/keprix && docker compose \

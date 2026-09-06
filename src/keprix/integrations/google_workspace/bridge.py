@@ -74,6 +74,7 @@ class GoogleWorkspaceBridge:
             "connected": token.connected,
             "account_email": token.account_email,
             "scopes": token.scopes or self.config.scopes,
+            "missing_scopes": [scope for scope in self.config.scopes if scope not in token.scopes] if token.connected else list(self.config.scopes),
             "config": self.config.public_dict(),
             "missing_setup": missing,
             "setup_error": self.setup_error(missing) if missing else None,
@@ -85,7 +86,8 @@ class GoogleWorkspaceBridge:
             return ""
         return (
             "Google Workspace is not connected. Create an OAuth desktop client in Google Cloud, "
-            "enable Gmail, Calendar, Drive, and Sheets APIs, then set GOOGLE_WORKSPACE_CREDENTIALS_PATH."
+            "enable Gmail, Calendar, Drive, Sheets, Docs, Slides, and People APIs, then set "
+            "GOOGLE_WORKSPACE_CREDENTIALS_PATH."
         )
 
     def auth_url(self, redirect_uri: str = "http://localhost:8751/api/integrations/google-workspace/oauth/callback") -> dict[str, Any]:
@@ -143,6 +145,24 @@ class GoogleWorkspaceBridge:
 
     def sheets_read(self, spreadsheet_id: str, range_name: str) -> dict[str, Any]:
         return self.call("gws_sheets_read", {"spreadsheet_id": spreadsheet_id, "range": range_name})
+
+    def docs_create(self, title: str, text: str = "", confirm: bool = False) -> dict[str, Any]:
+        if not confirm:
+            return {"requires_confirmation": True, "message": "Set confirm=true before creating a Google Doc."}
+        return self.call("gws_docs_create", {"title": title, "text": text, "confirm": True})
+
+    def docs_update(self, document_id: str, text: str, *, replace: bool = False, confirm: bool = False) -> dict[str, Any]:
+        if not confirm:
+            return {"requires_confirmation": True, "message": "Set confirm=true before updating a Google Doc."}
+        return self.call("gws_docs_update", {"document_id": document_id, "text": text, "replace": replace, "confirm": True})
+
+    def slides_create(self, title: str, slides: list[str] | None = None, confirm: bool = False) -> dict[str, Any]:
+        if not confirm:
+            return {"requires_confirmation": True, "message": "Set confirm=true before creating Google Slides."}
+        return self.call("gws_slides_create", {"title": title, "slides": slides or [], "confirm": True})
+
+    def contacts_list(self, query: str = "", max_results: int = 50) -> dict[str, Any]:
+        return self.call("gws_contacts_list", {"query": query, "max_results": max_results})
 
     def _client_id(self) -> str:
         path = Path(self.config.credentials_path).expanduser()

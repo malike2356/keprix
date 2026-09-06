@@ -4,7 +4,7 @@
 
 **Status:** Checked-in baseline (Prompt 629 / shared Prompt 700)
 **Version:** 1.0.0
-**Architecture decision:** `/opt/lampp/htdocs/verlox/shared/workspace-governance/AIVA-KEPRIX-CUSTOMER-CONCIERGE-BOOKING.md`
+**Architecture decision:** `<workspace-root>/shared/workspace-governance/AIVA-KEPRIX-CUSTOMER-CONCIERGE-BOOKING.md`
 **Keprix validators:** `src/keprix/customer_concierge/contract_schema.py`
 **Gap audit:** `docs/architecture/customer-concierge-v1-baseline-audit.md`
 

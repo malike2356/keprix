@@ -85,7 +85,7 @@ Honesty rule: UI presence or mocked tests alone never mark REAL. Conformance sui
 
 ```bash
 # Series closed: readiness true when e2e + observability present
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 python -m pytest tests/crm/test_standalone_outreach_conformance.py tests/crm/test_standalone_outreach_e2e_journey.py -q
 
 # Existing CRM/outreach regression

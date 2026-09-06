@@ -101,6 +101,27 @@ def get_keprix_home() -> Path:
     if override:
         return Path(override)
 
+    # HTTP requests bind ProductContext before agent construction. Resolve the
+    # filesystem namespace here so memory, SOUL, sessions, skills, and state
+    # callers all inherit the same tenant boundary without per-layer forks.
+    if os.environ.get("KEPRIX_TENANT_HOME_ISOLATION", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }:
+        try:
+            from keprix.security.product_context import get_product_context_or_none
+            from keprix.tenancy.home import tenant_home
+
+            context = get_product_context_or_none()
+            if context and context.tenant_id:
+                return tenant_home(context.tenant_id)
+        except (ImportError, ValueError):
+            # Import-time and CLI paths have no request context. They retain
+            # the explicit KEPRIX_HOME/default behavior below.
+            pass
+
     val = os.environ.get("KEPRIX_HOME", "").strip()
     if val:
         return Path(val)

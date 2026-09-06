@@ -107,6 +107,12 @@ SCOPE_CATALOG: list[dict[str, Any]] = [
                 "modes": ["none", "access"],
                 "path_prefixes": ["/api/developer/usage", "/api/developer/logs"],
             },
+            {
+                "id": "api.property.read",
+                "label": "Derived property data",
+                "modes": ["none", "read"],
+                "path_prefixes": ["/api/property/v1"],
+            },
         ],
     },
     {

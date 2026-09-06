@@ -17,6 +17,16 @@ async def handle_checkout_completed(event: dict[str, Any]) -> dict[str, Any]:
     plan_id = str(metadata.get("plan_id") or "")
     if not user_id or not plan_id:
         return {"ok": False, "reason": "missing metadata"}
+    promo_code = str(metadata.get("promo_code") or "")
+    if promo_code:
+        from keprix.billing.promo import get_promo_store
+
+        get_promo_store().record_redemption(
+            workspace_id=str(metadata.get("workspace_id") or user_id),
+            code=promo_code,
+            order_id=str(obj.get("id") or obj.get("subscription") or ""),
+            promo_id=str(metadata.get("promo_id") or "") or None,
+        )
     sub = await activate_subscription(user_id, plan_id=plan_id, stripe_subscription_id=obj.get("subscription"))
     return {"ok": True, "subscription": sub}
 
@@ -27,6 +37,16 @@ async def handle_subscription_created(event: dict[str, Any]) -> dict[str, Any]:
     user_id = str(metadata.get("user_id") or "")
     plan_id = str(metadata.get("plan_id") or "")
     if user_id and plan_id:
+        promo_code = str(metadata.get("promo_code") or "")
+        if promo_code:
+            from keprix.billing.promo import get_promo_store
+
+            get_promo_store().record_redemption(
+                workspace_id=str(metadata.get("workspace_id") or user_id),
+                code=promo_code,
+                order_id=str(obj.get("id") or ""),
+                promo_id=str(metadata.get("promo_id") or "") or None,
+            )
         return {"ok": True, "subscription": await activate_subscription(user_id, plan_id=plan_id, stripe_subscription_id=obj.get("id"))}
     return {"ok": True, "skipped": True}
 

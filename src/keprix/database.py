@@ -35,5 +35,13 @@ def get_session_factory() -> async_sessionmaker[AsyncSession] | None:
     if engine is None:
         return None
     if _session_factory is None:
-        _session_factory = async_sessionmaker(engine, expire_on_commit=False)
+        # Import after Base is defined. keprix.db re-exports ORM models that
+        # import Base, so importing this class at module load creates a cycle.
+        from keprix.db.tenant_session import TenantAsyncSession
+
+        _session_factory = async_sessionmaker(
+            engine,
+            class_=TenantAsyncSession,
+            expire_on_commit=False,
+        )
     return _session_factory

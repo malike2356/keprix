@@ -69,4 +69,4 @@ See [Document Vault runbook](../operations/document-vault-runbook.md).
 - Contract: `docs/architecture/document-vault-contract.md`
 - Matrix: `docs/architecture/document-vault-capability-matrix.md`
 - Evidence: `docs/architecture/evidence/document-vault-conformance-653.json`
-- Shared behavioral contract: `/opt/lampp/htdocs/verlox/shared/workspace-governance/AIVA-KEPRIX-DOCUMENT-VAULT.md`
+- Shared behavioral contract: `<workspace-root>/shared/workspace-governance/AIVA-KEPRIX-DOCUMENT-VAULT.md`

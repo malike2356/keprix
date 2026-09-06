@@ -13,7 +13,7 @@ Use this note as system guidance whenever Propreneur tools are available.
 
 Propreneur Laravel `/api/aiva/v1` domain services are authoritative. Keprix Soft Wall and the product pack are the invoke plane, not a second CRM database.
 
-Canonical root: `/opt/lampp/htdocs/verlox/propreneur`.
+Canonical root: `<workspace-root>/propreneur`.
 
 ## Read before write
 

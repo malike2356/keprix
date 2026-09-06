@@ -22,11 +22,11 @@ high-risk approval digests.
 Node catalog lives in `src/keprix/product_sidecar/packs/propreneur.py` and is
 registered by `ProductPackRegistry`. HTTP-backed CRUD handlers live in
 `packs/propreneur_ops.py`. Propreneur remains source of truth at
-`/opt/lampp/htdocs/verlox/propreneur`.
+`<workspace-root>/propreneur`.
 
 ## Local check
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 python3 -m pytest domain-packs/propreneur/tests/test_contract_load.py -q
 ```

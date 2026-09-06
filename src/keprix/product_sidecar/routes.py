@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from keprix.product_sidecar.auth import get_token_service, grants_for_product
@@ -24,6 +24,7 @@ from keprix.product_sidecar.state import (
     input_hash,
 )
 from keprix.product_sidecar.types import RequestContext
+from keprix.auth.dependencies import get_current_user
 
 router = APIRouter(prefix="/v1/products", tags=["product-sidecar"])
 
@@ -96,6 +97,13 @@ class TokenExchangeBody(BaseModel):
     ttl_seconds: int = 300
 
 
+class ProvisionBody(BaseModel):
+    workspace_id: str = "default"
+    version: str = "1.0.0"
+    activate: bool = False
+    consent: bool = False
+
+
 def _product_or_404(product_key: str) -> None:
     registry = get_product_pack_registry()
     if product_key not in registry.known_products():
@@ -157,6 +165,36 @@ async def product_health(product_key: str) -> dict[str, Any]:
         "note": readiness["note"],
         "readiness": readiness,
     }
+
+
+@router.post("/{product_key}/provision")
+async def provision_pack(
+    product_key: str,
+    body: ProvisionBody,
+    user: dict[str, Any] = Depends(get_current_user),
+) -> dict[str, Any]:
+    if user.get("role") not in {"admin", "owner", "developer"}:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    _product_or_404(product_key)
+    from keprix.product_sidecar.provision import provision_product
+
+    return provision_product(
+        product_key,
+        workspace_id=body.workspace_id,
+        version=body.version,
+        activate=body.activate,
+        consent=body.consent,
+    )
+
+
+@router.post("/{product_key}/rollback")
+async def rollback_pack(product_key: str, user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
+    if user.get("role") not in {"admin", "owner", "developer"}:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    _product_or_404(product_key)
+    from keprix.product_sidecar.provision import rollback_product
+
+    return rollback_product(product_key)
 
 
 @router.get("/{product_key}/readiness")

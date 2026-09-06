@@ -69,6 +69,9 @@ class BillingStore:
         subs = self._read_map(self._subscriptions_path)
         return subs.get(user_id)
 
+    async def list_subscriptions(self) -> list[dict[str, Any]]:
+        return list(self._read_map(self._subscriptions_path).values())
+
     async def save_subscription(self, user_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         subs = self._read_map(self._subscriptions_path)
         existing = subs.get(user_id, {})

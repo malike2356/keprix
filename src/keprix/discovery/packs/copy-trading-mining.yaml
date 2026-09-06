@@ -1,0 +1,49 @@
+id: copy-trading-mining
+version: 1.0.0
+title: Copy trading and digital asset education
+description: Regulated finance outreach pack for operator-reviewed educational offers.
+jurisdiction: UK
+owner_review_required: true
+discovery:
+  enabled: true
+high_risk_outreach: true
+soft_wall_enroll_always: true
+keywords: [copy trading, bitcoin mining, crypto signal, passive income]
+qualification_questions:
+  - {id: capital, question: "What level of capital are you considering?", required: true}
+  - {id: risk_tolerance, question: "How do you assess your tolerance for loss and volatility?", required: true}
+  - {id: prior_trading, question: "What prior trading or investing experience do you have?", required: true}
+  - {id: accredited_status_awareness, question: "Are you aware of the eligibility and promotion rules that may apply?", required: true}
+message_bank:
+  first_contact: "We provide operator-reviewed information about trading automation and digital asset infrastructure. Would an evidence-led overview be useful?"
+  follow_up_1: "Following up on the information request. I can share risks, assumptions, and eligibility requirements for review."
+  follow_up_2: "Would you prefer a short technical overview or a risk and suitability summary?"
+  objection_reply: "Understood. No outcome is guaranteed. I can provide the risk disclosure and source material for independent review."
+follow_up_ladder:
+  - {stage: capture, after_hours: 24}
+  - {stage: intent, after_hours: 48}
+  - {stage: qualify, after_hours: 72}
+  - {stage: nurture, after_days: 14}
+crm_stages: [capture, intent, qualify, present, follow_up, human, nurture]
+compliance_rules:
+  risk_disclaimer_required: true
+  risk_disclaimer: "Capital is at risk. Past performance is not a reliable indicator of future results."
+  block_guaranteed_return_language: true
+  approved_only_send: true
+  consent_required_before_outreach: true
+  no_scraping: true
+  jurisdiction: UK financial promotion rules
+escalation:
+  auto_route_human: [complaint, legal_request, suitability_question, regulated_advice, unsubscribe]
+  auto_reply_allowed: [general_question, availability]
+sheet_types:
+  - id: finance_prospects
+    description: Finance prospects approved for operator review, never an automatic send list
+    markers: [trading, investment, crypto, mining, investor]
+    columns:
+      - {name: company_name, role: company_name}
+      - {name: contact_email, role: contact_email}
+      - {name: contact_name, role: identity}
+      - {name: risk_profile, role: metric}
+      - {name: consent_evidence, role: metric}
+    metrics: [risk_profile, consent_evidence]

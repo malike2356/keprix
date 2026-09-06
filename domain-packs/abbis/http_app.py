@@ -1,7 +1,7 @@
 """Standalone FastAPI sidecar for the ABBIS product contract.
 
 Run:
-    cd /opt/lampp/htdocs/verlox/keprix/domain-packs/abbis
+    cd keprix/domain-packs/abbis
     python3 -m uvicorn http_app:app --host 0.0.0.0 --port 3360
 
 Also mounts fixture product API under the same process for local development:

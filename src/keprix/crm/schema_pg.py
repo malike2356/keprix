@@ -6,7 +6,9 @@ from keprix.crm.schema import (
     INGESTION_JOBS_DDL,
     LEAD_INGESTION_COLUMNS,
     SQLITE_SCHEMA,
+    ensure_crm_osint_cache,
     ensure_crm_saved_views,
+    ensure_crm_social,
 )
 
 # SQLite schema already uses TEXT primary keys and portable types.
@@ -29,6 +31,12 @@ CRM_TABLE_NAMES: tuple[str, ...] = (
     "crm_merge_suggestions",
     "crm_merge_history",
     "crm_discovery_jobs",
+    "crm_replenish_settings",
+    "crm_replenish_events",
+    "crm_conversations",
+    "crm_conversation_messages",
+    "crm_conversation_channel_links",
+    "crm_conversation_summaries",
     "crm_outbox",
     "crm_idempotency",
     "crm_contactability_decisions",
@@ -52,6 +60,8 @@ def ensure_crm_pg_schema(conn) -> None:
                 alter_ddl = "custom_fields TEXT DEFAULT '{}'"
             conn.execute(f"ALTER TABLE crm_leads ADD COLUMN {alter_ddl}")
     ensure_crm_saved_views(conn)
+    ensure_crm_osint_cache(conn)
+    ensure_crm_social(conn)
     try:
         from keprix.crm.funnel_orchestrator import ensure_funnel_run_tables
 

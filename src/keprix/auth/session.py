@@ -213,6 +213,7 @@ class AuthManager:
         ip_address: str | None = None,
         user_agent: str | None = None,
         location: str | None = None,
+        ttl_seconds: int | None = None,
     ) -> str:
         from keprix.sessions import (
             NEW_DEVICE_NOTIFIER,
@@ -225,6 +226,9 @@ class AuthManager:
         policy = _session_policy()
         absolute_s = max(60, int(policy["absolute_max_ms"] / 1000))
         idle_s = max(60, int(policy["idle_timeout_ms"] / 1000))
+        if ttl_seconds is not None:
+            absolute_s = min(absolute_s, max(60, int(ttl_seconds)))
+            idle_s = min(idle_s, absolute_s)
         device = parse_device_info(
             user_agent=user_agent or device_label,
             ip=ip_address,

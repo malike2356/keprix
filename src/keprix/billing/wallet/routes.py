@@ -7,11 +7,12 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from keprix.auth.dependencies import get_current_user
+from keprix.auth.dependencies import get_current_user, require_admin
 from keprix.billing.wallet.enforcer import wallet_status
 from keprix.billing.wallet.ledger import admin_adjust, grant_credits, purchase_credits
 from keprix.billing.wallet.policy import is_hosted_deployment, resolve_policy, trusted_workspace_id
 from keprix.billing.wallet.store import get_ai_credit_store
+from keprix.billing.wallet.regrant import assignment_status
 
 router = APIRouter(prefix="/api/billing/wallet", tags=["billing-wallet"])
 
@@ -44,6 +45,39 @@ class PurchaseBody(BaseModel):
     note: str | None = None
 
 
+class BulkGrantItem(BaseModel):
+    user_id: str = Field(..., min_length=1, max_length=200)
+    amount: int = Field(..., gt=0, le=10_000_000)
+
+
+class BulkGrantBody(BaseModel):
+    batch_id: str = Field(..., min_length=1, max_length=200)
+    reason: str = Field(..., min_length=1, max_length=1000)
+    grants: list[BulkGrantItem] = Field(..., min_length=1, max_length=1000)
+
+
+@router.post("/api/admin/credits/bulk-grant")
+async def bulk_grant(body: BulkGrantBody, _admin: dict = Depends(require_admin)) -> dict[str, Any]:
+    """Grant credits once per user for an operator batch."""
+    store = get_ai_credit_store()
+    results: list[dict[str, Any]] = []
+    for item in body.grants:
+        marker = f"bulk-grant:{body.batch_id}:{item.user_id}"
+        if store.has_ledger_marker(item.user_id, marker):
+            results.append({"user_id": item.user_id, "amount": item.amount, "granted": False, "reason": "already_granted"})
+            continue
+        wallet, entry = grant_credits(
+            item.user_id,
+            item.amount,
+            user_id=item.user_id,
+            note=body.reason,
+            metadata={"source": "admin_bulk_grant", "batch_id": body.batch_id, "idempotency_key": marker, "reason": body.reason},
+            store=store,
+        )
+        results.append({"user_id": item.user_id, "amount": item.amount, "granted": True, "wallet": wallet.to_dict(), "entry": entry.to_dict()})
+    return {"ok": True, "batch_id": body.batch_id, "reason": body.reason, "results": results}
+
+
 @router.get("/status")
 async def get_wallet_status(user: dict = Depends(get_current_user)) -> dict[str, Any]:
     uid = _user_id(user)
@@ -51,6 +85,7 @@ async def get_wallet_status(user: dict = Depends(get_current_user)) -> dict[str,
     auth_ws = str(user.get("workspace_id") or user.get("active_workspace_id") or "").strip() or None
     status = await wallet_status(user_id=uid, workspace_id=auth_ws)
     status["hosted"] = is_hosted_deployment()
+    status["managed_tier"] = await assignment_status(uid, status.get("policy", {}).get("plan_id", ""))
     return status
 
 

@@ -781,7 +781,7 @@ def emit_compat_doc(canonical: dict[str, Any]) -> str:
             "## Regeneration",
             "",
             "```bash",
-            "bash /opt/lampp/htdocs/verlox/keprix/scripts/regen-propreneur-agent-contract.sh",
+            "bash keprix/scripts/regen-propreneur-agent-contract.sh",
             "```",
             "",
             "CI must fail when generated outputs drift from the committed tree.",

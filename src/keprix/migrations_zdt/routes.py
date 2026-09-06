@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from keprix.auth.dependencies import require_admin
+from keprix.migrations_zdt.legacy_users import import_legacy_users
 from keprix.migrations_zdt import (
     create_add_before_drop_plan,
     create_staging_mirror,
@@ -36,6 +37,12 @@ class MirrorBody(BaseModel):
 
 class ProdBody(BaseModel):
     confirmToken: str = Field(min_length=1)
+
+
+class LegacyUsersBody(BaseModel):
+    source: str = Field(min_length=1)
+    rows: list[dict[str, Any]] = Field(default_factory=list)
+    dry_run: bool = True
 
 
 @router.get("")
@@ -90,3 +97,9 @@ async def run_prod(name: str, body: ProdBody, user: dict = Depends(require_admin
         "gate": gate,
         "message": "Confirmation accepted. Apply via alembic/deploy tooling with the generated SQL artifacts.",
     }
+
+
+@router.post("/legacy-users/import")
+async def import_legacy_users_route(body: LegacyUsersBody, user: dict = Depends(require_admin)) -> dict[str, Any]:
+    result = import_legacy_users(body.source, body.rows, dry_run=body.dry_run)
+    return {"ok": not result["failed"], **result}

@@ -57,7 +57,7 @@ Notify the product owner before re-enabling after an incident.
 ## Local deploy smoke
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 docker compose -f docker/docker-compose.yml up -d --build
 curl -fsS http://127.0.0.1:3333/api/health
 curl -fsS http://127.0.0.1:3333/v1/products/carina/health

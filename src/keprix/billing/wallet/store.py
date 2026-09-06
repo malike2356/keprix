@@ -350,6 +350,16 @@ class AiCreditStore:
             )
         return out
 
+    def has_ledger_marker(self, workspace_id: str, marker: str) -> bool:
+        """Check an idempotency marker without trusting a mutable wallet field."""
+        ws = (workspace_id or "default").strip() or "default"
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM ai_credit_ledger WHERE workspace_id = ? AND metadata LIKE ? LIMIT 1",
+                (ws, f'%"idempotency_key": "{marker}"%'),
+            ).fetchone()
+        return row is not None
+
     def add_daily_usage(self, workspace_id: str, credits: int, *, day: str | None = None) -> int:
         ws = (workspace_id or "default").strip() or "default"
         day_key = day or _utcnow().strftime("%Y-%m-%d")

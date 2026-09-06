@@ -12,6 +12,7 @@ import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
 import StructuredDataView from "@/components/ui/StructuredDataView";
+import { ceApi } from "@/lib/ce-api";
 import {
   activateScoutKill,
   fetchScoutKillStatus,
@@ -29,6 +30,7 @@ export default function ScoutOpsPage() {
     refreshInterval: 10_000,
   });
   const sensors = useSWR("scout-sensors", fetchScoutSensors);
+  const posture = useSWR("scout-posture", async () => (await ceApi("/api/security/posture")).json(), { refreshInterval: 15_000 });
 
   const onKill = async () => {
     setBusy(true);
@@ -73,6 +75,15 @@ export default function ScoutOpsPage() {
           {status.error.message}
         </Alert>
       ) : null}
+
+      <Card variant="outlined" sx={{ mb: 2 }}>
+        <CardContent>
+          <Typography variant="subtitle1">Local security posture</Typography>
+          <Typography variant="h4">{posture.data?.score ?? "-"}/100</Typography>
+          <Typography color="text.secondary">Grade: {posture.data?.grade || "unknown"} · Findings: {posture.data?.findings?.length ?? 0}</Typography>
+          <StructuredDataView value={posture.data?.findings ?? []} />
+        </CardContent>
+      </Card>
 
       <Card variant="outlined" sx={{ mb: 2 }}>
         <CardContent>

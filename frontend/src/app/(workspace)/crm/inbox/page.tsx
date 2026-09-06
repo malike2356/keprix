@@ -4,6 +4,7 @@ import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
+import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
@@ -68,6 +69,14 @@ export default function CrmInboxPage() {
                 <Typography variant="body2" fontWeight={600}>
                   {String(item.classification || item.kind || "item")} · {String(item.subject || "")}
                 </Typography>
+                <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+                  <Chip
+                    size="small"
+                    color={item.intent_tag === "reply-needed" ? "warning" : "default"}
+                    label={String(item.intent_tag || item.purpose || "reply-needed")}
+                  />
+                  <Typography variant="body2" color="text.secondary">{String(item.summary || "Summary unavailable")}</Typography>
+                </Stack>
                 <Typography variant="caption" color="text.secondary" display="block">
                   {String(item.entity_type || "")} {String(item.entity_id || "")} · confidence{" "}
                   {String(item.confidence ?? "")}

@@ -25,6 +25,20 @@ from keprix.email.schemas import (
     SyncStatusOut,
 )
 from keprix.email.store import get_email_store
+from pydantic import BaseModel, Field
+
+
+class EmailBatchCreateBody(BaseModel):
+    name: str = "Weekly outreach"
+    lead_ids: list[str] = Field(default_factory=list, max_length=500)
+    subject: str = Field(min_length=1, max_length=998)
+    body: str = Field(min_length=1)
+
+
+class EmailBatchSendBody(BaseModel):
+    account_id: str | None = None
+    min_delay: float = Field(default=0, ge=0, le=3600)
+    max_delay: float = Field(default=0, ge=0, le=3600)
 
 router = APIRouter(prefix="/api/email", tags=["email"])
 
@@ -227,6 +241,22 @@ async def send_draft(draft_id: str, user: dict = Depends(get_current_user)) -> d
     account = await store.get_account(draft.account_id, uid)
     if account is None:
         raise HTTPException(404, "Account not found")
+
+    # Soft Wall approval gate (prompt 11): first-contact / bulk require approval.
+    from keprix.email.approval_gate import (
+        find_approved_approval,
+        is_loopback_trusted,
+        record_sent,
+        request_approval,
+        require_approval,
+    )
+    from keprix.crm.store import get_crm_store
+
+    requires, reason = require_approval(uid, draft.to_addresses)
+    if requires and not is_loopback_trusted(user):
+        if find_approved_approval(uid, to_list=draft.to_addresses, subject=draft.subject, body=draft.body) is None:
+            return request_approval(uid, to_list=draft.to_addresses, subject=draft.subject, body=draft.body, reason=reason, actor_id=uid)
+
     try:
         conn = await resolve_account_connection(account)
         await asyncio.to_thread(
@@ -241,6 +271,9 @@ async def send_draft(draft_id: str, user: dict = Depends(get_current_user)) -> d
     except Exception as exc:
         raise HTTPException(400, str(exc)) from exc
     await store.delete_draft(draft_id, uid)
+    # Record successful send (after success only) so first-contact gate clears.
+    for address in draft.to_addresses:
+        record_sent(get_crm_store(), uid, address)
     return {"status": "sent"}
 
 
@@ -256,6 +289,22 @@ async def send_email(body: SendEmailBody, user: dict = Depends(get_current_user)
         account = accounts[0]
     if account is None:
         raise HTTPException(404, "No email account configured")
+
+    # Soft Wall approval gate (prompt 11): first-contact / bulk require approval.
+    from keprix.email.approval_gate import (
+        find_approved_approval,
+        is_loopback_trusted,
+        record_sent,
+        request_approval,
+        require_approval,
+    )
+    from keprix.crm.store import get_crm_store
+
+    requires, reason = require_approval(uid, body.to_addresses)
+    if requires and not is_loopback_trusted(user):
+        if find_approved_approval(uid, to_list=body.to_addresses, subject=body.subject, body=body.body) is None:
+            return request_approval(uid, to_list=body.to_addresses, subject=body.subject, body=body.body, reason=reason, actor_id=uid)
+
     try:
         conn = await resolve_account_connection(account)
         await asyncio.to_thread(
@@ -269,6 +318,8 @@ async def send_email(body: SendEmailBody, user: dict = Depends(get_current_user)
         )
     except Exception as exc:
         raise HTTPException(400, str(exc)) from exc
+    for address in body.to_addresses:
+        record_sent(get_crm_store(), uid, address)
     return {"status": "sent"}
 
 
@@ -294,6 +345,41 @@ async def sync_status(user: dict = Depends(get_current_user)) -> dict[str, Any]:
             for a in accounts
         ]
     }
+
+
+@router.get("/batches")
+async def list_email_batches(user: dict = Depends(get_current_user)) -> list[dict[str, Any]]:
+    return [b.to_dict() for b in await get_email_store().list_batches(_user_id(user))]
+
+
+@router.post("/batches", status_code=201)
+async def create_email_batch(body: EmailBatchCreateBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    from keprix.email.batch import build_batch
+
+    batch = await build_batch(_user_id(user), name=body.name, lead_ids=body.lead_ids,
+                              subject=body.subject, body=body.body)
+    return batch.to_dict()
+
+
+@router.get("/batches/{batch_id}")
+async def get_email_batch(batch_id: str, user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    batch = await get_email_store().get_batch(batch_id, _user_id(user))
+    if batch is None:
+        raise HTTPException(404, "Email batch not found")
+    return batch.to_dict()
+
+
+@router.post("/batches/{batch_id}/send")
+async def send_email_batch(batch_id: str, body: EmailBatchSendBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    from keprix.email.batch import send_batch
+
+    if body.max_delay < body.min_delay:
+        raise HTTPException(422, "max_delay must be >= min_delay")
+    try:
+        return await send_batch(_user_id(user), batch_id, account_id=body.account_id, user=user,
+                                min_delay=body.min_delay, max_delay=body.max_delay)
+    except LookupError as exc:
+        raise HTTPException(404, str(exc)) from exc
 
 @router.get("/{email_id}", response_model=EmailOut)
 async def get_email(email_id: str, user: dict = Depends(get_current_user)) -> dict[str, Any]:

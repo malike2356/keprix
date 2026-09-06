@@ -11,7 +11,7 @@ docker rm -f keprix-graphiti-mcp 2>/dev/null || true
 docker run -d \
   --name keprix-graphiti-mcp \
   --network keprix_keprix_network \
-  --env-file /opt/lampp/htdocs/verlox/keprix/docker/.graphiti.env \
+  --env-file <workspace-root>/keprix/docker/.graphiti.env \
   -p 127.0.0.1:8000:8000 \
   -p 127.0.0.1:8010:3000 \
   -p 127.0.0.1:6391:6379 \

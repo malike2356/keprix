@@ -57,7 +57,7 @@ def test_curated_docs_answer_retrieval_questions() -> None:
     assert "hard delete" in blob
     assert "correlation_id" in blob or "correlation id" in blob
     assert "source of truth" in blob
-    assert "/opt/lampp/htdocs/verlox/propreneur" in honesty
+    assert "<workspace-root>/propreneur" in honesty
     assert "connectivity" in blob and "crud readiness" in blob
     # Stale nested path may appear only as an explicit "not ..." correction.
     assert honesty.count("propreneur/propreneur-v2") <= 1

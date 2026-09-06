@@ -19,7 +19,7 @@ Exploit automation and remediation execute are off. Scanner/feed text is untrust
 Compute after install:
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 find domain-packs/petraclus -type f ! -path '*/provisioning/receipt-*' -print0 \
   | sort -z | xargs -0 sha256sum | sha256sum
 ```

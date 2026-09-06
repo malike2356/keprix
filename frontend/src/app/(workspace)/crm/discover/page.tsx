@@ -20,6 +20,7 @@ import { CRM_WORKSPACE } from "@/components/crm/types";
 import {
   fetchDiscoveryAdapters,
   fetchCrmIcps,
+  fetchDiscoveryPacks,
   runDiscoveryJob,
 } from "@/lib/crm-api";
 
@@ -43,6 +44,7 @@ export default function CrmDiscoverPage() {
   const adapters = useSWR(["crm-discovery-adapters", workspaceId], () =>
     fetchDiscoveryAdapters(workspaceId),
   );
+  const packs = useSWR("crm-discovery-packs", fetchDiscoveryPacks);
 
   const [adapter, setAdapter] = React.useState("companies_house");
   const [query, setQuery] = React.useState("");
@@ -68,6 +70,8 @@ export default function CrmDiscoverPage() {
   }, [adapters.data]);
 
   const selectedHealth = healthByName.get(adapter);
+  const selectedPack = packs.data?.items.find((item) => item.id === domainPack);
+  const discoveryEnabled = selectedPack?.has_discovery_block === true;
 
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -150,7 +154,10 @@ export default function CrmDiscoverPage() {
             </Alert>
           ) : null}
 
-          <Stack component="form" spacing={2} onSubmit={onSubmit}>
+          {!packs.error && selectedPack && !discoveryEnabled ? (
+            <Alert severity="info">Discovery is not enabled for this business line. Choose a pack with a discovery block to continue.</Alert>
+          ) : null}
+          <Stack component="form" spacing={2} onSubmit={onSubmit} sx={!discoveryEnabled ? { opacity: 0.6, pointerEvents: "none" } : undefined}>
             <FormControl fullWidth size="small">
               <InputLabel id="adapter-label">Adapter</InputLabel>
               <Select
@@ -203,10 +210,9 @@ export default function CrmDiscoverPage() {
                 value={domainPack}
                 onChange={(e) => setDomainPack(e.target.value)}
               >
-                <MenuItem value="generic">generic</MenuItem>
-                <MenuItem value="property">property</MenuItem>
-                <MenuItem value="health_social">health_social</MenuItem>
-                <MenuItem value="plumbing">plumbing</MenuItem>
+                {(packs.data?.items || []).map((pack) => (
+                  <MenuItem key={pack.id} value={pack.id}>{pack.title}{pack.has_discovery_block ? "" : " (no discovery)"}</MenuItem>
+                ))}
               </Select>
             </FormControl>
             <FormControl fullWidth size="small">
@@ -261,7 +267,7 @@ export default function CrmDiscoverPage() {
               label="Force Soft Wall bypass (dev only)"
             />
             <Stack direction="row" spacing={1}>
-              <Button type="submit" variant="contained" disabled={busy}>
+              <Button type="submit" variant="contained" disabled={busy || !discoveryEnabled}>
                 {busy ? "Running..." : "Run discovery"}
               </Button>
               <Button component="a" href="/crm/jobs" variant="outlined">

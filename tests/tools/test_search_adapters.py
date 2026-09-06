@@ -7,6 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from keprix.backend.tools.adapters.registry import run_adapter
+from plugins.web.searxng.provider import SearXNGWebSearchProvider
 
 
 @pytest.mark.asyncio
@@ -37,3 +38,21 @@ async def test_search_adapter_setup_guidance_without_env(monkeypatch):
     assert result.ok is False
     assert result.setup_guidance
     assert "TAVILY_API_KEY" in result.setup_guidance
+
+
+def test_searxng_provider_sends_bearer_token(monkeypatch):
+    monkeypatch.setenv("SEARXNG_URL", "https://search.verlox.uk/api")
+    monkeypatch.setenv("SEARXNG_API_TOKEN", "test-token")
+
+    class Response:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"results": [{"title": "Example", "url": "https://example.com", "content": "Result"}]}
+
+    with patch("httpx.get", return_value=Response()) as request:
+        result = SearXNGWebSearchProvider().search("example", limit=1)
+
+    assert result["success"] is True
+    assert request.call_args.kwargs["headers"]["Authorization"] == "Bearer test-token"

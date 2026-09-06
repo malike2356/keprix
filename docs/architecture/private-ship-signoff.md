@@ -7,7 +7,7 @@ Not a public GTM or paid-at-scale launch.
 
 ## Gate evidence
 
-Run from `/opt/lampp/htdocs/verlox/keprix` with the project venv (Python 3.11+):
+Run from `<workspace-root>/keprix` with the project venv (Python 3.11+):
 
 | Check | Result |
 | --- | --- |
@@ -45,7 +45,7 @@ Docs: `docs/operations/vps-deploy.md`, `docs/operations/readiness.md`,
 
 ## Baggage quarantine
 
-- `1st-plan/competitor-research/` moved under `/opt/lampp/htdocs/verlox/archive/keprix-wip-bakups/` and gitignored.
+- `1st-plan/competitor-research/` moved under `<workspace-root>/archive/keprix-wip-bakups/` and gitignored.
 - `apps-on-keprix/retired-project-compasslab/` moved to the same archive root and gitignored.
 
 ## Remaining risks (honest)

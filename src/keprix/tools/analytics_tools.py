@@ -74,6 +74,32 @@ def analytics_aggregate_daily(args: dict[str, Any], **kwargs: Any) -> str:
     return _ok(_svc().aggregate_daily(lookback_days=lookback))
 
 
+def analytics_acceptance_rate(args: dict[str, Any], **kwargs: Any) -> str:
+    workspace_id = str(args.get("workspace_id") or "").strip()
+    if not workspace_id:
+        return _err("workspace_id is required")
+    return _ok(
+        _svc().acceptance_rate(
+            workspace_id,
+            days=int(args.get("days") or 30),
+            channel=args.get("channel"),
+        )
+    )
+
+
+def analytics_daily_timeseries(args: dict[str, Any], **kwargs: Any) -> str:
+    workspace_id = str(args.get("workspace_id") or "").strip()
+    if not workspace_id:
+        return _err("workspace_id is required")
+    return _ok(
+        _svc().daily_timeseries(
+            workspace_id,
+            days=int(args.get("days") or 30),
+            channel=args.get("channel"),
+        )
+    )
+
+
 registry.register(
     name="analytics_overview",
     toolset=TOOLSET,
@@ -166,5 +192,45 @@ registry.register(
         },
     },
     handler=analytics_aggregate_daily,
+    check_fn=check_analytics_requirements,
+)
+
+registry.register(
+    name="analytics_acceptance_rate",
+    toolset=TOOLSET,
+    schema={
+        "name": "analytics_acceptance_rate",
+        "description": "Social connection acceptance rate (accepted/sent per channel). Zeroes when no social channel is connected.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "days": {"type": "integer", "default": 30},
+                "channel": {"type": "string"},
+            },
+            "required": ["workspace_id"],
+        },
+    },
+    handler=analytics_acceptance_rate,
+    check_fn=check_analytics_requirements,
+)
+
+registry.register(
+    name="analytics_daily_timeseries",
+    toolset=TOOLSET,
+    schema={
+        "name": "analytics_daily_timeseries",
+        "description": "Daily funnel timeseries (sends/opens/clicks/replies/bookings/leads/accepts) plus per-source breakdown.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "workspace_id": {"type": "string"},
+                "days": {"type": "integer", "default": 30},
+                "channel": {"type": "string"},
+            },
+            "required": ["workspace_id"],
+        },
+    },
+    handler=analytics_daily_timeseries,
     check_fn=check_analytics_requirements,
 )

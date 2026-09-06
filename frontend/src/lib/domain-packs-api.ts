@@ -29,12 +29,12 @@ export async function fetchDomainPacks() {
   );
 }
 
-export async function createDomainPack(domainName: string, jurisdictions: string[] = []) {
+export async function createDomainPack(domainName: string, jurisdictions: string[] = [], workspaceId = "default") {
   return parseJson<{ pack: DomainPack }>(
     await ceApi("/api/domain-packs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ domain_name: domainName, jurisdictions }),
+      body: JSON.stringify({ domain_name: domainName, jurisdictions, workspace_id: workspaceId }),
     }),
     "create domain pack",
   );

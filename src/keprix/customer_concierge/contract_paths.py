@@ -9,8 +9,9 @@ from __future__ import annotations
 from pathlib import Path
 
 _KEPRIX_ROOT = Path(__file__).resolve().parents[3]
+_VERLOX_ROOT = _KEPRIX_ROOT.parent
 _VENDORED = _KEPRIX_ROOT / "contracts" / "customer-concierge-v1"
-_SHARED = Path("/opt/lampp/htdocs/verlox/shared/contracts/customer-concierge-v1")
+_SHARED = _VERLOX_ROOT / "shared" / "contracts" / "customer-concierge-v1"
 
 
 def contract_root() -> Path:

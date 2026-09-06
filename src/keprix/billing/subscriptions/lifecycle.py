@@ -8,6 +8,7 @@ from typing import Any
 from keprix.billing.config_loader import load_billing_config
 from keprix.billing.store import get_billing_store
 from keprix.billing.subscriptions.provisioning import provision_plan_features
+from keprix.billing.wallet.regrant import grant_on_assignment
 
 
 async def start_trial(user_id: str, plan_id: str) -> dict[str, Any]:
@@ -37,6 +38,7 @@ async def start_trial(user_id: str, plan_id: str) -> dict[str, Any]:
         },
     )
     await provision_plan_features(user_id, plan)
+    grant_on_assignment(user_id, plan, user_id=user_id)
     return sub
 
 
@@ -55,6 +57,7 @@ async def activate_subscription(user_id: str, *, plan_id: str, stripe_subscripti
     sub = await get_billing_store().save_subscription(user_id, payload)
     if plan is not None:
         await provision_plan_features(user_id, plan)
+        grant_on_assignment(user_id, plan, user_id=user_id)
     return sub
 
 
@@ -68,6 +71,15 @@ async def cancel_subscription(user_id: str, *, at_period_end: bool = True) -> di
     if not at_period_end:
         payload["status"] = "cancelled"
     return await get_billing_store().save_subscription(user_id, payload)
+
+
+async def pause_subscription(user_id: str) -> dict[str, Any]:
+    """Pause collection while preserving the subscription and its access flags."""
+    return await get_billing_store().save_subscription(user_id, {"status": "paused", "pause_collection": True, "cancel_at_period_end": False})
+
+
+async def resume_subscription(user_id: str) -> dict[str, Any]:
+    return await get_billing_store().save_subscription(user_id, {"status": "active", "pause_collection": False, "cancel_at_period_end": False})
 
 
 async def expire_subscription(user_id: str) -> dict[str, Any]:

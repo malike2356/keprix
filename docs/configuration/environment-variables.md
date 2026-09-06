@@ -53,18 +53,9 @@ in **Install minimum** above.
 | `CUSTOM_LLM_BASE_URL` | LLM Providers | `(empty)` | no |
 | `CUSTOM_LLM_API_KEY` | LLM Providers | `(empty)` | no |
 | `KEPRIX_DATABASE_URL` | bash scripts/generate-production-env.sh | `postgresql+asyncpg://keprix:REPLACE_ME_POSTGRES@localhost:5432/keprix` | no |
-| `KEPRIX_CRM_BACKEND` | CRM/outreach durable store: `auto` / `sqlite` / `postgres` | `auto` | no |
-| `KEPRIX_CRM_DB_PATH` | Optional SQLite path override for CRM | `(empty)` | no |
-| `KEPRIX_CRM_FORCE_PG` | Force Postgres backend (including under pytest) | `0` | no |
-| `KEPRIX_OUTREACH_DRY_RUN` | Outreach send dry-run (default on for Contabo/prod safety) | `1` | no |
-| `KEPRIX_OUTREACH_SOFT_WALL` | Park cold sends for Soft Wall approval | `1` | no |
-| `SENDGRID_API_KEY` | Optional SendGrid ESP (empty = not_configured for that provider) | `(empty)` | no |
-| `MAILGUN_API_KEY` / `MAILGUN_DOMAIN` | Optional Mailgun ESP | `(empty)` | no |
-| `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_SES_REGION` | Optional SES ESP | `(empty)` | no |
-| `KEPRIX_TEST_DATABASE_URL` | Optional Postgres URL for CRM durable tests | `(empty)` | no |
-| `POSTGRES_PASSWORD` | Database | `REPLACE_ME_POSTGRES` | no |
-| `POSTGRES_BIND` | Database | `127.0.0.1` | no |
-| `POSTGRES_HOST_PORT` | Database | `5432` | no |
+| `POSTGRES_PASSWORD` | AWS_SNS_TOPIC_ARN= | `REPLACE_ME_POSTGRES` | no |
+| `POSTGRES_BIND` | Optional ESP (leave empty unless configured; never invent secrets) | `127.0.0.1` | no |
+| `POSTGRES_HOST_PORT` | Optional ESP (leave empty unless configured; never invent secrets) | `5432` | no |
 | `KEPRIX_REDIS_URL` | Redis Cache | `redis://:REPLACE_ME_REDIS@localhost:6379` | no |
 | `REDIS_PASSWORD` | Redis Cache | `REPLACE_ME_REDIS` | no |
 | `REDIS_BIND` | Redis Cache | `127.0.0.1` | no |
@@ -73,7 +64,9 @@ in **Install minimum** above.
 | `SEARXNG_PORT` | Web Search (SearXNG - self-hosted) | `8080` | no |
 | `SEARXNG_URL` | Web Search (SearXNG - self-hosted) | `http://localhost:8080` | no |
 | `KEPRIX_SEARXNG_URL` | Web Search (SearXNG - self-hosted) | `http://localhost:8080` | no |
+| `SEARXNG_API_TOKEN` | Web Search (SearXNG - self-hosted) | `(empty)` | no |
 | `SEARXNG_SECRET` | Web Search (SearXNG - self-hosted) | `(empty)` | no |
+| `KEPRIX_TENANT_HOME_ISOLATION` | Enable per-tenant filesystem namespaces after tenant data cutover. | `0` | no |
 | `BACKEND_BIND` | Server Binding | `127.0.0.1` | no |
 | `BACKEND_PORT` | Server Binding | `3333` | no |
 | `FRONTEND_BIND` | Server Binding | `127.0.0.1` | no |

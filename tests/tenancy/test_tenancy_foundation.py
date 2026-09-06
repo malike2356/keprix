@@ -8,7 +8,7 @@ import pytest
 
 from keprix.security.product_context import ProductContext, clear_product_context, set_product_context
 from keprix.tenancy.isolation import TenantIsolationError, assert_tenant_owns
-from keprix.tenancy.resolve import resolve_tenant_id
+from keprix.tenancy.resolve import resolve_tenant_id, resolve_tenant_id_with_status
 from keprix.tenancy.store import TenantConflictError, reset_tenant_store_for_tests
 
 
@@ -28,6 +28,12 @@ def test_resolve_header_and_membership(tenant_store) -> None:
     tenant_store.add_membership(t.id, "member1", role="member")
     assert resolve_tenant_id(header_ref="acme", user={"id": "member1"}) == t.id
     assert resolve_tenant_id(user={"id": "member1"}) == t.id
+
+
+def test_resolve_status_rejects_unknown_reference(tenant_store) -> None:
+    tenant_id, resolved = resolve_tenant_id_with_status(header_ref="missing", user={"id": "member1"})
+    assert tenant_id == "local"
+    assert resolved is False
 
 
 def test_assert_tenant_owns_fails_closed() -> None:

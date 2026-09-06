@@ -43,7 +43,14 @@ async def create_structured_workspace(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     record_onboarding_event_for_user(user, "workspace.created_with_template")
-    return {"workspace": workspace}
+    from keprix.email.welcome import send_welcome_email
+
+    welcome = await send_welcome_email(
+        workspace_id=str(workspace["id"]),
+        workspace_name=str(workspace["name"]),
+        user=user,
+    )
+    return {"workspace": workspace, "welcome_email": welcome}
 
 
 @router.post("/{workspace_id}/reindex")

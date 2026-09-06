@@ -11,6 +11,7 @@ from keprix.crm.capture import (
     token_hash,
 )
 from keprix.crm.store import reset_crm_store_for_tests
+from keprix.crm.capture_routes import _redirect_ok
 
 
 @pytest.fixture()
@@ -68,3 +69,10 @@ def test_capture_requires_consent_and_disabled_or_rotated_tokens_fail(store) -> 
     assert len([item for item in list_capture_links(store, "ws_a") if item["active"]]) == 1
     with pytest.raises(LookupError):
         submit_capture(store, active["token"], email="old@example.com", fullname="Old", consent=True)
+
+
+def test_capture_redirect_requires_same_origin_or_explicit_allowlist(monkeypatch) -> None:
+    assert _redirect_ok("/thanks")
+    assert not _redirect_ok("https://example.com/thanks")
+    monkeypatch.setenv("KEPRIX_CAPTURE_ALLOWED_REDIRECT_ORIGINS", "https://example.com")
+    assert _redirect_ok("https://example.com/thanks")

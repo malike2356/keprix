@@ -28,7 +28,7 @@ Routes call `registry.dispatch()` on the pack-local tool registry. Handlers retu
 From this directory:
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix/domain-packs/clinicom
+cd <workspace-root>/keprix/domain-packs/clinicom
 python3 -m uvicorn http_app:app --host 0.0.0.0 --port 3353
 ```
 
@@ -43,7 +43,7 @@ export CLINICOM_SIDECAR_TOKEN=your-shared-token   # optional; must match CLINICO
 Smoke from Clinicom repo root:
 
 ```bash
-bash /opt/lampp/htdocs/verlox/clinicom-ai/scripts/smoke-sidecar.sh
+bash <workspace-root>/clinicom-ai/scripts/smoke-sidecar.sh
 ```
 
 ## Provider wiring
@@ -57,7 +57,7 @@ Handlers resolve AI in this order:
 From Clinicom:
 
 ```bash
-bash /opt/lampp/htdocs/verlox/clinicom-ai/scripts/start-keprix-clinicom-sidecar.sh
+bash <workspace-root>/clinicom-ai/scripts/start-keprix-clinicom-sidecar.sh
 ```
 
 That script starts this pack on port 3353. Credentials must stay in environment or approved secret storage and must never be logged.
@@ -102,7 +102,7 @@ See `docs/clinical-safety-hazard-log.md`, `docs/threat-model.md`, and `docs/resp
 From the Keprix repo root:
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 pytest domain-packs/clinicom/tests -q
 ```
 

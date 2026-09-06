@@ -33,7 +33,7 @@ Operator enters licensed keys/tokens under `/crm/settings#connections` before us
 ## Validation
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 .venv/bin/pytest tests/crm/test_icp.py tests/crm/test_nice_p5.py tests/crm/test_connections.py -q
 ```
 

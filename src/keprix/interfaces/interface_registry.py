@@ -155,3 +155,10 @@ async def _api_handler(*, agent_id: str, trace_id: str, message: str = "", **kwa
         "message": message or kwargs.get("text", ""),
         "status": "accepted",
     }
+
+
+async def _web_ui_handler(*, agent_id: str, trace_id: str, **kwargs: Any) -> Any:
+    """Compatibility entry point for callers that import the registry handler."""
+    from keprix.interfaces.web_ui_stream import _web_ui_handler as handler
+
+    return await handler(agent_id=agent_id, trace_id=trace_id, **kwargs)

@@ -63,7 +63,7 @@ Frontend: `/book/{slug}`, `/book/{slug}/cancel`, `/book/{slug}/reschedule`, `/bo
 
 Paid event types use `requires_deposit`, `deposit_minor`, `deposit_currency`. Checkout records a **price_data** shaped amount (same pattern as Keprix coffee donations). Do not create Stripe Prices from Hub. Complete locally with `/api/vical/deposits/mock-pay` or host `mark-paid`.
 
-Stripe SoT for any later live pins: `/opt/lampp/htdocs/verlox/.access/.stripe-credentials-and-price-id.md` (never paste secrets into docs or chat).
+Stripe SoT for any later live pins: `<workspace-root>/.access/.stripe-credentials-and-price-id.md` (never paste secrets into docs or chat).
 
 ## Calendar sync runbook
 

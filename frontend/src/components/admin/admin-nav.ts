@@ -9,6 +9,7 @@ import {
   IconKey,
   IconLayoutDashboard,
   IconMessages,
+  IconDiscount2,
   IconPlayerPlay,
   IconSettings,
   IconTools,
@@ -30,6 +31,7 @@ export const ADMIN_NAV_ITEMS: AdminNavEntry[] = [
   { type: "subheader", title: "Agent" },
   { type: "item", title: "Conversations", href: "/admin/conversations", icon: IconMessages },
   { type: "item", title: "Usage", href: "/admin/usage", icon: IconChartBar },
+  { type: "item", title: "Aiva operations", href: "/admin/aivas", icon: IconUsers },
   { type: "item", title: "Models", href: "/admin/models", icon: IconCpu },
   { type: "item", title: "Tool Library", href: "/admin/tools", icon: IconTools },
   {
@@ -45,6 +47,7 @@ export const ADMIN_NAV_ITEMS: AdminNavEntry[] = [
   { type: "item", title: "API Keys", href: "/admin/keys", icon: IconKey },
   { type: "item", title: "Users", href: "/admin/users", icon: IconUsers },
   { type: "item", title: "Billing", href: "/admin/billing", icon: IconCreditCard },
+  { type: "item", title: "Promo redemptions", href: "/admin/promos", icon: IconDiscount2 },
   { type: "item", title: "Hermes upstream", href: "/admin/upstream", icon: IconGitBranch },
   { type: "item", title: "Settings", href: "/admin/settings", icon: IconSettings },
   { type: "item", title: "Engine control", href: "/admin/engine", icon: IconPlayerPlay },

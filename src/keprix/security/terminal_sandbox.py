@@ -39,8 +39,11 @@ POLICY_RESTRICTED = SandboxPolicy(
     denied_commands={"rm", "mv", "cp", "dd", "shred", "mkfs", "mount", "umount", "chmod", "chown", "sudo", "su"},
 )
 
+_KEPRIX_ROOT = Path(__file__).resolve().parents[3]
+_VERLOX_ROOT = _KEPRIX_ROOT.parent
+
 POLICY_STANDARD = SandboxPolicy(
-    allowed_paths={str(Path.home()), "/tmp", "/opt/lampp/htdocs/verlox"},
+    allowed_paths={str(Path.home()), "/tmp", str(_VERLOX_ROOT)},
     read_only_paths={"/etc", "/usr", "/opt"},
     denied_paths={"/root", "/boot", "/sys", "/proc", "/dev", "/var/log"},
     allow_egress=True,

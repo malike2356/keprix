@@ -18,6 +18,7 @@ import {
   beginZoomConnect,
   createKnowledge,
   fetchAnalytics,
+  fetchAudienceMode,
   fetchAudienceTools,
   fetchBookingMesh,
   fetchChannels,
@@ -37,6 +38,7 @@ import {
   revokeZoomConnection,
   saveStep1,
   saveStep2,
+  saveAudienceMode,
   setBookingOutcome,
   setKnowledgePublishState,
   takeoverSession,
@@ -49,6 +51,7 @@ import {
   type KnowledgeSource,
   type Readiness,
   type ZoomConnection,
+  type AudienceMode,
 } from "@/lib/concierge-api";
 
 const TABS = [
@@ -119,15 +122,18 @@ export default function ConciergePage() {
     Array<{ role: string; body: string }>
   >([]);
   const [audienceTools, setAudienceTools] = React.useState<string[]>([]);
+  const [audienceMode, setAudienceMode] = React.useState<AudienceMode>("team");
 
   const load = React.useCallback(async () => {
     setError(null);
     try {
-      const [{ profile: p }, ready, preview] = await Promise.all([
+      const [{ profile: p }, ready, preview, mode] = await Promise.all([
         fetchConciergeProfile(personaId),
         fetchReadiness(personaId),
         fetchPreview(personaId),
+        fetchAudienceMode(),
       ]);
+      setAudienceMode(mode.mode);
       setProfile(p);
       setReadiness(ready);
       setPreviewGreeting(preview.visitorView.greeting);
@@ -205,6 +211,7 @@ export default function ConciergePage() {
         meetingTypes,
         icsFallbackOk: true,
       });
+      await saveAudienceMode(audienceMode);
       setProfile(result.profile);
       await load();
     } catch (err) {
@@ -309,6 +316,18 @@ export default function ConciergePage() {
             </>
           ) : (
             <>
+              <TextField
+                select
+                label="Workspace audience"
+                value={audienceMode}
+                onChange={(e) => setAudienceMode(e.target.value as AudienceMode)}
+                fullWidth
+                helperText="Team keeps the public concierge disabled. Customers or both enable it when the web channel is enabled."
+              >
+                <MenuItem value="team">Team only</MenuItem>
+                <MenuItem value="customers">Customers</MenuItem>
+                <MenuItem value="both">Team and customers</MenuItem>
+              </TextField>
               <FormControlLabel control={<Checkbox checked={webEnabled} onChange={(e) => setWebEnabled(e.target.checked)} />} label="Web embed" />
               <FormControlLabel control={<Checkbox checked={telegramEnabled} onChange={(e) => setTelegramEnabled(e.target.checked)} />} label="Telegram" />
               <FormControlLabel control={<Checkbox checked={whatsappEnabled} onChange={(e) => setWhatsappEnabled(e.target.checked)} />} label="WhatsApp" />

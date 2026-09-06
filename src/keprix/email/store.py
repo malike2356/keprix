@@ -158,11 +158,47 @@ class EmailDraftRecord:
         }
 
 
+@dataclass
+class EmailBatchSendRecord:
+    id: str
+    batch_id: str
+    user_id: str
+    lead_id: str
+    recipient: str
+    subject: str
+    body: str
+    status: str = "pending"
+    scheduled_at: datetime | None = None
+    sent_at: datetime | None = None
+    error: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {k: v.isoformat() if isinstance(v, datetime) else v for k, v in self.__dict__.items()}
+
+
+@dataclass
+class EmailBatchRecord:
+    id: str
+    user_id: str
+    name: str
+    status: str
+    recipient_count: int
+    created_at: datetime
+    sent_at: datetime | None = None
+    sends: list[EmailBatchSendRecord] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"id": self.id, "user_id": self.user_id, "name": self.name, "status": self.status,
+                "recipient_count": self.recipient_count, "created_at": self.created_at,
+                "sent_at": self.sent_at, "sends": [s.to_dict() for s in self.sends]}
+
+
 class EmailStore:
     def __init__(self) -> None:
         self._accounts: dict[str, EmailAccountRecord] = {}
         self._emails: dict[str, EmailRecord] = {}
         self._drafts: dict[str, EmailDraftRecord] = {}
+        self._batches: dict[str, EmailBatchRecord] = {}
         self._lock = asyncio.Lock()
 
     async def create_account(self, user_id: str, data: dict[str, Any]) -> EmailAccountRecord:
@@ -430,6 +466,22 @@ class EmailStore:
                 return False
             del self._drafts[draft_id]
             return True
+
+    async def create_batch(self, user_id: str, name: str, sends: list[dict[str, Any]]) -> EmailBatchRecord:
+        batch = EmailBatchRecord(str(uuid.uuid4()), user_id, name, "draft", len(sends), _utcnow())
+        batch.sends = [EmailBatchSendRecord(str(uuid.uuid4()), batch.id, user_id, str(s["lead_id"]),
+                                            str(s["recipient"]).strip().lower(), str(s.get("subject") or ""),
+                                            str(s.get("body") or ""), str(s.get("status") or "pending")) for s in sends]
+        async with self._lock:
+            self._batches[batch.id] = batch
+        return batch
+
+    async def list_batches(self, user_id: str) -> list[EmailBatchRecord]:
+        return [b for b in self._batches.values() if b.user_id == user_id]
+
+    async def get_batch(self, batch_id: str, user_id: str) -> EmailBatchRecord | None:
+        b = self._batches.get(batch_id)
+        return b if b and b.user_id == user_id else None
 
 
 _store: EmailStore | None = None

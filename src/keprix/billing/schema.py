@@ -27,6 +27,14 @@ class PlanPriceConfig(BaseModel):
     stripe_price_id: str | None = None
 
 
+class PlanModelPolicy(BaseModel):
+    """Model allowlist and default for workers on a billing tier."""
+
+    allowed_providers: list[str] = Field(default_factory=list)
+    allowed_models: list[str] = Field(default_factory=list)
+    default_model: str | None = None
+
+
 class PlanConfig(BaseModel):
     id: str
     name: str
@@ -38,6 +46,8 @@ class PlanConfig(BaseModel):
     seats: int = 1
     metadata: dict[str, Any] = Field(default_factory=dict)
     feature_flags: dict[str, Any] = Field(default_factory=dict)
+    plan_model_policy: PlanModelPolicy = Field(default_factory=PlanModelPolicy)
+    regrant_cadence: Literal["off", "monthly"] = "off"
 
     @model_validator(mode="after")
     def normalize_prices(self) -> PlanConfig:
@@ -136,6 +146,8 @@ class BillingConfig(BaseModel):
     dunning: DunningConfig = Field(default_factory=DunningConfig)
     webhooks: WebhookConfig = Field(default_factory=WebhookConfig)
     ai_wallet: AiWalletConfig = Field(default_factory=AiWalletConfig)
+    business_lines_included_below_business: int = Field(default=1, ge=0)
+    business_lines_unlimited_min_tier: str = "business"
 
     @field_validator("plans")
     @classmethod

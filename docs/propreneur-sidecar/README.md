@@ -3,7 +3,7 @@
 **Status:** pack registered; engine connectivity built; domain CRUD live for reads and Soft Wall for writes (prompts 636-643)
 **Contract version:** see pack `contract_version` / capabilities contract `1.3.0`
 **Writing style:** plain ASCII only.
-**Canonical Propreneur root:** `/opt/lampp/htdocs/verlox/propreneur` (not `propreneur/propreneur-v2`).
+**Canonical Propreneur root:** `<workspace-root>/propreneur` (not `propreneur/propreneur-v2`).
 
 ## Architecture
 
@@ -81,7 +81,7 @@ Primary routes: `/api/aiva/v1/*` (CRUD). Compat `/api/carina/tools` remains for 
 ## Operator commands
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 python -c "from keprix.product_sidecar.readiness import build_product_readiness; print(build_product_readiness('propreneur'))"
 python -m pytest tests/product_sidecar/test_propreneur_pack.py -q
 ```

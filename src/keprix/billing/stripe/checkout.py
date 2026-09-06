@@ -93,6 +93,7 @@ async def create_checkout_session(
         trial_days=trial_days,
         metadata=metadata,
         mode="subscription",
+        allow_promotion_codes=bool(promo_code),
     )
     return {
         "checkout_url": session.get("url"),

@@ -1,0 +1,13 @@
+{
+  "name": "Keprix Chat",
+  "short_name": "Keprix",
+  "description": "A private chat workspace for your Keprix agent.",
+  "start_url": "/chat-only",
+  "scope": "/chat-only",
+  "display": "standalone",
+  "background_color": "#101418",
+  "theme_color": "#101418",
+  "icons": [
+    { "src": "/logo-opaque.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

@@ -21,9 +21,11 @@ import {
   fetchBillingAdminPricing,
   saveBillingAdminPricing,
   type BillingAdminPlan,
+  type BillingPlanModelPolicy,
 } from "@/lib/billing-api";
 
 type PriceSelection = Record<string, Record<"month" | "year", string>>;
+type ModelPolicySelection = Record<string, BillingPlanModelPolicy>;
 
 function buildSelection(plans: BillingAdminPlan[]): PriceSelection {
   const selection: PriceSelection = {};
@@ -49,6 +51,7 @@ export default function BillingPricingAdmin() {
   );
 
   const [selection, setSelection] = React.useState<PriceSelection>({});
+  const [modelPolicies, setModelPolicies] = React.useState<ModelPolicySelection>({});
   const [saving, setSaving] = React.useState(false);
   const [message, setMessage] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -56,6 +59,18 @@ export default function BillingPricingAdmin() {
   React.useEffect(() => {
     if (pricing?.plans) {
       setSelection(buildSelection(pricing.plans));
+      setModelPolicies(
+        Object.fromEntries(
+          pricing.plans.map((plan) => [
+            plan.id,
+            {
+              allowed_providers: [...(plan.plan_model_policy?.allowed_providers || [])],
+              allowed_models: [...(plan.plan_model_policy?.allowed_models || [])],
+              default_model: plan.plan_model_policy?.default_model || null,
+            },
+          ]),
+        ),
+      );
     }
   }, [pricing]);
 
@@ -65,6 +80,22 @@ export default function BillingPricingAdmin() {
     setSelection((current) => ({
       ...current,
       [planId]: { ...current[planId], [interval]: priceId },
+    }));
+  };
+
+  const onPolicyChange = (
+    planId: string,
+    field: "allowed_providers" | "allowed_models" | "default_model",
+    value: string,
+  ) => {
+    setModelPolicies((current) => ({
+      ...current,
+      [planId]: {
+        ...current[planId],
+        [field]: field === "default_model"
+          ? value || null
+          : value.split(",").map((item) => item.trim()).filter(Boolean),
+      },
     }));
   };
 
@@ -83,6 +114,11 @@ export default function BillingPricingAdmin() {
               interval,
               stripe_price_id: selection[plan.id][interval],
             })),
+          plan_model_policy: modelPolicies[plan.id] || {
+            allowed_providers: [],
+            allowed_models: [],
+            default_model: null,
+          },
         })),
       };
       await saveBillingAdminPricing(body);
@@ -128,6 +164,7 @@ export default function BillingPricingAdmin() {
               <TableCell>Plan</TableCell>
               <TableCell>Monthly price</TableCell>
               <TableCell>Yearly price</TableCell>
+              <TableCell>Model policy</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -161,6 +198,33 @@ export default function BillingPricingAdmin() {
                     </TextField>
                   </TableCell>
                 ))}
+                <TableCell sx={{ minWidth: 360 }}>
+                  <Stack spacing={1}>
+                    <TextField
+                      size="small"
+                      label="Allowed providers"
+                      value={(modelPolicies[plan.id]?.allowed_providers || []).join(", ")}
+                      onChange={(event) => onPolicyChange(plan.id, "allowed_providers", event.target.value)}
+                      placeholder="openai, anthropic"
+                      helperText="Comma-separated; empty means any provider"
+                    />
+                    <TextField
+                      size="small"
+                      label="Allowed models"
+                      value={(modelPolicies[plan.id]?.allowed_models || []).join(", ")}
+                      onChange={(event) => onPolicyChange(plan.id, "allowed_models", event.target.value)}
+                      placeholder="gpt-4.1-mini, claude-sonnet-4-6"
+                      helperText="Model IDs or provider:model IDs"
+                    />
+                    <TextField
+                      size="small"
+                      label="Default model"
+                      value={modelPolicies[plan.id]?.default_model || ""}
+                      onChange={(event) => onPolicyChange(plan.id, "default_model", event.target.value)}
+                      placeholder="provider:model"
+                    />
+                  </Stack>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

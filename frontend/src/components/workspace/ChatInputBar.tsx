@@ -11,6 +11,9 @@ import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress"; // @loading-contract-ignore button spinner
 import IconButton from "@mui/material/IconButton";
+import List from "@mui/material/List";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemText from "@mui/material/ListItemText";
 import Popover from "@mui/material/Popover";
 import TextField from "@mui/material/TextField";
 import { alpha, keyframes, useTheme } from "@mui/material/styles";
@@ -18,6 +21,7 @@ import * as React from "react";
 import ChatVoiceControl from "@/components/workspace/ChatVoiceControl";
 import { useWebVoiceRecorder } from "@/hooks/useWebVoiceRecorder";
 import { uploadChatFile } from "@/lib/workspace-api";
+import { ceApi } from "@/lib/ce-api";
 
 type AttachedFile = {
   id: string;
@@ -40,6 +44,8 @@ export default function ChatInputBar({ onSend, onStop, isStreaming = false }: Ch
   const [value, setValue] = React.useState("");
   const [files, setFiles] = React.useState<AttachedFile[]>([]);
   const [voiceError, setVoiceError] = React.useState<string | null>(null);
+  const [slashItems, setSlashItems] = React.useState<Array<{ command: string; description: string }>>([]);
+  const [slashOpen, setSlashOpen] = React.useState(false);
   const inputRef = React.useRef<HTMLTextAreaElement | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
   const micButtonRef = React.useRef<HTMLButtonElement | null>(null);
@@ -60,6 +66,36 @@ export default function ChatInputBar({ onSend, onStop, isStreaming = false }: Ch
   React.useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  React.useEffect(() => {
+    const match = value.match(/(?:^|\s)(\/[\w-]*)$/);
+    if (!match) {
+      setSlashOpen(false);
+      setSlashItems([]);
+      return;
+    }
+    const prefix = match[1];
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await ceApi("/api/slash/commands");
+        if (!response.ok) return;
+        const payload = (await response.json()) as { commands?: Array<{ name: string; description?: string }> };
+        const needle = prefix.toLowerCase();
+        const candidates = (payload.commands || []).filter((item) => item.name.toLowerCase().startsWith(needle));
+        setSlashItems(candidates.slice(0, 12).map((item) => ({ command: item.name, description: item.description || "Slash command" })));
+        setSlashOpen(candidates.length > 0);
+      } catch {
+        setSlashOpen(false);
+      }
+    }, 150);
+    return () => window.clearTimeout(timer);
+  }, [value]);
+
+  const selectSlash = (command: string) => {
+    setValue((current) => current.replace(/(\/[-\w]*)$/, `${command} `));
+    setSlashOpen(false);
+    inputRef.current?.focus();
+  };
 
   const submit = async () => {
     const trimmed = value.trim();
@@ -216,6 +252,23 @@ export default function ChatInputBar({ onSend, onStop, isStreaming = false }: Ch
           onKeyDown={onKeyDown}
           InputProps={{ disableUnderline: true }}
         />
+        <Popover
+          open={slashOpen}
+          anchorEl={inputRef.current}
+          onClose={() => setSlashOpen(false)}
+          anchorOrigin={{ vertical: "top", horizontal: "left" }}
+          transformOrigin={{ vertical: "bottom", horizontal: "left" }}
+          disableAutoFocus
+          disableEnforceFocus
+        >
+          <List dense sx={{ minWidth: 260, maxWidth: 360, py: 0.5 }}>
+            {slashItems.map((item) => (
+              <ListItemButton key={item.command} onClick={() => selectSlash(item.command)}>
+                <ListItemText primary={item.command} secondary={item.description} />
+              </ListItemButton>
+            ))}
+          </List>
+        </Popover>
         <IconButton
           color="primary"
           onClick={() => (isStreaming ? onStop() : void submit())}

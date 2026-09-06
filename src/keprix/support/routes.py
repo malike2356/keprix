@@ -29,8 +29,14 @@ from keprix.support.schemas import (
 )
 from keprix.support.store import get_support_store
 from keprix.support.tickets import attach_diagnostics, create_ticket, export_ticket
+from keprix.support.integration_snapshot import workspace_integration_snapshot
 
 router = APIRouter(prefix="/api/support", tags=["support"])
+
+
+@router.get("/integration-snapshot")
+async def integration_snapshot(user: str = Depends(require_api_auth)) -> dict[str, Any]:
+    return workspace_integration_snapshot(str(user))
 
 
 @router.get("/community")

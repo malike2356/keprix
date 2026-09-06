@@ -3,7 +3,7 @@
 Preserves contract 2.0 routes and adds additive /v1/products/clinicom/*.
 
 Run:
-    cd /opt/lampp/htdocs/verlox/keprix/domain-packs/clinicom
+    cd keprix/domain-packs/clinicom
     uvicorn http_app:app --host 0.0.0.0 --port 3353
 """
 

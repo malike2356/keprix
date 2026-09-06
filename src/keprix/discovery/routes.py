@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from keprix.auth.dependencies import get_current_user
@@ -56,6 +56,17 @@ class JobActionBody(BaseModel):
     materialize: bool | None = None
 
 
+class MapsDiscoveryBody(BaseModel):
+    query: str
+    domain_pack: str = "generic"
+    params: dict[str, Any] = Field(default_factory=dict)
+    limits: dict[str, Any] = Field(default_factory=dict)
+    list_name: str | None = None
+    auto_materialize: bool = False
+    approval_id: str | None = None
+    force: bool = False
+
+
 @router.get("/discovery/adapters")
 async def list_discovery_adapters(
     workspace_id: str | None = Query(default=None),
@@ -98,6 +109,11 @@ async def run_discovery(
     ws = _workspace(workspace_id, x_workspace_id, user)
     adapter = (body.adapter or "").strip().lower()
 
+    if str(body.domain_pack or "").strip().lower() == "property":
+        from keprix.property_data.billing import require_property_entitlement
+
+        require_property_entitlement(ws)
+
     # Honest scrape refusal for social platforms.
     if adapter in {"instagram_scrape", "facebook_scrape", "tiktok_scrape", "linkedin_scrape", "social_scrape"}:
         return {
@@ -111,6 +127,15 @@ async def run_discovery(
         }
 
     from keprix.discovery import bootstrap_discovery
+    from keprix.discovery.packs import get_pack
+
+    pack = get_pack(body.domain_pack)
+    if pack is not None and not bool((pack.get("discovery") or {}).get("enabled")):
+        return {
+            "refused": True,
+            "message": "Discovery is not enabled for this business line.",
+            "domain_pack": body.domain_pack,
+        }
 
     bootstrap_discovery()
     runner = get_discovery_runner()
@@ -150,6 +175,78 @@ async def run_discovery(
         if run.get("deep_links"):
             result["deep_links"] = run["deep_links"]
     return result
+
+
+@router.post("/maps/discovery")
+async def run_maps_discovery(
+    body: MapsDiscoveryBody,
+    background_tasks: BackgroundTasks,
+    request: Request,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Queue Places discovery and return immediately with the canonical job ID."""
+    require_cap(user, "edit")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    from keprix.discovery import bootstrap_discovery
+
+    bootstrap_discovery()
+    runner = get_discovery_runner()
+    job = runner.create_job(
+        ws,
+        "google_places",
+        query=body.query,
+        params=body.params,
+        domain_pack=body.domain_pack,
+        limits=body.limits,
+        list_name=body.list_name,
+        auto_materialize=body.auto_materialize,
+        actor_type="user",
+        actor_id=_uid(user),
+    )
+    background_tasks.add_task(
+        runner.run_job,
+        ws,
+        job["id"],
+        materialize=body.auto_materialize,
+        approval_id=body.approval_id,
+        force=body.force,
+    )
+    return {
+        "job_id": job["id"],
+        "status": str(job.get("status") or "queued"),
+        "job": job,
+        "deep_links": {"status": f"/api/crm/maps/jobs/{job['id']}"},
+        "correlation_id": _corr(request),
+    }
+
+
+@router.get("/maps/jobs")
+async def list_maps_jobs(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "view")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    jobs = [row for row in get_crm_store().list_discovery_jobs(ws, limit=200) if row.get("adapter") == "google_places"]
+    return {"items": jobs, "count": len(jobs), "workspace_id": ws}
+
+
+@router.get("/maps/jobs/{job_id}")
+async def get_maps_job(
+    job_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "view")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    job = get_crm_store().get_discovery_job(ws, job_id)
+    if not job or job.get("adapter") != "google_places":
+        raise HTTPException(status_code=404, detail={"error_code": "maps_job_not_found"})
+    return {"job_id": job_id, "status": job.get("status"), "job": job, "result_counts": job.get("result_counts") or {}}
 
 
 @router.get("/jobs/{job_id}")

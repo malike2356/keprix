@@ -31,6 +31,7 @@ class PromoStore:
         self._path = path or _catalog_path()
         self._lock = threading.RLock()
         self._codes: dict[str, dict[str, Any]] = {}
+        self._redemptions_path = self._path.with_name("promo_redemptions.json")
         if self._path.exists():
             payload = json.loads(self._path.read_text(encoding="utf-8"))
             self._codes = {str(k).upper(): v for k, v in (payload.get("codes") or {}).items()}
@@ -65,6 +66,45 @@ class PromoStore:
             "trial_days": int(row.get("trial_days") or 0),
             "percent_off": int(row.get("percent_off") or 0),
         }
+
+    def record_redemption(
+        self,
+        *,
+        workspace_id: str,
+        code: str,
+        order_id: str,
+        amount_off: int = 0,
+        promo_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Record a confirmed Stripe redemption, idempotently by order id."""
+        path = self._redemptions_path
+        rows = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+        existing = next((row for row in rows if row.get("order_id") == order_id), None)
+        if existing:
+            return existing
+        row = {
+            "workspace_id": workspace_id,
+            "code": code.upper()[:3] + "..." if code else "",
+            "promo_id": promo_id,
+            "amount_off": int(amount_off),
+            "redeemed_at": _utcnow(),
+            "order_id": order_id,
+        }
+        rows.append(row)
+        path.write_text(json.dumps(rows, indent=2), encoding="utf-8")
+        return row
+
+    def list_redemptions(self, *, code: str | None = None, workspace_id: str | None = None) -> dict[str, Any]:
+        rows = json.loads(self._redemptions_path.read_text(encoding="utf-8")) if self._redemptions_path.exists() else []
+        if code:
+            rows = [row for row in rows if row.get("code") == code.upper()[:3] + "..."]
+        if workspace_id:
+            rows = [row for row in rows if row.get("workspace_id") == workspace_id]
+        totals: dict[str, int] = {}
+        for row in rows:
+            key = str(row.get("code") or "")
+            totals[key] = totals.get(key, 0) + 1
+        return {"items": rows, "count": len(rows), "totals": totals}
 
 
 _promo: PromoStore | None = None

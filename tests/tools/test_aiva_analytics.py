@@ -16,11 +16,11 @@ from keprix.aiva_analytics.metrics import (
     AIVA_SOCIAL_CONNECTION_ACCEPTED,
     AIVA_SOCIAL_CONNECTION_SENT,
     record_agent_call,
+    record_metric,
     record_outreach_email_sent,
     record_outreach_reply,
     record_worker_escalation,
     record_worker_message,
-    record_metric,
 )
 from keprix.aiva_analytics.service import AnalyticsService, reset_analytics_service_for_tests
 from keprix.aiva_analytics.store import reset_analytics_store_for_tests
@@ -114,16 +114,29 @@ def test_daily_aggregate(analytics: AnalyticsService) -> None:
     assert any(r["metric_name"] == AIVA_AGENT_CALLS for r in daily)
 
 
-def test_acceptance_rate_and_daily_timeseries_include_empty_days(analytics: AnalyticsService) -> None:
-    record_metric("ws_1", AIVA_SOCIAL_CONNECTION_SENT, labels={"channel": "linkedin"}, store=analytics.store)
-    record_metric("ws_1", AIVA_SOCIAL_CONNECTION_SENT, labels={"channel": "linkedin"}, store=analytics.store)
-    record_metric("ws_1", AIVA_SOCIAL_CONNECTION_ACCEPTED, labels={"channel": "linkedin"}, store=analytics.store)
+def test_acceptance_rate_and_daily_timeseries_include_empty_days(
+    analytics: AnalyticsService,
+) -> None:
+    record_metric(
+        "ws_1", AIVA_SOCIAL_CONNECTION_SENT, labels={"channel": "linkedin"}, store=analytics.store
+    )
+    record_metric(
+        "ws_1", AIVA_SOCIAL_CONNECTION_SENT, labels={"channel": "linkedin"}, store=analytics.store
+    )
+    record_metric(
+        "ws_1",
+        AIVA_SOCIAL_CONNECTION_ACCEPTED,
+        labels={"channel": "linkedin"},
+        store=analytics.store,
+    )
     record_metric("ws_1", AIVA_OUTREACH_SENT, labels={"channel": "email"}, store=analytics.store)
     record_metric("ws_1", AIVA_OUTREACH_OPENED, labels={"channel": "email"}, store=analytics.store)
 
     acceptance = analytics.acceptance_rate("ws_1", days=7)
     assert acceptance["acceptance_rate"] == 0.5
-    assert acceptance["items"] == [{"channel": "linkedin", "sent": 2.0, "accepted": 1.0, "acceptance_rate": 0.5}]
+    assert acceptance["items"] == [
+        {"channel": "linkedin", "sent": 2.0, "accepted": 1.0, "acceptance_rate": 0.5}
+    ]
     series = analytics.daily_timeseries("ws_1", days=7)
     assert len(series["series"]) == 7
     assert sum(item["sends"] for item in series["series"]) == 1
@@ -162,7 +175,9 @@ def test_api_routes(analytics: AnalyticsService, tmp_path: Path) -> None:
     r3 = client.get("/carina/analytics/worker", headers={"X-Workspace-Id": "ws_api"})
     assert r3.status_code == 200
 
-    r4 = client.get("/carina/analytics/usage", params={"days": 7}, headers={"X-Workspace-Id": "ws_api"})
+    r4 = client.get(
+        "/carina/analytics/usage", params={"days": 7}, headers={"X-Workspace-Id": "ws_api"}
+    )
     assert r4.status_code == 200
     assert r4.json()["workspace_id"] == "ws_api"
 
@@ -181,7 +196,50 @@ def test_tools_register(analytics: AnalyticsService) -> None:
     assert "workspace_id" in out
 
 
-def test_bridge_records_metrics(analytics: AnalyticsService, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_acceptance_rate_and_daily_timeseries_tools_exposed(analytics: AnalyticsService) -> None:
+    reset_analytics_service_for_tests(analytics.store)
+    import tools.analytics_tools as analytics_tools  # noqa: F401
+    from tools.registry import registry
+
+    assert registry.get_entry("analytics_acceptance_rate") is not None
+    assert registry.get_entry("analytics_daily_timeseries") is not None
+    out = analytics_tools.analytics_acceptance_rate({"workspace_id": "ws_t", "days": 7})
+    assert "acceptance_rate" in out
+    ts = analytics_tools.analytics_daily_timeseries({"workspace_id": "ws_t", "days": 7})
+    assert "series" in ts
+
+
+def test_daily_timeseries_by_source_and_funnel(analytics: AnalyticsService) -> None:
+    record_metric(
+        "ws_src",
+        AIVA_OUTREACH_SENT,
+        labels={"campaign_id": "c1", "source": "maps"},
+        store=analytics.store,
+    )
+    record_metric(
+        "ws_src",
+        AIVA_OUTREACH_SENT,
+        labels={"campaign_id": "c1", "source": "maps"},
+        store=analytics.store,
+    )
+    record_metric(
+        "ws_src",
+        AIVA_OUTREACH_OPENED,
+        labels={"campaign_id": "c1", "source": "maps"},
+        store=analytics.store,
+    )
+    series = analytics.daily_timeseries("ws_src", days=7)
+    # by_source aggregates the 3 events under "maps"
+    assert series["by_source"] == [["maps", 3.0]]
+    assert sum(item["sends"] for item in series["series"]) == 2
+    assert sum(item["opens"] for item in series["series"]) == 1
+    assert "clicked" in series["series"][0]
+    assert "leads" in series["series"][0]
+
+
+def test_bridge_records_metrics(
+    analytics: AnalyticsService, monkeypatch: pytest.MonkeyPatch
+) -> None:
     reset_analytics_service_for_tests(analytics.store)
     from keprix.agent import carina_bridge as bridge_mod
 

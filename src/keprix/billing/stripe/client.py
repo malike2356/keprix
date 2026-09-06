@@ -104,6 +104,7 @@ class StripeClient:
         mode: str = "subscription",
         price_id: str | None = None,
         price_data: dict[str, Any] | None = None,
+        allow_promotion_codes: bool = False,
     ) -> dict[str, Any]:
         """Create a Checkout session.
 
@@ -131,6 +132,8 @@ class StripeClient:
                 payload["line_items[0][price_data][product_data][description]"] = str(description)
         if customer_id:
             payload["customer"] = customer_id
+        if allow_promotion_codes:
+            payload["allow_promotion_codes"] = "true"
         if trial_days > 0 and mode == "subscription":
             payload["subscription_data[trial_period_days]"] = str(trial_days)
         for key, value in metadata.items():

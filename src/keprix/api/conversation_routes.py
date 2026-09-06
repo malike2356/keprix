@@ -122,6 +122,14 @@ async def _stream_assistant_reply(
     session_id: str | None = None,
 ) -> AsyncIterator[dict[str, Any]]:
     """Emit NDJSON stream events for the workspace chat UI."""
+    from keprix.agent.model_policy import enforce_model, resolve_default_model
+    from keprix.billing.wallet.policy import resolve_plan_id
+
+    tier = await resolve_plan_id(user_id)
+    if model:
+        enforce_model(model, tier)
+    else:
+        model = resolve_default_model(tier)
     from keprix.interfaces.interface_registry import InterfaceKind, get_interface_registry
     from keprix.interfaces.web_ui_stream import chat_gateway_stream_enabled
     from keprix.interfaces.web_ui_stream_events import map_gateway_event_to_ndjson

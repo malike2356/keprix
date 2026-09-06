@@ -1492,7 +1492,12 @@ def load_soul_md() -> Optional[str]:
     except Exception as e:
         logger.debug("Could not ensure KEPRIX_HOME before loading SOUL.md: %s", e)
 
-    soul_path = get_keprix_home() / "SOUL.md"
+    try:
+        from keprix.tenancy.home import soul_path as resolve_soul_path
+
+        soul_path = resolve_soul_path()
+    except ImportError:
+        soul_path = get_keprix_home() / "SOUL.md"
     if not soul_path.exists():
         return None
     try:

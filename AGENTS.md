@@ -3,9 +3,9 @@
 
 ## CRITICAL: Public GitHub hygiene (product files only)
 
-Before any commit or push to GitHub, track **only files that make this product work**. Planning docs, prompt queues, competitor research, personal notes, runtime logs, secrets, and nested foreign product trees stay workstation-local (`.gitignore` + `git rm --cached`). Canonical rule: `/opt/lampp/htdocs/verlox/shared/workspace-governance/PUBLIC-GITHUB-HYGIENE.md` and `/opt/lampp/htdocs/verlox/.cursor/rules/public-github-hygiene.mdc`. Guard: `bash /opt/lampp/htdocs/verlox/scripts/guard-public-github-hygiene.sh`.
+Before any commit or push to GitHub, track **only files that make this product work**. Planning docs, prompt queues, competitor research, personal notes, runtime logs, secrets, and nested foreign product trees stay workstation-local (`.gitignore` + `git rm --cached`). Canonical rule: `<workspace-root>/shared/workspace-governance/PUBLIC-GITHUB-HYGIENE.md` and `<workspace-root>/.cursor/rules/public-github-hygiene.mdc`. Guard: `bash <workspace-root>/scripts/guard-public-github-hygiene.sh`.
 
-Follow `/opt/lampp/htdocs/verlox/AGENTS.md` for writing style and shared Verlox rules.
+Follow `<workspace-root>/AGENTS.md` for writing style and shared Verlox rules.
 
 ## CRITICAL: 3-way deploy (local → git → Contabo)
 
@@ -22,7 +22,7 @@ rsync -az --delete \
   --exclude '1st-plan/' --exclude 'apps-on-keprix/' \
   --exclude 'node_modules/' --exclude 'frontend/node_modules/' --exclude 'frontend/.next/' \
   --exclude '.venv/' --exclude 'venv/' --exclude '__pycache__/' \
-  /opt/lampp/htdocs/verlox/keprix/ \
+  <workspace-root>/keprix/ \
   malike@80.190.81.208:/home/malike/apps/keprix/
 
 ssh malike@80.190.81.208 'cd /home/malike/apps/keprix && docker compose \
@@ -52,7 +52,7 @@ Contabo Clinicom (`clinicomai.com`) does **not** run on Keprix yet. Live path is
 
 ## Stripe Billing Source Of Truth
 
-Always choose Stripe price IDs and amounts from `/opt/lampp/htdocs/verlox/.access/.stripe-credentials-and-price-id.md`. Do not create new Stripe products or prices via API, Dashboard automation, tests, or scripts unless the owner explicitly asks. Pin existing `price_*` IDs in `config/billing.yaml` (`stripe_price_id`), or via the admin pricing GUI on `/settings/billing` (`GET/PUT /api/billing/admin/pricing`). Never commit that credentials file or paste secrets into chat, logs, commits, docs, or UI.
+Always choose Stripe price IDs and amounts from `<workspace-root>/.access/.stripe-credentials-and-price-id.md`. Do not create new Stripe products or prices via API, Dashboard automation, tests, or scripts unless the owner explicitly asks. Pin existing `price_*` IDs in `config/billing.yaml` (`stripe_price_id`), or via the admin pricing GUI on `/settings/billing` (`GET/PUT /api/billing/admin/pricing`). Never commit that credentials file or paste secrets into chat, logs, commits, docs, or UI.
 
 Optional community support: open-amount "Buy me a coffee" donation (min £1, max £500). Checkout uses Stripe `price_data` via `POST /api/billing/donation/checkout` with `{ amount_gbp }`. Catalog pin `price_1Tri9T2WMXleLh8eA6gCXHbk` is documentary only for the £1 default. Not compulsory; footer sheet only; never gate Community Edition on it.
 

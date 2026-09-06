@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from keprix.backend.domain_packs.ingestion import ingest_sources
@@ -15,6 +15,8 @@ from keprix.backend.domain_packs.schemas import DomainPackManifest, GlossaryTerm
 from keprix.backend.domain_packs.store import get_domain_pack_store
 from keprix.backend.domain_packs.validation import validate_pack
 from keprix.review_gateway.service import create_review_request
+from keprix.auth.dependencies import get_current_user
+from keprix.billing.business_lines import require_can_add_business_line
 
 router = APIRouter(prefix="/api/domain-packs", tags=["domain-packs"])
 
@@ -22,6 +24,7 @@ router = APIRouter(prefix="/api/domain-packs", tags=["domain-packs"])
 class CreatePackBody(BaseModel):
     domain_name: str = Field(min_length=1)
     jurisdictions: list[str] = Field(default_factory=list)
+    workspace_id: str | None = None
 
 
 class UpdatePackBody(BaseModel):
@@ -80,7 +83,9 @@ async def list_domain_packs() -> dict[str, Any]:
 
 
 @router.post("")
-async def create_domain_pack(body: CreatePackBody) -> dict[str, Any]:
+async def create_domain_pack(body: CreatePackBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    if body.workspace_id:
+        await require_can_add_business_line(body.workspace_id, str(user.get("id") or user.get("username") or "default"))
     manifest = create_manifest_from_template(body.domain_name, jurisdictions=body.jurisdictions)
     saved = get_domain_pack_store().save_pack(manifest)
     return {"pack": saved.to_dict()}

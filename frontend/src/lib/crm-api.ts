@@ -457,6 +457,13 @@ export async function fetchDiscoveryAdapters(workspaceId = DEFAULT_WORKSPACE) {
   );
 }
 
+export async function fetchDiscoveryPacks() {
+  return parseJson<{ items: Array<{ id: string; title: string; has_discovery_block?: boolean }>; count: number }>(
+    await ceApi("/api/crm/discovery/packs"),
+    "Failed to load discovery packs",
+  );
+}
+
 export async function runDiscoveryJob(
   body: Record<string, unknown>,
   workspaceId = DEFAULT_WORKSPACE,

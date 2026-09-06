@@ -127,7 +127,7 @@ Keprix is not a chatbot or assistant framework. It is an agent OS:
 - Embeddings: EmbeddingService (Gemini primary, OpenAI fallback, deterministic fallback)
 - RAG store: SQLite at ~/.keprix/rag_pipeline/chunks.sqlite (default)
 - Knowledge graph: Graphiti (in brain/ module)
-- Config: ~/.keprix/ (persistent home), /opt/lampp/htdocs/verlox/keprix-data/ (runtime data via the repo symlink to top-level keprix-data/)
+- Config: ~/.keprix/ (persistent home), <workspace-root>/keprix-data/ (runtime data via the repo symlink to top-level keprix-data/)
 
 ## System Prompt Tiers
 
@@ -143,7 +143,7 @@ Never infer configuration from a documentation snapshot and never reveal credent
 
 ## Key Environment Variables
 
-- KEPRIX_DATA_DIR: /opt/lampp/htdocs/verlox/keprix-data/ (persistent via symlink to top-level keprix-data/)
+- KEPRIX_DATA_DIR: <workspace-root>/keprix-data/ (persistent via symlink to top-level keprix-data/)
 - KEPRIX_DATABASE_URL: database connection URL (secret value omitted)
 - KEPRIX_REDIS_URL: cache connection URL (secret value omitted)
 - KEPRIX_BILLING_ENABLED: deployment-specific boolean
@@ -515,9 +515,9 @@ Export client kit: ZIP package of agent capabilities for sharing.
 
 ## Key Config Files
 
-- /opt/lampp/htdocs/verlox/keprix/.env - all environment variables
-- /opt/lampp/htdocs/verlox/keprix/config/products.yaml - product/extension registry
-- /opt/lampp/htdocs/verlox/keprix/config/billing.yaml - billing configuration
+- <workspace-root>/keprix/.env - all environment variables
+- <workspace-root>/keprix/config/products.yaml - product/extension registry
+- <workspace-root>/keprix/config/billing.yaml - billing configuration
 - ~/.keprix/SOUL.md - agent identity (overrides DEFAULT_AGENT_IDENTITY)
 - ~/.keprix/feature_flags.json - runtime feature flag overrides
 - ~/.keprix/rag_pipeline/chunks.sqlite - RAG document store
@@ -823,7 +823,7 @@ def _security_document() -> KnowledgeDocument:
 - Session TTL: 7 days (KEPRIX_SESSION_TTL_DAYS)
 - Optional TOTP 2FA (KEPRIX_REQUIRE_2FA=false by default)
 - SSO via Google OAuth, GitHub OAuth, generic OIDC
-- Sessions stored in /opt/lampp/htdocs/verlox/keprix-data/sessions.json
+- Sessions stored in <workspace-root>/keprix-data/sessions.json
 
 ## Multi-user
 KEPRIX_MULTI_USER=true enables multiple user accounts.

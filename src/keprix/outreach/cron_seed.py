@@ -51,6 +51,17 @@ OUTREACH_CRON_JOBS: tuple[dict[str, Any], ...] = (
         ),
         "enabled_toolsets": ["outreach"],
     },
+    {
+        "name": "email-weekly-batch",
+        "schedule": "0 9 * * 1",
+        "prompt": (
+            "Run the configured weekly email batch for the active workspace. "
+            "Use the email batch build and send APIs only after the existing "
+            "approval gate permits it. Report sent, skipped_opted_out, failed, "
+            "and approval-pending counts. Never bypass approval or invent recipients."
+        ),
+        "enabled_toolsets": ["outreach", "email"],
+    },
 )
 
 

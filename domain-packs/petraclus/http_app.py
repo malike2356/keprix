@@ -1,7 +1,7 @@
 """Standalone FastAPI sidecar for the Petraclus product contract.
 
 Run:
-    cd /opt/lampp/htdocs/verlox/keprix/domain-packs/petraclus
+    cd keprix/domain-packs/petraclus
     python3 -m uvicorn http_app:app --host 0.0.0.0 --port 3362
 
 Fixture product API is mounted at /fixture-product.

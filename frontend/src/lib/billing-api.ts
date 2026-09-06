@@ -86,6 +86,12 @@ export type WalletStatus = {
   exhausted?: boolean;
   byok_available?: boolean;
   actions_when_exhausted?: string[];
+  managed_tier?: {
+    plan_id?: string;
+    assigned?: boolean;
+    last_grant?: { created_at?: string } | null;
+    last_regrant?: { created_at?: string } | null;
+  };
 };
 
 export class BillingApiError extends Error {
@@ -262,6 +268,13 @@ export type BillingAdminPlan = {
   name: string;
   description?: string;
   prices: BillingPrice[];
+  plan_model_policy: BillingPlanModelPolicy;
+};
+
+export type BillingPlanModelPolicy = {
+  allowed_providers: string[];
+  allowed_models: string[];
+  default_model: string | null;
 };
 
 export async function fetchBillingAdminCatalog(): Promise<{ items: BillingCatalogEntry[]; count: number }> {
@@ -282,6 +295,7 @@ export async function saveBillingAdminPricing(body: {
   plans: Array<{
     id: string;
     prices: Array<{ interval: "month" | "year"; stripe_price_id: string | null }>;
+    plan_model_policy: BillingPlanModelPolicy;
   }>;
 }): Promise<{ ok: boolean; config_path: string }> {
   const response = await ceApi("/api/billing/admin/pricing", {

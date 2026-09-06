@@ -48,9 +48,30 @@ def test_write_tools_require_confirmation(tmp_path: Path) -> None:
 
     gmail = bridge.gmail_send(to="a@example.com", subject="Hi", body="Body")
     event = bridge.calendar_create(summary="Call", start="2026-07-09T10:00:00Z", end="2026-07-09T10:30:00Z")
+    doc = bridge.docs_create(title="Draft")
+    deck = bridge.slides_create(title="Draft")
 
     assert gmail["requires_confirmation"] is True
     assert event["requires_confirmation"] is True
+    assert doc["requires_confirmation"] is True
+    assert deck["requires_confirmation"] is True
+
+
+def test_new_google_tools_use_existing_bridge_command(tmp_path: Path, monkeypatch) -> None:
+    config = GoogleWorkspaceConfig(token_path=str(tmp_path / "token.json"), bridge_command="gws-bridge")
+    seen: list[str] = []
+
+    def fake_call(self, tool, args):
+        seen.append(tool)
+        return {"ok": True}
+
+    monkeypatch.setattr(GoogleWorkspaceBridge, "call", fake_call)
+    bridge = GoogleWorkspaceBridge(config=config)
+    bridge.docs_create("Doc", "text", confirm=True)
+    bridge.docs_update("doc-1", "text", confirm=True)
+    bridge.slides_create("Deck", ["Intro"], confirm=True)
+    bridge.contacts_list("Ada")
+    assert seen == ["gws_docs_create", "gws_docs_update", "gws_slides_create", "gws_contacts_list"]
 
 
 def test_status_reports_missing_credentials(tmp_path: Path) -> None:

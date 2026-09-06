@@ -139,6 +139,7 @@ from keprix.agent.keprix.routes import router as mutation_router
 from keprix.sdk.routes import router as sdk_router
 from keprix.slash.routes import router as slash_router
 from keprix.api.admin_workspace_routes import router as admin_workspace_router
+from keprix.api.admin_ops_routes import router as admin_ops_router
 from keprix.api.channel_config_routes import router as channel_config_router
 from keprix.api.provider_config_routes import router as provider_config_router
 from keprix.api.scout_config_routes import router as scout_config_router
@@ -188,6 +189,12 @@ from keprix.api.vault_pack_routes import router as vault_pack_router
 from keprix.api.hot_cache_routes import router as hot_cache_router
 from keprix.proxy.http_routes import router as proxy_ops_router
 from keprix.api.google_workspace_routes import router as google_workspace_router
+from keprix.api.workspace_export_routes import router as workspace_export_router
+from keprix.security.scout_posture_routes import router as scout_posture_router
+from keprix.property_data.routes import router as property_data_router
+from keprix.property_data.public_routes import router as property_public_router
+from keprix.property_calculators.routes import router as property_calculators_router
+from keprix.property_floorplan.routes import router as property_floorplan_router
 from keprix.api.agent_sync_routes import router as agent_sync_router
 from keprix.api.carina_agent_routes import router as carina_agent_router
 from keprix.api.keprix_kill_routes import router as keprix_kill_router
@@ -531,6 +538,15 @@ def create_app() -> FastAPI:
 
         load_products_config()
         try:
+            from keprix.property_data.scheduler import ensure_weekly_refresh_job
+
+            ensure_weekly_refresh_job()
+            from keprix.property_data.scheduler import ensure_saved_search_job
+
+            ensure_saved_search_job()
+        except Exception:
+            pass
+        try:
             from keprix.config.health_monitor import get_health_monitor
 
             get_health_monitor().start_background()
@@ -542,6 +558,9 @@ def create_app() -> FastAPI:
 
         await ensure_budget_tables()
         start_llm_budget_alert_scheduler()
+        from keprix.billing.wallet.regrant_scheduler import start_regrant_scheduler
+
+        start_regrant_scheduler()
         from keprix.billing.engine import bootstrap_billing
 
         app.state.billing = await bootstrap_billing()
@@ -646,6 +665,9 @@ def create_app() -> FastAPI:
         from keprix.usage.budget_alert_scheduler import stop_llm_budget_alert_scheduler
 
         await stop_llm_budget_alert_scheduler()
+        from keprix.billing.wallet.regrant_scheduler import stop_regrant_scheduler
+
+        await stop_regrant_scheduler()
         try:
             from keprix.sync.github_bridge import stop_github_bridge_schedule
 
@@ -712,6 +734,7 @@ def create_app() -> FastAPI:
     app.include_router(tui_slash_router)
     app.include_router(usage_router)
     app.include_router(admin_workspace_router)
+    app.include_router(admin_ops_router)
     app.include_router(channel_config_router)
     app.include_router(provider_config_router)
     app.include_router(scout_config_router)
@@ -759,6 +782,12 @@ def create_app() -> FastAPI:
     app.include_router(hot_cache_router)
     app.include_router(proxy_ops_router)
     app.include_router(google_workspace_router)
+    app.include_router(workspace_export_router)
+    app.include_router(scout_posture_router)
+    app.include_router(property_data_router)
+    app.include_router(property_public_router)
+    app.include_router(property_calculators_router)
+    app.include_router(property_floorplan_router)
     app.include_router(agent_sync_router)
     app.include_router(carina_agent_router)
     try:
@@ -797,11 +826,23 @@ def create_app() -> FastAPI:
         from keprix.crm.capture_routes import public_router as crm_capture_public_router
         from keprix.crm.capture_routes import router as crm_capture_router
         from keprix.crm.enrichment_routes import router as crm_enrichment_router
+        from keprix.crm.research_routes import router as crm_research_router
+        from keprix.crm.companies_house_routes import router as crm_companies_house_router
+        from keprix.crm.decision_maker_routes import router as crm_decision_maker_router
+        from keprix.crm.osint_routes import router as crm_osint_router
+        from keprix.crm.social_routes import router as crm_social_router
+        from keprix.crm.social_posting_routes import router as crm_social_posting_router
 
         app.include_router(crm_router)
         app.include_router(crm_capture_router)
         app.include_router(crm_capture_public_router)
         app.include_router(crm_enrichment_router)
+        app.include_router(crm_research_router)
+        app.include_router(crm_companies_house_router)
+        app.include_router(crm_decision_maker_router)
+        app.include_router(crm_osint_router)
+        app.include_router(crm_social_router)
+        app.include_router(crm_social_posting_router)
         try:
             from keprix.customer_concierge.routes import public_router as concierge_public_router
             from keprix.customer_concierge.routes import router as concierge_router
@@ -956,12 +997,16 @@ def create_app() -> FastAPI:
     from keprix.integrations.scout_warden_routes import router as scout_warden_router
     from keprix.product_leads.routes import router as leads_router
     from keprix.billing.parity_routes import router as billing_parity_router
+    from keprix.workers.routes import router as workers_router
+    from keprix.workspace.routes.deletion_routes import router as deletion_router
     from keprix.memory.rag_admin_routes import router as rag_admin_router
 
     app.include_router(dsar_router)
     app.include_router(scout_warden_router)
     app.include_router(leads_router)
     app.include_router(billing_parity_router)
+    app.include_router(workers_router)
+    app.include_router(deletion_router)
     app.include_router(rag_admin_router)
     app.include_router(pack_gate_router)
     app.include_router(evidence_pack_router)

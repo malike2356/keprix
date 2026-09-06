@@ -17,6 +17,7 @@ except ImportError:
 
 from .product_context import ProductContext, clear_product_context, set_product_context
 from .isolation_violation import IsolationViolation
+from keprix.tenancy.home import tenant_home_isolation_enabled, tenant_home_scope
 
 _KNOWN_PRODUCTS = frozenset({"aiva", "abbis", "petraclus", "fleetz", "nhs", "keprix"})
 
@@ -77,16 +78,21 @@ def _build_context(request: "Request") -> ProductContext:
     scopes = frozenset(s for s in raw_scopes.split() if s)
 
     user = _resolve_request_user(request)
+    resolved = True
     try:
-        from keprix.tenancy.resolve import resolve_tenant_id
+        from keprix.tenancy.resolve import resolve_tenant_id_with_status
 
-        tenant_id = resolve_tenant_id(
+        tenant_id, resolved = resolve_tenant_id_with_status(
             header_ref=header_tenant,
             user=user if isinstance(user, dict) else None,
             host=headers.get("host"),
         )
     except Exception:
         tenant_id = header_tenant
+        resolved = bool(header_tenant)
+
+    if not resolved:
+        tenant_id = None
 
     if not workspace_id and tenant_id:
         workspace_id = tenant_id
@@ -106,8 +112,13 @@ if _STARLETTE:
 
         async def dispatch(self, request: Request, call_next: Callable) -> Response:
             ctx = _build_context(request)
+            if tenant_home_isolation_enabled() and not getattr(ctx, "tenant_id", None):
+                return JSONResponse(status_code=400, content={"error": "Tenant identification required"})
             token = set_product_context(ctx)
             try:
+                if tenant_home_isolation_enabled():
+                    with tenant_home_scope(ctx.tenant_id or ""):
+                        return await call_next(request)
                 response = await call_next(request)
                 return response
             except IsolationViolation:

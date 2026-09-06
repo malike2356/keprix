@@ -24,7 +24,7 @@ COMPANIES_HOUSE_API_KEY=your_key_here
 KEPRIX_COMPANIES_HOUSE_ENABLED=1
 ```
 
-Shared workspace note (no pasting secrets into chat): `/opt/lampp/htdocs/verlox/.access/.companies-house-api-key.md`
+Shared workspace note (no pasting secrets into chat): `<workspace-root>/.access/.companies-house-api-key.md`
 
 ## Agent / Telegram / Web UI access
 

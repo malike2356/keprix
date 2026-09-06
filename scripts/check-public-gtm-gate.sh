@@ -3,7 +3,7 @@
 #
 # Checks (stop on first failure unless noted):
 #   1. Anonymous GitHub reachable (repo or raw README HTTP 200)
-#   2. No forbidden public strings (workspace abs path, keprixai.uk)
+#   2. No forbidden public strings (absolute workspace path, keprixai.uk)
 #   3. Installer syntax: bash -n scripts/install.sh
 #   4. PyPI / pipx docs honesty (scripts/check-pypi-docs-honesty.sh)
 #   5. Private quality gates (check-private-ship-gate.sh) unless skipped
@@ -99,9 +99,9 @@ step "2/7 Forbidden public strings"
 
 forbidden_hits=0
 
-# Absolute Verlox workspace path must not appear in stranger install docs.
-if grep -RIn --exclude-dir=node_modules '/opt/lampp/htdocs/verlox' README.md docs/getting-started 2>/dev/null | head -20; then
-  echo "  pattern: /opt/lampp/htdocs/verlox in README or docs/getting-started" >&2
+# Absolute Verlox workspace paths must not appear in stranger install docs.
+if grep -RInE --exclude-dir=node_modules '/[^[:space:]]*/verlox' README.md docs/getting-started 2>/dev/null | head -20; then
+  echo "  pattern: absolute Verlox workspace path in README or docs/getting-started" >&2
   forbidden_hits=$((forbidden_hits + 1))
 fi
 

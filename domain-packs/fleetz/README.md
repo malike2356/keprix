@@ -24,7 +24,7 @@ command path, MQTT command publish, or tracker TCP/UDP credential on this sideca
 ## Run locally
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix/domain-packs/fleetz
+cd <workspace-root>/keprix/domain-packs/fleetz
 bash scripts/deploy-local.sh
 # or
 FLEETZ_USE_FIXTURES=1 python3 -m uvicorn http_app:app --host 127.0.0.1 --port 3354
@@ -38,7 +38,7 @@ Point a future Fleetz product API with `FLEETZ_PRODUCT_API_URL` and
 ## Provision
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 keprix product provision fleetz --namespace pilot
 keprix product status fleetz --namespace pilot
 ```
@@ -53,7 +53,7 @@ python3 -c 'from provision.provisioner import provision; print(provision(fleet_n
 ## Tests
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 pytest domain-packs/fleetz/tests/test_fleetz_sidecar.py -q
 ```
 

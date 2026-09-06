@@ -244,6 +244,7 @@ def content_hash_for(payload: Any) -> str:
 
 HIGH_RISK_DOMAIN_PACKS = frozenset(
     {
+        "copy-trading-mining",
         "health",
         "health_social",
         "healthcare",

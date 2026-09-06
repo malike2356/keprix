@@ -1,4 +1,4 @@
-# Propreneur Keprix CRUD remediation — immutable release manifest (prompt 644)
+# Propreneur Keprix CRUD remediation; immutable release manifest (prompt 644)
 
 **Date:** 2026-08-09  
 **Programme:** keprix-propreneur-crud-remediation (636-644)  

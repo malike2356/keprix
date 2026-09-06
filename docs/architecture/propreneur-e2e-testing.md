@@ -5,7 +5,7 @@
 Designated Pest/CI DB: `propreneur_testing_agent` (writable `public` + pgvector).
 
 ```bash
-cd /opt/lampp/htdocs/verlox/propreneur
+cd <workspace-root>/propreneur
 bash scripts/bootstrap-testing-postgres.sh
 bash scripts/preflight-testing-db.sh
 ```
@@ -15,7 +15,7 @@ Details: `propreneur/docs/aiva/TESTING-POSTGRES.md`.
 ## Two-process harness
 
 ```bash
-bash /opt/lampp/htdocs/verlox/keprix/scripts/propreneur-e2e-harness.sh
+bash <workspace-root>/keprix/scripts/propreneur-e2e-harness.sh
 ```
 
 Runs:

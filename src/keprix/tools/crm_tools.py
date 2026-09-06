@@ -8,8 +8,17 @@ from typing import Any
 from tools.registry import registry
 
 from keprix.crm.ask import ask_crm, format_telegram_reply
+from keprix.crm.capture import create_capture_link, list_capture_links
+from keprix.crm.companies_house_enrich import enrich_lead_sync
+from keprix.crm.decision_maker import resolve_decision_maker_sync
+from keprix.crm.osint_enrich import osint_enrich_lead_sync
+from keprix.crm.research_enrich import research_lead_sync, research_leads_batch_sync
+from keprix.crm import social_channels as social_channels_mod
+from keprix.crm import social_posting as social_posting_mod
+from keprix.crm.ab_attribution import rescore_after_enrichment as rescore_after_enrichment_sync
 from keprix.crm.soft_wall import PAYING_STAGES, gate_or_approve
 from keprix.crm.store import ConflictError, get_crm_store
+from keprix.crm.website_scoring import check_rank, score_website
 
 TOOLSET = "crm"
 
@@ -35,6 +44,39 @@ def _store():
 def _require_workspace(args: dict[str, Any]) -> str | None:
     ws = str(args.get("workspace_id") or "").strip()
     return ws or None
+
+
+def _crm_lead_score_website(args: dict[str, Any]) -> str:
+    """Score a lead website and persist only empty enrichment fields."""
+    ws = _require_workspace(args)
+    lead_id = str(args.get("lead_id") or "").strip()
+    if not ws or not lead_id:
+        return _err("workspace_id and lead_id are required")
+    lead = _store().get_lead(ws, lead_id)
+    if not lead:
+        return _err("lead not found", error_code="crm_not_found")
+    website = str(lead.get("website") or "").strip()
+    if not website:
+        return _ok({"lead_id": lead_id, "skipped": True, "reason": "website_missing"})
+    scored = score_website(website)
+    keyword = str(args.get("keyword") or "").strip()
+    rank = check_rank(website, keyword) if keyword else None
+    custom = dict(lead.get("custom_fields") or {})
+    values = {"website_score": scored["score"], "weakness": scored["weakness"]}
+    if rank is not None:
+        values["ranks_top3"] = rank["ranks_top3"]
+    for key, value in values.items():
+        if custom.get(key) in (None, "", {}):
+            custom[key] = value
+    updated = _store().update_lead(
+        ws,
+        lead_id,
+        custom_fields=custom,
+        website_score=lead.get("website_score") or scored["score"],
+        weakness=lead.get("weakness") or scored["weakness"],
+        ranks_top3=lead.get("ranks_top3") or (rank or {}).get("ranks_top3"),
+    )
+    return _ok({"lead_id": lead_id, "score": scored, "rank": rank, "lead": updated})
 
 
 def _actor(args: dict[str, Any]) -> tuple[str, str]:
@@ -705,6 +747,23 @@ def _ws_props(**extra: Any) -> dict[str, Any]:
     props = {"workspace_id": {"type": "string"}}
     props.update(extra)
     return props
+
+
+registry.register(
+    name="lead_score_website",
+    toolset=TOOLSET,
+    schema={
+        "name": "lead_score_website",
+        "description": "Score a lead website deterministically and persist empty website score, weakness, and optional top-three rank fields.",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(lead_id={"type": "string"}, keyword={"type": "string"}),
+            "required": ["workspace_id", "lead_id"],
+        },
+    },
+    handler=_crm_lead_score_website,
+    check_fn=check_crm_requirements,
+)
 
 
 registry.register(
@@ -1583,5 +1642,412 @@ registry.register(
     check_fn=check_crm_requirements,
 )
 
+def _crm_capture_link_create(args: dict[str, Any]) -> str:
+    """Create a public, revocable lead-capture link for a workspace."""
+    ws = _require_workspace(args)
+    if not ws:
+        return _err("workspace_id is required")
+    try:
+        result = create_capture_link(
+            _store(),
+            ws,
+            label=str(args.get("label") or ""),
+            default_source=str(args.get("default_source") or "capture"),
+            redirect_url=str(args.get("redirect_url") or ""),
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err("capture link create failed", detail=str(exc))
+    return _ok(result)
+
+
+def _crm_capture_link_get(args: dict[str, Any]) -> str:
+    """List capture links for a workspace (optionally filter to one id)."""
+    ws = _require_workspace(args)
+    if not ws:
+        return _err("workspace_id is required")
+    link_id = str(args.get("id") or "").strip()
+    items = list_capture_links(_store(), ws)
+    if link_id:
+        items = [it for it in items if it.get("id") == link_id]
+    return _ok({"items": items, "count": len(items)})
+
+
+registry.register(
+    name="crm_capture_link_create",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_capture_link_create",
+        "description": "Create a public, revocable lead-capture link for a workspace (returns the raw token once).",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(
+                label={"type": "string"},
+                default_source={"type": "string"},
+                redirect_url={"type": "string"},
+            ),
+            "required": ["workspace_id"],
+        },
+    },
+    handler=_crm_capture_link_create,
+    check_fn=check_crm_requirements,
+)
+
+registry.register(
+    name="crm_capture_link_get",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_capture_link_get",
+        "description": "List a workspace's capture links (optionally filter by id).",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(id={"type": "string"}),
+            "required": ["workspace_id"],
+        },
+    },
+    handler=_crm_capture_link_get,
+    check_fn=check_crm_requirements,
+)
+
+
+def _crm_lead_research(args: dict[str, Any]) -> str:
+    """Deep-research a single lead's empty fields from internal signals."""
+    ws = _require_workspace(args)
+    lead_id = str(args.get("lead_id") or "").strip()
+    if not ws or not lead_id:
+        return _err("workspace_id and lead_id are required")
+    try:
+        result = research_lead_sync(_store(), ws, lead_id)
+    except Exception as exc:  # noqa: BLE001
+        return _err("research failed", detail=str(exc))
+    if not result.get("ok"):
+        return _err("research failed", detail=result.get("error") or "not found")
+    return _ok(result)
+
+
+def _crm_lead_research_batch(args: dict[str, Any]) -> str:
+    """Deep-research multiple leads' empty fields in one batch."""
+    ws = _require_workspace(args)
+    lead_ids = args.get("lead_ids") or []
+    if not ws or not isinstance(lead_ids, list) or not lead_ids:
+        return _err("workspace_id and lead_ids (list) are required")
+    try:
+        result = research_leads_batch_sync(_store(), ws, [str(i) for i in lead_ids][:500])
+    except Exception as exc:  # noqa: BLE001
+        return _err("research batch failed", detail=str(exc))
+    return _ok(result)
+
+
+registry.register(
+    name="crm_lead_research",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_lead_research",
+        "description": "Deep-research a lead's empty fields (company, website, linkedin, Companies House) from internal signals.",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(lead_id={"type": "string"}),
+            "required": ["workspace_id", "lead_id"],
+        },
+    },
+    handler=_crm_lead_research,
+    check_fn=check_crm_requirements,
+)
+
+registry.register(
+    name="crm_lead_research_batch",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_lead_research_batch",
+        "description": "Deep-research multiple leads' empty fields in one batch.",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(lead_ids={"type": "array", "items": {"type": "string"}}),
+            "required": ["workspace_id", "lead_ids"],
+        },
+    },
+    handler=_crm_lead_research_batch,
+    check_fn=check_crm_requirements,
+)
+
+
+def _crm_lead_enrich(args: dict[str, Any]) -> str:
+    """Companies House auto-enrich: match company -> profile -> persist on a lead."""
+    ws = _require_workspace(args)
+    lead_id = str(args.get("lead_id") or "").strip()
+    if not ws or not lead_id:
+        return _err("workspace_id and lead_id are required")
+    try:
+        result = enrich_lead_sync(_store(), ws, lead_id)
+    except Exception as exc:  # noqa: BLE001
+        return _err("enrich failed", detail=str(exc))
+    if not result.get("ok"):
+        return _err("enrich failed", detail=result.get("error") or "unknown")
+    return _ok(result)
+
+
+registry.register(
+    name="crm_lead_enrich",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_lead_enrich",
+        "description": "Companies House auto-enrich a lead: match company name, resolve number/SIC/officers/URL, persist empty fields only.",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(lead_id={"type": "string"}),
+            "required": ["workspace_id", "lead_id"],
+        },
+    },
+    handler=_crm_lead_enrich,
+    check_fn=check_crm_requirements,
+)
+
+
+def _crm_lead_resolve_decision_maker(args: dict[str, Any]) -> str:
+    """Resolve a lead's missing contact name from company officers / web presence."""
+    ws = _require_workspace(args)
+    lead_id = str(args.get("lead_id") or "").strip()
+    if not ws or not lead_id:
+        return _err("workspace_id and lead_id are required")
+    try:
+        result = resolve_decision_maker_sync(_store(), ws, lead_id)
+    except Exception as exc:  # noqa: BLE001
+        return _err("decision-maker resolution failed", detail=str(exc))
+    if not result.get("ok"):
+        return _err("decision-maker resolution failed", detail=result.get("error") or "unknown")
+    return _ok(result)
+
+
+registry.register(
+    name="crm_lead_resolve_decision_maker",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_lead_resolve_decision_maker",
+        "description": "Resolve a lead's missing contact name from company officers (or web presence) with a confidence tag.",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(lead_id={"type": "string"}),
+            "required": ["workspace_id", "lead_id"],
+        },
+    },
+    handler=_crm_lead_resolve_decision_maker,
+    check_fn=check_crm_requirements,
+)
+
+
+def _crm_lead_osint(args: dict[str, Any]) -> str:
+    """Run policy-controlled OSINT enrichment on a lead (disabled by default)."""
+    ws = _require_workspace(args)
+    lead_id = str(args.get("lead_id") or "").strip()
+    if not ws or not lead_id:
+        return _err("workspace_id and lead_id are required")
+    try:
+        result = osint_enrich_lead_sync(_store(), ws, lead_id)
+    except Exception as exc:  # noqa: BLE001
+        return _err("osint enrichment failed", detail=str(exc))
+    return _ok(result)
+
+
+registry.register(
+    name="crm_lead_osint",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_lead_osint",
+        "description": "Run policy-controlled OSINT enrichment (holehe/maigret/theHarvester) on a lead. Disabled by default; requires opt-in and lawful-use acknowledgement.",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(lead_id={"type": "string"}),
+            "required": ["workspace_id", "lead_id"],
+        },
+    },
+    handler=_crm_lead_osint,
+    check_fn=check_crm_requirements,
+)
+
+
+def _crm_social_connect(args: dict[str, Any]) -> str:
+    ws = _require_workspace(args)
+    channel = str(args.get("channel") or "").strip()
+    if not ws or not channel:
+        return _err("workspace_id and channel are required")
+    return _ok(social_channels_mod.connect_channel(_store(), ws, channel, provider_account_id=str(args.get("provider_account_id") or "")))
+
+
+def _crm_social_discover(args: dict[str, Any]) -> str:
+    channel = str(args.get("channel") or "").strip()
+    if not channel:
+        return _err("channel is required")
+    return _ok(social_channels_mod.discover_leads(channel, {"query": args.get("query") or ""}, limit=int(args.get("limit") or 25)))
+
+
+def _crm_social_send_request(args: dict[str, Any]) -> str:
+    channel = str(args.get("channel") or "").strip()
+    lead_id = str(args.get("provider_lead_id") or "").strip()
+    if not channel or not lead_id:
+        return _err("channel and provider_lead_id are required")
+    return _ok(social_channels_mod.send_connection_request(channel, lead_id))
+
+
+def _crm_social_send_message(args: dict[str, Any]) -> str:
+    channel = str(args.get("channel") or "").strip()
+    lead_id = str(args.get("provider_lead_id") or "").strip()
+    body = str(args.get("body") or "")
+    if not channel or not lead_id or not body:
+        return _err("channel, provider_lead_id and body are required")
+    return _ok(social_channels_mod.send_message(channel, lead_id, body))
+
+
+def _crm_social_inbox(args: dict[str, Any]) -> str:
+    channel = str(args.get("channel") or "").strip()
+    if not channel:
+        return _err("channel is required")
+    return _ok(social_channels_mod.list_conversations(channel))
+
+
+registry.register(
+    name="crm_social_connect",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_social_connect",
+        "description": "Connect a social channel for a workspace (LinkedIn/Meta Lead Ads/X). Records a pending connection; outbound stays gated until a provider is approved.",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(channel={"type": "string"}, provider_account_id={"type": "string"}),
+            "required": ["workspace_id", "channel"],
+        },
+    },
+    handler=_crm_social_connect,
+    check_fn=check_crm_requirements,
+)
+
+registry.register(
+    name="crm_social_discover",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_social_discover",
+        "description": "Discover leads via a social channel (X read-only reuse; others gated on provider approval).",
+        "parameters": {
+            "type": "object",
+            "properties": {"channel": {"type": "string"}, "query": {"type": "string"}, "limit": {"type": "integer"}},
+            "required": ["channel"],
+        },
+    },
+    handler=_crm_social_discover,
+    check_fn=check_crm_requirements,
+)
+
+registry.register(
+    name="crm_social_send_request",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_social_send_request",
+        "description": "Send a LinkedIn connection request (gated on provider approval).",
+        "parameters": {
+            "type": "object",
+            "properties": {"channel": {"type": "string"}, "provider_lead_id": {"type": "string"}},
+            "required": ["channel", "provider_lead_id"],
+        },
+    },
+    handler=_crm_social_send_request,
+    check_fn=check_crm_requirements,
+)
+
+registry.register(
+    name="crm_social_send_message",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_social_send_message",
+        "description": "Send a DM via a social channel (gated on provider approval).",
+        "parameters": {
+            "type": "object",
+            "properties": {"channel": {"type": "string"}, "provider_lead_id": {"type": "string"}, "body": {"type": "string"}},
+            "required": ["channel", "provider_lead_id", "body"],
+        },
+    },
+    handler=_crm_social_send_message,
+    check_fn=check_crm_requirements,
+)
+
+registry.register(
+    name="crm_social_inbox",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_social_inbox",
+        "description": "List conversations for a social channel (gated on provider approval).",
+        "parameters": {
+            "type": "object",
+            "properties": {"channel": {"type": "string"}},
+            "required": ["channel"],
+        },
+    },
+    handler=_crm_social_inbox,
+    check_fn=check_crm_requirements,
+)
+
+
+def _crm_social_publish(args: dict[str, Any]) -> str:
+    """Publish a social post to a channel (decision-gated; honest not_configured/pending_approval)."""
+    ws = _require_workspace(args)
+    channel = str(args.get("channel") or "").strip()
+    text = str(args.get("text") or "")
+    if not channel or not text.strip():
+        return _err("channel and text are required")
+    result = social_posting_mod.publish(channel, text, args.get("media_url"), workspace_id=ws)
+    if result["status"] in {"published", "not_configured", "pending_approval", "unsupported"} and ws:
+        social_posting_mod.record_publish_result(_store(), ws, channel, result)
+    return _ok(result)
+
+
+registry.register(
+    name="crm_social_publish",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_social_publish",
+        "description": "Publish a social post to a channel (Meta/LinkedIn/X). Decision-gated; honest not_configured/pending_approval until a provider is approved.",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(channel={"type": "string"}, text={"type": "string"}, media_url={"type": "string"}),
+            "required": ["workspace_id", "channel", "text"],
+        },
+    },
+    handler=_crm_social_publish,
+    check_fn=check_crm_requirements,
+)
+
+
+def _crm_lead_rescore(args: dict[str, Any]) -> str:
+    """Re-score a lead against its active ICP and log the delta."""
+    ws = _require_workspace(args)
+    lead_id = str(args.get("lead_id") or "").strip()
+    if not ws or not lead_id:
+        return _err("workspace_id and lead_id are required")
+    try:
+        result = rescore_after_enrichment_sync(
+            _store(), ws, lead_id,
+            reason=str(args.get("reason") or "manual_rescore"),
+            suppress_below=args.get("suppress_below"),
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _err("rescore failed", detail=str(exc))
+    return _ok(result)
+
+
+registry.register(
+    name="crm_lead_rescore",
+    toolset=TOOLSET,
+    schema={
+        "name": "crm_lead_rescore",
+        "description": "Re-score a lead against its active ICP and log the delta (returns suppression recommendation).",
+        "parameters": {
+            "type": "object",
+            "properties": _ws_props(lead_id={"type": "string"}, reason={"type": "string"}, suppress_below={"type": "integer"}),
+            "required": ["workspace_id", "lead_id"],
+        },
+    },
+    handler=_crm_lead_rescore,
+    check_fn=check_crm_requirements,
+)
+
+
 # Register ingestion tools alongside CRM tools (Prompt 621).
 import keprix.tools.crm_ingest_tools  # noqa: E402,F401
+import keprix.tools.company_registry_tool  # noqa: E402,F401

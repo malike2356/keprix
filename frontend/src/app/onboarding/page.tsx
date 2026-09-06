@@ -8,6 +8,7 @@ import CardContent from "@mui/material/CardContent";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
 import Stepper from "@mui/material/Stepper";
+import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useRouter } from "next/navigation";
@@ -18,6 +19,7 @@ const steps = [
   "Welcome",
   "Admin password",
   "LLM provider",
+  "Workspace audience",
   "Messaging channel",
   "Test setup",
   "Done",
@@ -29,6 +31,7 @@ export default function OnboardingPage() {
   const [adminPassword, setAdminPassword] = React.useState("");
   const [apiKey, setApiKey] = React.useState("");
   const [telegramToken, setTelegramToken] = React.useState("");
+  const [audienceMode, setAudienceMode] = React.useState("team");
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
 
@@ -76,7 +79,20 @@ export default function OnboardingPage() {
       setBusy(false);
     }
 
-    if (activeStep === 3 && telegramToken.trim()) {
+    if (activeStep === 3) {
+      try {
+        const response = await ceApi("/api/customer-concierge/audience-mode", {
+          method: "PUT",
+          body: JSON.stringify({ mode: audienceMode }),
+        });
+        if (!response.ok) throw new Error("Audience mode could not be saved");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Audience mode could not be saved");
+        return;
+      }
+    }
+
+    if (activeStep === 4 && telegramToken.trim()) {
       setBusy(true);
       try {
         const response = await ceApi("/api/setup/secure-input", {
@@ -98,7 +114,7 @@ export default function OnboardingPage() {
       setBusy(false);
     }
 
-    if (activeStep === 4) {
+    if (activeStep === 5) {
       setBusy(true);
       try {
         const response = await ceApi("/api/setup/test", {
@@ -182,6 +198,20 @@ export default function OnboardingPage() {
             />
           )}
           {activeStep === 3 && (
+            <Stack spacing={1.5}>
+              <Typography variant="body1" color="text.secondary">Choose who this workspace serves. The default keeps the public concierge disabled.</Typography>
+              {[
+                ["team", "Team only", "Private workspace; public concierge stays off."],
+                ["customers", "Customers", "Enable the customer-facing concierge."],
+                ["both", "Team and customers", "Enable both private work and customer concierge."],
+              ].map(([value, label, detail]) => (
+                <Button key={value} variant={audienceMode === value ? "contained" : "outlined"} onClick={() => setAudienceMode(value)} sx={{ justifyContent: "flex-start", textAlign: "left" }}>
+                  <Box><Typography fontWeight={600}>{label}</Typography><Typography variant="caption" component="span">{detail}</Typography></Box>
+                </Button>
+              ))}
+            </Stack>
+          )}
+          {activeStep === 4 && (
             <TextField
               label="Telegram bot token (optional)"
               fullWidth

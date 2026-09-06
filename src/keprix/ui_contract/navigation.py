@@ -68,6 +68,8 @@ NAV_ITEMS: list[dict[str, Any]] = [
     {"id": "crm-jobs", "label": "CRM jobs", "href": "/crm/jobs", "group": "pipeline", "icon": "monitoring"},
     {"id": "outreach", "label": "Outreach", "href": "/outreach", "group": "pipeline", "icon": "email"},
     {"id": "companies-house", "label": "Companies House", "href": "/companies-house", "group": "pipeline", "icon": "business"},
+    {"id": "property", "label": "Property", "href": "/property", "group": "pipeline", "icon": "home"},
+    {"id": "calculators", "label": "Property calculators", "href": "/calculators", "group": "pipeline", "icon": "calculate"},
     {"id": "leads", "label": "Product signups", "href": "/leads", "group": "pipeline", "icon": "contacts"},
     {"id": "opportunities", "label": "Research opportunities", "href": "/opportunities", "group": "pipeline", "icon": "science"},
     {"id": "escalations", "label": "Escalations", "href": "/escalations", "group": "pipeline", "icon": "shield"},
@@ -111,6 +113,7 @@ NAV_ITEMS: list[dict[str, Any]] = [
     # --- Automations: orchestrate agents and schedules ---
     {"id": "control-center", "label": "Control Center", "href": "/control-center", "group": "automations", "icon": "hub"},
     {"id": "agent-os-glass", "label": "Agent OS", "href": "/agent-os/glass", "group": "automations", "icon": "dashboard"},
+    {"id": "agent-os-board", "label": "Action board", "href": "/agent-os", "group": "automations", "icon": "dashboard"},
     {"id": "agent-studio", "label": "Agent Studio", "href": "/agent-studio", "group": "automations", "icon": "apps"},
     {"id": "agent-teams", "label": "Agent Teams", "href": "/admin/teams", "group": "automations", "icon": "extension"},
     {"id": "agent-runtime", "label": "Agent Runtime", "href": "/agent-runtime", "group": "automations", "icon": "extension"},

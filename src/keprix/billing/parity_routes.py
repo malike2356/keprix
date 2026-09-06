@@ -4,12 +4,20 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from keprix.auth.dependencies import require_admin
 from keprix.billing.promo import get_promo_store
 from keprix.billing.tenant_byok import get_byok_store
+from keprix.billing.business_lines import (
+    business_line_status,
+    create_workspace_business_line,
+    delete_workspace_business_line,
+    list_workspace_business_lines,
+)
+from keprix.auth.dependencies import get_current_user
+from keprix.billing.grandfathering import grant_feature_grandfather, list_feature_grandfather
 
 router = APIRouter(prefix="/api/billing/parity", tags=["billing-parity"])
 
@@ -30,6 +38,17 @@ class ByokBody(BaseModel):
     tenant_id: str = Field(min_length=1)
     provider: str = Field(min_length=1)
     api_key: str = Field(min_length=8)
+
+
+class BusinessLineBody(BaseModel):
+    workspace_id: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+
+
+class GrandfatherBody(BaseModel):
+    workspace_id: str = Field(min_length=1)
+    feature: str = Field(min_length=1)
+    reason: str = Field(min_length=1)
 
 
 @router.post("/promos")
@@ -63,3 +82,47 @@ async def put_byok(body: ByokBody, admin: dict = Depends(require_admin)) -> dict
 @router.get("/byok/{tenant_id}")
 async def list_byok(tenant_id: str, admin: dict = Depends(require_admin)) -> dict[str, Any]:
     return {"keys": get_byok_store().public_status(tenant_id=tenant_id)}
+
+
+def _user_id(user: dict[str, Any]) -> str:
+    return str(user.get("id") or user.get("username") or "default")
+
+
+@router.get("/business-lines/status")
+async def business_lines_status(workspace_id: str = Query(default="default"), user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    return await business_line_status(workspace_id, _user_id(user))
+
+
+@router.get("/business-lines")
+async def business_lines(workspace_id: str = Query(default="default"), user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    rows = list_workspace_business_lines(workspace_id)
+    return {"items": rows, "count": len(rows), "status": await business_line_status(workspace_id, _user_id(user))}
+
+
+@router.post("/business-lines", status_code=201)
+async def add_business_line(body: BusinessLineBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    return {"business_line": await create_workspace_business_line(body.workspace_id, _user_id(user), body.name)}
+
+
+@router.delete("/business-lines/{line_id}")
+async def remove_business_line(line_id: str, workspace_id: str = Query(default="default"), user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    _ = user
+    if not delete_workspace_business_line(workspace_id, line_id):
+        raise HTTPException(status_code=404, detail="business_line_not_found")
+    return {"ok": True}
+
+
+@router.post("/grandfather", status_code=201)
+async def grant_grandfather(body: GrandfatherBody, admin: dict = Depends(require_admin)) -> dict[str, Any]:
+    _ = admin
+    try:
+        created = grant_feature_grandfather(body.workspace_id, body.feature, body.reason)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {"created": created, "items": list_feature_grandfather(body.workspace_id)}
+
+
+@router.get("/grandfather/{workspace_id}")
+async def get_grandfather(workspace_id: str, admin: dict = Depends(require_admin)) -> dict[str, Any]:
+    _ = admin
+    return {"items": list_feature_grandfather(workspace_id)}

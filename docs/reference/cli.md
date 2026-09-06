@@ -13,13 +13,13 @@ usage: keprix [-h] [--version] [-z PROMPT] [-m MODEL] [--provider PROVIDER]
               [--worktree] [--accept-hooks] [--skills SKILLS] [--yolo]
               [--pass-session-id] [--ignore-user-config] [--ignore-rules]
               [--safe-mode] [--tui] [--cli] [--dev]
-              {chat,model,fallback,secrets,migrate,gateway,proxy,lsp,setup,postinstall,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,cron,webhook,portal,kanban,hooks,doctor,readiness,configure,health,proposals,approve,reject,repair,rollback,sdk,slash,coding,opportunity,mutation,research,builder,ingest,agent-os,vault,upgrade,integrations,upstream,scout,channel-shield,email-shield,product,sidecar,ops,incident,forensics,audit,policy,language,agent-app,security,dump,debug,backup,usage,checkpoints,import,config,pairing,skills,bundles,plugins,curator,memory,tools,computer-use,mcp,sessions,insights,claw,version,update,uninstall,acp,profile,completion,dashboard,desktop,gui,logs,prompt-size}
+              {chat,model,fallback,secrets,migrate,gateway,proxy,lsp,setup,postinstall,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,cron,webhook,portal,kanban,hooks,doctor,readiness,configure,health,proposals,approve,reject,repair,rollback,sdk,slash,coding,opportunity,mutation,research,builder,ingest,crm-ingest,crm-migrate,crm-funnel,document-vault,outreach-scheduler,agent-os,vault,upgrade,integrations,upstream,scout,channel-shield,email-shield,product,sidecar,ops,incident,forensics,audit,policy,language,agent-app,security,dump,debug,backup,usage,checkpoints,import,config,pairing,skills,bundles,plugins,curator,memory,tools,computer-use,mcp,sessions,insights,claw,version,update,uninstall,acp,profile,completion,dashboard,desktop,gui,logs,prompt-size}
               ...
 
 Keprix - AI assistant with tool-calling capabilities
 
 positional arguments:
-  {chat,model,fallback,secrets,migrate,gateway,proxy,lsp,setup,postinstall,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,cron,webhook,portal,kanban,hooks,doctor,readiness,configure,health,proposals,approve,reject,repair,rollback,sdk,slash,coding,opportunity,mutation,research,builder,ingest,agent-os,vault,upgrade,integrations,upstream,scout,channel-shield,email-shield,product,sidecar,ops,incident,forensics,audit,policy,language,agent-app,security,dump,debug,backup,usage,checkpoints,import,config,pairing,skills,bundles,plugins,curator,memory,tools,computer-use,mcp,sessions,insights,claw,version,update,uninstall,acp,profile,completion,dashboard,desktop,gui,logs,prompt-size}
+  {chat,model,fallback,secrets,migrate,gateway,proxy,lsp,setup,postinstall,whatsapp,whatsapp-cloud,slack,send,login,logout,auth,status,cron,webhook,portal,kanban,hooks,doctor,readiness,configure,health,proposals,approve,reject,repair,rollback,sdk,slash,coding,opportunity,mutation,research,builder,ingest,crm-ingest,crm-migrate,crm-funnel,document-vault,outreach-scheduler,agent-os,vault,upgrade,integrations,upstream,scout,channel-shield,email-shield,product,sidecar,ops,incident,forensics,audit,policy,language,agent-app,security,dump,debug,backup,usage,checkpoints,import,config,pairing,skills,bundles,plugins,curator,memory,tools,computer-use,mcp,sessions,insights,claw,version,update,uninstall,acp,profile,completion,dashboard,desktop,gui,logs,prompt-size}
                         Command to run
     chat                Interactive chat with the agent
     model               Select default model and provider
@@ -69,6 +69,14 @@ positional arguments:
     research            Research workspace projects and YAML playbooks
     builder             Project builder and monorepo manager
     ingest              Ingest external media and artifacts
+    crm-ingest          Canonical CRM lead spreadsheet import/export
+    crm-migrate         Migrate CRM/outreach SQLite into Postgres (dry-run or
+                        apply)
+    crm-funnel          CRM funnel orchestrator, next-best-action, and channel
+                        journey
+    document-vault      Document Vault inventory, flags, and adapter registry
+    outreach-scheduler  Durable outreach campaign sequence scheduler (claim-
+                        lease ticks)
     agent-os            Agent OS utilities
     vault               Initialize and validate local markdown vaults
     upgrade             Safe, guided Keprix upgrades for products (check,
@@ -266,6 +274,11 @@ For more help on a command:
 | `research` | See CLI help |
 | `builder` | {list,analyse,build,scaffold,status,logs,deploy} ... |
 | `ingest` | See CLI help |
+| `crm-ingest` | See CLI help |
+| `crm-migrate` | [--outreach-sqlite OUTREACH_SQLITE] [--no-backup] |
+| `crm-funnel` | See CLI help |
+| `document-vault` | See CLI help |
+| `outreach-scheduler` | See CLI help |
 | `agent-os` | {maturity,connections,hello,workflow,milestones,playbook,guardrails} |
 | `vault` | {list-packs,init,validate,doctor,migrate-workspace,render-template,audit,ensure-default} |
 | `upgrade` | [--skip-tests] [--step] [--to VERSION] [--list-prompts] |

@@ -6,7 +6,7 @@ import os
 from typing import Any
 
 from keprix.security.isolation_violation import IsolationViolation
-from keprix.tenancy.resolve import DEFAULT_TENANT_ID
+from keprix.tenancy.resolve import DEFAULT_TENANT_ID, resolve_tenant_id
 
 
 class TenantIsolationError(IsolationViolation):
@@ -47,6 +47,7 @@ def resource_tenant_id(resource: Any) -> str | None:
 
 
 def current_tenant_id(*, fallback: str = DEFAULT_TENANT_ID) -> str:
+    """Return the canonical tenant resolution for the current execution scope."""
     try:
         from keprix.security.product_context import get_product_context_or_none
 
@@ -55,7 +56,7 @@ def current_tenant_id(*, fallback: str = DEFAULT_TENANT_ID) -> str:
             return str(ctx.tenant_id)
     except Exception:
         pass
-    return os.environ.get("KEPRIX_TENANT_ID") or fallback
+    return resolve_tenant_id(env_default=fallback)
 
 
 def assert_tenant_owns(resource: Any, *, tenant_id: str | None = None, soft_legacy: bool | None = None) -> None:

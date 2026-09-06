@@ -13,9 +13,10 @@ from keprix.billing.config_loader import (
     resolve_billing_config_write_path,
     save_billing_config,
 )
-from keprix.billing.schema import PlanPriceConfig
+from keprix.billing.schema import PlanModelPolicy, PlanPriceConfig
 from keprix.billing.stripe.price_catalog import find_price_by_id, load_price_catalog
 from keprix.billing.stripe.products import sync_products_and_prices
+from keprix.billing.promo import get_promo_store
 
 router = APIRouter(prefix="/api/billing/admin", tags=["billing-admin"])
 
@@ -34,10 +35,20 @@ class PlanPricePin(BaseModel):
 class PlanPricingUpdate(BaseModel):
     id: str
     prices: list[PlanPricePin] = Field(default_factory=list)
+    plan_model_policy: PlanModelPolicy | None = None
 
 
 class PricingUpdateBody(BaseModel):
     plans: list[PlanPricingUpdate]
+
+
+@router.get("/promo/redemptions")
+async def list_promo_redemptions(
+    code: str | None = None,
+    workspace_id: str | None = None,
+    _admin: dict = Depends(_require_billing_admin),
+) -> dict[str, Any]:
+    return get_promo_store().list_redemptions(code=code, workspace_id=workspace_id)
 
 
 @router.get("/catalog")
@@ -83,6 +94,7 @@ async def get_plan_pricing(_admin: dict = Depends(_require_billing_admin)) -> di
                 "name": plan.name,
                 "description": plan.description,
                 "prices": [price.model_dump() for price in plan.resolved_prices()],
+                "plan_model_policy": plan.plan_model_policy.model_dump(),
             }
             for plan in cfg.plans
         ],
@@ -103,6 +115,8 @@ async def update_plan_pricing(
         plan = by_id.get(update.id)
         if plan is None:
             raise HTTPException(status_code=400, detail=f"Unknown plan id: {update.id}")
+        if update.plan_model_policy is not None:
+            plan.plan_model_policy = update.plan_model_policy
 
         # Free / zero-amount plans stay free (no Stripe pin required).
         existing = plan.resolved_prices()

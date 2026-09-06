@@ -93,7 +93,7 @@ Do not default-on broader production workspaces until pilot exits clean.
 ## Test evidence (2026-08-08)
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 .venv/bin/pytest tests/crm/test_visual_crm.py tests/crm/test_visual_e2e_signoff.py -q
 # 9 passed
 ```

@@ -54,6 +54,16 @@ LEAD_INGESTION_FIELD_NAMES = frozenset(
         "website_score",
         "ranks_top3",
         "weakness",
+        "first_name",
+        "last_name",
+        "linkedin_url",
+        "social_profiles",
+        "research_status",
+        "research_notes",
+        "sic_codes",
+        "officers",
+        "enrich_confidence",
+        "osint_status",
         "priority",
         "notes",
         "source_type",
@@ -309,10 +319,12 @@ class CrmStore:
             self._conn.executescript(SQLITE_SCHEMA)
             self._conn.commit()
             try:
-                from keprix.crm.schema import ensure_crm_lead_ingestion_columns, ensure_crm_saved_views
+                from keprix.crm.schema import ensure_crm_lead_ingestion_columns, ensure_crm_osint_cache, ensure_crm_saved_views, ensure_crm_social
 
                 ensure_crm_lead_ingestion_columns(self._conn)
                 ensure_crm_saved_views(self._conn)
+                ensure_crm_osint_cache(self._conn)
+                ensure_crm_social(self._conn)
             except Exception:
                 pass
 
@@ -1702,6 +1714,117 @@ class CrmStore:
                 "actor_id",
             },
         )
+
+    def get_replenish_settings(self, workspace_id: str) -> dict[str, Any]:
+        ws = self._require_workspace(workspace_id)
+        row = self._fetchone(
+            "SELECT * FROM crm_replenish_settings WHERE workspace_id = ?", (ws,)
+        )
+        return row or {"workspace_id": ws, "ratio": 1.0, "adapter": "web_directory", "domain_pack": "generic"}
+
+    def upsert_replenish_settings(self, workspace_id: str, **fields: Any) -> dict[str, Any]:
+        ws = self._require_workspace(workspace_id)
+        current = self.get_replenish_settings(ws)
+        ratio = float(fields.get("ratio", current.get("ratio", 1.0)))
+        if ratio < 0:
+            raise ValueError("replenish_ratio must be >= 0")
+        adapter = str(fields.get("adapter", current.get("adapter") or "web_directory")).strip()
+        domain_pack = str(fields.get("domain_pack", current.get("domain_pack") or "generic")).strip()
+        now = _utcnow()
+        with self._lock:
+            self._conn.execute(
+                "INSERT INTO crm_replenish_settings (workspace_id, ratio, adapter, domain_pack, updated_at) "
+                "VALUES (?, ?, ?, ?, ?) ON CONFLICT(workspace_id) DO UPDATE SET ratio=excluded.ratio, "
+                "adapter=excluded.adapter, domain_pack=excluded.domain_pack, updated_at=excluded.updated_at",
+                (ws, ratio, adapter, domain_pack, now),
+            )
+            self._conn.commit()
+        return self.get_replenish_settings(ws)
+
+    def create_replenish_event(self, workspace_id: str, **fields: Any) -> dict[str, Any] | None:
+        ws = self._require_workspace(workspace_id)
+        existing = self._fetchone(
+            "SELECT * FROM crm_replenish_events WHERE workspace_id = ? AND batch_id = ?",
+            (ws, str(fields["batch_id"])),
+        )
+        if existing:
+            return existing
+        event_id = str(uuid.uuid4())
+        try:
+            with self._lock:
+                self._conn.execute(
+                    "INSERT INTO crm_replenish_events (id, workspace_id, batch_id, sent_count, ratio, "
+                    "enqueued_count, status, discovery_job_id, error, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (event_id, ws, str(fields["batch_id"]), int(fields.get("sent_count", 0)), float(fields.get("ratio", 1.0)),
+                     int(fields.get("enqueued_count", 0)), fields.get("status") or "enqueued", fields.get("discovery_job_id"),
+                     fields.get("error"), fields.get("created_at") or _utcnow()),
+                )
+                self._conn.commit()
+        except sqlite3.IntegrityError:
+            return self._fetchone(
+                "SELECT * FROM crm_replenish_events WHERE workspace_id = ? AND batch_id = ?",
+                (ws, str(fields["batch_id"])),
+            )
+        return self._fetchone("SELECT * FROM crm_replenish_events WHERE id = ? AND workspace_id = ?", (event_id, ws))
+
+    def update_replenish_event(self, workspace_id: str, event_id: str, **fields: Any) -> dict[str, Any] | None:
+        allowed = {"sent_count", "ratio", "enqueued_count", "status", "discovery_job_id", "error"}
+        clean = {k: v for k, v in fields.items() if k in allowed}
+        if not clean:
+            return self._fetchone("SELECT * FROM crm_replenish_events WHERE id = ? AND workspace_id = ?", (event_id, workspace_id))
+        with self._lock:
+            self._conn.execute(
+                f"UPDATE crm_replenish_events SET {', '.join(f'{k} = ?' for k in clean)} WHERE id = ? AND workspace_id = ?",
+                (*clean.values(), event_id, workspace_id),
+            )
+            self._conn.commit()
+        return self._fetchone("SELECT * FROM crm_replenish_events WHERE id = ? AND workspace_id = ?", (event_id, workspace_id))
+
+    def list_replenish_events(self, workspace_id: str, limit: int = 200) -> list[dict[str, Any]]:
+        return self._list("crm_replenish_events", workspace_id, limit=limit, order_by="created_at DESC")
+
+    def _conversation(self, workspace_id: str, conversation_id: str) -> dict[str, Any] | None:
+        return self._fetchone("SELECT * FROM crm_conversations WHERE id = ? AND workspace_id = ?", (conversation_id, workspace_id))
+
+    def find_conversation(self, workspace_id: str, *, channel: str, external_chat_id: str) -> dict[str, Any] | None:
+        return self._fetchone("SELECT * FROM crm_conversations WHERE workspace_id = ? AND channel = ? AND external_chat_id = ?", (workspace_id, channel, external_chat_id))
+
+    def create_conversation(self, workspace_id: str, **fields: Any) -> dict[str, Any]:
+        ws = self._require_workspace(workspace_id); now = _utcnow(); cid = str(uuid.uuid4())
+        with self._lock:
+            self._conn.execute("INSERT INTO crm_conversations (id, workspace_id, contact_id, channel, external_chat_id, started_at, last_message_at) VALUES (?, ?, ?, ?, ?, ?, ?)", (cid, ws, fields.get("contact_id") or "", fields.get("channel") or "", fields.get("external_chat_id") or "", fields.get("started_at") or now, fields.get("last_message_at") or now)); self._conn.commit()
+        return self._conversation(ws, cid) or {}
+
+    def add_conversation_message(self, workspace_id: str, conversation_id: str, **fields: Any) -> dict[str, Any]:
+        ws = self._require_workspace(workspace_id)
+        if not self._conversation(ws, conversation_id):
+            raise LookupError("conversation_not_found")
+        mid = str(uuid.uuid4()); sent_at = fields.get("sent_at") or _utcnow()
+        with self._lock:
+            self._conn.execute("INSERT INTO crm_conversation_messages (id, workspace_id, conversation_id, direction, body, sent_at) VALUES (?, ?, ?, ?, ?, ?)", (mid, ws, conversation_id, fields.get("direction") or "inbound", fields.get("body") or "", sent_at))
+            self._conn.execute("UPDATE crm_conversations SET last_message_at = ? WHERE id = ? AND workspace_id = ?", (sent_at, conversation_id, ws)); self._conn.commit()
+        return self._fetchone("SELECT * FROM crm_conversation_messages WHERE id = ? AND workspace_id = ?", (mid, ws)) or {}
+
+    def list_conversation_messages(self, workspace_id: str, conversation_id: str) -> list[dict[str, Any]]:
+        return self._list("crm_conversation_messages", workspace_id, where="conversation_id = ?", params=(conversation_id,), order_by="sent_at ASC", limit=1000)
+
+    def add_conversation_link(self, workspace_id: str, conversation_id: str, **fields: Any) -> dict[str, Any]:
+        ws = self._require_workspace(workspace_id); lid = str(uuid.uuid4())
+        with self._lock:
+            self._conn.execute("INSERT INTO crm_conversation_channel_links (id, workspace_id, conversation_id, channel, external_chat_id, contact_id, confidence, linked_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", (lid, ws, conversation_id, fields.get("channel") or "", fields.get("external_chat_id") or "", fields.get("contact_id") or "", float(fields.get("confidence", 1.0)), fields.get("linked_at") or _utcnow())); self._conn.commit()
+        return self._fetchone("SELECT * FROM crm_conversation_channel_links WHERE id = ? AND workspace_id = ?", (lid, ws)) or {}
+
+    def list_conversation_links(self, workspace_id: str, conversation_id: str) -> list[dict[str, Any]]:
+        return self._list("crm_conversation_channel_links", workspace_id, where="conversation_id = ?", params=(conversation_id,), order_by="linked_at ASC", limit=200)
+
+    def save_conversation_summary(self, workspace_id: str, conversation_id: str, summary: str) -> dict[str, Any]:
+        ws = self._require_workspace(workspace_id); now = _utcnow()
+        with self._lock:
+            self._conn.execute("INSERT INTO crm_conversation_summaries (workspace_id, conversation_id, summary, generated_at) VALUES (?, ?, ?, ?) ON CONFLICT(workspace_id, conversation_id) DO UPDATE SET summary=excluded.summary, generated_at=excluded.generated_at", (ws, conversation_id, summary, now)); self._conn.commit()
+        return self._fetchone("SELECT * FROM crm_conversation_summaries WHERE workspace_id = ? AND conversation_id = ?", (ws, conversation_id)) or {}
+
+    def list_conversations(self, workspace_id: str, limit: int = 200) -> list[dict[str, Any]]:
+        return self._list("crm_conversations", workspace_id, limit=limit, order_by="last_message_at DESC")
 
     # ── Outbox / idempotency ──────────────────────────────────
     def enqueue_outbox(

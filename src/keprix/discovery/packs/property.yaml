@@ -2,6 +2,32 @@ id: property
 title: Property vertical pack
 description: Sheet types, metrics, and discovery adapters for UK property operators.
 jurisdiction: UK
+qualification_questions:
+  - {id: budget, question: "What is your acquisition or refurbishment budget?", required: true}
+  - {id: timeline, question: "What is your target completion or sale timeline?", required: true}
+  - {id: portfolio, question: "How many properties are in your current portfolio?", required: false}
+  - {id: funding_source, question: "What is the intended funding source?", required: true}
+message_bank:
+  first_contact: "We help property operators identify and qualify suitable opportunities. Would a short review be useful?"
+  follow_up_1: "Following up on the property opportunity review. Is this still relevant?"
+  follow_up_2: "Would a different timeline or property profile be more useful?"
+  follow_up_3: "I will close this out for now. Reply if you want to revisit it."
+  objection_reply: "Understood. I can provide the evidence and assumptions for review before any decision."
+follow_up_ladder:
+  - {stage: capture, after_hours: 24}
+  - {stage: intent, after_hours: 48}
+  - {stage: qualify, after_hours: 72}
+  - {stage: nurture, after_days: 14}
+crm_stages: [capture, intent, qualify, present, follow_up, human, nurture]
+compliance_rules:
+  - consent_required_before_outreach: true
+  - no_scraping: true
+  - jurisdiction: UK GDPR and PECR
+escalation:
+  auto_route_human: [complaint, legal_request, objection, regulated_advice, unsubscribe]
+  auto_reply_allowed: [general_question, availability]
+discovery:
+  enabled: true
 adapters:
   - property_csv
   - companies_house

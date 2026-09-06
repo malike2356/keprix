@@ -1,6 +1,7 @@
 "use client";
 
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import * as React from "react";
@@ -14,6 +15,11 @@ export default function DocumentsPage() {
 
   return (
     <Box>
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 1 }}>
+        <Button component="a" href="/data?tab=export" variant="outlined" size="small">
+          Open data exports
+        </Button>
+      </Box>
       <Tabs
         value={tab}
         onChange={(_, next) => setTab(next)}

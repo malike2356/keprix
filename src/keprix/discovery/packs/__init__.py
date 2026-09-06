@@ -51,7 +51,10 @@ def get_pack(pack_id: str) -> dict[str, Any] | None:
 
 def list_packs() -> list[dict[str, Any]]:
     load_vertical_packs()
-    return [dict(v) for v in _PACK_CACHE.values()]
+    return [
+        {**dict(v), "has_discovery_block": bool((v.get("discovery") or {}).get("enabled"))}
+        for v in _PACK_CACHE.values()
+    ]
 
 
 def _schema_provider(sheet_type: str) -> dict[str, Any] | None:

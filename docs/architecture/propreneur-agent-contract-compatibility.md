@@ -50,7 +50,7 @@ Kebab bridge tool names remain aliases until the removal window. Agents should p
 ## Regeneration
 
 ```bash
-bash /opt/lampp/htdocs/verlox/keprix/scripts/regen-propreneur-agent-contract.sh
+bash keprix/scripts/regen-propreneur-agent-contract.sh
 ```
 
 CI must fail when generated outputs drift from the committed tree.

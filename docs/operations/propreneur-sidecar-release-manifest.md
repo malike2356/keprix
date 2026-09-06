@@ -61,11 +61,11 @@ List sidecar endpoints and required middleware (auth, CSRF, rate limit):
 
 ```bash
 # Keprix
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 python -m pytest tests/product_sidecar/test_propreneur_pack.py tests/product_sidecar/test_sidecar_foundation.py -q --tb=short
 
 # Propreneur (fill exact filters used for the RC)
-cd /opt/lampp/htdocs/verlox/propreneur
+cd <workspace-root>/propreneur
 php artisan test --filter=Keprix
 ```
 

@@ -97,6 +97,11 @@ def _mentions_navigation(text: str) -> bool:
     )
 
 
+def _mentions_security(text: str) -> bool:
+    lowered = text.lower()
+    return any(phrase in lowered for phrase in ("security posture", "posture score", "failed login", "security findings"))
+
+
 def _extract_mutation_id(text: str) -> str | None:
     match = re.search(r"\b([0-9a-f]{8,32})\b", text, re.IGNORECASE)
     return match.group(1) if match else None
@@ -212,6 +217,16 @@ async def compose_operator_reply(
     """Return assistant text and optional side-effect events (tool calls, approvals)."""
     events: list[dict[str, Any]] = []
     lowered = text.lower()
+
+    if _mentions_security(lowered):
+        from keprix.security.scout_posture import current_posture
+
+        posture = current_posture()
+        events.append(_tool_event("get_security_posture", posture, input_payload={"workspace_id": workspace_id}))
+        if "failed login" in lowered:
+            signal = posture.get("signals", {}).get("failed_logins", 0)
+            return (f"Failed-login findings: {signal}. Evidence: local Scout signal counters. Review `/admin/scout-ops`.", events)
+        return (f"Security posture is `{posture['score']}/100` ({posture['grade']}). Findings: {len(posture['findings'])}. Evidence: local Scout signal counters and correlation log.", events)
 
     if _mentions_page_location(lowered):
         return (_describe_current_page(page_path, page_label, context), events)

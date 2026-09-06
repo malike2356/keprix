@@ -296,5 +296,5 @@ def is_high_risk_pack(domain_pack: str | None) -> bool:
 
 
 def enroll_requires_soft_wall(domain_pack: str | None) -> bool:
-    """Health/social care packs always require Soft Wall enroll, even if gates loosened."""
+    """High-risk packs always require Soft Wall enroll, even if gates loosened."""
     return is_high_risk_pack(domain_pack)

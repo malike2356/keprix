@@ -80,7 +80,7 @@ Telegram: REAL initiation. Slack/WhatsApp: PARTIAL thin adapters to the same jou
 ## Tests
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 ./.venv/bin/python -m pytest \
   tests/crm/test_funnel_orchestrator.py \
   tests/crm/test_channel_journey.py \

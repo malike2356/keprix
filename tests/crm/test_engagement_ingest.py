@@ -80,4 +80,7 @@ def test_low_confidence_queues_inbox(crm) -> None:
     )
     assert result["inbox_item"] is not None
     items = list_inbox(crm, ws, status="open")
-    assert any(i.get("entity_id") == lead["id"] for i in items)
+    item = next(i for i in items if i.get("entity_id") == lead["id"])
+    assert item["summary"] == "maybe?"
+    assert item["intent_tag"] == "reply-needed"
+    assert item["purpose"] == "reply-needed"

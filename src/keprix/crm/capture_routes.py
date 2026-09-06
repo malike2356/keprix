@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import html
+import os
 from typing import Any
 from urllib.parse import urlparse
 
@@ -17,6 +18,7 @@ from keprix.crm.routes import _store, _workspace
 
 public_router = APIRouter(prefix="/capture", tags=["crm-capture-public"])
 router = APIRouter(prefix="/api/crm/capture-links", tags=["crm-capture-links"])
+_MAX_CAPTURE_BODY = 64 * 1024
 
 
 class CaptureLinkCreate(BaseModel):
@@ -29,7 +31,21 @@ def _redirect_ok(value: str) -> bool:
     if not value:
         return True
     parsed = urlparse(value)
-    return (not parsed.scheme and not parsed.netloc and value.startswith("/")) or (parsed.scheme == "https" and bool(parsed.netloc))
+    if not parsed.scheme and not parsed.netloc:
+        return value.startswith("/")
+    allowed = {
+        item.strip().lower()
+        for item in os.getenv("KEPRIX_CAPTURE_ALLOWED_REDIRECT_ORIGINS", "").split(",")
+        if item.strip()
+    }
+    return parsed.scheme == "https" and f"https://{parsed.netloc}".lower() in allowed
+
+
+def _require_active_token(store: Any, token: str) -> None:
+    from keprix.crm.capture import _active_link
+
+    if _active_link(store, token) is None:
+        raise HTTPException(status_code=404, detail="capture link not found")
 
 
 def _page(token: str, *, error: str = "") -> str:
@@ -49,11 +65,15 @@ def _page(token: str, *, error: str = "") -> str:
 
 @public_router.get("/{token}", response_class=HTMLResponse)
 async def capture_form(token: str) -> HTMLResponse:
+    _require_active_token(_store(), token)
     return HTMLResponse(_page(token))
 
 
-@public_router.post("/{token}")
+@public_router.post("/{token}", response_model=None)
 async def capture_submit(token: str, request: Request) -> JSONResponse | HTMLResponse:
+    content_length = request.headers.get("content-length", "")
+    if content_length.isdigit() and int(content_length) > _MAX_CAPTURE_BODY:
+        raise HTTPException(status_code=413, detail="capture body too large")
     content_type = request.headers.get("content-type", "")
     payload: dict[str, Any]
     if "application/json" in content_type:
@@ -72,7 +92,9 @@ async def capture_submit(token: str, request: Request) -> JSONResponse | HTMLRes
                 ip=request.client.host if request.client else "", company=str(payload.get("company") or ""), phone=str(payload.get("phone") or ""),
                 source=str(payload.get("source") or ""), campaign=str(payload.get("campaign") or ""), utm=str(payload.get("utm") or ""), referrer=request.headers.get("referer", ""),
             )
-        except (ValueError, LookupError, PermissionError) as exc:
+        except LookupError as exc:
+            raise HTTPException(status_code=404, detail="capture link not found") from exc
+        except (ValueError, PermissionError) as exc:
             if wants_json:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
             return HTMLResponse(_page(token, error=str(exc)), status_code=400)

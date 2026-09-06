@@ -18,6 +18,7 @@ Config keys this provider responds to::
 Env var::
 
     SEARXNG_URL=http://localhost:8080
+    SEARXNG_API_TOKEN=optional bearer token for private instances
 """
 
 from __future__ import annotations
@@ -42,6 +43,11 @@ def _searxng_url() -> str:
     if val is None:
         val = os.getenv("SEARXNG_URL", "")
     return (val or "").strip()
+
+
+def _searxng_api_token() -> str:
+    """Return the optional bearer token without exposing it in logs or errors."""
+    return (os.getenv("SEARXNG_API_TOKEN") or "").strip()
 
 
 class SearXNGWebSearchProvider(WebSearchProvider):
@@ -84,7 +90,14 @@ class SearXNGWebSearchProvider(WebSearchProvider):
                 f"{base_url}/search",
                 params=params,
                 timeout=15,
-                headers={"Accept": "application/json"},
+                headers={
+                    "Accept": "application/json",
+                    **(
+                        {"Authorization": f"Bearer {_searxng_api_token()}"}
+                        if _searxng_api_token()
+                        else {}
+                    ),
+                },
             )
             resp.raise_for_status()
         except httpx.HTTPStatusError as exc:
@@ -148,6 +161,11 @@ class SearXNGWebSearchProvider(WebSearchProvider):
                     "key": "SEARXNG_URL",
                     "prompt": "SearXNG instance URL (e.g. http://localhost:8080)",
                     "url": "https://searx.space/",
+                },
+                {
+                    "key": "SEARXNG_API_TOKEN",
+                    "prompt": "Bearer token for a private SearXNG instance (optional)",
+                    "secret": True,
                 },
             ],
         }

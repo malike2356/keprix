@@ -7,7 +7,7 @@ ABBIS remains the SaaS source of truth. This pack provides Keprix agent sessions
 ## Run locally
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix/domain-packs/abbis
+cd <workspace-root>/keprix/domain-packs/abbis
 bash scripts/start-abbis-sidecar.sh
 # or:
 python3 -m uvicorn http_app:app --host 127.0.0.1 --port 3360
@@ -42,7 +42,7 @@ Southbound fixture: `/fixture-product/api/keprix/v1/*`
 ## Tests
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 .venv/bin/pytest domain-packs/abbis/tests -q
 ```
 

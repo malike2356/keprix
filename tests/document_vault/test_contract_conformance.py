@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-SHARED = Path("/opt/lampp/htdocs/verlox/shared/workspace-governance/AIVA-KEPRIX-DOCUMENT-VAULT.md")
+SHARED = ROOT.parent / "shared" / "workspace-governance" / "AIVA-KEPRIX-DOCUMENT-VAULT.md"
 MATRIX = ROOT / "docs/architecture/document-vault-capability-matrix.md"
 CONTRACT = ROOT / "docs/architecture/document-vault-contract.md"
 OWNERSHIP = ROOT / "docs/architecture/document-vault-ownership-and-migration.md"

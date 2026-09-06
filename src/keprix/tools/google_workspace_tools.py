@@ -10,6 +10,10 @@ from keprix.integrations.google_workspace.tools_calendar import gws_calendar_cre
 from keprix.integrations.google_workspace.tools_drive import gws_drive_search
 from keprix.integrations.google_workspace.tools_gmail import gws_gmail_list, gws_gmail_send
 from keprix.integrations.google_workspace.tools_sheets import gws_sheets_read
+from keprix.integrations.google_workspace.tools_docs import gws_docs_create, gws_docs_update
+from keprix.integrations.google_workspace.tools_slides import gws_slides_create
+from keprix.integrations.google_workspace.tools_contacts import gws_contacts_enrich, gws_contacts_list
+from keprix.integrations.google_workspace.vault_export import create_doc_from_vault, create_slides_from_vault
 from keprix.tools.registry import registry
 
 TOOLSET = "google-workspace"
@@ -70,3 +74,11 @@ registry.register(
     schema=_schema("gws_sheets_read", "Read a range from a Google Sheet.", {"spreadsheet_id": {"type": "string"}, "range_name": {"type": "string", "default": "Sheet1!A1:Z100"}}, ["spreadsheet_id", "range_name"]),
     handler=_json_handler(gws_sheets_read),
 )
+
+registry.register(name="gws_docs_create", toolset=TOOLSET, schema=_schema("gws_docs_create", "Create a Google Doc. Requires confirm=true.", {"title": {"type": "string"}, "text": {"type": "string"}, "confirm": {"type": "boolean"}}, ["title"]), handler=_json_handler(gws_docs_create))
+registry.register(name="gws_docs_update", toolset=TOOLSET, schema=_schema("gws_docs_update", "Replace or append Google Doc text. Requires confirm=true.", {"document_id": {"type": "string"}, "text": {"type": "string"}, "replace": {"type": "boolean"}, "confirm": {"type": "boolean"}}, ["document_id", "text"]), handler=_json_handler(gws_docs_update))
+registry.register(name="gws_slides_create", toolset=TOOLSET, schema=_schema("gws_slides_create", "Create a Google Slides deck. Requires confirm=true.", {"title": {"type": "string"}, "slides": {"type": "array", "items": {"type": "string"}}, "confirm": {"type": "boolean"}}, ["title"]), handler=_json_handler(gws_slides_create))
+registry.register(name="gws_contacts_list", toolset=TOOLSET, schema=_schema("gws_contacts_list", "List Google Contacts.", {"query": {"type": "string"}, "max_results": {"type": "number"}}, []), handler=_json_handler(gws_contacts_list))
+registry.register(name="gws_contacts_enrich", toolset=TOOLSET, schema=_schema("gws_contacts_enrich", "Fill empty CRM lead fields from a matching Google Contact.", {"workspace_id": {"type": "string"}, "lead_id": {"type": "string"}, "query": {"type": "string"}, "actor_id": {"type": "string"}}, ["workspace_id", "lead_id", "query"]), handler=_json_handler(gws_contacts_enrich))
+registry.register(name="gws_doc_from_vault", toolset=TOOLSET, schema=_schema("gws_doc_from_vault", "Create a Google Doc from a Document Vault item. Requires confirm=true.", {"workspace_id": {"type": "string"}, "item_id": {"type": "string"}, "actor_id": {"type": "string"}, "confirm": {"type": "boolean"}}, ["workspace_id", "item_id"]), handler=_json_handler(create_doc_from_vault))
+registry.register(name="gws_slides_from_vault", toolset=TOOLSET, schema=_schema("gws_slides_from_vault", "Create Google Slides from a Document Vault item. Requires confirm=true.", {"workspace_id": {"type": "string"}, "item_id": {"type": "string"}, "actor_id": {"type": "string"}, "confirm": {"type": "boolean"}}, ["workspace_id", "item_id"]), handler=_json_handler(create_slides_from_vault))

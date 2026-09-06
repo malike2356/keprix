@@ -7,7 +7,7 @@
 **Regenerate:**
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 python3 scripts/propreneur-crud-gap-report.py
 ```
 

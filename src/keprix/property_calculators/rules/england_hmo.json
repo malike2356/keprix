@@ -1,0 +1,32 @@
+{
+  "version": "2026-09-01",
+  "region": "england",
+  "source": "Housing Act 2004 (England) - HMO licensing minimum room sizes",
+  "bedroom_minimums_sqm": {
+    "single": 6.51,
+    "double": 10.22,
+    "child_under_10": 4.64
+  },
+  "site_assessment": [
+    {
+      "key": "fire_doors",
+      "label": "Fire doors on escape routes",
+      "note": "Verify fire doors on site; a floor plan alone cannot establish the required fire rating."
+    },
+    {
+      "key": "means_of_escape",
+      "label": "Means of escape",
+      "note": "Verify the protected escape route and building construction with a qualified assessor."
+    },
+    {
+      "key": "smoke_alarms",
+      "label": "Interlinked smoke/heat alarm system",
+      "note": "Verify alarm coverage and installation on site."
+    },
+    {
+      "key": "kitchen_facilities",
+      "label": "Kitchen facility adequacy per occupant",
+      "note": "Verify local licensing-authority amenity standards for the actual occupant count."
+    }
+  ]
+}

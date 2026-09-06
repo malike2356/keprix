@@ -62,6 +62,12 @@ export default function BillingWalletCard() {
             credits remaining
           </Typography>
         </Box>
+        {data.managed_tier?.plan_id ? (
+          <Typography variant="body2" color="text.secondary">
+            Tier: {data.managed_tier.plan_id}
+            {data.managed_tier.assigned ? "; allowance assigned" : "; no assignment grant"}
+          </Typography>
+        ) : null}
         {included > 0 ? (
           <Box>
             <LinearProgress

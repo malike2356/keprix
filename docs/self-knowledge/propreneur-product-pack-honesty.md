@@ -10,7 +10,7 @@ Keprix is the Soft Wall, grant, idempotency, and product-pack invoke plane.
 Safe full CRUD means domain API access under Soft Wall; not raw database access,
 hard delete, binary vault I/O, payment posting, or a generic proxy.
 
-Canonical workstation root: `/opt/lampp/htdocs/verlox/propreneur` (not `propreneur/propreneur-v2`).
+Canonical workstation root: `<workspace-root>/propreneur` (not `propreneur/propreneur-v2`).
 
 ## Can Keprix perform Propreneur CRUD?
 

@@ -162,10 +162,14 @@ class AnalyticsService:
             m.AIVA_OUTREACH_SENT: "sends",
             m.AIVA_OUTREACH_REPLIES: "replies",
             m.AIVA_OUTREACH_OPENED: "opens",
+            m.AIVA_OUTREACH_CLICKED: "clicked",
+            m.AIVA_OUTREACH_BOOKINGS: "bookings",
+            m.AIVA_OUTREACH_LEADS: "leads",
             "aiva_outreach_bounces_total": "bounces",
             m.AIVA_SOCIAL_CONNECTION_ACCEPTED: "accepts",
         }
         buckets: dict[str, dict[str, float]] = {}
+        by_source: dict[str, float] = {}
         for row in self.store.query_events(workspace_id, since=since, limit=50000):
             metric = row.get("metric_name")
             key = names.get(metric)
@@ -179,12 +183,20 @@ class AnalyticsService:
                 continue
             bucket = buckets.setdefault(day, {name: 0.0 for name in set(names.values())})
             bucket[key] += float(row.get("metric_value") or 0)
+            source = str(labels.get("source") or labels.get("campaign_id") or "unknown")
+            by_source[source] = by_source.get(source, 0.0) + float(row.get("metric_value") or 0)
         start = (datetime.now(timezone.utc) - timedelta(days=max(1, int(days)) - 1)).date()
         series = []
         for offset in range(max(1, int(days))):
             day = (start + timedelta(days=offset)).isoformat()
             series.append({"day": day, **buckets.get(day, {name: 0.0 for name in set(names.values())})})
-        return {"workspace_id": workspace_id, "days": days, "channel": channel, "series": series}
+        return {
+            "workspace_id": workspace_id,
+            "days": days,
+            "channel": channel,
+            "series": series,
+            "by_source": [[k, v] for k, v in sorted(by_source.items(), key=lambda kv: kv[1], reverse=True)],
+        }
 
     def worker(self, workspace_id: str, *, worker_id: str | None = None, days: int = 30) -> dict[str, Any]:
         since = _since_days(days)

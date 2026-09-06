@@ -1,7 +1,7 @@
 """Standalone FastAPI sidecar for the Xeclone/iLaud product contract.
 
 Run:
-    cd /opt/lampp/htdocs/verlox/keprix/domain-packs/xeclone
+    cd keprix/domain-packs/xeclone
     python3 -m uvicorn http_app:app --host 0.0.0.0 --port 3361
 
 Fixture product API is mounted at /fixture-product.

@@ -9,6 +9,7 @@ import threading
 from pathlib import Path
 
 from agent.file_safety import get_read_block_error
+from tenancy.home import shared_soul_write_error
 from tools.binary_extensions import has_binary_extension
 from tools.file_operations import (
     ShellFileOperations,
@@ -1191,6 +1192,9 @@ def write_file_tool(path: str, content: str, task_id: str = "default",
     sensitive_err = _check_sensitive_path(path, task_id)
     if sensitive_err:
         return tool_error(sensitive_err)
+    soul_err = shared_soul_write_error(path)
+    if soul_err:
+        return tool_error(soul_err)
     if not cross_profile:
         cross_warning = _check_cross_profile_path(path, task_id)
         if cross_warning:
@@ -1316,6 +1320,9 @@ def patch_tool(mode: str = "replace", path: str = None, old_string: str = None,
         sensitive_err = _check_sensitive_path(_p, task_id)
         if sensitive_err:
             return tool_error(sensitive_err)
+        soul_err = shared_soul_write_error(_p)
+        if soul_err:
+            return tool_error(soul_err)
         if not cross_profile:
             cross_warning = _check_cross_profile_path(_p, task_id)
             if cross_warning:

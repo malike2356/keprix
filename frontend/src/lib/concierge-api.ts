@@ -2,6 +2,19 @@
 
 const API = "/api/customer-concierge";
 
+export type AudienceMode = "team" | "customers" | "both";
+
+export function fetchAudienceMode() {
+  return jsonFetch<{ workspaceId: string; mode: AudienceMode; publicConciergeEnabled: boolean; internalWorkspaceEnabled: boolean }>(`${API}/audience-mode`);
+}
+
+export function saveAudienceMode(mode: AudienceMode) {
+  return jsonFetch<{ workspaceId: string; mode: AudienceMode; publicConciergeEnabled: boolean; internalWorkspaceEnabled: boolean }>(`${API}/audience-mode`, {
+    method: "PUT",
+    body: JSON.stringify({ mode }),
+  });
+}
+
 async function jsonFetch<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...init,

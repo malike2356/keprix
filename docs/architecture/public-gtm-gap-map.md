@@ -2,10 +2,10 @@
 
 **Date:** 2026-08-07  
 **Programme:** Keprix IDs 416-428  
-**Programme README:** `/opt/lampp/htdocs/verlox/keprix/1st-plan/1st-prompt/prompts-archive/416-428-README.md`  
-**Build order:** `/opt/lampp/htdocs/verlox/keprix/1st-plan/1st-prompt/prompts-archive/ref-416-keprix-public-gtm-hermes-install-build-order.md`  
+**Programme README:** `<workspace-root>/keprix/1st-plan/1st-prompt/prompts-archive/416-428-README.md`  
+**Build order:** `<workspace-root>/keprix/1st-plan/1st-prompt/prompts-archive/ref-416-keprix-public-gtm-hermes-install-build-order.md`  
 **Hermes reference (external):** https://github.com/NousResearch/hermes-agent  
-**Product root inventoried:** `/opt/lampp/htdocs/verlox/keprix/`
+**Product root inventoried:** `<workspace-root>/keprix/`
 **Sign-off:** `docs/architecture/public-gtm-signoff.md` (Verdict NOT READY; prompts archived 2026-08-07)
 
 This map is the operational source of truth for public GTM. Quarantine (417) and
@@ -41,37 +41,37 @@ Classes: PRODUCT | DOCS | TOOLING | WORKSPACE | UNCLEAR.
 
 | Path | Class | Notes | Closes in |
 | --- | --- | --- | --- |
-| `/opt/lampp/htdocs/verlox/keprix/src/` | PRODUCT | Agent runtime, API, TUI, tools | keep |
-| `/opt/lampp/htdocs/verlox/keprix/frontend/` | PRODUCT | Next.js workspace + `(marketing)` | 424 (domain copy) |
-| `/opt/lampp/htdocs/verlox/keprix/docker/` | PRODUCT | Primary Compose stack | 420 |
-| `/opt/lampp/htdocs/verlox/keprix/docs/` | DOCS | Public MkDocs source | 423, 425 |
-| `/opt/lampp/htdocs/verlox/keprix/tests/` | PRODUCT | CI / contributor tests | 426 |
-| `/opt/lampp/htdocs/verlox/keprix/scripts/` | TOOLING | Installers, gates, deploy helpers | 419, 426 |
-| `/opt/lampp/htdocs/verlox/keprix/config/` | PRODUCT | Billing YAML and runtime config samples | keep |
-| `/opt/lampp/htdocs/verlox/keprix/migrations/` | PRODUCT | Alembic | keep |
-| `/opt/lampp/htdocs/verlox/keprix/domain-packs/` | PRODUCT | First-party packs (Clinicom, research-intel, ...) | keep |
-| `/opt/lampp/htdocs/verlox/keprix/evals/` | PRODUCT | Eval harnesses | keep |
-| `/opt/lampp/htdocs/verlox/keprix/examples/` | DOCS | Sample usage | keep |
-| `/opt/lampp/htdocs/verlox/keprix/ui/` | PRODUCT | UI contracts / web stubs | keep |
-| `/opt/lampp/htdocs/verlox/keprix/mobile/` | PRODUCT | Optional mobile client | keep |
-| `/opt/lampp/htdocs/verlox/keprix/sdk/` | PRODUCT | SDK surface | keep |
-| `/opt/lampp/htdocs/verlox/keprix/keprix_sdk/` | PRODUCT | Packaged SDK trees | keep |
-| `/opt/lampp/htdocs/verlox/keprix/packages/` | PRODUCT | Workspace packages | keep |
-| `/opt/lampp/htdocs/verlox/keprix/apps/` | PRODUCT | App workspace | keep |
-| `/opt/lampp/htdocs/verlox/keprix/apps-on-keprix/` | PRODUCT | Marketplace / on-Keprix apps | keep |
-| `/opt/lampp/htdocs/verlox/keprix/keprix-proxy/` | PRODUCT | Credential proxy product | keep |
-| `/opt/lampp/htdocs/verlox/keprix/deploy/` | TOOLING | Deploy helpers | 427 (ops notes) |
-| `/opt/lampp/htdocs/verlox/keprix/database/` | PRODUCT | Schema / DB helpers | keep |
-| `/opt/lampp/htdocs/verlox/keprix/templates/` | PRODUCT | Templates | keep |
-| `/opt/lampp/htdocs/verlox/keprix/docker-compose*.yml` (root) | TOOLING | Extra Compose overlays (ml, searxng, localization) | 420 (honest secondary docs) |
-| `/opt/lampp/htdocs/verlox/keprix/fly.toml` (+ variants) | TOOLING | Fly deploy configs | keep / document |
-| `/opt/lampp/htdocs/verlox/keprix/AGENTS.md` | WORKSPACE | WORKSPACE internal; DEFERRED ok for agents; not in README lead (417) | 417 |
-| `/opt/lampp/htdocs/verlox/keprix/CLAUDE.md` | WORKSPACE | WORKSPACE internal; DEFERRED ok for agents; not in README lead (417) | 417 |
-| `/opt/lampp/htdocs/verlox/keprix/1st-plan/` | WORKSPACE | WORKSPACE; quarantine DONE; `.gitattributes` export-ignore DONE (418); still tracked in normal clones until owner mirror/untrack | 417, 418 |
-| `/opt/lampp/htdocs/verlox/keprix/keprix-data/` | WORKSPACE | WORKSPACE; gitignored; DONE | 417 |
-| `/opt/lampp/htdocs/verlox/keprix/marketing/` | WORKSPACE | was UNCLEAR; now WORKSPACE stub / gitignored; DONE (417) | 417 |
-| `/opt/lampp/htdocs/verlox/keprix/site/` | WORKSPACE | was UNCLEAR; MkDocs build gitignored; DONE (417) | 417 |
-| `/opt/lampp/htdocs/verlox/keprix/.venv/` | WORKSPACE | WORKSPACE; already gitignored; DONE | 417 |
+| `<workspace-root>/keprix/src/` | PRODUCT | Agent runtime, API, TUI, tools | keep |
+| `<workspace-root>/keprix/frontend/` | PRODUCT | Next.js workspace + `(marketing)` | 424 (domain copy) |
+| `<workspace-root>/keprix/docker/` | PRODUCT | Primary Compose stack | 420 |
+| `<workspace-root>/keprix/docs/` | DOCS | Public MkDocs source | 423, 425 |
+| `<workspace-root>/keprix/tests/` | PRODUCT | CI / contributor tests | 426 |
+| `<workspace-root>/keprix/scripts/` | TOOLING | Installers, gates, deploy helpers | 419, 426 |
+| `<workspace-root>/keprix/config/` | PRODUCT | Billing YAML and runtime config samples | keep |
+| `<workspace-root>/keprix/migrations/` | PRODUCT | Alembic | keep |
+| `<workspace-root>/keprix/domain-packs/` | PRODUCT | First-party packs (Clinicom, research-intel, ...) | keep |
+| `<workspace-root>/keprix/evals/` | PRODUCT | Eval harnesses | keep |
+| `<workspace-root>/keprix/examples/` | DOCS | Sample usage | keep |
+| `<workspace-root>/keprix/ui/` | PRODUCT | UI contracts / web stubs | keep |
+| `<workspace-root>/keprix/mobile/` | PRODUCT | Optional mobile client | keep |
+| `<workspace-root>/keprix/sdk/` | PRODUCT | SDK surface | keep |
+| `<workspace-root>/keprix/keprix_sdk/` | PRODUCT | Packaged SDK trees | keep |
+| `<workspace-root>/keprix/packages/` | PRODUCT | Workspace packages | keep |
+| `<workspace-root>/keprix/apps/` | PRODUCT | App workspace | keep |
+| `<workspace-root>/keprix/apps-on-keprix/` | PRODUCT | Marketplace / on-Keprix apps | keep |
+| `<workspace-root>/keprix/keprix-proxy/` | PRODUCT | Credential proxy product | keep |
+| `<workspace-root>/keprix/deploy/` | TOOLING | Deploy helpers | 427 (ops notes) |
+| `<workspace-root>/keprix/database/` | PRODUCT | Schema / DB helpers | keep |
+| `<workspace-root>/keprix/templates/` | PRODUCT | Templates | keep |
+| `<workspace-root>/keprix/docker-compose*.yml` (root) | TOOLING | Extra Compose overlays (ml, searxng, localization) | 420 (honest secondary docs) |
+| `<workspace-root>/keprix/fly.toml` (+ variants) | TOOLING | Fly deploy configs | keep / document |
+| `<workspace-root>/keprix/AGENTS.md` | WORKSPACE | WORKSPACE internal; DEFERRED ok for agents; not in README lead (417) | 417 |
+| `<workspace-root>/keprix/CLAUDE.md` | WORKSPACE | WORKSPACE internal; DEFERRED ok for agents; not in README lead (417) | 417 |
+| `<workspace-root>/keprix/1st-plan/` | WORKSPACE | WORKSPACE; quarantine DONE; `.gitattributes` export-ignore DONE (418); still tracked in normal clones until owner mirror/untrack | 417, 418 |
+| `<workspace-root>/keprix/keprix-data/` | WORKSPACE | WORKSPACE; gitignored; DONE | 417 |
+| `<workspace-root>/keprix/marketing/` | WORKSPACE | was UNCLEAR; now WORKSPACE stub / gitignored; DONE (417) | 417 |
+| `<workspace-root>/keprix/site/` | WORKSPACE | was UNCLEAR; MkDocs build gitignored; DONE (417) | 417 |
+| `<workspace-root>/keprix/.venv/` | WORKSPACE | WORKSPACE; already gitignored; DONE | 417 |
 | Root `README.md`, `CONTRIBUTING.md`, `LICENSE`, `SECURITY.md`, `CHANGELOG.md`, `pyproject.toml`, `uv.lock`, `mkdocs.yml`, `package.json`, `pnpm-lock.yaml` | PRODUCT / DOCS / TOOLING | Ship face | 421, 422, 425 |
 | `.github/` (workflows) | TOOLING | CI including mesh gate | 426 |
 

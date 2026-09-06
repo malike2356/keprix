@@ -314,7 +314,7 @@ class DiscoveryJobRunner:
                 candidates,
                 list_name=params.get("list_name") or f"{adapter_name} discovery",
                 domain_pack=domain_pack,
-                source=adapter_name,
+                source=str(params.get("source") or adapter_name),
                 job_id=job_id,
                 store=self._store,
                 approval_id=approval_id,

@@ -1,7 +1,7 @@
 """Standalone FastAPI sidecar for the Fleetz product contract.
 
 Run:
-    cd /opt/lampp/htdocs/verlox/keprix/domain-packs/fleetz
+    cd keprix/domain-packs/fleetz
     uvicorn http_app:app --host 0.0.0.0 --port 3354
 """
 

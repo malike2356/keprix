@@ -110,6 +110,36 @@ class Step2Body(BaseModel):
     )
 
 
+class AudienceModeBody(BaseModel):
+    mode: str = "team"
+
+
+@router.get("/audience-mode")
+async def get_audience_mode_route(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.customer_concierge.audience_mode import audience_mode_payload
+
+    return audience_mode_payload(_workspace(workspace_id, x_workspace_id, user))
+
+
+@router.put("/audience-mode")
+async def set_audience_mode_route(
+    body: AudienceModeBody,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    from keprix.customer_concierge.audience_mode import set_audience_mode
+
+    try:
+        return set_audience_mode(_workspace(workspace_id, x_workspace_id, user), body.mode)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
 @router.get("/profile")
 async def get_profile(
     persona_id: str = Query(default="default", alias="personaId"),
@@ -176,6 +206,11 @@ async def setup_step2(
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    if (body.channels.get("web") or {}).get("enabled"):
+        from keprix.customer_concierge.audience_mode import audience_mode_is_explicit, set_audience_mode
+
+        if not audience_mode_is_explicit(ws):
+            set_audience_mode(ws, "customers")
     return {"ok": True, "profile": profile.to_dict()}
 
 

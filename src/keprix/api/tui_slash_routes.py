@@ -15,6 +15,7 @@ from keprix.slash.registry import get_slash_registry
 from keprix.tui.slash_registry import (
     local_completion_candidates,
     local_command_names,
+    local_command_metadata,
     slash_command_metadata,
 )
 from keprix.workspace.repository import NotFoundError, workspace_repo
@@ -134,6 +135,29 @@ async def slash_complete(
     role = _role_from_user(user)
     candidates = _completion_candidates(body.prefix, role)
     return {"candidates": candidates}
+
+
+@router.get("/api/slash/commands")
+async def slash_commands(
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Expose the shared safe slash catalog to web clients."""
+    role = _role_from_user(user)
+    items: list[dict[str, Any]] = []
+    for metadata in local_command_metadata():
+        if metadata.danger_level == "confirm" and role not in {"admin", "operator"}:
+            continue
+        items.append(
+            {
+                "name": metadata.name,
+                "aliases": list(metadata.aliases),
+                "description": metadata.description,
+                "args": metadata.args,
+                "danger_level": metadata.danger_level,
+                "requires_session": metadata.requires_session,
+            }
+        )
+    return {"commands": items}
 
 
 @router.post("/api/command/dispatch")

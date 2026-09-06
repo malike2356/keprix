@@ -4,6 +4,8 @@ description: >
   Organisations and professional contacts for care providers and clinics.
   Never store patient or service-user clinical data in CRM discovery lists.
 jurisdiction: UK
+discovery:
+  enabled: true
 high_risk_outreach: true
 soft_wall_enroll_always: true
 no_patient_data: true

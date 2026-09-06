@@ -37,5 +37,5 @@ Disable with `KEPRIX_TENANT_ISOLATION=0` only for recovery.
 
 ## Carina references (canonical)
 
-- `/opt/lampp/htdocs/verlox/carina/02-backends/core.carinaai.uk/src/security/tenant-isolation.ts`
-- `/opt/lampp/htdocs/verlox/carina/02-backends/core.carinaai.uk/docs/TENANT-ISOLATION.md`
+- `<workspace-root>/carina/02-backends/core.carinaai.uk/src/security/tenant-isolation.ts`
+- `<workspace-root>/carina/02-backends/core.carinaai.uk/docs/TENANT-ISOLATION.md`

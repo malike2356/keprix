@@ -130,11 +130,66 @@ def ensure_inbox_table(store: Any) -> None:
             provider_event_id TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
+            summary TEXT NOT NULL DEFAULT '',
+            intent_tag TEXT NOT NULL DEFAULT 'reply-needed',
+            purpose TEXT NOT NULL DEFAULT 'reply-needed',
             UNIQUE(workspace_id, provider_event_id)
         )
         """
     )
+    for column, ddl in (
+        ("summary", "TEXT NOT NULL DEFAULT ''"),
+        ("intent_tag", "TEXT NOT NULL DEFAULT 'reply-needed'"),
+        ("purpose", "TEXT NOT NULL DEFAULT 'reply-needed'"),
+    ):
+        try:
+            store._conn.execute(f"ALTER TABLE crm_inbox_items ADD COLUMN {column} {ddl}")
+        except Exception:
+            pass
     store._conn.commit()
+
+
+def _heuristic_inbox_summary(subject: str | None, body: str | None) -> tuple[str, str]:
+    text = " ".join(part.strip() for part in (subject or "", body or "") if part.strip())
+    summary = text.splitlines()[0][:240] if text else ""
+    lowered = text.lower()
+    if any(word in lowered for word in ("unsubscribe", "bounce", "spam")):
+        intent = "noise"
+    elif any(word in lowered for word in ("chat", "live", "typing")):
+        intent = "chat"
+    elif any(word in lowered for word in ("later", "follow up", "nurture")):
+        intent = "nurture"
+    else:
+        intent = "reply-needed"
+    return summary, intent
+
+
+def _inbox_summary(subject: str | None, body: str | None, sender: str | None = None) -> tuple[str, str]:
+    """Best-effort shared LLM summary with a deterministic intent fallback."""
+    fallback_summary, fallback_intent = _heuristic_inbox_summary(subject, body)
+    import os
+
+    if not (os.environ.get("OPENAI_API_KEY") or os.environ.get("OPENROUTER_API_KEY")):
+        return fallback_summary, fallback_intent
+    try:
+        from keprix.email.llm import summarize_email
+        from keprix.model_tools import _run_async
+
+        result = _run_async(summarize_email(subject or "", body or "", sender or "unknown sender"))
+        summary = str(result.get("summary") or "").strip()[:500]
+        tags = {str(tag).lower() for tag in result.get("tags", []) if tag}
+        joined = " ".join((summary, *sorted(tags))).lower()
+        if any(word in joined for word in ("unsubscribe", "bounce", "spam")):
+            intent = "noise"
+        elif any(word in joined for word in ("live chat", "chat", "typing")):
+            intent = "chat"
+        elif any(word in joined for word in ("nurture", "follow up later", "follow-up later")):
+            intent = "nurture"
+        else:
+            intent = fallback_intent
+        return (summary, intent) if summary else ("", intent)
+    except Exception:
+        return "", fallback_intent
 
 
 def enqueue_inbox(
@@ -153,6 +208,7 @@ def enqueue_inbox(
     outreach_lead_id: str | None = None,
     provider_event_id: str | None = None,
     assignee: str | None = None,
+    sender: str | None = None,
 ) -> dict[str, Any]:
     import uuid
 
@@ -160,6 +216,7 @@ def enqueue_inbox(
     now = _utcnow()
     row_id = str(uuid.uuid4())
     event_id = provider_event_id or _event_id(kind, None, body or "")
+    summary, intent_tag = _inbox_summary(subject, body, sender)
     existing = store._fetchone(
         "SELECT * FROM crm_inbox_items WHERE workspace_id = ? AND provider_event_id = ?",
         (workspace_id, event_id),
@@ -172,8 +229,8 @@ def enqueue_inbox(
             INSERT INTO crm_inbox_items (
                 id, workspace_id, kind, status, entity_type, entity_id, outreach_lead_id,
                 classification, confidence, subject, body, raw_metadata_json, classification_json,
-                assignee, sla_due_at, provider_event_id, created_at, updated_at
-            ) VALUES (?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                assignee, sla_due_at, provider_event_id, created_at, updated_at, summary, intent_tag, purpose
+            ) VALUES (?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 row_id,
@@ -193,6 +250,9 @@ def enqueue_inbox(
                 event_id,
                 now,
                 now,
+                summary,
+                intent_tag,
+                intent_tag,
             ),
         )
         store._conn.commit()
@@ -443,6 +503,7 @@ def ingest_engagement(
             },
             outreach_lead_id=outreach_lead_id,
             provider_event_id=event_id,
+            sender=from_address,
         )
 
     try:

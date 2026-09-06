@@ -64,6 +64,30 @@ class SheetsReadBody(BaseModel):
     range: str = "Sheet1!A1:Z100"
 
 
+class DocsCreateBody(BaseModel):
+    title: str
+    text: str = ""
+    confirm: bool = False
+
+
+class DocsUpdateBody(BaseModel):
+    document_id: str
+    text: str
+    replace: bool = False
+    confirm: bool = False
+
+
+class SlidesCreateBody(BaseModel):
+    title: str
+    slides: list[str] = Field(default_factory=list)
+    confirm: bool = False
+
+
+class ContactsListBody(BaseModel):
+    query: str = ""
+    max_results: int = Field(default=50, ge=1, le=200)
+
+
 def _bridge() -> GoogleWorkspaceBridge:
     return GoogleWorkspaceBridge()
 
@@ -152,3 +176,27 @@ async def drive_search(body: DriveSearchBody, user: dict = Depends(get_current_u
 async def sheets_read(body: SheetsReadBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
     _ = user
     return _handle(lambda: _bridge().sheets_read(spreadsheet_id=body.spreadsheet_id, range_name=body.range))
+
+
+@router.post("/docs/create")
+async def docs_create(body: DocsCreateBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    _ = user
+    return _handle(lambda: _bridge().docs_create(body.title, body.text, body.confirm))
+
+
+@router.post("/docs/update")
+async def docs_update(body: DocsUpdateBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    _ = user
+    return _handle(lambda: _bridge().docs_update(body.document_id, body.text, replace=body.replace, confirm=body.confirm))
+
+
+@router.post("/slides/create")
+async def slides_create(body: SlidesCreateBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    _ = user
+    return _handle(lambda: _bridge().slides_create(body.title, body.slides, body.confirm))
+
+
+@router.post("/contacts/list")
+async def contacts_list(body: ContactsListBody, user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    _ = user
+    return _handle(lambda: _bridge().contacts_list(body.query, body.max_results))

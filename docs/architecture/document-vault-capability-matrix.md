@@ -3,7 +3,7 @@
 **Status:** BASELINE LOCKED  
 **Date:** 2026-08-09  
 **Series:** `keprix-document-vault` (645-653)  
-**Shared behavioral contract:** `/opt/lampp/htdocs/verlox/shared/workspace-governance/AIVA-KEPRIX-DOCUMENT-VAULT.md`
+**Shared behavioral contract:** `<workspace-root>/shared/workspace-governance/AIVA-KEPRIX-DOCUMENT-VAULT.md`
 
 Classification: **REAL** | **PARTIAL** | **SIMULATED** | **MANUAL** | **MISSING** | **BLOCKED_OPTIONAL_CREDENTIALS** | **OUT_OF_SCOPE**
 
@@ -82,7 +82,7 @@ Honesty rule: UI presence alone never marks REAL for the canonical Document Vaul
 ## Test commands
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 ./.venv/bin/python -m pytest tests/document_vault -q
 ./.venv/bin/python -m keprix.document_vault.inventory --workspace-id local --dry-run
 ```

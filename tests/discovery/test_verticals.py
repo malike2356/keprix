@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 
+ROOT = Path(__file__).resolve().parents[2]
+
 from keprix.crm.soft_wall import gate_or_approve
 from keprix.crm.store import reset_crm_store_for_tests
 from keprix.discovery import (
@@ -134,7 +136,7 @@ def test_property_pack_and_portal_disabled(monkeypatch):
     zoopla = ZooplaHttpAdapter()
     assert zoopla.health().status.value == "disabled"
 
-    checklist = Path("/opt/lampp/htdocs/verlox/keprix/docs/security/property-portal-legal-checklist.md")
+    checklist = ROOT / "docs" / "security" / "property-portal-legal-checklist.md"
     assert checklist.is_file()
 
 

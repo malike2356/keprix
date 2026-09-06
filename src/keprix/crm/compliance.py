@@ -6,6 +6,8 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
+from keprix.discovery.packs import get_pack
+
 POLICY_VERSION = "uk-crm-defaults-2026.1"
 
 # Documented UK defaults (not legal advice).
@@ -31,6 +33,45 @@ UK_DEFAULT_POLICY: dict[str, Any] = {
 LAWFUL_BASES = frozenset(
     {"legitimate_interest", "soft_opt_in", "contract", "consent"}
 )
+
+_GUARANTEED_RETURN_LANGUAGE = (
+    "guaranteed return",
+    "guaranteed returns",
+    "guaranteed profit",
+    "guaranteed income",
+    "risk-free return",
+    "risk free return",
+    "no risk",
+)
+
+
+def evaluate_domain_message_policy(
+    body: str,
+    *,
+    domain_pack: str | None = None,
+    disclaimer: str | None = None,
+) -> dict[str, Any]:
+    """Apply pack-declared message controls before an outbound send."""
+    pack = get_pack(str(domain_pack or "")) if domain_pack else None
+    rules = (pack or {}).get("compliance_rules") or {}
+    if not rules:
+        return {"decision": "allow", "reasons": [], "pack_found": bool(pack)}
+
+    lowered = str(body or "").lower()
+    reasons: list[str] = []
+    if rules.get("block_guaranteed_return_language") and any(term in lowered for term in _GUARANTEED_RETURN_LANGUAGE):
+        reasons.append("guaranteed_return_language")
+    required_disclaimer = str(rules.get("risk_disclaimer") or "").strip()
+    if rules.get("risk_disclaimer_required") and required_disclaimer:
+        supplied = str(disclaimer or "")
+        if required_disclaimer.lower() not in f"{body}\n{supplied}".lower():
+            reasons.append("risk_disclaimer_missing")
+    return {
+        "decision": "deny" if reasons else "allow",
+        "reasons": reasons,
+        "pack_found": bool(pack),
+        "domain_pack": domain_pack,
+    }
 
 
 def _utcnow() -> str:

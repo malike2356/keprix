@@ -14,11 +14,11 @@ do not rely on Contabo for this path.
 ## Preconditions
 
 1. Local Hermes install present (`hermes --version`, typically pipx 0.17.x).
-2. Local Keprix tree at `/opt/lampp/htdocs/verlox/keprix` with `~/.keprix`.
+2. Local Keprix tree at `<workspace-root>/keprix` with `~/.keprix`.
 3. Skills synced (bundled + optional):
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 export PYTHONPATH=src
 python3 -c "from keprix.tools.skills_sync import sync_skills, restore_official_optional_skill; print(sync_skills(quiet=False)); print(restore_official_optional_skill('all', restore=True))"
 ```
@@ -47,7 +47,7 @@ hermes gateway stop 2>/dev/null || true
 3. **Start Keprix gateway**:
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 # Use your normal local start path, for example:
 keprix gateway start
 # or: python -m keprix_cli gateway start

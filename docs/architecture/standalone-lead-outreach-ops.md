@@ -17,7 +17,7 @@ Keprix standalone lead/outreach does not require Carina, Aiva, or Propreneur at 
 ### Local Docker
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 cp .env.example .env   # if needed; never commit secrets
 docker compose -f docker/docker-compose.yml up -d --build
 curl -fsS http://127.0.0.1:3333/api/health
@@ -65,7 +65,7 @@ Point a bound email account SMTP host at `mailpit` (from containers) or `127.0.0
 ## E2E proof
 
 ```bash
-cd /opt/lampp/htdocs/verlox/keprix
+cd <workspace-root>/keprix
 ./.venv/bin/python -m pytest tests/crm/test_standalone_outreach_e2e_journey.py tests/crm/test_standalone_outreach_conformance.py -q
 ```
 

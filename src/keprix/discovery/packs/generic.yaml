@@ -2,6 +2,8 @@ id: generic
 title: Generic vertical pack
 description: Default discovery pack for Companies House, CSV, and web directory.
 jurisdiction: UK
+discovery:
+  enabled: true
 adapters:
   - companies_house
   - csv_import

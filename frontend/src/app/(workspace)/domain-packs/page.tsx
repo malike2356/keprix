@@ -23,9 +23,17 @@ import {
   validateDomainPack,
   type DomainPack,
 } from "@/lib/domain-packs-api";
+import { ceApi } from "@/lib/ce-api";
+
+type BusinessLineStatus = { current_count: number; included: number; current_tier: string; can_add: boolean; unlimited: boolean };
 
 export default function DomainPacksPage() {
   const { data, mutate } = useSWR("domain-packs", fetchDomainPacks);
+  const { data: lineStatus } = useSWR<BusinessLineStatus>("business-lines-status", async () => {
+    const response = await ceApi("/api/billing/parity/business-lines/status?workspace_id=default");
+    if (!response.ok) throw new Error("Failed to load business-line status");
+    return response.json();
+  });
   const [open, setOpen] = React.useState(false);
   const [domainName, setDomainName] = React.useState("");
   const [jurisdictions, setJurisdictions] = React.useState("GH");
@@ -40,6 +48,7 @@ export default function DomainPacksPage() {
       await createDomainPack(
         domainName,
         jurisdictions.split(",").map((value) => value.trim()).filter(Boolean),
+        "default",
       );
       setOpen(false);
       setDomainName("");
@@ -90,7 +99,12 @@ export default function DomainPacksPage() {
       />
       {message ? <Alert severity="success" sx={{ mb: 2 }}>{message}</Alert> : null}
       {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
-      <Button variant="contained" sx={{ mb: 2 }} onClick={() => setOpen(true)}>
+      {lineStatus?.can_add === false ? (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          This workspace has reached its {lineStatus.included}-line limit on the {lineStatus.current_tier} tier. Upgrade to add another business line.
+        </Alert>
+      ) : null}
+      <Button variant="contained" sx={{ mb: 2 }} disabled={lineStatus?.can_add === false} onClick={() => setOpen(true)}>
         New domain pack
       </Button>
       <Box sx={{ display: "grid", gap: 2, gridTemplateColumns: { md: "1fr 1fr" } }}>

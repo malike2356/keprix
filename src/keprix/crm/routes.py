@@ -23,6 +23,7 @@ from keprix.crm.soft_wall import (
 )
 from keprix.crm.store import ConflictError, get_crm_store
 from keprix.crm.models import OutboxStatus
+from keprix.crm.website_scoring import check_rank, score_website
 
 router = APIRouter(prefix="/api/crm", tags=["crm"])
 
@@ -172,6 +173,17 @@ class LeadPatch(BaseModel):
     last_touch_at: str | None = None
 
 
+class WebsiteScoreBody(BaseModel):
+    lead_id: str
+    keyword: str | None = None
+
+
+class WebsiteScoreBatchBody(BaseModel):
+    lead_ids: list[str] | None = None
+    list_id: str | None = None
+    keyword: str | None = None
+
+
 class ListCreate(BaseModel):
     name: str
     description: str | None = None
@@ -281,6 +293,17 @@ class SuppressionBulkBody(BaseModel):
     force: bool = False
 
 
+class ReplenishTriggerBody(BaseModel):
+    batch_id: str = Field(min_length=1, max_length=200)
+    sent_count: int = Field(ge=0, le=100000)
+
+
+class ReplenishSettingsBody(BaseModel):
+    ratio: float = Field(ge=0, le=10)
+    adapter: str | None = None
+    domain_pack: str | None = None
+
+
 class MergeRejectBody(BaseModel):
     reason: str | None = None
 
@@ -309,6 +332,47 @@ async def crm_status(
             "pending_approvals": len(pending_crm_approvals(ws)),
         },
     }
+
+
+@router.get("/replenish/events")
+async def replenish_events(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "view")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return {"workspace_id": ws, "settings": _store().get_replenish_settings(ws), "items": _store().list_replenish_events(ws)}
+
+
+@router.put("/replenish/settings")
+async def replenish_settings(
+    body: ReplenishSettingsBody,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "approve")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    values = body.model_dump(exclude_none=True)
+    return {"workspace_id": ws, "settings": _store().upsert_replenish_settings(ws, **values)}
+
+
+@router.post("/replenish/trigger")
+async def replenish_trigger(
+    body: ReplenishTriggerBody,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "approve")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    from keprix.crm.replenish import trigger_replenish
+
+    try:
+        return trigger_replenish(ws, body.batch_id, body.sent_count, actor_type="user", actor_id=_uid(user))
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(status_code=422, detail={"error_code": "replenish_failed", "message": str(exc)}) from exc
 
 
 # ── Leads ─────────────────────────────────────────────────────
@@ -684,6 +748,66 @@ async def get_lead(
     except Exception:
         concierge_mesh = None
     return {"lead": lead, "conciergeMesh": concierge_mesh}
+
+
+def _score_lead(lead: dict[str, Any], keyword: str | None, store: Any, workspace_id: str) -> dict[str, Any]:
+    website = str(lead.get("website") or "").strip()
+    if not website:
+        return {"lead_id": lead["id"], "skipped": True, "reason": "website_missing"}
+    scored = score_website(website)
+    custom_fields = dict(lead.get("custom_fields") or {})
+    values = {"website_score": scored["score"], "weakness": scored["weakness"]}
+    rank_result = None
+    if keyword:
+        rank_result = check_rank(website, keyword)
+        values["ranks_top3"] = rank_result.get("ranks_top3")
+    # Preserve any manually entered values. Scoring only fills empty fields.
+    for key, value in values.items():
+        if key not in custom_fields or custom_fields[key] in (None, "", {}):
+            custom_fields[key] = value
+    updated = store.update_lead(
+        workspace_id,
+        lead["id"],
+        custom_fields=custom_fields,
+        website_score=lead.get("website_score") or scored["score"],
+        weakness=lead.get("weakness") or scored["weakness"],
+        ranks_top3=lead.get("ranks_top3") or values.get("ranks_top3"),
+    )
+    return {"lead_id": lead["id"], "skipped": False, "score": scored, "rank": rank_result, "lead": updated}
+
+
+@router.post("/website-score")
+async def website_score(body: WebsiteScoreBody, request: Request, user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(request.query_params.get("workspace_id"), request.headers.get("X-Workspace-Id"), user)
+    lead = _store().get_lead(ws, body.lead_id)
+    if not lead:
+        raise HTTPException(status_code=404, detail={"error_code": "lead_not_found"})
+    return {"result": _score_lead(lead, body.keyword, _store(), ws), "correlation_id": _corr(request)}
+
+
+@router.post("/website-score/batch")
+async def website_score_batch(body: WebsiteScoreBatchBody, request: Request, user: dict = Depends(get_current_user)) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(request.query_params.get("workspace_id"), request.headers.get("X-Workspace-Id"), user)
+    store = _store()
+    lead_ids = list(body.lead_ids or [])
+    if body.list_id:
+        lead_ids.extend(
+            str(row.get("member_id"))
+            for row in store.list_memberships(ws, body.list_id)
+            if row.get("member_type") == "lead"
+        )
+    seen: set[str] = set()
+    results: list[dict[str, Any]] = []
+    for lead_id in lead_ids[:500]:
+        if lead_id in seen:
+            continue
+        seen.add(lead_id)
+        lead = store.get_lead(ws, lead_id)
+        if lead:
+            results.append(_score_lead(lead, body.keyword, store, ws))
+    return {"items": results, "count": len(results), "workspace_id": ws, "correlation_id": _corr(request)}
 
 
 @router.patch("/leads/{lead_id}")
@@ -1308,6 +1432,48 @@ async def create_activity(
         actor_id=_uid(user),
     )
     return {"activity": row}
+
+
+@router.get("/conversations")
+async def list_conversations(
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "view")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    return {"items": _store().list_conversations(ws), "workspace_id": ws}
+
+
+@router.get("/conversations/{conversation_id}")
+async def get_conversation(
+    conversation_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "view")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    conversation = _store()._conversation(ws, conversation_id)
+    if not conversation:
+        raise HTTPException(status_code=404, detail={"error_code": "conversation_not_found"})
+    return {"conversation": conversation, "messages": _store().list_conversation_messages(ws, conversation_id), "channel_links": _store().list_conversation_links(ws, conversation_id)}
+
+
+@router.post("/conversations/{conversation_id}/summary")
+async def summarize_conversation_route(
+    conversation_id: str,
+    workspace_id: str | None = Query(default=None),
+    x_workspace_id: str | None = Header(default=None, alias="X-Workspace-Id"),
+    user: dict = Depends(get_current_user),
+) -> dict[str, Any]:
+    require_cap(user, "edit")
+    ws = _workspace(workspace_id, x_workspace_id, user)
+    from keprix.crm.conversations import summarize_conversation
+    try:
+        return {"summary": await summarize_conversation(ws, conversation_id)}
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail={"error_code": str(exc)}) from exc
 
 
 # ── Enrichments ───────────────────────────────────────────────

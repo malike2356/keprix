@@ -82,7 +82,7 @@ External visitors use a durable `audience_session` principal (not a workspace me
 
 ## Related
 
-- Shared architecture: `/opt/lampp/htdocs/verlox/shared/workspace-governance/AIVA-KEPRIX-CUSTOMER-CONCIERGE-BOOKING.md`
+- Shared architecture: `<workspace-root>/shared/workspace-governance/AIVA-KEPRIX-CUSTOMER-CONCIERGE-BOOKING.md`
 - Package: `src/keprix/customer_concierge/`
 - Later prompts: knowledge (631), Zoom saga (632), inbox tabs (634)
 

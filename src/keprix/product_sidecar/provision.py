@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import threading
 import time
+import json
+import os
+import urllib.request
 from copy import deepcopy
 from typing import Any
 
@@ -61,9 +64,11 @@ def plan_provision(product_key: str) -> dict[str, Any]:
 def provision_product(
     product_key: str,
     *,
+    workspace_id: str = "default",
     dry_run: bool = False,
     activate: bool = False,
     version: str = "1.0.0",
+    consent: bool = False,
 ) -> dict[str, Any]:
     """Idempotent provision. Repeated calls do not duplicate identity/callback/migration."""
     if product_key not in STABLE_PRODUCT_KEYS:
@@ -88,6 +93,13 @@ def provision_product(
 
         checks: list[dict[str, Any]] = []
         try:
+            remote_url = os.environ.get("KEPRIX_PROPRENEUR_PROVISION_URL", "").strip() if product_key == "propreneur" else ""
+            if remote_url and activate and not consent:
+                return {
+                    "status": "consent_required",
+                    "product_key": product_key,
+                    "message": "Confirm that this connects the workspace to its Propreneur account before activation.",
+                }
             if product_key == "abbis":
                 pack = build_abbis_pack()
                 if version and version != pack.version:
@@ -117,6 +129,20 @@ def provision_product(
                 checks.append({"name": "platform_pack", "status": "ok", "version": pack.version})
 
             pack = registry.require(product_key)
+            remote_tenant: dict[str, Any] | None = None
+            if remote_url and activate:
+                request = urllib.request.Request(
+                    remote_url,
+                    data=json.dumps({"workspace_id": workspace_id, "product": product_key}).encode(),
+                    method="POST",
+                    headers={
+                        "Authorization": f"Bearer {os.environ.get('KEPRIX_PROPRENEUR_PROVISION_TOKEN', '')}",
+                        "Content-Type": "application/json",
+                    },
+                )
+                with urllib.request.urlopen(request, timeout=30) as response:
+                    remote_tenant = json.loads(response.read() or b"{}")
+                checks.append({"name": "remote_tenant", "status": "ok", "tenant_id": remote_tenant.get("tenant_id")})
             checks.append({"name": "compat", "status": "ok", "contract": pack.contract_version})
             checks.append({"name": "namespace", "status": "ok", "memory": pack.memory_namespace})
             checks.append({"name": "identity", "status": "ok", "kid": "sidecar-v1"})
@@ -144,6 +170,7 @@ def provision_product(
                 "checks": checks,
                 "rollback": {"action": "keprix product rollback", "product": product_key},
                 "at": time.time(),
+                "remote_tenant": remote_tenant,
             }
             path = store.write(product_key, receipt)
             receipt["receipt_path"] = str(path)
@@ -225,6 +252,17 @@ def upgrade_product(product_key: str, *, version: str) -> dict[str, Any]:
 def rollback_product(product_key: str) -> dict[str, Any]:
     with _product_lock(product_key):
         registry = get_product_pack_registry()
+        receipt_before = get_provision_store().read(product_key) or {}
+        remote_url = os.environ.get("KEPRIX_PROPRENEUR_PROVISION_URL", "").strip() if product_key == "propreneur" else ""
+        tenant_id = ((receipt_before.get("remote_tenant") or {}).get("tenant_id"))
+        if remote_url and tenant_id:
+            request = urllib.request.Request(
+                f"{remote_url.rstrip('/')}/{tenant_id}",
+                method="DELETE",
+                headers={"Authorization": f"Bearer {os.environ.get('KEPRIX_PROPRENEUR_PROVISION_TOKEN', '')}"},
+            )
+            with urllib.request.urlopen(request, timeout=30):
+                pass
         restored = registry.rollback(product_key)
         receipt = {
             "status": "rolled_back",

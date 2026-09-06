@@ -43,6 +43,7 @@ def test_tools_registered() -> None:
         "crm_ask",
         "crm_suppress",
         "discovery_run",
+        "lead_score_website",
     ):
         assert name in registry._tools, f"missing tool {name}"
         assert registry._tools[name].toolset == "crm"
