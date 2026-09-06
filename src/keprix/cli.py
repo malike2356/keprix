@@ -2978,19 +2978,13 @@ KEPRIX_AGENT_LOGO = """[bold #00E5FF]██╗  ██╗███████�
 [#0066FF]██║  ██╗███████╗██║     ██║  ██║██║ ██╔╝ ██╗      ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║[/]
 [#0066FF]╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝ ╚═╝  ╚═╝      ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝[/]"""
 
-# ASCII Art - Keprix hero mark: a hexagon with a "K" monogram (compact, fits in left panel)
-KEPRIX_HERO_MARK = """[bold #00E5FF]      ________      [/]
-[bold #00E5FF]    /          \\    [/]
-[bold #00E5FF]  /              \\  [/]
-[bold #00E5FF] /    ██╗ ██╗     \\ [/]
-[#33AAFF]|     ██║██╔╝      |[/]
-[#33AAFF]|     █████╔╝      |[/]
-[#33AAFF]|     ██╔═██╗      |[/]
-[#33AAFF]|     ██║ ██╗      |[/]
-[#0066FF] \\    ╚═╝ ╚═╝     / [/]
-[#0066FF]  \\              /  [/]
-[#0066FF]    \\          /    [/]
-[#0066FF]      \\________/    [/]"""
+# ASCII Art - Keprix hero mark: a bare "K" monogram, no enclosing shape
+KEPRIX_HERO_MARK = """[bold #00E5FF]██╗  ██╗[/]
+[bold #00E5FF]██║ ██╔╝[/]
+[#33AAFF]█████╔╝ [/]
+[#33AAFF]██╔═██╗ [/]
+[#0066FF]██║  ██╗[/]
+[#0066FF]╚═╝  ╚═╝[/]"""
 
 
 
@@ -4103,6 +4097,16 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
         txt = getattr(self, "_spinner_text", "")
         if not txt:
             return ""
+        # Continuously-revolving "K" indicator: a small circle that cycles
+        # through ORBIT_FRAMES based on wall-clock time, so every re-render
+        # (tool progress, streaming, the 1s status-bar tick) reflects the
+        # current rotation position with no separate animation thread.
+        try:
+            from keprix_cli.banner import ORBIT_FRAMES
+            orbit = ORBIT_FRAMES[int(time.time() / 0.15) % len(ORBIT_FRAMES)]
+            orbit_prefix = f"{orbit} K "
+        except Exception:
+            orbit_prefix = ""
         t0 = getattr(self, "_tool_start_time", 0) or 0
         if t0 > 0:
             elapsed = time.monotonic() - t0
@@ -4114,8 +4118,8 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
             else:
                 # Keep width stable before the 60s rollover as well.
                 elapsed_str = f"{elapsed:5.1f}s"
-            return f"  {txt}  ({elapsed_str})"
-        return f"  {txt}"
+            return f"  {orbit_prefix}{txt}  ({elapsed_str})"
+        return f"  {orbit_prefix}{txt}"
 
     def _voice_record_key_label(self) -> str:
         """Return the configured voice push-to-talk key formatted for UI.

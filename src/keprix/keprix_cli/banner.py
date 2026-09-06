@@ -8,6 +8,7 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 import threading
 import time
 from pathlib import Path
@@ -68,20 +69,67 @@ KEPRIX_AGENT_LOGO = """[bold #00E5FF]██╗  ██╗███████�
 [#0066FF]██║  ██╗███████╗██║     ██║  ██║██║ ██╔╝ ██╗      ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║[/]
 [#0066FF]╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝  ╚═╝╚═╝ ╚═╝  ╚═╝      ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝[/]"""
 
-# Abstract geometric mark: a hexagon with a "K" monogram inside. No
-# mythological or medical symbolism (replaces the old caduceus hero art).
-KEPRIX_HERO_MARK = """[bold #00E5FF]      ________      [/]
-[bold #00E5FF]    /          \\    [/]
-[bold #00E5FF]  /              \\  [/]
-[bold #00E5FF] /    ██╗ ██╗     \\ [/]
-[#33AAFF]|     ██║██╔╝      |[/]
-[#33AAFF]|     █████╔╝      |[/]
-[#33AAFF]|     ██╔═██╗      |[/]
-[#33AAFF]|     ██║ ██╗      |[/]
-[#0066FF] \\    ╚═╝ ╚═╝     / [/]
-[#0066FF]  \\              /  [/]
-[#0066FF]    \\          /    [/]
-[#0066FF]      \\________/    [/]"""
+# Abstract geometric mark: a bare "K" monogram. No mythological or medical
+# symbolism, no enclosing shape (replaces the old caduceus hero art).
+KEPRIX_HERO_MARK = """[bold #00E5FF]██╗  ██╗[/]
+[bold #00E5FF]██║ ██╔╝[/]
+[#33AAFF]█████╔╝ [/]
+[#33AAFF]██╔═██╗ [/]
+[#0066FF]██║  ██╗[/]
+[#0066FF]╚═╝  ╚═╝[/]"""
+
+# Frames for a small circle that revolves next to "K" — used both for the
+# one-time startup spin-in below and for the live tool/thinking indicator
+# (see KeprixCLI._render_spinner_text in cli.py).
+ORBIT_FRAMES = ["◐", "◓", "◑", "◒"]
+
+
+def _hex_to_raw_ansi(hex_color: str, *, bold: bool = True) -> str:
+    """Convert '#RRGGBB' to a true-color ANSI escape (no Rich markup parsing).
+
+    Used for the spin-in intro, which writes straight to stdout with \\r
+    overwrites — Rich's [color] markup tags aren't interpreted outside
+    Console.print, so this mirrors the raw-ANSI convention _GOLD/_hex_to_ansi
+    use elsewhere in the CLI for the same reason.
+    """
+    try:
+        r = int(hex_color[1:3], 16)
+        g = int(hex_color[3:5], 16)
+        b = int(hex_color[5:7], 16)
+        prefix = "1;" if bold else ""
+        return f"\033[{prefix}38;2;{r};{g};{b}m"
+    except Exception:
+        return ""
+
+
+def play_hero_spin_intro() -> None:
+    """Play a brief spin-in of the orbit frames next to "K" before the
+    static welcome banner prints below it.
+
+    Skipped entirely on non-interactive output (pipes, logs, CI) or when
+    KEPRIX_NO_INTRO_ANIM is set, so scripted/piped invocations stay instant
+    and log-clean — mirrors the _is_tty guard KawaiiSpinner uses.
+    """
+    if os.getenv("KEPRIX_NO_INTRO_ANIM"):
+        return
+    try:
+        if not (hasattr(sys.stdout, "isatty") and sys.stdout.isatty()):
+            return
+    except Exception:
+        return
+
+    accent = _hex_to_raw_ansi(_skin_color("banner_title", "#00D9FF"))
+    reset = "\033[0m"
+    try:
+        for i in range(len(ORBIT_FRAMES) * 3):
+            frame = ORBIT_FRAMES[i % len(ORBIT_FRAMES)]
+            sys.stdout.write(f"\r  {accent}{frame}{reset} K  ")
+            sys.stdout.flush()
+            time.sleep(0.09)
+        sys.stdout.write("\r" + " " * 14 + "\r")
+        sys.stdout.flush()
+    except Exception:
+        pass
 
 
 
@@ -578,6 +626,8 @@ def build_welcome_banner(console: "Console", model: str, cwd: str,
     from rich.table import Table
     if get_toolset_for_tool is None:
         from model_tools import get_toolset_for_tool
+
+    play_hero_spin_intro()
 
     tools = tools or []
     enabled_toolsets = enabled_toolsets or []
