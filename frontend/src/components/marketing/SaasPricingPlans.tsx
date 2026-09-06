@@ -75,8 +75,8 @@ export default function SaasPricingPlans({ plans, trialDays }: SaasPricingPlansP
           const highlight = Boolean(plan.metadata?.highlight);
           const badge = typeof plan.metadata?.badge === "string" ? plan.metadata.badge : null;
           const features = Object.entries(plan.feature_flags || {}).slice(0, 6);
-          const ctaHref = free ? "/auth/setup" : "/auth/login?next=/settings/billing";
-          const ctaLabel = free ? "Get started" : trialDays && trialDays > 0 ? `Start ${trialDays}-day trial` : "Subscribe";
+          const ctaHref = free ? "/#install" : "/auth/login?next=/settings/billing";
+          const ctaLabel = free ? "Deploy free" : trialDays && trialDays > 0 ? `Start ${trialDays}-day trial` : "Subscribe";
 
           return (
             <Card

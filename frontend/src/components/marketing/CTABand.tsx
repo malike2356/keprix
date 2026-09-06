@@ -141,7 +141,17 @@ export function CTABand() {
           <Box sx={{ display: "flex", gap: 2, justifyContent: "center", flexWrap: "wrap" }}>
             <Button
               component="a"
-              href="/download"
+              href="/#install"
+              onClick={(e) => {
+                if (typeof window !== "undefined" && window.location.pathname === "/") {
+                  const el = document.getElementById("install");
+                  if (el) {
+                    e.preventDefault();
+                    el.scrollIntoView({ behavior: "smooth" });
+                    window.history.pushState(null, "", "#install");
+                  }
+                }
+              }}
               variant="contained"
               size="large"
               sx={{

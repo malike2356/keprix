@@ -130,10 +130,20 @@ export function Navbar() {
             </Box>
             <Button
               component="a"
-              href={isAuthed ? "/home" : "/auth/setup"}
+              href={isAuthed ? "/home" : "/#install"}
               variant="contained"
               size="small"
               sx={{ ml: 1, fontWeight: 600 }}
+              onClick={(e) => {
+                if (!isAuthed && typeof window !== "undefined" && window.location.pathname === "/") {
+                  const el = document.getElementById("install");
+                  if (el) {
+                    e.preventDefault();
+                    el.scrollIntoView({ behavior: "smooth" });
+                    window.history.pushState(null, "", "#install");
+                  }
+                }
+              }}
             >
               {isAuthed ? "Open app" : "Deploy free"}
             </Button>
@@ -209,10 +219,20 @@ export function Navbar() {
         <Box sx={{ p: 2 }}>
           <Button
             component="a"
-            href={isAuthed ? "/home" : "/auth/setup"}
+            href={isAuthed ? "/home" : "/#install"}
             variant="contained"
             fullWidth
-            onClick={() => setDrawerOpen(false)}
+            onClick={(e) => {
+              setDrawerOpen(false);
+              if (!isAuthed && typeof window !== "undefined" && window.location.pathname === "/") {
+                const el = document.getElementById("install");
+                if (el) {
+                  e.preventDefault();
+                  el.scrollIntoView({ behavior: "smooth" });
+                  window.history.pushState(null, "", "#install");
+                }
+              }
+            }}
           >
             {isAuthed ? "Open app" : "Deploy free"}
           </Button>

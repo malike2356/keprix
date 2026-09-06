@@ -5,8 +5,12 @@ import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import { alpha, keyframes } from "@mui/material/styles";
 import * as React from "react";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import CheckIcon from "@mui/icons-material/Check";
 import { KeprixLogo } from "@/components/shared/KeprixLogo";
 import {
   getMarketingColors,
@@ -345,6 +349,19 @@ export function Hero() {
   const { mode } = useThemeMode();
   const colors = getMarketingColors(mode);
   const isDark = mode === "dark";
+  const [copiedInstall, setCopiedInstall] = React.useState(false);
+
+  const handleCopyInstall = async () => {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText("curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash");
+        setCopiedInstall(true);
+        window.setTimeout(() => setCopiedInstall(false), 2200);
+      }
+    } catch {
+      // ignore clipboard error
+    }
+  };
 
   return (
     <>
@@ -501,12 +518,20 @@ export function Hero() {
                 Propose tools, protect channels, run CRM, and embed via sidecar; Keprix tests
                 changes and waits for your approval before anything goes live.
               </Typography>
-              <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+              <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 2.5 }}>
                 <Button
                   component="a"
-                  href="/download"
+                  href="#install"
                   variant="contained"
                   size="large"
+                  onClick={(e) => {
+                    const el = document.getElementById("install");
+                    if (el) {
+                      e.preventDefault();
+                      el.scrollIntoView({ behavior: "smooth" });
+                      window.history.pushState(null, "", "#install");
+                    }
+                  }}
                   sx={{
                     fontWeight: 700,
                     px: 3.5,
@@ -543,6 +568,78 @@ export function Hero() {
                   View on GitHub
                 </Button>
               </Box>
+
+              {/* Quick install snippet on first page */}
+              <Box
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  maxWidth: "100%",
+                  bgcolor: isDark ? "rgba(10, 12, 20, 0.85)" : alpha(colors.bgCard, 0.95),
+                  border: `1px solid ${alpha(colors.primary, 0.3)}`,
+                  borderRadius: 2.5,
+                  p: 0.75,
+                  pl: 2,
+                  backdropFilter: "blur(8px)",
+                  boxShadow: `0 4px 20px ${alpha("#000", isDark ? 0.4 : 0.06)}`,
+                }}
+              >
+                <Typography
+                  component="span"
+                  sx={{
+                    color: colors.primary,
+                    fontFamily: MARKETING_MONO_FONT,
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    mr: 1.25,
+                    userSelect: "none",
+                  }}
+                >
+                  $
+                </Typography>
+                <Typography
+                  component="code"
+                  sx={{
+                    fontFamily: MARKETING_MONO_FONT,
+                    fontSize: { xs: "0.75rem", sm: "0.825rem" },
+                    color: colors.textPrimary,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    mr: 1.5,
+                  }}
+                >
+                  curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
+                </Typography>
+                <Tooltip title={copiedInstall ? "Copied!" : "Copy install command"}>
+                  <IconButton
+                    onClick={handleCopyInstall}
+                    size="small"
+                    sx={{
+                      color: copiedInstall ? colors.primary : colors.textSecondary,
+                      bgcolor: alpha(colors.primary, copiedInstall ? 0.15 : 0.08),
+                      "&:hover": {
+                        bgcolor: alpha(colors.primary, 0.2),
+                        color: colors.textPrimary,
+                      },
+                    }}
+                    aria-label="Copy install command"
+                  >
+                    {copiedInstall ? <CheckIcon fontSize="small" /> : <ContentCopyIcon fontSize="small" />}
+                  </IconButton>
+                </Tooltip>
+              </Box>
+
+              <Typography
+                sx={{
+                  mt: 1,
+                  fontSize: "0.75rem",
+                  color: colors.textSecondary,
+                  letterSpacing: "0.02em",
+                }}
+              >
+                Linux, macOS, WSL2. Self-hosted and MIT-licensed.
+              </Typography>
             </Box>
 
             {/* Right: terminal */}

@@ -73,8 +73,8 @@ function OssPricingSection({ c }: { c: ReturnType<typeof getMarketingColors> }) 
           <Typography sx={{ color: c.textSecondary, fontSize: "0.85rem", mb: 3 }}>
             forever
           </Typography>
-          <Button component="a" href="/auth/setup" variant="contained" fullWidth size="large" sx={{ fontWeight: 700 }}>
-            Deploy now
+          <Button component="a" href="/#install" variant="contained" fullWidth size="large" sx={{ fontWeight: 700 }}>
+            Deploy free
           </Button>
           <List dense sx={{ mt: 3 }}>
             {FREE_FEATURES.map((feature) => (

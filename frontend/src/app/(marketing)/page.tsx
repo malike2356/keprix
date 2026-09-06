@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/marketing/Hero";
+import { InstallSection } from "@/components/marketing/InstallSection";
 import { DeferredMarketingSections } from "@/components/marketing/DeferredMarketingSections";
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export default function HomePage() {
   return (
     <>
       <Hero />
+      <InstallSection />
       <DeferredMarketingSections />
     </>
   );
