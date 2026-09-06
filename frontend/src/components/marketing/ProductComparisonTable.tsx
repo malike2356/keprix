@@ -16,67 +16,57 @@ import {
   useMarketingColors,
 } from "@/components/marketing/MarketingSection";
 
-/** Outcome-focused benchmark: DIY glue, Keprix self-hosting, and the Verlox enterprise platform. */
+/** Comparison benchmark: Upstream Hermes Agent vs. Forked Keprix OS. */
 const ROWS = [
   {
     job: "Stand up a private agent OS",
-    diy: "Wire LLM, DB, auth, and a process manager",
+    hermes: "CLI agent and gateway daemon; single-user terminal and chat gateway",
     keprix: "Docker Compose; one runtime with web, CLI, TUI, and API",
-    verlox: "Managed enterprise platform for teams, governance, and organizational deployments",
   },
   {
     job: "Operate from the terminal",
-    diy: "Build a separate CLI, stream renderer, command palette, and diagnostics",
+    hermes: "Interactive TUI, REPL, slash commands, and multi-platform gateway",
     keprix: "Command Center TUI with sessions, slash commands, tool cards, and runtime timeline",
-    verlox: "Centralized operator consoles, audit logs, team controls, and session management",
   },
   {
     job: "Protect inbound messages",
-    diy: "Bolted-on filters, quarantine scripts, and manual review",
+    hermes: "Direct messaging routing without quarantine or content scanning",
     keprix: "Channel Shield scanning, quarantine, policy hooks, and safe summaries",
-    verlox: "Enterprise gateway filters, policy enforcement, and compliance controls",
   },
   {
     job: "Run CRM and outreach with agents",
-    diy: "Separate CRM, enrichment scripts, and approval spreadsheets",
+    hermes: "Not included; requires custom external scripts or standalone tools",
     keprix: "Agentic CRM, Soft Wall, Companies House, and outreach in one workspace",
-    verlox: "Enterprise CRM integration and governed multi-team outreach infrastructure",
   },
   {
     job: "Embed the agent beside another product",
-    diy: "Custom microservice and auth glue per product",
+    hermes: "Standalone CLI/daemon; custom RPC or socket integration",
     keprix: "Universal Sidecar contract: health, pairing, jobs, events, kill switch",
-    verlox: "Native enterprise sidecar and API integrations across the Verlox ecosystem",
   },
   {
     job: "Need a tool that does not exist",
-    diy: "Write, test, and ship a plugin yourself",
+    hermes: "Autonomous skill creation and manual plugin authoring",
     keprix: "Mutation Engine synthesises; you approve",
-    verlox: "Governed extensions, verified capabilities, and centralized team tool registry",
   },
   {
     job: "Remember across sessions",
-    diy: "Roll your own store and retrieval",
+    hermes: "Curated memory nudges, FTS5 session search, Honcho user modeling",
     keprix: "Structured long-term memory built in",
-    verlox: "Organizational knowledge graphs, cross-workspace memory, and access control",
   },
   {
     job: "Repeatable workflows",
-    diy: "Cron plus scripts plus glue",
+    hermes: "Built-in cron scheduler with natural language triggers",
     keprix: "Playbooks with schedule and webhooks",
-    verlox: "Enterprise workflow automation, scheduled compliance runs, and multi-tenant triggers",
   },
   {
     job: "Know cost and failures",
-    diy: "Scatter logs across services",
+    hermes: "Terminal logs and session token tracking",
     keprix: "Traces, token cost, budget alerts",
-    verlox: "Real-time cost observability, enterprise audit trails, and tenant budgeting",
   },
   {
     job: "Own the stack",
-    diy: "Depends on each SaaS you bolted on",
+    hermes: "Self-hosted, MIT open-source CLI agent by Nous Research",
     keprix: "Self-hosted, MIT, no cloud account required",
-    verlox: "Managed enterprise deployments, cloud-hosted SLAs, and direct support from Verlox Ltd",
   },
 ] as const;
 
@@ -94,7 +84,7 @@ export function ProductComparisonTable() {
           textAlign: "center",
         }}
       >
-        Runtime benchmark
+        Lineage &amp; Benchmark
       </Typography>
       <Typography
         component="h2"
@@ -106,7 +96,7 @@ export function ProductComparisonTable() {
           textAlign: "center",
         }}
       >
-        Choose the path that matches how you want to run agents.
+        Upstream Hermes Agent vs. Forked Keprix OS
       </Typography>
       <Typography
         sx={{
@@ -119,9 +109,9 @@ export function ProductComparisonTable() {
           lineHeight: 1.7,
         }}
       >
-        Keprix is the self-hosted open-source runtime. Verlox provides the broader
-        enterprise platform for teams, products, and managed deployments. Both beat
-        stitching together fragile automation glue.
+        Keprix is forked from Hermes Agent by Nous Research. While Hermes delivers a
+        lean terminal agent and messaging gateway, Keprix expands the foundation into
+        a full self-hosted agent OS with a web workspace, multi-tenancy, and enterprise tools.
       </Typography>
 
       <Box
@@ -131,7 +121,7 @@ export function ProductComparisonTable() {
           border: `1px solid ${alpha(c.primary, 0.15)}`,
         }}
       >
-        <Table size="small" sx={{ minWidth: 920, bgcolor: alpha(c.bgCard, 0.6) }}>
+        <Table size="small" sx={{ minWidth: 760, bgcolor: alpha(c.bgCard, 0.6) }}>
           <TableHead>
             <TableRow>
               <TableCell
@@ -139,20 +129,20 @@ export function ProductComparisonTable() {
                   fontWeight: 700,
                   color: c.textSecondary,
                   borderColor: c.divider,
-                  width: "18%",
+                  width: "24%",
                 }}
               >
-                Job
+                Capability
               </TableCell>
               <TableCell
                 sx={{
-                  fontWeight: 600,
+                  fontWeight: 700,
                   color: c.textSecondary,
                   borderColor: c.divider,
-                  width: "27%",
+                  width: "38%",
                 }}
               >
-                Piecewise stack
+                Hermes Agent (upstream)
               </TableCell>
               <TableCell
                 sx={{
@@ -161,23 +151,10 @@ export function ProductComparisonTable() {
                   borderColor: c.divider,
                   bgcolor: alpha(c.primary, 0.08),
                   borderLeft: `2px solid ${alpha(c.primary, 0.35)}`,
-                  width: "28%",
+                  width: "38%",
                 }}
               >
-                Keprix runtime
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 800,
-                  color: c.textPrimary,
-                  borderColor: c.divider,
-                  bgcolor: alpha(c.secondary, 0.08),
-                  borderLeft: `2px solid ${alpha(c.secondary, 0.32)}`,
-                  borderRight: `2px solid ${alpha(c.secondary, 0.32)}`,
-                  width: "27%",
-                }}
-              >
-                Verlox Enterprise
+                Keprix OS (forked)
               </TableCell>
             </TableRow>
           </TableHead>
@@ -204,7 +181,7 @@ export function ProductComparisonTable() {
                     verticalAlign: "top",
                   }}
                 >
-                  {row.diy}
+                  {row.hermes}
                 </TableCell>
                 <TableCell
                   sx={{
@@ -219,29 +196,16 @@ export function ProductComparisonTable() {
                 >
                   {row.keprix}
                 </TableCell>
-                <TableCell
-                  sx={{
-                    color: c.textPrimary,
-                    borderColor: c.divider,
-                    bgcolor: alpha(c.secondary, 0.04),
-                    fontSize: "0.85rem",
-                    fontWeight: 600,
-                    lineHeight: 1.5,
-                    verticalAlign: "top",
-                  }}
-                >
-                  {row.verlox}
-                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </Box>
 
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", gap: 2, flexWrap: "wrap", mt: 4 }}>
         <Button
           component="a"
-          href="https://verlox.uk"
+          href="https://github.com/nousresearch/hermes-agent"
           target="_blank"
           rel="noopener noreferrer"
           variant="outlined"
@@ -250,16 +214,36 @@ export function ProductComparisonTable() {
             borderRadius: "9999px",
             px: 3,
             fontWeight: 700,
-            borderColor: alpha(c.secondary, 0.38),
+            borderColor: alpha(c.textSecondary, 0.38),
             color: c.textPrimary,
-            bgcolor: alpha(c.secondary, 0.04),
+            bgcolor: "transparent",
             "&:hover": {
-              borderColor: c.secondary,
-              bgcolor: alpha(c.secondary, 0.09),
+              borderColor: c.textPrimary,
+              bgcolor: alpha(c.textSecondary, 0.08),
             },
           }}
         >
-          Visit Verlox
+          View Hermes Agent Upstream
+        </Button>
+        <Button
+          component="a"
+          href="https://github.com/malike2356/keprix"
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="contained"
+          endIcon={<OpenInNewIcon />}
+          sx={{
+            borderRadius: "9999px",
+            px: 3,
+            fontWeight: 700,
+            bgcolor: c.primary,
+            color: "#fff",
+            "&:hover": {
+              bgcolor: alpha(c.primary, 0.88),
+            },
+          }}
+        >
+          Explore Keprix on GitHub
         </Button>
       </Box>
     </Box>
