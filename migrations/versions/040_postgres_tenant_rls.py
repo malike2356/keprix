@@ -16,6 +16,52 @@ depends_on = None
 
 
 def upgrade() -> None:
+    # Ensure baseline tenancy tables exist so RLS subqueries resolve even if
+    # earlier tenancy migrations were stamped without executing (e.g. on
+    # production instances upgraded from pre-012 baselines).
+    op.execute(
+        """
+        CREATE TABLE IF NOT EXISTS control_plane_tenants (
+            tenant_id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'active',
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            slug TEXT,
+            display_name TEXT,
+            owner_user_id TEXT
+        )
+        """
+    )
+    op.execute(
+        """
+        CREATE TABLE IF NOT EXISTS control_plane_workspaces (
+            workspace_id TEXT PRIMARY KEY,
+            tenant_id TEXT NOT NULL REFERENCES control_plane_tenants(tenant_id),
+            name TEXT NOT NULL,
+            data_plane_path TEXT,
+            scout_enrolled BOOLEAN NOT NULL DEFAULT false,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+        """
+    )
+    op.execute(
+        """
+        CREATE INDEX IF NOT EXISTS ix_control_plane_workspaces_tenant
+            ON control_plane_workspaces (tenant_id)
+        """
+    )
+    op.execute(
+        """
+        CREATE TABLE IF NOT EXISTS control_plane_memberships (
+            tenant_id TEXT NOT NULL REFERENCES control_plane_tenants(tenant_id),
+            user_id TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'member',
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+            PRIMARY KEY (tenant_id, user_id)
+        )
+        """
+    )
+
     op.execute(
         """
         DO $keprix_rls$
