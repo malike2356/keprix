@@ -84,7 +84,7 @@ lead on:
 - Skill depth after optional sync (bundled + official optional under `~/.keprix/skills`).
 - Product modules on the same Telegram surface (playbook, research, crew, data,
   ML, governance, billing product portal).
-- Verlox/Carina-adjacent product features that Hermes does not ship.
+- Verlox enterprise product features that Hermes does not ship.
 
 ## Related
 

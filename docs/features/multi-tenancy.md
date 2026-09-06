@@ -35,7 +35,6 @@ Later: stronger planes (per-workspace data dirs, optional DB schemas) without re
 Single-tenant CE needs no config. Isolation soft-passes legacy rows missing `tenant_id`.
 Disable with `KEPRIX_TENANT_ISOLATION=0` only for recovery.
 
-## Carina references (canonical)
+## Tenancy architecture references
 
-- `<workspace-root>/carina/02-backends/core.carinaai.uk/src/security/tenant-isolation.ts`
-- `<workspace-root>/carina/02-backends/core.carinaai.uk/docs/TENANT-ISOLATION.md`
+Tenancy isolation patterns follow the Verlox multi-tenant security architecture with strict Row Level Security (RLS) enforcement at the PostgreSQL database layer.

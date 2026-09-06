@@ -16,67 +16,67 @@ import {
   useMarketingColors,
 } from "@/components/marketing/MarketingSection";
 
-/** Outcome-focused benchmark: DIY glue, Keprix self-hosting, and the wider Carina path. */
+/** Outcome-focused benchmark: DIY glue, Keprix self-hosting, and the Verlox enterprise platform. */
 const ROWS = [
   {
     job: "Stand up a private agent OS",
     diy: "Wire LLM, DB, auth, and a process manager",
     keprix: "Docker Compose; one runtime with web, CLI, TUI, and API",
-    carina: "Broader agent platform for teams, products, and managed deployments",
+    verlox: "Managed enterprise platform for teams, governance, and organizational deployments",
   },
   {
     job: "Operate from the terminal",
     diy: "Build a separate CLI, stream renderer, command palette, and diagnostics",
     keprix: "Command Center TUI with sessions, slash commands, tool cards, and runtime timeline",
-    carina: "CLI and TUI surfaces for agent operations, Scout overlays, approvals, and sessions",
+    verlox: "Centralized operator consoles, audit logs, team controls, and session management",
   },
   {
     job: "Protect inbound messages",
     diy: "Bolted-on filters, quarantine scripts, and manual review",
     keprix: "Channel Shield scanning, quarantine, policy hooks, and safe summaries",
-    carina: "Platform-level channel protection patterns for customer-facing agent products",
+    verlox: "Enterprise gateway filters, policy enforcement, and compliance controls",
   },
   {
     job: "Run CRM and outreach with agents",
     diy: "Separate CRM, enrichment scripts, and approval spreadsheets",
     keprix: "Agentic CRM, Soft Wall, Companies House, and outreach in one workspace",
-    carina: "Product CRM surfaces and packs on the shared Carina/Aiva platform",
+    verlox: "Enterprise CRM integration and governed multi-team outreach infrastructure",
   },
   {
     job: "Embed the agent beside another product",
     diy: "Custom microservice and auth glue per product",
     keprix: "Universal Sidecar contract: health, pairing, jobs, events, kill switch",
-    carina: "Native product surfaces and sidecars across the Carina ecosystem",
+    verlox: "Native enterprise sidecar and API integrations across the Verlox ecosystem",
   },
   {
     job: "Need a tool that does not exist",
     diy: "Write, test, and ship a plugin yourself",
     keprix: "Mutation Engine synthesises; you approve",
-    carina: "Agent platform patterns for reusable capabilities, packs, and governed extensions",
+    verlox: "Governed extensions, verified capabilities, and centralized team tool registry",
   },
   {
     job: "Remember across sessions",
     diy: "Roll your own store and retrieval",
     keprix: "Structured long-term memory built in",
-    carina: "Memory, profiles, and product-aware agent context across Carina-powered apps",
+    verlox: "Organizational knowledge graphs, cross-workspace memory, and access control",
   },
   {
     job: "Repeatable workflows",
     diy: "Cron plus scripts plus glue",
     keprix: "Playbooks with schedule and webhooks",
-    carina: "Workflow and agent orchestration for products built on the Carina platform",
+    verlox: "Enterprise workflow automation, scheduled compliance runs, and multi-tenant triggers",
   },
   {
     job: "Know cost and failures",
     diy: "Scatter logs across services",
     keprix: "Traces, token cost, budget alerts",
-    carina: "Operations, usage, governance, and visibility across deployed agent surfaces",
+    verlox: "Real-time cost observability, enterprise audit trails, and tenant budgeting",
   },
   {
     job: "Own the stack",
     diy: "Depends on each SaaS you bolted on",
     keprix: "Self-hosted, MIT, no cloud account required",
-    carina: "Best when you want the broader Carina ecosystem, cloud path, or product platform",
+    verlox: "Managed enterprise deployments, cloud-hosted SLAs, and direct support from Verlox Ltd",
   },
 ] as const;
 
@@ -119,8 +119,8 @@ export function ProductComparisonTable() {
           lineHeight: 1.7,
         }}
       >
-        Keprix is the self-hosted mutant runtime. Carina is the broader agent
-        platform path for teams, products, and managed deployments. Both beat
+        Keprix is the self-hosted open-source runtime. Verlox provides the broader
+        enterprise platform for teams, products, and managed deployments. Both beat
         stitching together fragile automation glue.
       </Typography>
 
@@ -177,7 +177,7 @@ export function ProductComparisonTable() {
                   width: "27%",
                 }}
               >
-                Carina platform
+                Verlox Enterprise
               </TableCell>
             </TableRow>
           </TableHead>
@@ -230,7 +230,7 @@ export function ProductComparisonTable() {
                     verticalAlign: "top",
                   }}
                 >
-                  {row.carina}
+                  {row.verlox}
                 </TableCell>
               </TableRow>
             ))}
@@ -241,7 +241,7 @@ export function ProductComparisonTable() {
       <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <Button
           component="a"
-          href="https://carinaai.uk"
+          href="https://verlox.uk"
           target="_blank"
           rel="noopener noreferrer"
           variant="outlined"
@@ -259,7 +259,7 @@ export function ProductComparisonTable() {
             },
           }}
         >
-          Visit Carina
+          Visit Verlox
         </Button>
       </Box>
     </Box>

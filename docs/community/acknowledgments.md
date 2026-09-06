@@ -85,4 +85,4 @@ For the 20 research-only frameworks: no licence obligation applies, but this pag
 
 ## Related projects
 
-The maintainer also builds [Keprix](https://github.com/malike2356/keprix), [Carina](https://carinaai.uk), [Aiva](https://hireaiva.co.uk), [Scout](https://labyrinthscout.com), [Propreneur](https://propreneur.uk), [TuinApp](https://tuinapp.uk), and [PropCalc](https://propcalc.uk). See [Related projects](related-projects.md) for scope and boundaries.
+The maintainer also builds [Keprix](https://github.com/malike2356/keprix), [Verlox](https://verlox.uk), [malike2356](https://github.com/malike2356), [Aiva](https://hireaiva.co.uk), [Scout](https://labyrinthscout.com), [Propreneur](https://propreneur.uk), [TuinApp](https://tuinapp.uk), and [PropCalc](https://propcalc.uk). See [Related projects](related-projects.md) for scope and boundaries.

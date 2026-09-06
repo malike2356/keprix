@@ -1,6 +1,6 @@
 # GitHub agent-sync
 
-Keprix mounts the same durable-memory bridge used by Carina, Aiva, and Hermes (Fowler).
+Keprix mounts the durable-memory bridge across Hermes, Verlox, and agent environments (canonical repo: [malike2356/agent-sync](https://github.com/malike2356/agent-sync)).
 
 **Configure in the GUI:** Settings -> Agent sync (`/settings/integrations/agent-sync`), or the Settings overview card.
 

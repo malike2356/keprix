@@ -13,7 +13,7 @@ Only the latest release receives security updates. Older tags are unsupported.
 
 Do not open a public GitHub issue for security vulnerabilities.
 
-Report privately to **security@carinaai.uk**.
+Report privately to **security@verlox.uk** (or **contact@verlox.uk**).
 
 We aim to:
 

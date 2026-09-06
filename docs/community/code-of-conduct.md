@@ -25,7 +25,7 @@ Maintainers may remove, edit, or reject comments, commits, issues, or pull
 requests that violate this code. Repeated or severe violations may result in a
 temporary or permanent ban from project spaces.
 
-Report conduct concerns to **security@carinaai.uk**. Security vulnerability
+Report conduct concerns to **contact@verlox.uk** (or **security@verlox.uk**). Security vulnerability
 reports must follow [SECURITY.md](https://github.com/malike2356/keprix/blob/main/SECURITY.md)
 instead of public issues.
 
