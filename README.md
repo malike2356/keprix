@@ -6,7 +6,7 @@
 
 CI and Release badges resolve for anonymous users after the GitHub repository is public.
 
-**Keprix** is a self-hosted AI agent OS. Community Edition is MIT-licensed. Run agents, tools, memory, a Command Center TUI, and a web workspace on your own infrastructure. A mutation engine can propose tool and skill changes with human approval. Channel Shield and a vault/credential layer protect inbound channels and secrets.
+**Keprix** is a self-hosted AI agent OS, forked from [Hermes Agent](https://github.com/nousresearch/hermes-agent) by Nous Research and significantly expanded. Community Edition is MIT-licensed. Run agents, tools, memory, a Command Center TUI, and a web workspace on your own infrastructure. A mutation engine can propose tool and skill changes with human approval. Channel Shield and a vault/credential layer protect inbound channels and secrets.
 
 ## Quick Install
 
@@ -97,6 +97,7 @@ More: [docs/getting-started/quickstart.md](docs/getting-started/quickstart.md)
 | Docs index | [docs/index.md](docs/index.md) |
 | Terminal UI | [docs/features/tui.md](docs/features/tui.md) |
 | REST API | [docs/reference/api.md](docs/reference/api.md) |
+| Acknowledgments | [docs/community/acknowledgments.md](docs/community/acknowledgments.md) |
 | Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | Security | [SECURITY.md](SECURITY.md) |
 | Licence | [LICENSE](LICENSE) |
@@ -106,13 +107,29 @@ Local MkDocs: `bash scripts/serve-docs.sh` then open http://127.0.0.1:8000
 
 Related products (separate sites and licences): [docs/community/related-projects.md](docs/community/related-projects.md)
 
+## Lineage and Acknowledgments
+
+Keprix is derived and forked from [Hermes Agent](https://github.com/nousresearch/hermes-agent) by [Nous Research](https://nousresearch.com/), published under the MIT licence.
+
+We give full credit and sincere gratitude to Nous Research and the Hermes Agent community for creating the foundational CLI runtime, interactive REPL, tool dispatch mechanism, bootstrap layer, and skill architecture that Keprix builds upon.
+
+Building on top of the Hermes Agent core, Keprix introduces:
+- A full-featured Next.js web workspace OS and REST API
+- Multi-tenant isolation with PostgreSQL Row Level Security (RLS)
+- Sandboxed Playbooks engine supporting visual and YAML workflows
+- Channel Shield for inbound communication security and filtering
+- Secure Document Vault with credential proxy and scoped exports
+- Integrated Operator Command Center TUI and management portal
+
+Full copyright and upstream MIT licence text are preserved in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Broader open-source research acknowledgments are detailed in [docs/community/acknowledgments.md](docs/community/acknowledgments.md).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/community/contributing.md](docs/community/contributing.md).
 
 ## Licence
 
-MIT Community Edition. See [LICENSE](LICENSE). Third-party notices: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Self-host on your own infrastructure.
+MIT Community Edition. See [LICENSE](LICENSE). Third-party notices and upstream Hermes Agent copyright: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Self-host on your own infrastructure.
 
 ## Contact
 
