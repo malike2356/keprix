@@ -45,10 +45,14 @@ git clone https://github.com/malike2356/keprix.git
 cd keprix
 cp .env.example .env
 # Set at least one LLM key
+# On Linux, avoid a first-run permission error by matching the container to your host user:
+mkdir -p ~/.keprix
+echo "KEPRIX_UID=$(id -u)" >> .env
+echo "KEPRIX_GID=$(id -g)" >> .env
 docker compose -f docker/docker-compose.yml up -d --build
 ```
 
-UI: http://localhost:3000; health: `curl -s http://127.0.0.1:3333/api/health`
+UI: http://localhost:3000; health: `curl -s http://127.0.0.1:3333/api/health`. Permission error instead? See [Quickstart troubleshooting](docs/getting-started/quickstart.md#troubleshooting).
 
 More: [docs/getting-started/quickstart.md](docs/getting-started/quickstart.md)
 

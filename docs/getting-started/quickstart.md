@@ -52,6 +52,26 @@ docker compose -f docker/docker-compose.yml up -d --build
 
 Copy values from `.env.example`. Leave unused keys empty; set at least one provider key before first run (for example `ANTHROPIC_API_KEY=` or `OPENAI_API_KEY=your-key-here`). Do not paste real secrets into docs or tickets.
 
+**On Linux hosts, do this first** (verified 2026-09-06 against a genuinely
+fresh clone with no pre-existing `~/.keprix`). `docker/docker-compose.yml`
+bind-mounts `~/.keprix` into the backend container; if that directory does
+not already exist, the Docker daemon auto-creates it as **root**, and the
+container's non-root `keprix` user then fails on its very first write with
+`PermissionError: [Errno 13] Permission denied`. Avoid this by creating the
+directory yourself, as yourself, and telling the container to match your
+UID/GID before the first `up`:
+
+```bash
+mkdir -p ~/.keprix
+echo "KEPRIX_UID=$(id -u)" >> .env
+echo "KEPRIX_GID=$(id -g)" >> .env
+```
+
+(Verified reproducing and fixed on Linux with the native Docker Engine.
+Docker Desktop on macOS/Windows maps file ownership differently and has not
+been independently verified either way here - running the same two lines
+before `up` is harmless if you are unsure.)
+
 | Surface | URL / check |
 | --- | --- |
 | Web UI | `http://localhost:3000` |
@@ -136,6 +156,20 @@ docker compose -f docker/docker-compose.yml restart backend
 1. Confirm `.env` has at least one provider key set.
 2. `docker compose -f docker/docker-compose.yml restart backend`
 3. In the wizard or admin UI, confirm the default provider matches that key.
+
+**`PermissionError: [Errno 13] Permission denied` on backend startup**
+
+`~/.keprix` was auto-created by Docker as root before you set ownership.
+Stop the stack, fix ownership, and set the UID/GID mapping from "Start the
+stack" above, then rebuild:
+
+```bash
+docker compose -f docker/docker-compose.yml down
+sudo chown -R "$(id -u):$(id -g)" ~/.keprix
+echo "KEPRIX_UID=$(id -u)" >> .env
+echo "KEPRIX_GID=$(id -g)" >> .env
+docker compose -f docker/docker-compose.yml up -d --build
+```
 
 **Port 3000 in use**
 
