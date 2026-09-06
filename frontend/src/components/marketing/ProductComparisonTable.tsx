@@ -202,29 +202,7 @@ export function ProductComparisonTable() {
         </Table>
       </Box>
 
-      <Box sx={{ display: "flex", justifyContent: "center", gap: 2, flexWrap: "wrap", mt: 4 }}>
-        <Button
-          component="a"
-          href="https://github.com/nousresearch/hermes-agent"
-          target="_blank"
-          rel="noopener noreferrer"
-          variant="outlined"
-          endIcon={<OpenInNewIcon />}
-          sx={{
-            borderRadius: "9999px",
-            px: 3,
-            fontWeight: 700,
-            borderColor: alpha(c.textSecondary, 0.38),
-            color: c.textPrimary,
-            bgcolor: "transparent",
-            "&:hover": {
-              borderColor: c.textPrimary,
-              bgcolor: alpha(c.textSecondary, 0.08),
-            },
-          }}
-        >
-          View Hermes Agent
-        </Button>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <Button
           component="a"
           href="https://github.com/malike2356/keprix"
