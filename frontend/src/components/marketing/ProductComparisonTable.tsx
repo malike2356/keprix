@@ -16,7 +16,7 @@ import {
   useMarketingColors,
 } from "@/components/marketing/MarketingSection";
 
-/** Comparison benchmark: Upstream Hermes Agent vs. Forked Keprix OS. */
+/** Comparison benchmark: Hermes Agent vs. Keprix OS. */
 const ROWS = [
   {
     job: "Stand up a private agent OS",
@@ -84,7 +84,7 @@ export function ProductComparisonTable() {
           textAlign: "center",
         }}
       >
-        Lineage &amp; Benchmark
+        Runtime Comparison
       </Typography>
       <Typography
         component="h2"
@@ -96,7 +96,7 @@ export function ProductComparisonTable() {
           textAlign: "center",
         }}
       >
-        Upstream Hermes Agent vs. Forked Keprix OS
+        Hermes Agent vs. Keprix OS
       </Typography>
       <Typography
         sx={{
@@ -109,9 +109,9 @@ export function ProductComparisonTable() {
           lineHeight: 1.7,
         }}
       >
-        Keprix is forked from Hermes Agent by Nous Research. While Hermes delivers a
-        lean terminal agent and messaging gateway, Keprix expands the foundation into
-        a full self-hosted agent OS with a web workspace, multi-tenancy, and enterprise tools.
+        While Hermes Agent delivers a lean terminal agent and messaging gateway,
+        Keprix expands the architecture into a full self-hosted agent OS with a web
+        workspace, multi-tenant isolation, and operational tooling.
       </Typography>
 
       <Box
@@ -142,7 +142,7 @@ export function ProductComparisonTable() {
                   width: "38%",
                 }}
               >
-                Hermes Agent (upstream)
+                Hermes Agent
               </TableCell>
               <TableCell
                 sx={{
@@ -154,7 +154,7 @@ export function ProductComparisonTable() {
                   width: "38%",
                 }}
               >
-                Keprix OS (forked)
+                Keprix OS
               </TableCell>
             </TableRow>
           </TableHead>
@@ -223,7 +223,7 @@ export function ProductComparisonTable() {
             },
           }}
         >
-          View Hermes Agent Upstream
+          View Hermes Agent
         </Button>
         <Button
           component="a"
