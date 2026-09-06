@@ -34,7 +34,7 @@ keprix tui
 
 Default home: `~/.keprix` (code at `~/.keprix/keprix`). Guide: [docs/getting-started/install.md](docs/getting-started/install.md).
 
-Alternatives: pipx from git (see install.md); from a checkout, `pipx install '.[tui]' --force`.
+Alternatives: pipx from git (see install.md); from a checkout, `pipx install '.[tui]' --force` (needs Python 3.11 or 3.12 - add `--python python3.11` if your system's default `python3` is older, e.g. Ubuntu 22.04's 3.10).
 
 ## Full stack (Docker)
 

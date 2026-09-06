@@ -39,6 +39,20 @@ python3 -m pipx ensurepath
 
 Restart your shell after `ensurepath` if `pipx` is not immediately available.
 
+**If your system's default `python3` is older than 3.11** (for example Ubuntu
+22.04 LTS, which ships 3.10) - verified live 2026-09-06 - every `pipx
+install` command below fails closed with a confusing `Cannot determine
+package name from spec` error rather than a clear version message. Install
+a compatible interpreter (`sudo apt install python3.11` on Debian/Ubuntu, or
+via [pyenv](https://github.com/pyenv/pyenv)) and pass it explicitly:
+
+```bash
+pipx install '.[tui]' --python python3.11 --force
+```
+
+Add the same `--python python3.11` flag to any pipx command on this page if
+you hit that error.
+
 ## Install with pipx from GitHub
 
 Alternative to the curl installer when you want pipx to manage an isolated env from the public repo:
