@@ -171,17 +171,20 @@ def main(argv: list[str] | None = None) -> int:
 
         return run_tui(argv[1:])
 
-    if argv[0] == "upstream":
-        from keprix.keprix_cli.main import main as cli_main
+    # Everything else — real subcommands (dashboard, setup, doctor, sessions,
+    # gateway, model, ...) AND free-form chat text — goes through the
+    # argparse-based dispatcher in keprix_cli.main, which already knows how
+    # to tell the two apart (see _first_positional_argv /
+    # _plugin_cli_discovery_needed and the subparsers.required fallback
+    # logic in main()). Previously only "upstream" was routed here and
+    # every other subcommand silently fell through to fire.Fire(keprix.cli)
+    # below, which treated the subcommand's own name as a literal chat
+    # message (e.g. `keprix dashboard` asked the agent to build a
+    # dashboard with tools instead of launching the real dashboard server).
+    from keprix.keprix_cli.main import main as cli_main
 
-        sys.argv = [sys.argv[0], *argv]
-        cli_main()
-        return 0
-
-    import fire
-    from keprix.cli import main as keprix_main
-
-    fire.Fire(keprix_main)
+    sys.argv = [sys.argv[0], *argv]
+    cli_main()
     return 0
 
 
