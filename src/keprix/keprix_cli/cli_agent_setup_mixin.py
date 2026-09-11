@@ -626,16 +626,19 @@ class CLIAgentSetupMixin:
         from rich.text import Text
 
         try:
-            from keprix_cli.skin_engine import get_active_skin
+            from keprix_cli.skin_engine import default_color, get_active_skin
             _skin = get_active_skin()
-            _history_text_c = _skin.get_color("banner_text", "#FFF8DC")
-            _session_label_c = _skin.get_color("session_label", "#DAA520")
-            _session_border_c = _skin.get_color("session_border", "#8B8682")
+            _history_text_c = _skin.get_color("banner_text", default_color("banner_text"))
+            _session_label_c = _skin.get_color("session_label", default_color("session_label"))
+            _session_border_c = _skin.get_color("session_border", default_color("session_border"))
             _assistant_label_c = _skin.get_color("ui_ok", "#8FBC8F")
         except Exception:
-            _history_text_c = "#FFF8DC"
-            _session_label_c = "#DAA520"
-            _session_border_c = "#8B8682"
+            # skin_engine itself is unreachable here (not just missing a
+            # key) - these are the only literals in this function, used
+            # only in that near-impossible case.
+            _history_text_c = "#E0F7FF"
+            _session_label_c = "#4FC3F7"
+            _session_border_c = "#5C7A94"
             _assistant_label_c = "#8FBC8F"
 
         lines = Text()

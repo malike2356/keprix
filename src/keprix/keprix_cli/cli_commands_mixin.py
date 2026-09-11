@@ -1429,7 +1429,7 @@ class CLICommandsMixin:
         When it completes, prints the result to the CLI without modifying
         the active session's conversation history.
         """
-        from cli import AIAgent, ChatConsole, _accent_hex, _cprint, _maybe_remap_for_light_mode, _render_final_assistant_content, set_approval_callback, set_secret_capture_callback, set_sudo_password_callback
+        from cli import AIAgent, ChatConsole, _accent_hex, _cprint, _default_color, _maybe_remap_for_light_mode, _render_final_assistant_content, set_approval_callback, set_secret_capture_callback, set_sudo_password_callback
         parts = cmd.strip().split(maxsplit=1)
         if len(parts) < 2 or not parts[1].strip():
             _cprint("  Usage: /background <prompt>")
@@ -1526,12 +1526,12 @@ class CLICommandsMixin:
                         from keprix_cli.skin_engine import get_active_skin
                         _skin = get_active_skin()
                         label = _skin.get_branding("response_label", "⬡ Keprix")
-                        _resp_color = _maybe_remap_for_light_mode(_skin.get_color("response_border", "#CD7F32"))
-                        _resp_text = _maybe_remap_for_light_mode(_skin.get_color("banner_text", "#FFF8DC"))
+                        _resp_color = _maybe_remap_for_light_mode(_skin.get_color("response_border", _default_color("response_border")))
+                        _resp_text = _maybe_remap_for_light_mode(_skin.get_color("banner_text", _default_color("banner_text")))
                     except Exception:
                         label = "⬡ Keprix"
-                        _resp_color = "#CD7F32"
-                        _resp_text = "#FFF8DC"
+                        _resp_color = _maybe_remap_for_light_mode(_default_color("response_border"))
+                        _resp_text = _maybe_remap_for_light_mode(_default_color("banner_text"))
 
                     _chat_console = ChatConsole()
                     _chat_console.print(Panel(

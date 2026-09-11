@@ -89,7 +89,7 @@ USAGE
     from keprix_cli.skin_engine import get_active_skin, list_skins, set_active_skin
 
     skin = get_active_skin()
-    print(skin.colors["banner_title"])    # "#FFD700"
+    print(skin.colors["banner_title"])    # "#00D9FF"
     print(skin.get_branding("agent_name"))  # "Keprix"
 
     set_active_skin("ares")               # Switch to built-in ares skin
@@ -785,6 +785,23 @@ def set_active_skin(name: str) -> SkinConfig:
 def get_active_skin_name() -> str:
     """Get the name of the currently active skin."""
     return _active_skin_name
+
+
+def default_color(key: str, fallback: str = "") -> str:
+    """The built-in "default" skin's own value for `key`.
+
+    This is the single source of truth every "the skin engine isn't
+    available" emergency fallback elsewhere (cli.py's _SkinAwareAnsi,
+    _accent_hex, _build_compact_banner, etc.) should read through
+    instead of duplicating the hex value as an independent literal.
+    Reading live from _BUILTIN_SKINS here means those emergency
+    fallbacks can never again silently drift out of sync with the real
+    default palette the way the old hardcoded #FFD700-era literals did
+    across a dozen call sites during the 2026-09 gold->cyan rebrand -
+    change the palette once, in _BUILTIN_SKINS["default"] above, and
+    every fallback that goes through this function follows for free.
+    """
+    return _BUILTIN_SKINS["default"]["colors"].get(key, fallback)
 
 
 def init_skin_from_config(config: dict) -> None:

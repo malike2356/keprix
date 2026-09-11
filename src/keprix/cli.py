@@ -1661,6 +1661,7 @@ def _prune_orphaned_branches(repo_root: str) -> None:
 
 # ANSI building blocks for conversation display
 _ACCENT_ANSI_DEFAULT = "\033[1;38;2;0;217;255m"  # True-color #00D9FF bold — fallback
+_DIM_ANSI_DEFAULT = "\033[38;2;27;111;168m"  # True-color #1B6FA8 - fallback
 _BOLD = "\033[1m"
 _RST = "\033[0m"
 _STREAM_PAD = "    "  # 4-space indent for streamed response text (matches Panel padding)
@@ -1681,7 +1682,7 @@ def _hex_to_ansi(hex_color: str, *, bold: bool = False) -> str:
         prefix = "1;" if bold else ""
         return f"\033[{prefix}38;2;{r};{g};{b}m"
     except (ValueError, IndexError):
-        return _ACCENT_ANSI_DEFAULT if bold else "\033[38;2;184;134;11m"
+        return _ACCENT_ANSI_DEFAULT if bold else _DIM_ANSI_DEFAULT
 
 
 # ────────────────────────────────────────────────────────────────────────
@@ -1946,6 +1947,23 @@ except Exception:
     pass
 
 
+def _default_color(key: str, fallback: str = "") -> str:
+    """The built-in "default" skin's own color for `key`.
+
+    Every "the active skin lookup failed" fallback below should call
+    this instead of hardcoding a hex literal - it reads live from
+    keprix_cli.skin_engine's own ``_BUILTIN_SKINS["default"]`` palette,
+    so a future rebrand only ever needs to change that one dict; no
+    fallback here can independently drift out of sync with it again the
+    way the old #FFD700-era literals scattered across this file did
+    during the 2026-09 gold->cyan rebrand.
+    """
+    try:
+        from keprix_cli.skin_engine import default_color
+        return default_color(key, fallback)
+    except Exception:
+        return fallback
+
 
 class _SkinAwareAnsi:
     """Lazy ANSI escape that resolves from the skin engine on first use.
@@ -1954,9 +1972,12 @@ class _SkinAwareAnsi:
     force re-resolution after a ``/skin`` switch.
     """
 
-    def __init__(self, skin_key: str, fallback_hex: str = "#FFD700", *, bold: bool = False):
+    def __init__(self, skin_key: str, fallback_hex: str = "", *, bold: bool = False):
         self._skin_key = skin_key
-        self._fallback_hex = fallback_hex
+        # No explicit fallback given -> use the built-in default skin's
+        # own value for this exact key, not a one-size-fits-all literal
+        # (a single hardcoded hex can't be right for every skin_key).
+        self._fallback_hex = fallback_hex or _default_color(skin_key)
         self._bold = bold
         self._cached: str | None = None
 
@@ -1983,12 +2004,12 @@ class _SkinAwareAnsi:
         self._cached = None
 
 
-_ACCENT = _SkinAwareAnsi("response_border", "#FFD700", bold=True)
+_ACCENT = _SkinAwareAnsi("response_border", bold=True)
 # Use ANSI dim+italic attributes (\x1b[2;3m) instead of a hardcoded
 # hex color so dim/thinking text inherits the terminal's default
 # foreground color and stays readable in both light and dark
-# Terminal.app modes.  Hardcoded skin colors like #B8860B
-# (dark goldenrod) become invisible against light cream backgrounds.
+# Terminal.app modes.  A hardcoded skin dim color becomes invisible
+# against light cream/white backgrounds in the wrong terminal mode.
 _DIM = "\x1b[2;3m"
 
 
@@ -1996,9 +2017,9 @@ def _accent_hex() -> str:
     """Return the active skin accent color for legacy CLI output lines."""
     try:
         from keprix_cli.skin_engine import get_active_skin
-        return get_active_skin().get_color("ui_accent", "#FFBF00")
+        return get_active_skin().get_color("ui_accent", _default_color("ui_accent"))
     except Exception:
-        return "#FFBF00"
+        return _default_color("ui_accent")
 
 
 def _rich_text_from_ansi(text: str) -> _RichText:
@@ -2997,9 +3018,9 @@ def _build_compact_banner() -> str:
         _skin = None
 
     skin_name = getattr(_skin, "name", "default") if _skin else "default"
-    border_color = _skin.get_color("banner_border", "#FFD700") if _skin else "#FFD700"
-    title_color = _skin.get_color("banner_title", "#FFBF00") if _skin else "#FFBF00"
-    dim_color = _skin.get_color("banner_dim", "#B8860B") if _skin else "#B8860B"
+    border_color = _skin.get_color("banner_border", _default_color("banner_border")) if _skin else _default_color("banner_border")
+    title_color = _skin.get_color("banner_title", _default_color("banner_title")) if _skin else _default_color("banner_title")
+    dim_color = _skin.get_color("banner_dim", _default_color("banner_dim")) if _skin else _default_color("banner_dim")
 
     if skin_name == "default":
         line1 = "⬡ Keprix - AI Agent OS"
@@ -4886,10 +4907,10 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                 from keprix_cli.skin_engine import get_active_skin
                 _skin = get_active_skin()
                 label = _skin.get_branding("response_label", "⬡ Keprix")
-                _text_hex = _skin.get_color("banner_text", "#FFF8DC")
+                _text_hex = _skin.get_color("banner_text", _default_color("banner_text"))
             except Exception:
                 label = "⬡ Keprix"
-                _text_hex = "#FFF8DC"
+                _text_hex = _default_color("banner_text")
             # Build a true-color ANSI escape for the response text color
             # so streamed content matches the Rich Panel appearance.
             try:
@@ -5513,11 +5534,13 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
         try:
             from keprix_cli.skin_engine import get_active_skin
             skin = get_active_skin()
-            separator_color = skin.get_color("banner_dim", "#B8860B")
-            accent_color = skin.get_color("ui_accent", "#FFBF00")
-            label_color = skin.get_color("ui_label", "#DAA520")
+            separator_color = skin.get_color("banner_dim", _default_color("banner_dim"))
+            accent_color = skin.get_color("ui_accent", _default_color("ui_accent"))
+            label_color = skin.get_color("ui_label", _default_color("ui_label"))
         except Exception:
-            separator_color, accent_color, label_color = "#B8860B", "#FFBF00", "cyan"
+            separator_color = _default_color("banner_dim")
+            accent_color = _default_color("ui_accent")
+            label_color = _default_color("ui_label")
         toolsets_info = ""
         if self.enabled_toolsets and "all" not in self.enabled_toolsets:
             toolsets_info = f" [dim {separator_color}]·[/] [{label_color}]toolsets: {', '.join(self.enabled_toolsets)}[/]"
@@ -7338,9 +7361,9 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                     _tip = get_random_tip()
                     try:
                         from keprix_cli.skin_engine import get_active_skin
-                        _tip_color = get_active_skin().get_color("banner_dim", "#B8860B")
+                        _tip_color = get_active_skin().get_color("banner_dim", _default_color("banner_dim"))
                     except Exception:
-                        _tip_color = "#B8860B"
+                        _tip_color = _default_color("banner_dim")
                     cc.print(f"[dim {_tip_color}]✦ Tip: {_tip}[/]")
                 except Exception:
                     pass
@@ -7353,9 +7376,9 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                     _tip = get_random_tip()
                     try:
                         from keprix_cli.skin_engine import get_active_skin
-                        _tip_color = get_active_skin().get_color("banner_dim", "#B8860B")
+                        _tip_color = get_active_skin().get_color("banner_dim", _default_color("banner_dim"))
                     except Exception:
-                        _tip_color = "#B8860B"
+                        _tip_color = _default_color("banner_dim")
                     self._console_print(f"[dim {_tip_color}]✦ Tip: {_tip}[/]")
                 except Exception:
                     pass
@@ -10517,12 +10540,12 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
                     from keprix_cli.skin_engine import get_active_skin
                     _skin = get_active_skin()
                     label = _skin.get_branding("response_label", "⬡ Keprix")
-                    _resp_color = _maybe_remap_for_light_mode(_skin.get_color("response_border", "#CD7F32"))
-                    _resp_text = _maybe_remap_for_light_mode(_skin.get_color("banner_text", "#FFF8DC"))
+                    _resp_color = _maybe_remap_for_light_mode(_skin.get_color("response_border", _default_color("response_border")))
+                    _resp_text = _maybe_remap_for_light_mode(_skin.get_color("banner_text", _default_color("banner_text")))
                 except Exception:
                     label = "⬡ Keprix"
-                    _resp_color = _maybe_remap_for_light_mode("#CD7F32")
-                    _resp_text = _maybe_remap_for_light_mode("#FFF8DC")
+                    _resp_color = _maybe_remap_for_light_mode(_default_color("response_border"))
+                    _resp_text = _maybe_remap_for_light_mode(_default_color("banner_text"))
 
                 is_error_response = result and (result.get("failed") or result.get("partial"))
                 already_streamed = self._stream_started and self._stream_box_opened and not is_error_response
@@ -10981,10 +11004,10 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
             from keprix_cli.skin_engine import get_active_skin
             _welcome_skin = get_active_skin()
             _welcome_text = _welcome_skin.get_branding("welcome", "Welcome to Keprix! Type your message or /help for commands.")
-            _welcome_color = _welcome_skin.get_color("banner_text", "#FFF8DC")
+            _welcome_color = _welcome_skin.get_color("banner_text", _default_color("banner_text"))
         except Exception:
             _welcome_text = "Welcome to Keprix! Type your message or /help for commands."
-            _welcome_color = "#FFF8DC"
+            _welcome_color = _default_color("banner_text")
         self._console_print(f"[{_welcome_color}]{_welcome_text}[/]")
 
         # Warm the /model picker's provider-models cache off-thread during this
@@ -11027,9 +11050,9 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
             )
             if not is_seen(self.config, OPENCLAW_RESIDUE_FLAG) and detect_openclaw_residue():
                 try:
-                    _resid_color = _welcome_skin.get_color("banner_dim", "#B8860B")
+                    _resid_color = _welcome_skin.get_color("banner_dim", _default_color("banner_dim"))
                 except Exception:
-                    _resid_color = "#B8860B"
+                    _resid_color = _default_color("banner_dim")
                 self._console_print(f"[{_resid_color}]{openclaw_residue_hint_cli()}[/]")
                 try:
                     from keprix_cli.config import get_config_path as _get_cfg_path_resid
@@ -11043,9 +11066,9 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
             from keprix_cli.tips import get_random_tip
             _tip = get_random_tip()
             try:
-                _tip_color = _welcome_skin.get_color("banner_dim", "#B8860B")
+                _tip_color = _welcome_skin.get_color("banner_dim", _default_color("banner_dim"))
             except Exception:
-                _tip_color = "#B8860B"
+                _tip_color = _default_color("banner_dim")
             self._console_print(f"[dim {_tip_color}]✦ Tip: {_tip}[/]")
         except Exception:
             pass  # Tips are non-critical — never break startup
@@ -12753,12 +12776,25 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
             )
         )
         
-        # Style for the application
+        # Style for the application.
+        #
+        # This prompt_toolkit style predates the skin system and never
+        # picked up a specific skin's own colors (it's a separate style
+        # language from the Rich markup _skin.get_color() drives
+        # elsewhere) - but it should at least track the *default* skin's
+        # palette rather than an independently hardcoded one, so the TUI
+        # input mode doesn't visibly disagree with the banner/status bar
+        # it sits beneath. Every color below goes through _default_color()
+        # for exactly that reason.
+        _title = _default_color("banner_title")
+        _text = _default_color("banner_text")
+        _rule = _default_color("input_rule")
+        _dim_session = _default_color("session_border")
         self._tui_style_base = {
             # Input area / prompt: empty style strings inherit the
             # terminal's default foreground/background, so the typed
             # text is readable in both light and dark Terminal.app
-            # color schemes.  (Hardcoding a near-white #FFF8DC made
+            # color schemes.  (Hardcoding a near-white banner_text made
             # input invisible on light backgrounds.)
             'input-area': '',
             'placeholder': '#888888 italic',
@@ -12766,42 +12802,42 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
             'prompt-working': '#888888 italic',
             'hint': '#888888 italic',
             'status-bar': 'bg:#1a1a2e #C0C0C0',
-            'status-bar-strong': 'bg:#1a1a2e #FFD700 bold',
-            'status-bar-dim': 'bg:#1a1a2e #8B8682',
+            'status-bar-strong': f'bg:#1a1a2e {_title} bold',
+            'status-bar-dim': f'bg:#1a1a2e {_dim_session}',
             'status-bar-good': 'bg:#1a1a2e #8FBC8F bold',
-            'status-bar-warn': 'bg:#1a1a2e #FFD700 bold',
+            'status-bar-warn': f'bg:#1a1a2e {_title} bold',
             'status-bar-bad': 'bg:#1a1a2e #FF8C00 bold',
             'status-bar-critical': 'bg:#1a1a2e #FF6B6B bold',
             'status-bar-yolo': 'bg:#1a1a2e #FF4444 bold',
-            # Bronze horizontal rules around the input area
-            'input-rule': '#CD7F32',
+            # Horizontal rules around the input area
+            'input-rule': _rule,
             # Clipboard image attachment badges
             'image-badge': '#87CEEB bold',
-            'completion-menu': 'bg:#1a1a2e #FFF8DC',
-            'completion-menu.completion': 'bg:#1a1a2e #FFF8DC',
-            'completion-menu.completion.current': 'bg:#333355 #FFD700',
+            'completion-menu': f'bg:#1a1a2e {_text}',
+            'completion-menu.completion': f'bg:#1a1a2e {_text}',
+            'completion-menu.completion.current': f'bg:#333355 {_title}',
             'completion-menu.meta.completion': 'bg:#1a1a2e #888888',
-            'completion-menu.meta.completion.current': 'bg:#333355 #FFBF00',
+            'completion-menu.meta.completion.current': f'bg:#333355 {_default_color("ui_accent")}',
             # Clarify question panel
-            'clarify-border': '#CD7F32',
-            'clarify-title': '#FFD700 bold',
-            'clarify-question': '#FFF8DC bold',
+            'clarify-border': _rule,
+            'clarify-title': f'{_title} bold',
+            'clarify-question': f'{_text} bold',
             'clarify-choice': '#AAAAAA',
-            'clarify-selected': '#FFD700 bold',
-            'clarify-active-other': '#FFD700 italic',
-            'clarify-countdown': '#CD7F32',
+            'clarify-selected': f'{_title} bold',
+            'clarify-active-other': f'{_title} italic',
+            'clarify-countdown': _rule,
             # Sudo password panel
             'sudo-prompt': '#FF6B6B bold',
-            'sudo-border': '#CD7F32',
+            'sudo-border': _rule,
             'sudo-title': '#FF6B6B bold',
-            'sudo-text': '#FFF8DC',
+            'sudo-text': _text,
             # Dangerous command approval panel
-            'approval-border': '#CD7F32',
+            'approval-border': _rule,
             'approval-title': '#FF8C00 bold',
-            'approval-desc': '#FFF8DC bold',
+            'approval-desc': f'{_text} bold',
             'approval-cmd': '#AAAAAA italic',
             'approval-choice': '#AAAAAA',
-            'approval-selected': '#FFD700 bold',
+            'approval-selected': f'{_title} bold',
             # Voice mode
             'voice-prompt': '#87CEEB',
             'voice-recording': '#FF4444 bold',
