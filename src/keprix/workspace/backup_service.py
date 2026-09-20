@@ -17,9 +17,11 @@ from keprix.security.crypto import decrypt_aes_gcm, derive_key, encrypt_aes_gcm
 
 class BackupService:
     def __init__(self, backup_dir: str | None = None) -> None:
-        root = Path(data_dir()) / "backups"
-        root.mkdir(parents=True, exist_ok=True)
-        self.backup_dir = Path(backup_dir or root)
+        self.backup_dir = Path(backup_dir or (Path(data_dir()) / "backups"))
+
+    def _ensure_dir(self) -> Path:
+        self.backup_dir.mkdir(parents=True, exist_ok=True)
+        return self.backup_dir
 
     def create_backup(self, *, password: str | None = None) -> dict[str, Any]:
         from keprix.workspace.hot_backup import create_hot_backup
@@ -27,7 +29,7 @@ class BackupService:
         backup_id = str(uuid4())
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         filename = f"keprix_hot_{timestamp}.tar.gz"
-        path = self.backup_dir / filename
+        path = self._ensure_dir() / filename
 
         meta = create_hot_backup(path, password=password)
         record = {
@@ -67,7 +69,7 @@ class BackupService:
         if path.exists():
             path.unlink()
         remaining = [item for item in self.list_backups() if item.get("id") != backup_id]
-        (self.backup_dir / "index.json").write_text(json.dumps(remaining, indent=2), encoding="utf-8")
+        (self._ensure_dir() / "index.json").write_text(json.dumps(remaining, indent=2), encoding="utf-8")
         return True
 
     def restore_backup(self, archive_bytes: bytes, *, password: str | None = None) -> dict[str, Any]:

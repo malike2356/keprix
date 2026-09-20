@@ -2436,6 +2436,40 @@ class TestWebServerEndpoints:
         assert evidence.status_code == 200, evidence.text[:400]
         assert "evidence" in evidence.json()
 
+    def test_backup_list_on_dashboard(self, tmp_path, monkeypatch):
+        """Admin -> Backup reads /api/admin/backup/list on the dashboard."""
+        from starlette.testclient import TestClient
+        from keprix.auth.session import AuthManager
+        from keprix_cli.web_server import app
+
+        monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path / "data"))
+        monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
+        monkeypatch.delenv("KEPRIX_ADMIN_PASSWORD", raising=False)
+        monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+        auth = AuthManager(str(tmp_path / "auth.json"))
+        ok, _message = auth.bootstrap_owner("owner@example.com", "solo-pass-1")
+        assert ok is True
+        token, _user, error = auth.login("owner@example.com", "solo-pass-1")
+        assert error is None and token
+        monkeypatch.setattr("keprix.auth.session.auth_manager", auth)
+        monkeypatch.setattr("keprix.auth.dependencies.auth_manager", auth)
+
+        class Service:
+            def list_backups(self):
+                return []
+
+        monkeypatch.setattr("keprix.workspace.backup_routes.backup_service", Service())
+
+        client = TestClient(app)
+        headers = {"Authorization": f"Bearer {token}"}
+        missing = client.get("/api/admin/backup/list", follow_redirects=False)
+        assert missing.status_code == 401
+
+        listed = client.get("/api/admin/backup/list", headers=headers, follow_redirects=False)
+        assert listed.status_code == 200, listed.text[:400]
+        assert listed.headers.get("location") is None
+        assert listed.json()["backups"] == []
+
     def test_missing_api_does_not_redirect_to_frontend(self, tmp_path, monkeypatch):
         """Authenticated GET /api/* with no handler must 404, not 302 to Next.js."""
         from starlette.testclient import TestClient
