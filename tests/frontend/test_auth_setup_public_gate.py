@@ -36,3 +36,11 @@ def test_auth_setup_page_shows_self_host_message_for_public_instances() -> None:
     assert "public_setup_disabled" in page
     assert "self-hosted product" in page.lower()
     assert "/download" in page
+
+
+def test_auth_setup_page_can_skip_llm_provider() -> None:
+    page = (ROOT / "frontend/src/app/auth/setup/page.tsx").read_text(encoding="utf-8")
+    assert "Skip for now" in page
+    assert "handleSkipProvider" in page
+    assert 'api_key: ""' in page
+    assert "API key (optional)" in page

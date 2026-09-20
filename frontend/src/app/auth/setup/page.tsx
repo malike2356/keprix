@@ -163,6 +163,21 @@ export default function AuthSetupPage() {
     setActiveStep((prev) => prev + 1);
   };
 
+  const handleSkipProvider = async () => {
+    setError(null);
+    setApiKey("");
+    setBusy(true);
+    try {
+      const ok = await postStep(2, { provider, api_key: "" });
+      if (!ok) return;
+      setActiveStep(3);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not skip provider setup");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <AuthLayout>
       <Typography variant="h5" gutterBottom>
@@ -200,6 +215,9 @@ export default function AuthSetupPage() {
       )}
       {activeStep === 2 && (
         <Box sx={{ display: "grid", gap: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            Optional. Add a key now, or skip and configure DeepSeek (or any provider) after login.
+          </Typography>
           <TextField select label="Primary LLM" value={provider} onChange={(e) => setProvider(e.target.value)}>
             {providers.map((item) => (
               <MenuItem key={item} value={item}>
@@ -207,7 +225,12 @@ export default function AuthSetupPage() {
               </MenuItem>
             ))}
           </TextField>
-          <TextField label="API key" type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
+          <TextField
+            label="API key (optional)"
+            type="password"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+          />
         </Box>
       )}
       {activeStep === 3 && (
@@ -219,9 +242,16 @@ export default function AuthSetupPage() {
         <Button disabled={activeStep === 0 || busy} onClick={() => setActiveStep((prev) => prev - 1)}>
           Back
         </Button>
-        <Button variant="contained" disabled={busy} onClick={handleNext}>
-          {activeStep === steps.length - 1 ? "Open dashboard" : "Continue"}
-        </Button>
+        <Box sx={{ display: "flex", gap: 1 }}>
+          {activeStep === 2 ? (
+            <Button disabled={busy} onClick={() => void handleSkipProvider()}>
+              Skip for now
+            </Button>
+          ) : null}
+          <Button variant="contained" disabled={busy} onClick={handleNext}>
+            {activeStep === steps.length - 1 ? "Open dashboard" : "Continue"}
+          </Button>
+        </Box>
       </Box>
     </AuthLayout>
   );
