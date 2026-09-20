@@ -11574,6 +11574,11 @@ def _mount_dashboard_workspace_routers() -> None:
     """
     from keprix.setup.routes import router as setup_router
     from keprix.auth.routes import router as auth_router
+    from keprix.auth.sso.routes import router as auth_sso_router
+    from keprix.auth.session_routes import router as auth_session_router
+    from keprix.auth.password_routes import router as auth_password_router
+    from keprix.auth.otp_routes import router as auth_otp_router
+    from keprix.auth.invite_routes import router as auth_invite_router
     from keprix.api.conversation_routes import router as conversation_router
     from keprix.trajectory.routes import router as trajectory_router
     from keprix.workspace.routes import (
@@ -11610,11 +11615,17 @@ def _mount_dashboard_workspace_routers() -> None:
     from keprix.crm.nice_routes import router as crm_nice_router
     from keprix.api.agent_sync_routes import router as agent_sync_router
     from keprix.api.syncthing_routes import router as syncthing_router
+    from keprix.api.upgrade_routes import router as upgrade_router
     from keprix_cli.dashboard_auth.routes import router as dashboard_auth_router
 
     for router in (
         setup_router,
         auth_router,
+        auth_sso_router,
+        auth_session_router,
+        auth_password_router,
+        auth_otp_router,
+        auth_invite_router,
         conversation_router,
         trajectory_router,
         calendar_router,
@@ -11649,6 +11660,7 @@ def _mount_dashboard_workspace_routers() -> None:
         crm_nice_router,
         agent_sync_router,
         syncthing_router,
+        upgrade_router,
         dashboard_auth_router,
     ):
         app.include_router(router)
