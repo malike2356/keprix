@@ -796,10 +796,30 @@ def cmd_enable(name: str) -> None:
         disabled.discard(bare)
     _save_enabled_set(enabled)
     _save_disabled_set(disabled)
-    console.print(
-        f"[green]✓[/green] Plugin [bold]{key}[/bold] enabled. "
-        "Takes effect on next session."
-    )
+
+    # Hot mount in the current process when a PluginManager is already live.
+    hot: dict | None = None
+    try:
+        from keprix.plugin_lifecycle import enable_plugin_hot
+
+        hot = enable_plugin_hot(key, who="cli")
+    except Exception as exc:
+        console.print(
+            f"[yellow]Config updated, but hot mount failed ({exc}). "
+            "Effects apply on next session.[/yellow]"
+        )
+        hot = None
+
+    if hot and hot.get("ok"):
+        console.print(
+            f"[green]✓[/green] Plugin [bold]{key}[/bold] enabled and mounted "
+            "in this process."
+        )
+    else:
+        console.print(
+            f"[green]✓[/green] Plugin [bold]{key}[/bold] enabled. "
+            "Takes effect on next session if hot mount was unavailable."
+        )
 
 
 def cmd_disable(name: str) -> None:
@@ -828,10 +848,29 @@ def cmd_disable(name: str) -> None:
     disabled.add(key)
     _save_enabled_set(enabled)
     _save_disabled_set(disabled)
-    console.print(
-        f"[yellow]\u2298[/yellow] Plugin [bold]{key}[/bold] disabled. "
-        "Takes effect on next session."
-    )
+
+    hot: dict | None = None
+    try:
+        from keprix.plugin_lifecycle import disable_plugin_hot
+
+        hot = disable_plugin_hot(key, who="cli")
+    except Exception as exc:
+        console.print(
+            f"[yellow]Config updated, but hot unmount failed ({exc}). "
+            "Effects clear on next session.[/yellow]"
+        )
+        hot = None
+
+    if hot and hot.get("ok"):
+        console.print(
+            f"[yellow]\u2298[/yellow] Plugin [bold]{key}[/bold] disabled and "
+            "unmounted in this process (no orphaned tools/prompt sections)."
+        )
+    else:
+        console.print(
+            f"[yellow]\u2298[/yellow] Plugin [bold]{key}[/bold] disabled. "
+            "Takes effect on next session if hot unmount was unavailable."
+        )
 
 
 def _plugin_exists(name: str) -> bool:

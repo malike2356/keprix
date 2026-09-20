@@ -70,6 +70,35 @@ class SeamRegistry:
         with _lock:
             return self._active.get(seam)
 
+    def unregister(self, seam: SeamId, provider_id: str) -> bool:
+        """Remove a Provider. If it was active, activate another or clear.
+
+        Returns True when the Provider existed. Prefer restoring a default
+        ``*.local`` / ``policy:*.local`` / ``*.default`` id when present.
+        """
+        with _lock:
+            if seam not in SEAM_IDS:
+                raise SeamNotFoundError(f"Unknown seam: {seam}")
+            providers = self._providers[seam]
+            if provider_id not in providers:
+                return False
+            del providers[provider_id]
+            if self._active[seam] == provider_id:
+                fallback = None
+                for candidate in (
+                    f"policy:{seam}.local",
+                    f"{seam}.local",
+                    f"{seam}.default",
+                    f"policy:{seam}.default",
+                ):
+                    if candidate in providers:
+                        fallback = candidate
+                        break
+                if fallback is None and providers:
+                    fallback = sorted(providers.keys())[0]
+                self._active[seam] = fallback
+            return True
+
     def list_providers(self, seam: SeamId) -> list[str]:
         with _lock:
             if seam not in SEAM_IDS:

@@ -352,6 +352,14 @@ class PluginContext:
             override=override,
         )
         self._manager._plugin_tool_names.add(name)
+        try:
+            from keprix.plugin_lifecycle.ledger import get_lifecycle_ledger
+
+            get_lifecycle_ledger().record_tool(
+                self.manifest.key or self.manifest.name, name
+            )
+        except Exception:
+            logger.debug("lifecycle ledger tool record failed", exc_info=True)
         logger.debug(
             "Plugin %s registered tool: %s%s",
             self.manifest.name, name, " (override)" if override else "",
@@ -408,6 +416,14 @@ class PluginContext:
             "handler_fn": handler_fn,
             "plugin": self.manifest.name,
         }
+        try:
+            from keprix.plugin_lifecycle.ledger import get_lifecycle_ledger
+
+            get_lifecycle_ledger().record_cli_command(
+                self.manifest.key or self.manifest.name, name
+            )
+        except Exception:
+            logger.debug("lifecycle ledger cli record failed", exc_info=True)
         logger.debug("Plugin %s registered CLI command: %s", self.manifest.name, name)
 
     # -- slash command registration -------------------------------------------
@@ -464,6 +480,14 @@ class PluginContext:
             "plugin": self.manifest.name,
             "args_hint": (args_hint or "").strip(),
         }
+        try:
+            from keprix.plugin_lifecycle.ledger import get_lifecycle_ledger
+
+            get_lifecycle_ledger().record_slash_command(
+                self.manifest.key or self.manifest.name, clean
+            )
+        except Exception:
+            logger.debug("lifecycle ledger slash record failed", exc_info=True)
         logger.debug("Plugin %s registered command: /%s", self.manifest.name, clean)
 
     # -- tool dispatch -------------------------------------------------------
@@ -815,6 +839,14 @@ class PluginContext:
         )
         platform_registry.register(entry)
         self._manager._plugin_platform_names.add(name)
+        try:
+            from keprix.plugin_lifecycle.ledger import get_lifecycle_ledger
+
+            get_lifecycle_ledger().record_platform(
+                self.manifest.key or self.manifest.name, name
+            )
+        except Exception:
+            logger.debug("lifecycle ledger platform record failed", exc_info=True)
         logger.debug(
             "Plugin %s registered platform: %s",
             self.manifest.name,
@@ -987,6 +1019,14 @@ class PluginContext:
             "defaults": merged_defaults,
             "plugin": self.manifest.name,
         }
+        try:
+            from keprix.plugin_lifecycle.ledger import get_lifecycle_ledger
+
+            get_lifecycle_ledger().record_aux_task(
+                self.manifest.key or self.manifest.name, key
+            )
+        except Exception:
+            logger.debug("lifecycle ledger aux record failed", exc_info=True)
         logger.debug(
             "Plugin %s registered auxiliary task: %s (%s)",
             self.manifest.name,
@@ -1009,6 +1049,14 @@ class PluginContext:
                 ", ".join(sorted(VALID_HOOKS)),
             )
         self._manager._hooks.setdefault(hook_name, []).append(callback)
+        try:
+            from keprix.plugin_lifecycle.ledger import get_lifecycle_ledger
+
+            get_lifecycle_ledger().record_hook(
+                self.manifest.key or self.manifest.name, hook_name, callback
+            )
+        except Exception:
+            logger.debug("lifecycle ledger hook record failed", exc_info=True)
         logger.debug("Plugin %s registered hook: %s", self.manifest.name, hook_name)
 
     # -- middleware registration -------------------------------------------
@@ -1030,6 +1078,14 @@ class PluginContext:
                 ", ".join(sorted(VALID_MIDDLEWARE)),
             )
         self._manager._middleware.setdefault(kind, []).append(callback)
+        try:
+            from keprix.plugin_lifecycle.ledger import get_lifecycle_ledger
+
+            get_lifecycle_ledger().record_middleware(
+                self.manifest.key or self.manifest.name, kind, callback
+            )
+        except Exception:
+            logger.debug("lifecycle ledger middleware record failed", exc_info=True)
         logger.debug("Plugin %s registered middleware: %s", self.manifest.name, kind)
 
     # -- skill registration -------------------------------------------------
@@ -1074,9 +1130,81 @@ class PluginContext:
             "bare_name": name,
             "description": description,
         }
+        try:
+            from keprix.plugin_lifecycle.ledger import get_lifecycle_ledger
+
+            get_lifecycle_ledger().record_skill(
+                self.manifest.key or self.manifest.name, qualified
+            )
+        except Exception:
+            logger.debug("lifecycle ledger skill record failed", exc_info=True)
         logger.debug(
             "Plugin %s registered skill: %s",
             self.manifest.name, qualified,
+        )
+
+    # -- prompt section / MCP / seam (reversible lifecycle) -----------------
+
+    def register_prompt_section(
+        self,
+        section_id: str,
+        content: str | Callable[[], str],
+    ) -> None:
+        """Register a prompt injector by stable *section_id* (not substring).
+
+        Unload clears the section by id so disabled plugins leave no orphaned
+        prompt text in the agent loop.
+        """
+        plugin_id = self.manifest.key or self.manifest.name
+        from keprix.plugin_lifecycle.prompt_sections import (
+            register_prompt_section as _reg,
+        )
+        from keprix.plugin_lifecycle.ledger import get_lifecycle_ledger
+
+        _reg(section_id, content, plugin_id=plugin_id)
+        get_lifecycle_ledger().record_prompt_section(plugin_id, section_id)
+        logger.debug(
+            "Plugin %s registered prompt section: %s",
+            self.manifest.name,
+            section_id,
+        )
+
+    def register_mcp_server(self, name: str, config: dict) -> None:
+        """Register an MCP server for this plugin; unload disconnects it."""
+        plugin_id = self.manifest.key or self.manifest.name
+        from tools.mcp_tool import register_server_runtime
+        from keprix.plugin_lifecycle.ledger import get_lifecycle_ledger
+
+        register_server_runtime(name, config)
+        get_lifecycle_ledger().record_mcp_server(plugin_id, name)
+        logger.debug(
+            "Plugin %s registered MCP server: %s",
+            self.manifest.name,
+            name,
+        )
+
+    def register_seam_provider(
+        self,
+        seam: str,
+        provider: Any,
+        *,
+        make_active: bool = False,
+    ) -> None:
+        """Contribute a capability-seam Provider; unload unregisters it."""
+        plugin_id = self.manifest.key or self.manifest.name
+        from keprix.seams.registry import get_seam_registry
+        from keprix.seams.bootstrap import ensure_default_seams
+        from keprix.plugin_lifecycle.ledger import get_lifecycle_ledger
+
+        ensure_default_seams()
+        get_seam_registry().register(seam, provider, make_active=make_active)  # type: ignore[arg-type]
+        provider_id = getattr(provider, "provider_id", "")
+        get_lifecycle_ledger().record_seam_provider(plugin_id, seam, str(provider_id))
+        logger.debug(
+            "Plugin %s registered seam provider %s on %s",
+            self.manifest.name,
+            provider_id,
+            seam,
         )
 
 
@@ -1786,6 +1914,286 @@ class PluginManager:
     def remove_plugin_skill(self, qualified_name: str) -> None:
         """Remove a stale registry entry (silently ignores missing keys)."""
         self._plugin_skills.pop(qualified_name, None)
+
+    # -----------------------------------------------------------------------
+    # Reversible mount / unmount (hot enable/disable)
+    # -----------------------------------------------------------------------
+
+    def unmount_plugin(
+        self,
+        plugin_id: str,
+        *,
+        who: str = "operator",
+    ) -> Dict[str, Any]:
+        """Reverse registrations for *plugin_id* without deleting plugin files.
+
+        Best-effort: each effect is removed independently; failures are collected
+        in ``errors`` rather than aborting mid-unload.
+        """
+        from keprix.plugin_lifecycle.audit import emit_lifecycle_audit
+        from keprix.plugin_lifecycle.ledger import get_lifecycle_ledger
+        from keprix.plugin_lifecycle.prompt_sections import clear_prompt_section
+
+        ledger = get_lifecycle_ledger()
+        entry = ledger.get(plugin_id)
+        errors: List[str] = []
+        removed: Dict[str, Any] = {
+            "tools": [],
+            "hooks": 0,
+            "middleware": 0,
+            "prompt_sections": [],
+            "mcp_servers": [],
+            "seam_providers": [],
+            "slash_commands": [],
+            "cli_commands": [],
+            "skills": [],
+            "aux_tasks": [],
+            "platforms": [],
+        }
+
+        if entry is None:
+            loaded = self._plugins.get(plugin_id)
+            if loaded is not None:
+                loaded.enabled = False
+            emit_lifecycle_audit(
+                "unmount",
+                plugin_id,
+                who=who,
+                ok=True,
+                detail={"already_cleared": True},
+            )
+            return {
+                "ok": True,
+                "plugin_id": plugin_id,
+                "action": "unmount",
+                "idempotent": True,
+                "errors": [],
+                "removed": removed,
+            }
+
+        # Tools
+        try:
+            from tools.registry import registry as tool_registry
+        except Exception as exc:
+            tool_registry = None
+            errors.append(f"tool_registry_unavailable: {exc}")
+
+        for tool_name in list(entry.tools):
+            try:
+                if tool_registry is not None:
+                    tool_registry.deregister(tool_name)
+                self._plugin_tool_names.discard(tool_name)
+                removed["tools"].append(tool_name)
+            except Exception as exc:
+                errors.append(f"tool:{tool_name}: {exc}")
+
+        # Hooks (remove exact callback objects)
+        for hook_name, callback in list(entry.hooks):
+            try:
+                cbs = self._hooks.get(hook_name, [])
+                self._hooks[hook_name] = [c for c in cbs if c is not callback]
+                if not self._hooks[hook_name]:
+                    self._hooks.pop(hook_name, None)
+                removed["hooks"] += 1
+            except Exception as exc:
+                errors.append(f"hook:{hook_name}: {exc}")
+
+        for kind, callback in list(entry.middleware):
+            try:
+                cbs = self._middleware.get(kind, [])
+                self._middleware[kind] = [c for c in cbs if c is not callback]
+                if not self._middleware[kind]:
+                    self._middleware.pop(kind, None)
+                removed["middleware"] += 1
+            except Exception as exc:
+                errors.append(f"middleware:{kind}: {exc}")
+
+        for section_id in list(entry.prompt_sections):
+            try:
+                clear_prompt_section(section_id)
+                removed["prompt_sections"].append(section_id)
+            except Exception as exc:
+                errors.append(f"prompt:{section_id}: {exc}")
+
+        for mcp_name in list(entry.mcp_servers):
+            try:
+                from tools.mcp_tool import unregister_server_runtime
+
+                unregister_server_runtime(mcp_name)
+                removed["mcp_servers"].append(mcp_name)
+            except Exception as exc:
+                errors.append(f"mcp:{mcp_name}: {exc}")
+
+        for seam, provider_id in list(entry.seam_providers):
+            try:
+                from keprix.seams.registry import get_seam_registry
+
+                get_seam_registry().unregister(seam, provider_id)  # type: ignore[arg-type]
+                removed["seam_providers"].append(f"{seam}:{provider_id}")
+            except Exception as exc:
+                errors.append(f"seam:{seam}:{provider_id}: {exc}")
+
+        for cmd in list(entry.slash_commands):
+            try:
+                self._plugin_commands.pop(cmd, None)
+                removed["slash_commands"].append(cmd)
+            except Exception as exc:
+                errors.append(f"slash:{cmd}: {exc}")
+
+        for cmd in list(entry.cli_commands):
+            try:
+                self._cli_commands.pop(cmd, None)
+                removed["cli_commands"].append(cmd)
+            except Exception as exc:
+                errors.append(f"cli:{cmd}: {exc}")
+
+        for skill in list(entry.skills):
+            try:
+                self._plugin_skills.pop(skill, None)
+                removed["skills"].append(skill)
+            except Exception as exc:
+                errors.append(f"skill:{skill}: {exc}")
+
+        for aux in list(entry.aux_tasks):
+            try:
+                self._aux_tasks.pop(aux, None)
+                removed["aux_tasks"].append(aux)
+            except Exception as exc:
+                errors.append(f"aux:{aux}: {exc}")
+
+        for platform_name in list(entry.platforms):
+            try:
+                self._plugin_platform_names.discard(platform_name)
+                try:
+                    from gateway.platform_registry import platform_registry
+
+                    unregister = getattr(platform_registry, "unregister", None)
+                    if callable(unregister):
+                        unregister(platform_name)
+                except Exception:
+                    pass
+                removed["platforms"].append(platform_name)
+            except Exception as exc:
+                errors.append(f"platform:{platform_name}: {exc}")
+
+        ledger.pop(plugin_id)
+        loaded = self._plugins.get(plugin_id)
+        if loaded is not None:
+            loaded.enabled = False
+            loaded.tools_registered = []
+            loaded.hooks_registered = []
+            loaded.middleware_registered = []
+            loaded.commands_registered = []
+
+        ok = not errors
+        emit_lifecycle_audit(
+            "unmount",
+            plugin_id,
+            who=who,
+            ok=ok,
+            detail={"removed": removed, "errors": errors},
+        )
+        return {
+            "ok": ok,
+            "plugin_id": plugin_id,
+            "action": "unmount",
+            "errors": errors,
+            "removed": removed,
+        }
+
+    def mount_plugin(
+        self,
+        plugin_id: str,
+        *,
+        who: str = "operator",
+    ) -> Dict[str, Any]:
+        """Load or reload a plugin's ``register(ctx)`` in the current process."""
+        from keprix.plugin_lifecycle.audit import emit_lifecycle_audit
+        from keprix.plugin_lifecycle.ledger import get_lifecycle_ledger
+
+        loaded = self._plugins.get(plugin_id)
+        # Only run discovery when we do not already know this plugin. A fresh
+        # PluginManager would otherwise wipe in-memory test / hot-mount state.
+        if loaded is None and not self._discovered:
+            self.discover_and_load()
+            loaded = self._plugins.get(plugin_id)
+
+        manifest = loaded.manifest if loaded is not None else None
+        if manifest is None:
+            # Try bare-name / leaf match
+            for key, lp in self._plugins.items():
+                if key == plugin_id or lp.manifest.name == plugin_id:
+                    plugin_id = key
+                    manifest = lp.manifest
+                    loaded = lp
+                    break
+
+        if manifest is None:
+            # Rescan once to pick up newly installed plugins
+            self.discover_and_load(force=True)
+            loaded = self._plugins.get(plugin_id)
+            manifest = loaded.manifest if loaded is not None else None
+
+        if manifest is None:
+            emit_lifecycle_audit(
+                "mount",
+                plugin_id,
+                who=who,
+                ok=False,
+                detail={"error": "plugin_not_found"},
+            )
+            return {
+                "ok": False,
+                "plugin_id": plugin_id,
+                "action": "mount",
+                "error": "plugin_not_found",
+            }
+
+        # Clear any leftover effects first (idempotent re-enable).
+        existing = get_lifecycle_ledger().get(plugin_id)
+        if existing is not None:
+            self.unmount_plugin(plugin_id, who=who)
+            loaded = self._plugins.get(plugin_id) or loaded
+
+        try:
+            module = loaded.module if loaded is not None else None
+            if module is not None and callable(getattr(module, "register", None)):
+                ctx = PluginContext(manifest, self)
+                module.register(ctx)
+                if loaded is not None:
+                    loaded.enabled = True
+                    loaded.error = ""
+            else:
+                self._load_plugin(manifest)
+        except Exception as exc:
+            emit_lifecycle_audit(
+                "mount",
+                plugin_id,
+                who=who,
+                ok=False,
+                detail={"error": str(exc)},
+            )
+            return {
+                "ok": False,
+                "plugin_id": plugin_id,
+                "action": "mount",
+                "error": str(exc),
+            }
+
+        entry = get_lifecycle_ledger().get(plugin_id)
+        emit_lifecycle_audit(
+            "mount",
+            plugin_id,
+            who=who,
+            ok=True,
+            detail={"registrations": entry.snapshot() if entry else {}},
+        )
+        return {
+            "ok": True,
+            "plugin_id": plugin_id,
+            "action": "mount",
+            "registrations": entry.snapshot() if entry else {},
+        }
 
 
 # ---------------------------------------------------------------------------

@@ -75,6 +75,14 @@ Shield, and vault floors wrap Providers; they do not skip the seam. Product modu
 (Playbooks, CRM, billing, Document Vault) stay first-class, not plugins. Architecture:
 `docs/architecture/capability-seams.md`.
 
+## Reversible plugin lifecycle
+
+`keprix plugins enable|disable` updates config and hot-mounts / unmounts in-process
+when a PluginManager is live. Unload reverses tools, prompt sections (by section
+id), MCP bindings, and seam Providers via `keprix.plugin_lifecycle`. Do not delete
+plugin files on disable. Architecture:
+`docs/architecture/reversible-plugin-lifecycle.md`.
+
 ## Self-knowledge RAG
 
 Teach Keprix about itself via the shared RAG corpus (user `__keprix_self__`):
