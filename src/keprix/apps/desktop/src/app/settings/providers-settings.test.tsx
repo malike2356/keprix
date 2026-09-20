@@ -28,7 +28,7 @@ function provider(id: string, loggedIn: boolean, patch: Partial<OAuthProvider> =
     docs_url: '',
     flow: 'device_code',
     id,
-    name: id === 'nous' ? 'Nous Portal' : 'MiniMax',
+    name: id === 'openai-codex' ? 'OpenAI Codex' : 'MiniMax',
     status: {
       logged_in: loggedIn
     },
@@ -39,9 +39,9 @@ function provider(id: string, loggedIn: boolean, patch: Partial<OAuthProvider> =
 beforeEach(() => {
   onboarding.set({ manual: false })
   getEnvVars.mockResolvedValue({})
-  disconnectOAuthProvider.mockResolvedValue({ ok: true, provider: 'nous' })
+  disconnectOAuthProvider.mockResolvedValue({ ok: true, provider: 'openai-codex' })
   listOAuthProviders.mockResolvedValue({
-    providers: [provider('nous', true), provider('minimax-oauth', false)]
+    providers: [provider('openai-codex', true), provider('minimax-oauth', false)]
   })
   vi.spyOn(window, 'confirm').mockReturnValue(true)
 })
@@ -62,19 +62,19 @@ describe('ProvidersSettings', () => {
   it('disconnects a connected provider account and refreshes the accounts list', async () => {
     await renderProvidersSettings()
 
-    const remove = await screen.findByRole('button', { name: 'Remove Nous Portal' })
+    const remove = await screen.findByRole('button', { name: 'Remove OpenAI OAuth (ChatGPT)' })
     fireEvent.click(remove)
 
-    await waitFor(() => expect(disconnectOAuthProvider).toHaveBeenCalledWith('nous'))
+    await waitFor(() => expect(disconnectOAuthProvider).toHaveBeenCalledWith('openai-codex'))
     expect(listOAuthProviders).toHaveBeenCalledTimes(2)
   })
 
   it('keeps provider selection separate from account removal', async () => {
     await renderProvidersSettings()
 
-    fireEvent.click(await screen.findByText('Nous Portal'))
+    fireEvent.click(await screen.findByText('OpenAI OAuth (ChatGPT)'))
 
-    expect(startManualProviderOAuth).toHaveBeenCalledWith('nous')
+    expect(startManualProviderOAuth).toHaveBeenCalledWith('openai-codex')
     expect(disconnectOAuthProvider).not.toHaveBeenCalled()
   })
 
@@ -95,6 +95,6 @@ describe('ProvidersSettings', () => {
 
     expect(await screen.findByText('Qwen Code')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Remove Qwen Code' })).toBeNull()
-    expect(screen.getByText(/managed outside Hermes/)).toBeTruthy()
+    expect(screen.getByText(/managed outside Keprix/)).toBeTruthy()
   })
 })

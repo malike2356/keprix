@@ -3308,8 +3308,8 @@ def _aux_config_menu() -> None:
         print()
         print("  Side tasks (vision, compression, web extraction, etc.) default")
         print('  to your main chat model.  "auto" means "use my main model" —')
-        print("  Keprix only falls back to a lightweight backend (OpenRouter,")
-        print("  Nous Portal) if the main model is unavailable.  Override a")
+        print("  Keprix only falls back to a lightweight backend (OpenRouter)")
+        print("  if the main model is unavailable.  Override a")
         print("  task below if you want it pinned to a specific provider/model.")
         print()
 
@@ -11102,6 +11102,7 @@ _BUILTIN_SUBCOMMANDS = frozenset(
         # top-level --help is an acceptable trade-off for skipping an
         # expensive eager import of every bundled plugin module.
         "help",
+        "portal",
     }
 )
 
@@ -11824,6 +11825,10 @@ def main():
     # login command  (parser built in keprix_cli/subcommands/login.py)
     # =========================================================================
     build_login_parser(subparsers, cmd_login=cmd_login)
+
+    from keprix_cli.portal_cli import add_parser as build_portal_parser
+
+    build_portal_parser(subparsers)
 
     # =========================================================================
     # logout command  (parser built in keprix_cli/subcommands/logout.py)

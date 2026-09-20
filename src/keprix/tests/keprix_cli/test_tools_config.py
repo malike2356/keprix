@@ -613,9 +613,8 @@ def test_save_platform_tools_still_preserves_mcp_with_platform_default_present()
     assert "terminal" not in saved
 
 
-def test_visible_providers_include_nous_subscription_when_logged_in(monkeypatch):
-    config = {"model": {"provider": "nous"}}
-
+def test_visible_providers_omit_nous_subscription(monkeypatch):
+    """Nous Subscription tool rows were removed. Pickers are BYOK only."""
     monkeypatch.setattr(
         "keprix_cli.nous_subscription.get_nous_portal_account_info",
         lambda: NousPortalAccountInfo(
@@ -626,93 +625,14 @@ def test_visible_providers_include_nous_subscription_when_logged_in(monkeypatch)
         ),
     )
 
-    providers = _visible_providers(TOOL_CATEGORIES["browser"], config)
+    for key in ("browser", "tts", "web", "image_gen", "video_gen"):
+        providers = _visible_providers(TOOL_CATEGORIES[key], {"model": {"provider": "nous"}})
+        assert not any(
+            "Nous Subscription" in str(p.get("name", "")) for p in providers
+        ), key
 
-    # The managed Nous row is listed (not necessarily first — "Local Browser"
-    # sorts first so a fresh-install Enter lands on the free local backend).
-    assert any(p["name"].startswith("Nous Subscription") for p in providers)
-    # "Local Browser" must be the index-0 default so pressing Enter never
-    # walks a user into a paid Nous Portal login.
-    assert providers[0]["name"] == "Local Browser"
-
-
-def test_visible_providers_show_nous_subscription_when_logged_out(monkeypatch):
-    """Nous-managed Tool Gateway rows are always listed, even logged out.
-
-    Selecting one triggers an inline Portal login (entitlement is checked at
-    selection time, not visibility time).
-    """
-    config = {"model": {"provider": "openrouter"}}
-
-    monkeypatch.setattr(
-        "keprix_cli.nous_subscription.get_nous_portal_account_info",
-        lambda: NousPortalAccountInfo(
-            logged_in=False,
-            source="none",
-            fresh=False,
-            paid_service_access=None,
-        ),
-    )
-
-    providers = _visible_providers(TOOL_CATEGORIES["browser"], config)
-
-    assert any(p["name"].startswith("Nous Subscription") for p in providers)
-
-
-def test_visible_providers_show_nous_subscription_when_paid_access_is_false(monkeypatch):
-    """Logged-in-but-unpaid users still see the managed rows.
-
-    The paid-access gate moved from visibility to selection time — the row is
-    shown; ``ensure_nous_portal_access`` blocks activation if still unpaid.
-    """
-    config = {"model": {"provider": "nous"}}
-
-    monkeypatch.setattr(
-        "keprix_cli.nous_subscription.get_nous_portal_account_info",
-        lambda: NousPortalAccountInfo(
-                logged_in=True,
-                source="jwt",
-                fresh=False,
-                paid_service_access=False,
-            ),
-    )
-
-    providers = _visible_providers(TOOL_CATEGORIES["browser"], config)
-
-    assert any(p["name"].startswith("Nous Subscription") for p in providers)
-
-
-def test_visible_providers_force_fresh_shows_nous_subscription_after_upgrade(monkeypatch):
-    calls = []
-
-    def fake_subscription_features(config, *, force_fresh=False):
-        calls.append(("features", force_fresh))
-        return SimpleNamespace(
-            nous_auth_present=True,
-            account_info=NousPortalAccountInfo(
-                logged_in=True,
-                source="account_api" if force_fresh else "jwt",
-                fresh=force_fresh,
-                paid_service_access=True if force_fresh else False,
-            ),
-            features={},
-        )
-
-    monkeypatch.setattr(
-        "keprix_cli.tools_config.get_nous_subscription_features",
-        fake_subscription_features,
-    )
-
-    providers = _visible_providers(
-        TOOL_CATEGORIES["browser"],
-        {"model": {"provider": "nous"}},
-        force_fresh=True,
-    )
-
-    # The managed Nous row reappears after the entitlement upgrade. It is no
-    # longer asserted to be first — "Local Browser" sorts first by design.
-    assert any(p["name"].startswith("Nous Subscription") for p in providers)
-    assert ("features", True) in calls
+    browser = _visible_providers(TOOL_CATEGORIES["browser"], {})
+    assert browser[0]["name"] == "Local Browser"
 
 
 def test_local_browser_provider_is_saved_explicitly(monkeypatch):
@@ -1079,15 +999,10 @@ class TestImagegenBackendRegistry:
         assert "fal-ai/flux-2/klein/9b" in catalog
         assert "fal-ai/flux-2-pro" in catalog
 
-    def test_image_gen_providers_tagged_with_fal_backend(self):
-        """Both Nous Subscription and FAL.ai providers must carry the
-        imagegen_backend tag so _configure_provider fires the picker."""
+    def test_image_gen_hardcoded_providers_have_no_nous_row(self):
         from keprix_cli.tools_config import TOOL_CATEGORIES
         providers = TOOL_CATEGORIES["image_gen"]["providers"]
-        for p in providers:
-            assert p.get("imagegen_backend") == "fal", (
-                f"{p['name']} missing imagegen_backend tag"
-            )
+        assert not any("Nous Subscription" in str(p.get("name", "")) for p in providers)
 
 
 class TestImagegenModelPicker:

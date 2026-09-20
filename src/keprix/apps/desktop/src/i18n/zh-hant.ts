@@ -724,7 +724,7 @@ export const zhHant = defineLocale({
       noProviderOptions: '此工具集沒有提供方選項；啟用後即可使用目前設定。',
       noProviders: '此工具集目前沒有可用提供方。',
       ready: '就緒',
-      nousIncluded: '包含在 Keprix 訂閱中；登入 Keprix 即可啟用。',
+      nousIncluded: '沒有託管訂閱。請使用你自己的 API 金鑰。',
       noApiKeyRequired: '不需要 API 金鑰。',
       postSetupHint: step => `此後端需要一次性安裝 (${step})。將在此機器上執行，可能需要幾分鐘。`,
       postSetupRun: '執行設定',
@@ -1521,7 +1521,7 @@ export const zhHant = defineLocale({
     chooseLater: '稍後再選擇提供方',
     recommended: '建議',
     connected: '已連線',
-    featuredPitch: '一個訂閱，300+ 前沿模型; 執行 Keprix 的建議方式',
+    featuredPitch: '使用你自己的 API 金鑰。DeepSeek、Anthropic、OpenRouter 等。',
     openRouterPitch: '一個金鑰，數百個模型; 穩定的預設選擇',
     apiKeyOptions: {
       openrouter: { short: '一個金鑰，多個模型', description: '用一個金鑰存取數百個模型。適合新安裝的預設選擇。' },
@@ -1588,7 +1588,7 @@ export const zhHant = defineLocale({
     loadFailed: '無法載入模型',
     noAuthenticatedProviders: '沒有已驗證的提供方。',
     pro: 'Pro',
-    proNeedsSubscription: 'Pro 模型需要付費 Keprix 訂閱。',
+    proNeedsSubscription: '此模型需要供應商 API 金鑰。',
     free: '免費',
     freeTier: '免費層',
     priceTitle: '每百萬 Token 的輸入/輸出價格'

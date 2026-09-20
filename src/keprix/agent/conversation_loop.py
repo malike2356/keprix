@@ -900,7 +900,7 @@ def run_conversation(
                     _nous_remaining = nous_rate_limit_remaining()
                     if _nous_remaining is not None and _nous_remaining > 0:
                         _nous_msg = (
-                            f"Nous Portal rate limit active — "
+                            f"Rate limit active — "
                             f"resets in {_fmt_nous_remaining(_nous_remaining)}."
                         )
                         agent._buffer_vprint(
@@ -2364,16 +2364,12 @@ def run_conversation(
                             _body_text = str(_body)[:200]
                     except Exception:
                         pass
-                    print(f"{agent.log_prefix}🔐 Nous 401 — Portal authentication failed.")
+                    print(f"{agent.log_prefix} Authentication failed (HTTP 401).")
                     if _body_text:
                         print(f"{agent.log_prefix}   Response: {_body_text}")
-                    if not _print_nous_entitlement_guidance(agent, "Nous model access"):
-                        print(f"{agent.log_prefix}   Most likely: Portal OAuth expired, account out of credits, or agent key revoked.")
-                    print(f"{agent.log_prefix}   Troubleshooting:")
-                    print(f"{agent.log_prefix}     • Re-authenticate: keprix auth add nous")
-                    print(f"{agent.log_prefix}     • Check credits / billing: https://keprixai.com")
-                    print(f"{agent.log_prefix}     • Verify stored credentials: {_dhh}/auth.json")
-                    print(f"{agent.log_prefix}     • Switch providers temporarily: /model <model> --provider openrouter")
+                    print(f"{agent.log_prefix}   This OAuth provider is no longer offered. Switch to BYOK:")
+                    print(f"{agent.log_prefix}     • keprix model")
+                    print(f"{agent.log_prefix}     • Switch providers: /model <model> --provider openrouter")
                 if (
                     agent.provider == "copilot"
                     and status_code == 401
@@ -3221,17 +3217,13 @@ def run_conversation(
                             elif _provider == "xai-oauth":
                                 agent._vprint(f"{agent.log_prefix}   💡 xAI OAuth token was rejected (HTTP 401). To fix:", force=True)
                                 agent._vprint(f"{agent.log_prefix}      re-authenticate with xAI Grok OAuth (SuperGrok / Premium+) from `keprix model`.", force=True)
-                            else:  # nous
-                                agent._vprint(f"{agent.log_prefix}   💡 Nous Portal OAuth token was rejected (HTTP 401). Your token may be", force=True)
-                                agent._vprint(f"{agent.log_prefix}      expired, revoked, or your account may be out of credits. To fix:", force=True)
-                                agent._vprint(f"{agent.log_prefix}      1. Re-authenticate: keprix portal", force=True)
-                                agent._vprint(f"{agent.log_prefix}      2. Check your portal account: https://keprixai.com", force=True)
-                                # ``:free`` is OpenRouter slug syntax; Nous Portal will reject
-                                # the model name even after a successful re-auth.
+                            else:  # leftover nous oauth
+                                agent._vprint(f"{agent.log_prefix}   This provider OAuth token was rejected (HTTP 401).", force=True)
+                                agent._vprint(f"{agent.log_prefix}      Nous Portal was removed from Keprix. Switch to a BYOK provider:", force=True)
+                                agent._vprint(f"{agent.log_prefix}      keprix model", force=True)
                                 if isinstance(_model, str) and _model.endswith(":free"):
-                                    agent._vprint(f"{agent.log_prefix}      ⚠️  Note: `{_model}` looks like an OpenRouter slug (`:free` suffix).", force=True)
-                                    agent._vprint(f"{agent.log_prefix}         Nous Portal won't recognize that model name. Either switch to a", force=True)
-                                    agent._vprint(f"{agent.log_prefix}         Nous catalog model, or run `/model openrouter:{_model}` to use OpenRouter.", force=True)
+                                    agent._vprint(f"{agent.log_prefix}      Note: `{_model}` looks like an OpenRouter slug (`:free` suffix).", force=True)
+                                    agent._vprint(f"{agent.log_prefix}         Run `/model openrouter:{_model}` to use OpenRouter.", force=True)
                         else:
                             agent._vprint(f"{agent.log_prefix}   💡 Your API key was rejected by the provider. Check:", force=True)
                             agent._vprint(f"{agent.log_prefix}      • Is the key valid? Run: keprix setup", force=True)

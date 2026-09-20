@@ -3521,7 +3521,7 @@ def check_for_skill_updates(
 # Keprix centralized index source
 # ---------------------------------------------------------------------------
 
-KEPRIX_INDEX_URL = "https://keprix.nousresearch.com/docs/api/skills-index.json"
+KEPRIX_INDEX_URL = "https://keprixai.com/docs/api/skills-index.json"
 KEPRIX_INDEX_CACHE_FILE = INDEX_CACHE_DIR / "keprix-index.json"
 KEPRIX_INDEX_TTL = 6 * 3600  # 6 hours
 

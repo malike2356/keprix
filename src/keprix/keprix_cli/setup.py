@@ -889,7 +889,6 @@ def _setup_tts_provider(config: dict):
     """Interactive TTS provider selection with install flow for NeuTTS."""
     tts_config = config.get("tts", {})
     current_provider = tts_config.get("provider", "edge")
-    subscription_features = get_nous_subscription_features(config)
 
     provider_labels = {
         "edge": "Edge TTS",
@@ -933,15 +932,6 @@ def _setup_tts_provider(config: dict):
         return
 
     selected = providers[idx]
-    selected_via_nous = selected == "nous-openai"
-    if selected == "nous-openai":
-        selected = "openai"
-        print_info("OpenAI TTS will use the managed Nous gateway and bill to your subscription.")
-        if get_env_value("VOICE_TOOLS_OPENAI_KEY") or get_env_value("OPENAI_API_KEY"):
-            print_warning(
-                "Direct OpenAI credentials are still configured and may take precedence until removed from ~/.keprix/.env."
-            )
-
     if selected == "neutts":
         # Check if already installed
         try:
@@ -977,7 +967,7 @@ def _setup_tts_provider(config: dict):
                 print_warning("No API key provided. Falling back to Edge TTS.")
                 selected = "edge"
 
-    elif selected == "openai" and not selected_via_nous:
+    elif selected == "openai":
         existing = get_env_value("VOICE_TOOLS_OPENAI_KEY") or get_env_value("OPENAI_API_KEY")
         if not existing:
             print()
@@ -2815,22 +2805,13 @@ SETUP_SECTIONS = [
 
 
 def _run_portal_one_shot(config: dict) -> None:
-    """One-shot Nous Portal setup — OAuth + model pick + provider + Tool Gateway.
-
-    Wired into ``keprix setup --portal`` and ``keprix portal``. This is the
-    Nous-Portal slice of the first-time quick setup, collapsed into a single
-    shareable command so a brand-new user goes from zero to a fully working
-    Keprix session — model selected, provider set, and web/image/tts/browser
-    tools routed via their Portal sub — without being told to run
-    ``keprix setup`` and hunt for the quick-setup option.
-
-    The login + model selection + provider switch + Tool Gateway opt-in are all
-    delegated to ``_model_flow_nous`` — the exact same flow quick setup uses
-    (``_run_first_time_quick_setup``) and the same one ``keprix model`` runs
-    when you pick Nous. Routing through it (instead of hand-rolling the auth +
-    provider write here) means ``keprix portal`` always offers a model picker,
-    and there is a single source of truth for the Nous onboarding steps.
-    """
+    """Nous Portal one-shot setup was removed."""
+    del config
+    print_error(
+        "Nous Portal was removed from Keprix. "
+        "Run `keprix setup` and pick a BYOK provider."
+    )
+    return
     from keprix_cli.config import load_config
 
     print()
@@ -3122,14 +3103,13 @@ def run_setup_wizard(args):
 
 
 def _run_first_time_quick_setup(config: dict, keprix_home, is_existing: bool):
-    """Streamlined first-time setup via Nous Portal: OAuth, model, terminal & messaging.
-
-    Routes straight to the Nous Portal provider — runs the device-code OAuth
-    login, picks a Nous model, then configures the terminal backend and (optionally)
-    a messaging platform. Applies sensible defaults for everything else (agent
-    settings, tools); the user can customize later via ``keprix setup <section>``
-    or switch providers with ``keprix model``.
-    """
+    """First-time setup no longer routes through Nous Portal."""
+    del config, keprix_home, is_existing
+    print_error(
+        "Nous Portal was removed from Keprix. "
+        "Run `keprix setup` and pick a BYOK provider."
+    )
+    return
     from keprix_cli.config import load_config
 
     # Step 1: Nous Portal — OAuth login + model selection.

@@ -1461,7 +1461,7 @@ class TestWebServerEndpoints:
         assert "personal WeChat" in weixin["description"]
         assert "Official Account" not in f"{weixin['name']} {weixin['description']}"
         assert weixin["docs_url"] == (
-            "https://keprix.nousresearch.com/docs/user-guide/messaging/weixin/"
+            "https://keprixai.com/docs/user-guide/messaging/weixin/"
         )
 
         fields = {field["key"]: field for field in weixin["env_vars"]}

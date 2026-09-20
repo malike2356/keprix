@@ -163,7 +163,7 @@ export default function AgentSyncSettingsPage() {
     <Box sx={{ display: "grid", gap: 3 }}>
       <PageHeader
         title="GitHub agent-sync"
-        description="Configure durable shared memory with Fowler (Hermes), Carina, and Aiva from this page. Obsidian vault sync is Settings -> Syncthing, not this page."
+        description="Configure durable shared memory with Fowler, Carina, and Aiva from this page. Obsidian vault sync is Settings -> Syncthing, not this page."
       />
       {message ? (
         <Alert severity={/fail|Missing|error/i.test(message) ? "warning" : "info"} onClose={() => setMessage(null)}>

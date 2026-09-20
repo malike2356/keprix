@@ -33,8 +33,8 @@ def test_agent_json_matches_official_registry_required_fields():
     assert data["name"] == "Keprix"
     assert data["description"]
     assert data["repository"] == "https://github.com/NousResearch/keprix"
-    assert data["website"].startswith("https://keprix.nousresearch.com/")
-    assert data["authors"] == ["Nous Research"]
+    assert data["website"].startswith("https://keprixai.com/")
+    assert data["authors"] == ["Verlox"]
     assert data["license"] == "MIT"
     assert set(data["distribution"]) <= ALLOWED_DISTRIBUTIONS
 

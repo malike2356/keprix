@@ -107,12 +107,11 @@ def build_dashboard_parser(
     )
     dashboard_register_parser = dashboard_subparsers.add_parser(
         "register",
-        help="Register a self-hosted dashboard with Nous Portal (writes the OAuth client ID to .env)",
+        help="Removed. Dashboard login is local basic auth or self-hosted OIDC.",
         description=(
-            "Register this install as a self-hosted dashboard with your Nous "
-            "Portal account. Creates an OAuth client, writes "
-            "KEPRIX_DASHBOARD_OAUTH_CLIENT_ID into ~/.keprix/.env, and prints "
-            "how to engage the login gate. Requires being logged in (keprix setup)."
+            "Nous Portal dashboard registration was removed from Keprix. "
+            "Use KEPRIX_ADMIN_EMAIL / KEPRIX_ADMIN_PASSWORD (basic auth) "
+            "or a self-hosted OIDC provider."
         ),
     )
     dashboard_register_parser.add_argument(
@@ -133,11 +132,6 @@ def build_dashboard_parser(
         "--portal-url",
         dest="portal_url",
         default=None,
-        help=(
-            "Override the Nous Portal base URL for registration (default: the "
-            "portal you logged into). The access token must be valid at this "
-            "portal. Also settable via KEPRIX_DASHBOARD_PORTAL_URL. Mainly for "
-            "testing against a staging/preview portal."
-        ),
+        help="Ignored. Nous Portal registration was removed.",
     )
     dashboard_register_parser.set_defaults(func=cmd_dashboard_register)

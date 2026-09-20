@@ -812,7 +812,7 @@ export const zh: Translations = {
       noProviderOptions: '此工具集没有提供方选项；启用后即可使用当前配置。',
       noProviders: '此工具集当前没有可用提供方。',
       ready: '就绪',
-      nousIncluded: '包含在 Keprix 订阅中；登录 Keprix 即可激活。',
+      nousIncluded: '没有托管订阅。请使用你自己的 API 密钥。',
       noApiKeyRequired: '不需要 API 密钥。',
       postSetupHint: step => `此后端需要一次性安装 (${step})。将在此机器上执行，可能需要几分钟。`,
       postSetupRun: '运行设置',
@@ -1617,7 +1617,7 @@ export const zh: Translations = {
     chooseLater: '稍后再选择提供方',
     recommended: '推荐',
     connected: '已连接',
-    featuredPitch: '一个订阅，300+ 前沿模型; 运行 Keprix 的推荐方式',
+    featuredPitch: '使用你自己的 API 密钥。DeepSeek、Anthropic、OpenRouter 等。',
     openRouterPitch: '一个密钥，数百个模型; 稳妥的默认选择',
     apiKeyOptions: {
       openrouter: { short: '一个密钥，多个模型', description: '用一个密钥访问数百个模型。适合新安装的默认选择。' },
@@ -1685,7 +1685,7 @@ export const zh: Translations = {
     loadFailed: '无法加载模型',
     noAuthenticatedProviders: '没有已认证的提供方。',
     pro: 'Pro',
-    proNeedsSubscription: 'Pro 模型需要付费 Keprix 订阅。',
+    proNeedsSubscription: '此模型需要提供方 API 密钥。',
     free: '免费',
     freeTier: '免费层',
     priceTitle: '每百万 token 的输入/输出价格'

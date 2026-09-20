@@ -542,7 +542,7 @@ export function DesktopInstallOverlay({ enabled = true }: DesktopInstallOverlayP
             <div className="flex items-center justify-between gap-2">
               <span className="text-xs text-muted-foreground">
                 {copy.transcriptSaved}{' '}
-                <code className="rounded bg-muted/50 px-1 py-0.5 font-mono">%LOCALAPPDATA%\hermes\logs\</code>
+                <code className="rounded bg-muted/50 px-1 py-0.5 font-mono">%LOCALAPPDATA%\keprix\logs\</code>
               </span>
               <div className="flex gap-2">
                 <Button

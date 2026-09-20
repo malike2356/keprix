@@ -130,7 +130,13 @@ def _model_flow_openrouter(config, current_model=""):
         print("No change.")
 
 def _model_flow_nous(config, current_model="", args=None):
-    """Nous Portal provider: ensure logged in, then pick model."""
+    """Nous Portal was removed. Kept so leftover call sites fail clearly."""
+    del config, current_model, args
+    print(
+        "Nous Portal was removed from Keprix. "
+        "Use `keprix model` with your own API key."
+    )
+    return
     from keprix_cli.auth import (
         get_provider_auth_state,
         _prompt_model_selection,

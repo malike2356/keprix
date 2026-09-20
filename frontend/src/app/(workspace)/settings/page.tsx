@@ -78,7 +78,7 @@ const cards: SettingsCard[] = [
   },
   {
     title: "GitHub agent-sync",
-    description: "Shared durable memory with Fowler (Hermes), Carina, and Aiva. Configure token and sync from the GUI.",
+    description: "Shared durable memory with Fowler, Carina, and Aiva. Configure token and sync from the GUI.",
     href: "/settings/integrations/agent-sync",
     icon: <BackupIcon />,
   },

@@ -2452,7 +2452,7 @@ function resolveHermesBackend(dashboardArgs) {
   //    is a recoverable state the GUI can drive through.
   return {
     kind: 'bootstrap-needed',
-    label: 'Hermes Agent not installed yet; bootstrap required',
+    label: 'Keprix Agent not installed yet; bootstrap required',
     command: null,
     args: dashboardArgs,
     bootstrap: true,

@@ -750,7 +750,7 @@ export const ja = defineLocale({
         'このツールセットにはプロバイダーのオプションがありません。有効にすれば現在の設定で動作します。',
       noProviders: '現在このツールセットに利用可能なプロバイダーがありません。',
       ready: '準備完了',
-      nousIncluded: 'Keprix サブスクリプションに含まれています。有効にするには Keprix にサインインしてください。',
+      nousIncluded: 'ホスティング型のサブスクリプションはありません。ご自身の API キーを使ってください。',
       noApiKeyRequired: 'API キーは不要です。',
       postSetupHint: step =>
         `このバックエンドは一度だけインストールが必要です (${step})。このマシン上で実行され、数分かかる場合があります。`,
@@ -1571,7 +1571,7 @@ export const ja = defineLocale({
     chooseLater: '後でプロバイダーを選択します',
     recommended: '推奨',
     connected: '接続済み',
-    featuredPitch: '1 つのサブスクリプションで 300 以上の最先端モデル; Keprix を実行するための推奨方法',
+    featuredPitch: 'ご自身の API キーを使ってください。DeepSeek、Anthropic、OpenRouter など。',
     openRouterPitch: '1 つのキーで数百のモデル; 堅実なデフォルト',
     apiKeyOptions: {
       openrouter: {
@@ -1644,7 +1644,7 @@ export const ja = defineLocale({
     loadFailed: 'モデルを読み込めませんでした',
     noAuthenticatedProviders: '認証済みプロバイダーがありません。',
     pro: 'Pro',
-    proNeedsSubscription: 'Pro モデルには有料の Keprix サブスクリプションが必要です。',
+    proNeedsSubscription: 'このモデルにはプロバイダーの API キーが必要です。',
     free: '無料',
     freeTier: '無料プラン',
     priceTitle: '100 万トークンあたりの入力/出力価格'

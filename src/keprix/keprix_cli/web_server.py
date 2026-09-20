@@ -1963,6 +1963,20 @@ def _safe_call(mod, fn_name: str, default):
 
 @app.get("/api/portal")
 async def get_portal_status():
+    """Nous Portal was removed. Keep the route so old dashboards do not 404."""
+    return {
+        "logged_in": False,
+        "removed": True,
+        "message": (
+            "Nous Portal was removed from Keprix. "
+            "Use a BYOK provider via keprix model."
+        ),
+        "portal_url": None,
+        "inference_url": None,
+        "provider": "",
+        "subscription_url": None,
+        "features": [],
+    }
     cfg = load_config() or {}
     auth: Dict[str, Any] = {}
     try:

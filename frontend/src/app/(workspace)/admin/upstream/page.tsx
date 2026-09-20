@@ -145,7 +145,7 @@ export default function UpstreamAdoptionPage() {
   return (
     <Box>
       <PageHeader
-        title="Hermes upstream"
+        title="Upstream"
         description="Review Hermes releases, approve adoption, and generate Keprix work packages. Automation stops at proposal."
         actions={
           <Button variant="contained" onClick={runCheck} disabled={busyId === "__check__"}>

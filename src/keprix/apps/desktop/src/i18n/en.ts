@@ -620,7 +620,7 @@ export const en: Translations = {
       noProviderOptions: 'This toolset has no provider options; enable it and it works with your current setup.',
       noProviders: 'No providers are available for this toolset right now.',
       ready: 'Ready',
-      nousIncluded: 'Included with a Keprix subscription; sign in to Keprix Portal to activate.',
+      nousIncluded: 'No hosted subscription. Use your own API key.',
       noApiKeyRequired: 'No API key required.',
       postSetupHint: step =>
         `This backend needs a one-time install (${step}). Runs on this machine; may take a few minutes.`,
@@ -1431,7 +1431,7 @@ export const en: Translations = {
     chooseLater: "I'll choose a provider later",
     recommended: 'Recommended',
     connected: 'Connected',
-    featuredPitch: 'One subscription, 300+ frontier models; the recommended way to run Keprix',
+    featuredPitch: 'Bring your own API key. DeepSeek, Anthropic, OpenRouter, and more.',
     openRouterPitch: 'One key, hundreds of models; a solid default',
     apiKeyOptions: {
       openrouter: {
@@ -1504,7 +1504,7 @@ export const en: Translations = {
     loadFailed: 'Could not load models',
     noAuthenticatedProviders: 'No authenticated providers.',
     pro: 'Pro',
-    proNeedsSubscription: 'Pro models need a paid Keprix subscription.',
+    proNeedsSubscription: 'This model needs a provider API key.',
     free: 'Free',
     freeTier: 'Free tier',
     priceTitle: 'Input / Output price per million tokens'

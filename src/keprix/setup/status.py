@@ -6,7 +6,7 @@ import json
 import os
 from typing import Any
 
-DOCS_FIRST_RUN_URL = "https://keprix.nousresearch.com/docs/getting-started/first-run"
+DOCS_FIRST_RUN_URL = "https://keprixai.com/docs/getting-started/first-run"
 
 WIZARD_SECTIONS = ("model", "tts", "terminal", "gateway", "tools", "agent")
 

@@ -162,7 +162,7 @@ export const primaryNavigation: NavItem[] = [
   { id: "admin-workspace-ops", label: "Workspace ops", href: "/admin/workspace-ops", icon: "settings", group: "admin" },
   { id: "admin-network-egress", label: "Network egress", href: "/admin/network-egress", icon: "shield", group: "admin" },
   { id: "admin-isolation-audit", label: "Isolation audit", href: "/admin/isolation-audit", icon: "shield", group: "admin" },
-  { id: "admin-upstream", label: "Hermes upstream", href: "/admin/upstream", icon: "monitoring", group: "admin" },
+  { id: "admin-upstream", label: "Upstream", href: "/admin/upstream", icon: "monitoring", group: "admin" },
   { id: "backup", label: "Backup", href: "/admin/backup", icon: "backup", group: "admin" },
   { id: "readiness", label: "Readiness", href: "/admin/readiness", icon: "monitoring", group: "admin" },
   { id: "self-knowledge", label: "Self-Knowledge", href: "/admin/self-knowledge", icon: "apps", group: "admin" },
