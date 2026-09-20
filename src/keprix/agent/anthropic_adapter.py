@@ -438,6 +438,35 @@ def _is_third_party_anthropic_endpoint(base_url: str | None) -> bool:
     return True  # Any other endpoint is a third-party proxy
 
 
+def resolve_anthropic_workspace_id() -> str:
+    """Return the Anthropic workspace ID for unscoped API keys.
+
+    Identity-backed personal and service-account keys that are not bound to
+    one workspace require the ``anthropic-workspace-id`` header on every
+    native Anthropic request. Read ``ANTHROPIC_WORKSPACE_ID`` first, then
+    ``ANTHROPIC_WORKSPACE``. Empty when unset.
+    """
+    for name in ("ANTHROPIC_WORKSPACE_ID", "ANTHROPIC_WORKSPACE"):
+        value = os.getenv(name, "").strip()
+        if value:
+            return value
+    return ""
+
+
+def anthropic_workspace_headers(base_url: str | None = None) -> Dict[str, str]:
+    """Headers that select an Anthropic Console workspace.
+
+    Only applied to native ``api.anthropic.com`` traffic. Third-party
+    Anthropic-compatible endpoints ignore this and must not receive it.
+    """
+    workspace_id = resolve_anthropic_workspace_id()
+    if not workspace_id:
+        return {}
+    if _is_third_party_anthropic_endpoint(base_url):
+        return {}
+    return {"anthropic-workspace-id": workspace_id}
+
+
 def _is_kimi_coding_endpoint(base_url: str | None) -> bool:
     """Return True for Kimi's /coding endpoint that requires claude-code UA."""
     normalized = _normalize_base_url_text(base_url)
@@ -816,6 +845,12 @@ def build_anthropic_client(
         kwargs["api_key"] = api_key
         if common_betas:
             kwargs["default_headers"] = {"anthropic-beta": ",".join(common_betas)}
+
+    workspace_headers = anthropic_workspace_headers(base_url=normalized_base_url or base_url)
+    if workspace_headers:
+        headers = dict(kwargs.get("default_headers") or {})
+        headers.update(workspace_headers)
+        kwargs["default_headers"] = headers
 
     return _anthropic_sdk.Anthropic(**kwargs)
 
