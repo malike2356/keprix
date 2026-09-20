@@ -11531,10 +11531,10 @@ def _maybe_open_browser(
         return
 
     _display_host = host if host not in ("0.0.0.0", "::") else "127.0.0.1"
-    _open_url = f"http://{_display_host}:{actual_port}"
+    _open_url = f"http://{_display_host}:{actual_port}/home"
     if initial_profile:
         from urllib.parse import quote
-        _open_url += f"/?profile={quote(initial_profile)}"
+        _open_url += f"?profile={quote(initial_profile)}"
 
     def _open():
         try:
@@ -11700,7 +11700,7 @@ def start_server(
                     if ready:
                         app.state.frontend_port = frontend_port
                         open_host, open_port = host, frontend_port
-                        print(f"  Keprix Web UI → http://{open_host}:{open_port}", flush=True)
+                        print(f"  Keprix Web UI → http://{open_host}:{open_port}/home", flush=True)
                     else:
                         _log.warning(
                             "Dashboard frontend did not become ready within 30s "

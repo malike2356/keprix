@@ -54,7 +54,7 @@ class TestUnifiedDashboardRouting:
         with pytest.raises(SystemExit) as exc:
             main_mod.cmd_dashboard(_args(no_open=False))
         assert exc.value.code == 0
-        assert opened == ["http://127.0.0.1:9119/?profile=worker_x"]
+        assert opened == ["http://127.0.0.1:9119/home?profile=worker_x"]
 
     def test_profile_launch_reexecs_machine_dashboard(self, main_mod, monkeypatch):
         monkeypatch.delenv("KEPRIX_HOME", raising=False)
