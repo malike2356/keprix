@@ -68,7 +68,7 @@ from utils import env_var_enabled
 try:
     from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
     from fastapi.middleware.cors import CORSMiddleware
-    from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
+    from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
     from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel
 except ImportError:
@@ -80,7 +80,7 @@ except ImportError:
         _lazy_ensure("tool.dashboard", prompt=False)
         from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
         from fastapi.middleware.cors import CORSMiddleware
-        from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Response
+        from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
         from fastapi.staticfiles import StaticFiles
         from pydantic import BaseModel
     except Exception:
@@ -10415,10 +10415,26 @@ def mount_spa(application: FastAPI):
     without rebuilding the bundle.
     """
     if not WEB_DIST.exists():
+        # The legacy web/ (Vite) frontend this function was written for no
+        # longer exists — it migrated to frontend/ (Next.js standalone, see
+        # frontend_standalone.py), which start_server() runs as a sibling
+        # child process on its own port rather than mounting as static
+        # files here. app.state.frontend_port is set there once that child
+        # is confirmed healthy; checked per-request (not at mount time,
+        # since mount_spa() runs before start_server() spawns the child)
+        # so this keeps working across the whole app lifetime.
         @application.get("/{full_path:path}")
-        async def no_frontend(full_path: str):
+        async def no_frontend(request: Request, full_path: str):
+            frontend_port = getattr(application.state, "frontend_port", None)
+            if frontend_port:
+                target_host = request.url.hostname or "127.0.0.1"
+                qs = f"?{request.url.query}" if request.url.query else ""
+                return RedirectResponse(
+                    url=f"http://{target_host}:{frontend_port}/{full_path}{qs}",
+                    status_code=302,
+                )
             return JSONResponse(
-                {"error": "Frontend not built. Run: cd web && npm run build"},
+                {"error": "Dashboard frontend not built. Run: cd frontend && pnpm install --frozen-lockfile && pnpm exec next build"},
                 status_code=404,
             )
         return
