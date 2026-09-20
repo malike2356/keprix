@@ -11594,6 +11594,22 @@ def _mount_dashboard_workspace_routers() -> None:
     from keprix.backend.notifications.routes import router as notifications_router
     from keprix.voice.routes import router as voice_wake_router
     from keprix.voice_templates.routes import router as voice_templates_router
+    from keprix.api.audio_routes import router as audio_router
+    from keprix.api.voice_routes import router as phone_voice_router
+    from keprix.crm.routes import router as crm_router
+    from keprix.crm.capture_routes import router as crm_capture_router
+    from keprix.crm.enrichment_routes import router as crm_enrichment_router
+    from keprix.crm.research_routes import router as crm_research_router
+    from keprix.crm.companies_house_routes import router as crm_companies_house_router
+    from keprix.crm.decision_maker_routes import router as crm_decision_maker_router
+    from keprix.crm.osint_routes import router as crm_osint_router
+    from keprix.crm.social_routes import router as crm_social_router
+    from keprix.crm.social_posting_routes import router as crm_social_posting_router
+    from keprix.discovery.routes import router as crm_discovery_router
+    from keprix.crm.icp_routes import router as crm_icp_router
+    from keprix.crm.nice_routes import router as crm_nice_router
+    from keprix.api.agent_sync_routes import router as agent_sync_router
+    from keprix.api.syncthing_routes import router as syncthing_router
     from keprix_cli.dashboard_auth.routes import router as dashboard_auth_router
 
     for router in (
@@ -11617,6 +11633,22 @@ def _mount_dashboard_workspace_routers() -> None:
         notifications_router,
         voice_wake_router,
         voice_templates_router,
+        audio_router,
+        phone_voice_router,
+        crm_router,
+        crm_capture_router,
+        crm_enrichment_router,
+        crm_research_router,
+        crm_companies_house_router,
+        crm_decision_maker_router,
+        crm_osint_router,
+        crm_social_router,
+        crm_social_posting_router,
+        crm_discovery_router,
+        crm_icp_router,
+        crm_nice_router,
+        agent_sync_router,
+        syncthing_router,
         dashboard_auth_router,
     ):
         app.include_router(router)

@@ -2102,6 +2102,8 @@ class TestWebServerEndpoints:
             "/api/email/inbox",
             "/api/notifications/inbox",
             "/api/voice/wake-words",
+            "/api/audio/status",
+            "/api/audio/settings",
             "/api/vical/status",
             "/api/conversations?limit=5&sort=updated_at:desc",
             "/api/trajectories",
@@ -2110,6 +2112,12 @@ class TestWebServerEndpoints:
             resp = client.get(path, headers=headers, follow_redirects=False)
             assert resp.status_code == 200, f"{path} -> {resp.status_code}: {resp.text[:400]}"
             assert resp.headers.get("location") is None
+
+        settings = client.get("/api/audio/settings", headers=headers)
+        body = settings.json()
+        assert "catalog" in body
+        assert "enabled" in body
+        assert "configured_provider" in body or "provider" in body
 
         created = client.post(
             "/api/workspace/notes",
@@ -2120,6 +2128,112 @@ class TestWebServerEndpoints:
         listed = client.get("/api/workspace/notes", headers=headers)
         titles = [row["title"] for row in listed.json()["items"]]
         assert "Scratch" in titles
+
+    def test_crm_overview_endpoints_on_dashboard(self, tmp_path, monkeypatch):
+        """CRM overview and nav pages rewrite /api/crm/* to the dashboard."""
+        from starlette.testclient import TestClient
+        from keprix.auth.session import AuthManager
+        from keprix.crm.store import reset_crm_store_for_tests
+        from keprix.outreach.ops import OutreachOpsStore
+        from keprix.outreach.store import reset_outreach_store_for_tests
+        from keprix_cli.web_server import app
+
+        monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path / "data"))
+        monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "xdg"))
+        monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
+        monkeypatch.delenv("KEPRIX_ADMIN_PASSWORD", raising=False)
+        monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+        reset_crm_store_for_tests(tmp_path / "crm.sqlite")
+        reset_outreach_store_for_tests(tmp_path / "outreach.sqlite")
+        import keprix.outreach.ops as ops_mod
+
+        ops_mod._ops = OutreachOpsStore(path=tmp_path / "outreach.sqlite")
+        auth = AuthManager(str(tmp_path / "auth.json"))
+        ok, _message = auth.bootstrap_owner("owner@example.com", "solo-pass-1")
+        assert ok is True
+        token, _user, error = auth.login("owner@example.com", "solo-pass-1")
+        assert error is None and token
+        monkeypatch.setattr("keprix.auth.session.auth_manager", auth)
+        monkeypatch.setattr("keprix.auth.dependencies.auth_manager", auth)
+
+        client = TestClient(app)
+        headers = {"Authorization": f"Bearer {token}"}
+        ws = "workspace_id=default"
+        paths = (
+            f"/api/crm/status?{ws}",
+            f"/api/crm/funnel?{ws}&extended=true",
+            f"/api/crm/funnel/journey?{ws}",
+            f"/api/crm/kill-switches?{ws}",
+            f"/api/crm/leads?{ws}",
+            f"/api/crm/contacts?{ws}",
+            f"/api/crm/accounts?{ws}",
+            f"/api/crm/deals?{ws}",
+            f"/api/crm/lists?{ws}",
+            f"/api/crm/icp?{ws}",
+            f"/api/crm/sla/inbox?{ws}",
+            f"/api/crm/connections?{ws}",
+            f"/api/crm/experiments?{ws}",
+            f"/api/crm/data-quality?{ws}",
+            f"/api/crm/discovery/adapters?{ws}",
+            f"/api/crm/jobs?{ws}",
+            f"/api/crm/inbox?{ws}",
+            f"/api/crm/workflows?{ws}",
+            f"/api/crm/funnel/analytics?{ws}",
+            f"/api/crm/attribution/report?{ws}",
+            f"/api/crm/messaging/status?{ws}",
+            f"/api/crm/visual/ops?{ws}",
+            f"/api/crm/deliverability?{ws}",
+            f"/api/crm/outbox?{ws}",
+            f"/api/crm/suppressions?{ws}",
+            f"/api/crm/contactability?{ws}",
+            f"/api/crm/merges?{ws}",
+            f"/api/crm/settings/summary?{ws}",
+        )
+        for path in paths:
+            resp = client.get(path, headers=headers, follow_redirects=False)
+            assert resp.status_code == 200, f"{path} -> {resp.status_code}: {resp.text[:400]}"
+            assert resp.headers.get("location") is None
+
+        status = client.get(f"/api/crm/status?{ws}", headers=headers)
+        body = status.json()
+        assert body.get("ok") is True
+        assert "counts" in body
+        assert "leads" in body["counts"]
+
+    def test_agent_sync_status_on_dashboard(self, tmp_path, monkeypatch):
+        """Settings -> GitHub agent-sync reads /api/agent-sync/status on the dashboard."""
+        from starlette.testclient import TestClient
+        from keprix.auth.session import AuthManager
+        from keprix_cli.web_server import app
+
+        monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path / "data"))
+        monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
+        monkeypatch.delenv("KEPRIX_ADMIN_PASSWORD", raising=False)
+        monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+        monkeypatch.delenv("AGENT_SYNC_GITHUB_TOKEN", raising=False)
+        auth = AuthManager(str(tmp_path / "auth.json"))
+        ok, _message = auth.bootstrap_owner("owner@example.com", "solo-pass-1")
+        assert ok is True
+        token, _user, error = auth.login("owner@example.com", "solo-pass-1")
+        assert error is None and token
+        monkeypatch.setattr("keprix.auth.session.auth_manager", auth)
+        monkeypatch.setattr("keprix.auth.dependencies.auth_manager", auth)
+
+        client = TestClient(app)
+        headers = {"Authorization": f"Bearer {token}"}
+        missing = client.get("/api/agent-sync/status", follow_redirects=False)
+        assert missing.status_code == 401
+
+        status = client.get("/api/agent-sync/status", headers=headers, follow_redirects=False)
+        assert status.status_code == 200, status.text[:400]
+        assert status.headers.get("location") is None
+        body = status.json()
+        assert "enabled" in body
+        assert "product" in body
+
+        syncthing = client.get("/api/syncthing/status", headers=headers, follow_redirects=False)
+        assert syncthing.status_code == 200, syncthing.text[:400]
+        assert "enabled" in syncthing.json()
 
     def test_missing_api_does_not_redirect_to_frontend(self, tmp_path, monkeypatch):
         """Authenticated GET /api/* with no handler must 404, not 302 to Next.js."""
