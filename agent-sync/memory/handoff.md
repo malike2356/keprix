@@ -1,14 +1,9 @@
 # Keprix agent handoff
 
-## 2026-09-20: mutation-as-mount (773) pushed; Contabo owner-side
+## 2026-09-20: DSH 768-773 live on Contabo
 
-- **Git tip:** `17d64e8` on `origin/main`
-- **Feature:** `keprix.mutation.mount` propose/approve/deny/reverse; four-eyes;
-  Soft Wall/RLS/product-module bans; API `/api/mutation/mounts`
-- **Local:** mount + recorded snapshot tests green
-- **Contabo deploy:** owner-side per AGENTS.md
-- **Prompts archived:** 768-773 under
-  `archive/archived-prompts-library/keprix/keprix-dsh-idea-adoption/`
-- **Docs:** `docs/architecture/mutation-as-mount.md`
-- **Programme:** DSH idea adoption **complete**
-
+- **Git tip:** `8332a75` on `origin/main` (feature `17d64e8` mutation-as-mount)
+- **Deploy:** Contabo rsync + `deploy/contabo/docker-compose.app.yml up -d --build` done from this session (owner request)
+- **Smoke:** carinaai.uk 200, keprixai.com 200, app.keprixai.com 200, /api/health 200
+- **Shipped:** seams, plugin lifecycle, trajectory, capability presets, recorded-session tests, mutation-as-mount
+- **Prompts archived:** 768-773 under `archive/archived-prompts-library/keprix/keprix-dsh-idea-adoption/`
