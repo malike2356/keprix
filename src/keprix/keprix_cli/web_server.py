@@ -11630,6 +11630,7 @@ def _mount_dashboard_workspace_routers() -> None:
     from keprix.api.agent_sync_routes import router as agent_sync_router
     from keprix.api.syncthing_routes import router as syncthing_router
     from keprix.api.upgrade_routes import router as upgrade_router
+    from keprix.api.self_knowledge_routes import router as self_knowledge_router
     from keprix_cli.dashboard_auth.routes import router as dashboard_auth_router
 
     for router in (
@@ -11676,6 +11677,7 @@ def _mount_dashboard_workspace_routers() -> None:
         agent_sync_router,
         syncthing_router,
         upgrade_router,
+        self_knowledge_router,
         dashboard_auth_router,
     ):
         app.include_router(router)

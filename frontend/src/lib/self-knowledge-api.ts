@@ -1,3 +1,5 @@
+import { ceApi, parseApiErrorMessage } from "@/lib/ce-api";
+
 const BASE = "/api/self-knowledge";
 
 export interface SourceEntry {
@@ -43,51 +45,51 @@ export interface SearchResponse {
   formatted: string;
 }
 
-async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, {
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-    ...init,
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    throw new Error(`${res.status}: ${text}`);
+async function parseJson<T>(response: Response, fallback: string): Promise<T> {
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(parseApiErrorMessage(payload, fallback));
   }
-  return res.json() as Promise<T>;
+  return response.json() as Promise<T>;
 }
 
-export function fetchSelfKnowledgeStatus(): Promise<SelfKnowledgeStatus> {
-  return apiFetch<SelfKnowledgeStatus>(`${BASE}/status`);
+export async function fetchSelfKnowledgeStatus(): Promise<SelfKnowledgeStatus> {
+  return parseJson(
+    await ceApi(`${BASE}/status`),
+    "Failed to load self-knowledge status",
+  );
 }
 
-export function triggerIngest(opts?: {
+export async function triggerIngest(opts?: {
+  includeCodebase?: boolean;
   includeCodbase?: boolean;
   includeDocs?: boolean;
 }): Promise<{ status: string }> {
   const params = new URLSearchParams();
-  if (opts?.includeCodbase !== undefined)
-    params.set("include_codebase", String(opts.includeCodbase));
-  if (opts?.includeDocs !== undefined)
-    params.set("include_docs", String(opts.includeDocs));
-  return apiFetch<{ status: string }>(`${BASE}/ingest?${params}`, { method: "POST" });
+  const includeCodebase = opts?.includeCodebase ?? opts?.includeCodbase;
+  if (includeCodebase !== undefined) params.set("include_codebase", String(includeCodebase));
+  if (opts?.includeDocs !== undefined) params.set("include_docs", String(opts.includeDocs));
+  return parseJson(await ceApi(`${BASE}/ingest?${params}`, { method: "POST" }), "Failed to start ingest");
 }
 
-export function triggerIngestAndWait(opts?: {
+export async function triggerIngestAndWait(opts?: {
   includeCodebase?: boolean;
   includeDocs?: boolean;
   maxFiles?: number;
 }): Promise<IngestResult> {
   const params = new URLSearchParams();
-  if (opts?.includeCodebase !== undefined)
-    params.set("include_codebase", String(opts.includeCodebase));
-  if (opts?.includeDocs !== undefined)
-    params.set("include_docs", String(opts.includeDocs));
+  if (opts?.includeCodebase !== undefined) params.set("include_codebase", String(opts.includeCodebase));
+  if (opts?.includeDocs !== undefined) params.set("include_docs", String(opts.includeDocs));
   if (opts?.maxFiles !== undefined) params.set("max_files", String(opts.maxFiles));
-  return apiFetch<IngestResult>(`${BASE}/ingest/wait?${params}`, { method: "POST" });
+  return parseJson(await ceApi(`${BASE}/ingest/wait?${params}`, { method: "POST" }), "Failed to ingest");
 }
 
-export function searchSelfKnowledge(query: string, limit = 8): Promise<SearchResponse> {
-  return apiFetch<SearchResponse>(`${BASE}/search`, {
-    method: "POST",
-    body: JSON.stringify({ query, limit, hybrid: true }),
-  });
+export async function searchSelfKnowledge(query: string, limit = 8): Promise<SearchResponse> {
+  return parseJson(
+    await ceApi(`${BASE}/search`, {
+      method: "POST",
+      body: JSON.stringify({ query, limit, hybrid: true }),
+    }),
+    "Search failed",
+  );
 }
