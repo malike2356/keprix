@@ -143,9 +143,10 @@ def _ollama_context_limit_error(agent: Any, request_tokens: int) -> Optional[str
         "(and `model.context_length: 65536` if you also override the displayed "
         "model context). If you manage the model through an Ollama Modelfile, "
         "set `PARAMETER num_ctx 65536` there instead.\n\n"
-        "Memory-constrained machine? Set `agent.min_context_length` (or the "
-        "`KEPRIX_MIN_CONTEXT_LENGTH` env var) to lower the floor, and pair it "
-        "with `agent.prompt_profile: compact` so the prompt fits."
+        "Memory-constrained machine? Set `agent.prompt_profile: compact` (a "
+        "smaller prompt; it also lowers this minimum to 16,384), or set "
+        "`agent.min_context_length` / the `KEPRIX_MIN_CONTEXT_LENGTH` env var "
+        "to choose the floor yourself."
     )
 
 

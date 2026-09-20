@@ -20,6 +20,7 @@ from agent.model_metadata import (
 def _no_env_no_config(monkeypatch):
     """Start every test with no env var and an empty config."""
     monkeypatch.delenv(MIN_CONTEXT_ENV_VAR, raising=False)
+    monkeypatch.delenv("KEPRIX_PROMPT_PROFILE", raising=False)
     with patch("keprix_cli.config.load_config_readonly", return_value={}):
         yield
 
@@ -83,6 +84,28 @@ class TestGetMinimumContextLength:
     def test_config_load_failure_falls_back_to_default(self):
         with patch("keprix_cli.config.load_config_readonly", side_effect=RuntimeError("boom")):
             assert get_minimum_context_length() == MINIMUM_CONTEXT_LENGTH
+
+
+class TestCompactProfileFloor:
+    def test_compact_profile_implies_lower_default_floor(self, monkeypatch):
+        from agent.model_metadata import COMPACT_MINIMUM_CONTEXT_LENGTH
+
+        monkeypatch.setenv("KEPRIX_PROMPT_PROFILE", "compact")
+        assert get_minimum_context_length() == COMPACT_MINIMUM_CONTEXT_LENGTH == 16_384
+
+    def test_explicit_setting_beats_compact_default(self, monkeypatch):
+        monkeypatch.setenv("KEPRIX_PROMPT_PROFILE", "compact")
+        monkeypatch.setenv(MIN_CONTEXT_ENV_VAR, "24000")
+        assert get_minimum_context_length() == 24_000
+
+    def test_explicit_zero_still_disables_under_compact(self, monkeypatch):
+        monkeypatch.setenv("KEPRIX_PROMPT_PROFILE", "compact")
+        monkeypatch.setenv(MIN_CONTEXT_ENV_VAR, "0")
+        assert not is_context_floor_enforced()
+
+    def test_full_profile_keeps_64k(self, monkeypatch):
+        monkeypatch.setenv("KEPRIX_PROMPT_PROFILE", "full")
+        assert get_minimum_context_length() == MINIMUM_CONTEXT_LENGTH
 
 
 class TestWarningThreshold:

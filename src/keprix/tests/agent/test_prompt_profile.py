@@ -167,3 +167,54 @@ class TestSkillsIndexNamesOnly:
     def test_names_only_with_no_skills_is_empty(self, monkeypatch, tmp_path):
         monkeypatch.setenv("KEPRIX_HOME", str(tmp_path))
         assert build_skills_system_prompt(names_only=True) == ""
+
+
+class TestLocalContextCap:
+    def test_no_cap_in_full_profile(self):
+        from agent.prompt_profile import cap_local_context, compact_context_cap
+
+        assert compact_context_cap() is None
+        assert cap_local_context(262_144) == 262_144
+
+    def test_default_cap_in_compact_profile(self, monkeypatch):
+        from agent.prompt_profile import DEFAULT_COMPACT_CONTEXT_CAP, cap_local_context
+
+        monkeypatch.setenv(PROFILE_ENV_VAR, "compact")
+        assert cap_local_context(262_144) == DEFAULT_COMPACT_CONTEXT_CAP == 32_768
+
+    def test_smaller_window_is_left_alone(self, monkeypatch):
+        from agent.prompt_profile import cap_local_context
+
+        monkeypatch.setenv(PROFILE_ENV_VAR, "compact")
+        assert cap_local_context(16_384) == 16_384
+
+    def test_config_overrides_cap(self, monkeypatch):
+        from agent.prompt_profile import cap_local_context
+
+        monkeypatch.setenv(PROFILE_ENV_VAR, "compact")
+        with _config({"compact_context_cap": 24_000}):
+            assert cap_local_context(262_144) == 24_000
+
+    def test_zero_disables_cap(self, monkeypatch):
+        from agent.prompt_profile import cap_local_context, compact_context_cap
+
+        monkeypatch.setenv(PROFILE_ENV_VAR, "compact")
+        with _config({"compact_context_cap": 0}):
+            assert compact_context_cap() is None
+            assert cap_local_context(262_144) == 262_144
+
+    @pytest.mark.parametrize("bad", ["big", None, True, [1]])
+    def test_bad_value_uses_default(self, monkeypatch, bad):
+        from agent.prompt_profile import DEFAULT_COMPACT_CONTEXT_CAP, compact_context_cap
+
+        monkeypatch.setenv(PROFILE_ENV_VAR, "compact")
+        with _config({"compact_context_cap": bad}):
+            assert compact_context_cap() == DEFAULT_COMPACT_CONTEXT_CAP
+
+    def test_cap_never_below_minimum_floor(self, monkeypatch):
+        from agent.prompt_profile import compact_context_cap
+
+        monkeypatch.setenv(PROFILE_ENV_VAR, "compact")
+        monkeypatch.setenv("KEPRIX_MIN_CONTEXT_LENGTH", "20000")
+        with _config({"compact_context_cap": 10_000}):
+            assert compact_context_cap() == 20_000

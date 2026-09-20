@@ -189,6 +189,10 @@ MINIMUM_CONTEXT_LENGTH = 64_000
 # anything below this cannot run tool-calling workflows at all.
 ABSOLUTE_MINIMUM_CONTEXT_LENGTH = 8_192
 
+# Default floor under the ``compact`` prompt profile (agent/prompt_profile.py):
+# ~8K of trimmed prefix plus room for a working conversation.
+COMPACT_MINIMUM_CONTEXT_LENGTH = 16_384
+
 MIN_CONTEXT_ENV_VAR = "KEPRIX_MIN_CONTEXT_LENGTH"
 
 
@@ -222,14 +226,23 @@ def _configured_minimum_context() -> Optional[int]:
 def get_minimum_context_length() -> int:
     """Effective minimum context window Keprix will run with.
 
-    Defaults to ``MINIMUM_CONTEXT_LENGTH`` (64K).  Can be lowered for
-    small local models via env/config (see ``_configured_minimum_context``),
+    Defaults to ``MINIMUM_CONTEXT_LENGTH`` (64K), or
+    ``COMPACT_MINIMUM_CONTEXT_LENGTH`` (16K) under the ``compact`` prompt
+    profile, whose prompt prefix is small enough to fit.  Can be set
+    explicitly via env/config (see ``_configured_minimum_context``),
     clamped to ``ABSOLUTE_MINIMUM_CONTEXT_LENGTH``.  ``0`` disables
     enforcement entirely: callers must then warn instead of rejecting
     (see ``is_context_floor_enforced``).
     """
     configured = _configured_minimum_context()
     if configured is None:
+        try:
+            from agent.prompt_profile import is_compact_profile
+
+            if is_compact_profile():
+                return COMPACT_MINIMUM_CONTEXT_LENGTH
+        except Exception:
+            pass
         return MINIMUM_CONTEXT_LENGTH
     if configured == 0:
         return 0

@@ -15,14 +15,17 @@ Selection precedence: ``KEPRIX_PROMPT_PROFILE`` env var, then
 unrecognised falls back to ``full`` so a typo never changes behaviour.
 
 Extra tools can be kept in compact mode with ``agent.compact_tools``
-(a list of tool names).
+(a list of tool names).  Compact mode also caps an auto-detected local
+(Ollama) context window at ``agent.compact_context_cap`` tokens (default
+32768; 0 disables) so a model that advertises a huge window cannot exhaust
+a small machine's memory.
 """
 
 from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Dict, FrozenSet, Iterable, List
+from typing import Any, Dict, FrozenSet, Iterable, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +104,45 @@ def compact_tool_allowlist() -> FrozenSet[str]:
     except TypeError:
         extra_names = set()
     return COMPACT_CORE_TOOLS | frozenset(extra_names)
+
+
+# Ceiling for the auto-detected Ollama context window in compact mode.
+# Ollama reports the model's *maximum* window (often 40K-256K+) and Keprix
+# requests all of it, so the KV cache alone can exhaust a small machine's
+# RAM/VRAM.  32K comfortably holds the compact prompt prefix plus a working
+# conversation.  Override with ``agent.compact_context_cap`` (0 = no cap).
+DEFAULT_COMPACT_CONTEXT_CAP = 32_768
+
+
+def compact_context_cap() -> Optional[int]:
+    """Ceiling for an auto-detected local context window, or None.
+
+    None outside the compact profile, when the cap is disabled (0), or
+    when the value is unusable.  Never below the effective minimum context
+    floor, so the cap cannot itself trip the minimum-context check.
+    """
+    if not is_compact_profile():
+        return None
+    raw = _agent_config().get("compact_context_cap", DEFAULT_COMPACT_CONTEXT_CAP)
+    if raw is None or isinstance(raw, bool):
+        raw = DEFAULT_COMPACT_CONTEXT_CAP
+    try:
+        cap = int(raw)
+    except (TypeError, ValueError):
+        cap = DEFAULT_COMPACT_CONTEXT_CAP
+    if cap <= 0:
+        return None
+    from agent.model_metadata import get_minimum_context_length
+
+    return max(cap, get_minimum_context_length())
+
+
+def cap_local_context(detected: int) -> int:
+    """Apply :func:`compact_context_cap` to an auto-detected window size."""
+    cap = compact_context_cap()
+    if cap and detected > cap:
+        return cap
+    return detected
 
 
 def filter_tools_for_profile(tools: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

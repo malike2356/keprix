@@ -895,9 +895,16 @@ DEFAULT_CONFIG = {
         "prompt_profile": "full",
         # Extra tool names to keep when prompt_profile is "compact".
         "compact_tools": [],
+        # Compact profile only: ceiling (tokens) for the context window that
+        # is auto-detected from a local Ollama model, which otherwise requests
+        # the model's maximum (often 40K-256K+) and can exhaust RAM/VRAM.
+        # Explicit model.context_length / model.ollama_num_ctx always win.
+        # 0 = no cap.
+        "compact_context_cap": 32768,
         # Minimum model context window (tokens) Keprix will run with.
-        # null = the built-in default (64000). Lower it for small local
-        # models (clamped to >= 8192); 0 = never reject, only warn. The
+        # null = the built-in default (64000; 16384 under the compact
+        # prompt profile). Lower it for small local models (clamped to
+        # >= 8192); 0 = never reject, only warn. The
         # KEPRIX_MIN_CONTEXT_LENGTH env var overrides this.
         "min_context_length": None,
         # Local-environment toolchain probe — surfaces Python/pip/uv/PEP-668

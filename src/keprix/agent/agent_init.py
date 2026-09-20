@@ -1693,6 +1693,40 @@ def init_agent(
                 agent._ollama_num_ctx = _detected
         except Exception as exc:
             _ra().logger.debug("Ollama num_ctx detection failed: %s", exc)
+    # Compact prompt profile: cap an auto-detected window so a model that
+    # advertises a huge context can't exhaust a small machine's memory.
+    # Explicit user settings (model.ollama_num_ctx / model.context_length)
+    # always win.  The compressor is re-pointed at the capped window so
+    # compaction fires before Ollama would silently truncate the prompt.
+    if (
+        agent._ollama_num_ctx
+        and _ollama_num_ctx_override is None
+        and not _config_context_length
+    ):
+        from agent.prompt_profile import cap_local_context
+
+        _detected_ctx = agent._ollama_num_ctx
+        _capped_ctx = cap_local_context(_detected_ctx)
+        if _capped_ctx != _detected_ctx:
+            _ra().logger.info(
+                "Ollama num_ctx capped for compact profile: %d -> %d "
+                "(agent.compact_context_cap)", _detected_ctx, _capped_ctx,
+            )
+            agent._ollama_num_ctx = _capped_ctx
+            _cc = getattr(agent, "context_compressor", None)
+            if (
+                _cc is not None
+                and hasattr(_cc, "update_model")
+                and (getattr(_cc, "context_length", 0) or 0) > _capped_ctx
+            ):
+                _cc.update_model(
+                    model=agent.model,
+                    context_length=_capped_ctx,
+                    base_url=agent.base_url,
+                    api_key=agent.api_key if isinstance(agent.api_key, str) else "",
+                    provider=agent.provider,
+                    api_mode=agent.api_mode,
+                )
     # Cap auto-detected ollama_num_ctx to the user's explicit context_length.
     # Without this, GGUF metadata can advertise 256K+ which Ollama honours
     # by allocating that much VRAM — blowing up small GPUs even though the
