@@ -1,60 +1,36 @@
 # First run
 
-After [Install](install.md) (CLI / TUI) or [Quickstart Option B](quickstart.md) (Docker).
+After [Install](install.md) (CLI) or [Quickstart Option B](quickstart.md) (Docker).
 
-## 1. LLM key
+## CLI (the default)
 
-Set at least one of `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY`:
-
-- **Docker:** put the key in `.env` (copy from `.env.example`) before or after `docker compose ... up`
-- **CLI:** enter a provider key during `keprix setup`, or set the same variables in the environment used by the API process
-
-Leave unused provider keys empty. Do not paste real secrets into docs or tickets.
-
-## 2. Admin / setup
-
-**CLI (preferred):**
+Reload your shell, then:
 
 ```bash
-keprix setup
+keprix
 ```
 
-That wizard creates the admin account, confirms the LLM provider, and can configure optional channels. Fallback if the console entry is unavailable: `python3 -m keprix.keprix_cli.main setup`, or `python3 scripts/wizard.py` from a full checkout.
+If no provider key is configured, Keprix offers setup in that same terminal. Paste one BYOK key (any provider in the list), or skip and add one later with `keprix setup`. After a key is saved, `keprix` continues into chat.
 
-**Docker UI:** open `http://localhost:3000` and complete the wizard (instance name, admin password, provider, optional Telegram / Discord). After **Finish setup**, use **Chat** in the sidebar.
+There is no website account for the local agent. `keprix dashboard` is optional and is not required to talk to Keprix.
 
-API endpoint when enabled: `POST /api/setup/wizard`. Status: `GET /api/setup/status` (shared with the web onboarding checklist).
+## Docker UI (optional)
 
-## 3. Open the product
+Compose is the full web stack. Open `http://localhost:3000` and complete the wizard (instance name, admin password, provider). After **Finish setup**, use **Chat** in the sidebar.
 
-**TUI:**
+API endpoint when enabled: `POST /api/setup/wizard`. Status: `GET /api/setup/status`.
 
-```bash
-keprix tui
-```
+## Optional Telegram / Discord
 
-If the API is not already running:
+Configure channels in `keprix setup gateway`, the Docker wizard, or `.env` (see `.env.example`). Details: [Messaging](../features/messaging.md).
 
-```bash
-keprix start --host 127.0.0.1 --port 3333
-keprix tui
-```
-
-Use `keprix tui --help` for session resume, model override, API URL, bearer token, and mouse capture. The TUI can show a minimal provider form when unconfigured; use `/setup` or `/setup model` for the full CLI wizard.
-
-**Web UI:** after Compose is up, open `http://localhost:3000`. After sign-in, the workspace is at `/workspace`.
-
-## 4. Optional Telegram / Discord
-
-Configure channels in `keprix setup`, the Docker wizard, or `.env` (see `.env.example`). Details: [Messaging](../features/messaging.md).
-
-## Verify
+## Verify (when the API is running)
 
 ```bash
 curl -s http://127.0.0.1:3333/api/health
 ```
 
-Expect JSON with a status field when the API is up. From a checkout you can also run:
+Expect JSON with a status field. From a checkout you can also run:
 
 ```bash
 bash scripts/check-health.sh

@@ -28,22 +28,23 @@ import {
 } from "@/components/marketing/MarketingSection";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
 import { useThemeMode } from "@/components/providers/ThemeRegistry";
+import { KEPRIX_INSTALL_CMD } from "@/lib/install";
 
 const INSTALL_METHODS = [
   {
     id: "curl",
     label: "Quick Install (curl)",
     icon: <TerminalIcon fontSize="small" />,
-    summary: "One-line script installer for Linux, macOS, and WSL2 (Python 3.11 or 3.12). Sets up a venv and puts keprix on your PATH.",
-    command: "curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash",
+    summary: "One-line installer for Linux, macOS, and WSL2. Puts keprix on your PATH. Type keprix to chat.",
+    command: KEPRIX_INSTALL_CMD,
     nextSteps: [
-      { step: "1", title: "Configure models", code: "keprix setup", desc: "Interactive wizard to connect your LLM provider key." },
-      { step: "2", title: "Launch Command Center", code: "keprix tui", desc: "Interactive terminal UI with sessions, tools, and review." },
+      { step: "1", title: "Reload your shell", code: "source ~/.bashrc", desc: "Or source ~/.zshrc so ~/.local/bin is on PATH." },
+      { step: "2", title: "Start chatting", code: "keprix", desc: "Offers setup if no key is set, then starts the CLI." },
     ],
     details: [
-      "Clones and updates under ~/.keprix/keprix",
+      "Clones and updates under ~/.keprix/keprix (dirty clones are stashed, not aborted)",
       "Creates an isolated Python 3.11 or 3.12 virtual environment",
-      "Adds keprix CLI and Command Center TUI to ~/.local/bin",
+      "Adds keprix to ~/.local/bin and your shell config",
     ],
   },
   {
@@ -70,7 +71,7 @@ const INSTALL_METHODS = [
     command: "pipx install 'keprix[tui] @ git+https://github.com/malike2356/keprix.git'",
     nextSteps: [
       { step: "1", title: "Verify install", code: "keprix --version", desc: "Check that keprix CLI is available on your shell PATH." },
-      { step: "2", title: "Start TUI", code: "keprix tui", desc: "Launch the terminal Command Center interface." },
+      { step: "2", title: "Start chatting", code: "keprix", desc: "Offers setup if no key is set, then starts the CLI." },
     ],
     details: [
       "Requires Python 3.11 or 3.12 and pipx installed",

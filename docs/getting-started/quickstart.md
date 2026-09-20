@@ -9,19 +9,18 @@ Keprix has two install paths. The **CLI / TUI** path (Option A) is primary for d
 See [Install](install.md) for the full guide.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
+curl -fsSL https://keprixai.com/install.sh | bash
 ```
 
 The public GitHub repository is anonymously readable. This command follows the
 development channel. For immutable stable releases, download and inspect
 `scripts/install-release.sh`, then run it with an exact `--version`.
 
-Next steps after install:
+After install:
 
 ```bash
-keprix --version
-keprix setup
-keprix tui
+source ~/.bashrc   # or source ~/.zshrc
+keprix             # offers setup if needed, then starts chatting
 ```
 
 ## Option B: Docker Compose (full web stack)

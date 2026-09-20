@@ -16,19 +16,20 @@ import {
 } from "@/components/marketing/MarketingSection";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
 import { useThemeMode } from "@/components/providers/ThemeRegistry";
+import { KEPRIX_INSTALL_CMD } from "@/lib/install";
 
 const STEPS = [
   {
     number: "01",
     icon: RocketLaunchIcon,
     title: "Deploy",
-    body: "Install with the curl one-liner for CLI/TUI, or Docker Compose for the full web stack. No cloud account is required.",
+    body: "Install with the curl one-liner. Reload your shell and type keprix. No cloud account is required. Docker Compose is optional for the full web stack.",
     detail: {
       type: "code" as const,
       lines: [
-        { prefix: "$", text: "curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash" },
-        { prefix: "$", text: "keprix setup && keprix tui" },
-        { prefix: "$", text: "# Full stack: docker compose -f docker/docker-compose.yml up -d --build" },
+        { prefix: "$", text: KEPRIX_INSTALL_CMD },
+        { prefix: "$", text: "source ~/.bashrc && keprix" },
+        { prefix: "$", text: "# Optional web stack: docker compose -f docker/docker-compose.yml up -d --build" },
       ],
     },
   },

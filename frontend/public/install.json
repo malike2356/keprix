@@ -6,7 +6,7 @@
   "homepage": "https://keprixai.com",
   "repository": "https://github.com/malike2356/keprix",
   "license": "MIT",
-  "installCommand": "git clone https://github.com/malike2356/keprix.git && cd keprix && bash scripts/install.sh",
+  "installCommand": "curl -fsSL https://keprixai.com/install.sh | bash",
   "alternateInstallCommands": [
     {
       "id": "docker_compose",

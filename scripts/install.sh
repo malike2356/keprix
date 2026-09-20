@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Keprix Hermes-parity installer (CLI / TUI first).
+# Keprix installer (CLI first, Hermes layout).
 #
 # Pipe mode (stranger UX):
+#   curl -fsSL https://keprixai.com/install.sh | bash
+# GitHub raw still works:
 #   curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
 # When piped, BASH_SOURCE does not point at a checkout. The script clones/updates
 # into ${KEPRIX_HOME:-$HOME/.keprix}/keprix and installs there.
@@ -11,8 +13,8 @@
 # If this file lives in a real repo (../pyproject.toml present), install into that
 # repo's .venv and symlink keprix onto PATH.
 #
-# Until the GitHub repo is anonymously public, the curl one-liner fails closed
-# (raw URL 404). See docs/operations/public-github-checklist.md.
+# After install: reload the shell, type `keprix`. If no provider key exists,
+# that command offers setup, then starts chatting. Dashboard is optional.
 #
 # Env overrides:
 #   KEPRIX_HOME              data/config/state home (default: $HOME/.keprix)
@@ -110,8 +112,34 @@ ensure_home_layout() {
 
 clone_or_update() {
   # Idempotent: clone if missing, else fetch/pull current REF.
+  # Hermes update path: stash local dirt, clear unmerged index, never abort
+  # the whole install because a previous checkout was messy.
+
+  # Interrupted clone: .git exists but HEAD is missing. Move aside and reclone.
+  if [[ -d "$ROOT/.git" ]] && ! git -C "$ROOT" rev-parse --verify HEAD >/dev/null 2>&1; then
+    local backup_dir
+    backup_dir="${ROOT}.broken-$(date -u +%Y%m%d-%H%M%S)"
+    warn "Existing checkout at $ROOT has no commits (interrupted clone)."
+    warn "Moving it aside to $backup_dir before re-cloning."
+    mv "$ROOT" "$backup_dir"
+  fi
+
   if [[ -d "$ROOT/.git" ]]; then
     log "Updating existing clone at $ROOT (ref: $KEPRIX_REF)"
+    local autostash_ref=""
+    if [[ -n "$(git -C "$ROOT" status --porcelain 2>/dev/null || true)" ]]; then
+      if [[ -n "$(git -C "$ROOT" ls-files --unmerged 2>/dev/null || true)" ]]; then
+        log "Clearing unmerged index entries from a previous conflict..."
+        git -C "$ROOT" reset -q || true
+      fi
+      local stash_name
+      stash_name="keprix-install-autostash-$(date -u +%Y%m%d-%H%M%S)"
+      log "Local changes detected, stashing before update..."
+      if git -C "$ROOT" stash push --include-untracked -m "$stash_name"; then
+        autostash_ref="stash@{0}"
+      fi
+    fi
+
     git -C "$ROOT" fetch --tags --force origin "$KEPRIX_REF" 2>/dev/null \
       || git -C "$ROOT" fetch --tags --force origin || true
     if git -C "$ROOT" rev-parse --verify "refs/remotes/origin/$KEPRIX_REF" >/dev/null 2>&1; then
@@ -122,6 +150,18 @@ clone_or_update() {
       warn "Could not resolve ref $KEPRIX_REF; staying on current branch"
     fi
     git -C "$ROOT" pull --ff-only 2>/dev/null || true
+
+    if [[ -n "$autostash_ref" ]]; then
+      log "Restoring local changes stashed before update..."
+      if git -C "$ROOT" stash apply "$autostash_ref"; then
+        git -C "$ROOT" stash drop "$autostash_ref" >/dev/null 2>&1 || true
+        warn "Local changes were restored on top of the updated codebase."
+        warn "Review git status in $ROOT if Keprix behaves unexpectedly."
+      else
+        warn "Update succeeded, but restoring local changes failed."
+        warn "Your changes are in git stash. Restore with: git -C $ROOT stash apply $autostash_ref"
+      fi
+    fi
     return 0
   fi
 
@@ -135,8 +175,6 @@ clone_or_update() {
     echo ""
     echo "ERROR: git clone failed."
     echo "The Keprix GitHub repository must be publicly readable for stranger installs."
-    echo "Anonymous clone/raw URLs currently fail closed until the owner publishes the repo."
-    echo "See: docs/operations/public-github-checklist.md"
     echo "Until then, clone via SSH (or an allowed remote) and run:"
     echo "  bash scripts/install.sh"
     echo "from that checkout."
@@ -178,6 +216,11 @@ ensure_python_env() {
 
   ensure_python_bin
 
+  if [[ -d "$venv" ]]; then
+    log "Virtual environment already exists, recreating..."
+    rm -rf "$venv"
+  fi
+
   log "Creating Python env at $venv"
   if command -v uv >/dev/null 2>&1; then
     (cd "$ROOT" && uv venv --python "$PYTHON" "$venv")
@@ -211,11 +254,102 @@ link_keprix_bin() {
 
   if ! path_has_bin_dir; then
     echo ""
-    echo "Note: $BIN_DIR is not on your PATH."
-    echo "Add it, for example:"
-    echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
-    echo "Then run: hash -r   (or open a new shell)"
+    echo "Note: $BIN_DIR is not on your PATH yet. The installer will add it to your shell config."
   fi
+}
+
+ensure_local_bin_on_path() {
+  # Hermes copies ~/.local/bin into bashrc/zshrc/profile so `keprix` works
+  # after `source ~/.bashrc` without the user editing PATH by hand.
+  local path_line='export PATH="$HOME/.local/bin:$PATH"'
+  local path_comment='# Keprix — ensure ~/.local/bin is on PATH'
+  local login_shell
+  local -a shell_configs=()
+  local is_fish=false
+  local fish_config="$HOME/.config/fish/config.fish"
+  local cfg
+
+  if [[ "$BIN_DIR" != "$HOME/.local/bin" ]]; then
+    export PATH="$BIN_DIR:$PATH"
+    return 0
+  fi
+
+  login_shell="$(basename "${SHELL:-/bin/bash}")"
+  case "$login_shell" in
+    zsh)
+      [[ -f "$HOME/.zshrc" ]] && shell_configs+=("$HOME/.zshrc")
+      [[ -f "$HOME/.zprofile" ]] && shell_configs+=("$HOME/.zprofile")
+      if [[ ${#shell_configs[@]} -eq 0 ]]; then
+        touch "$HOME/.zshrc"
+        shell_configs+=("$HOME/.zshrc")
+      fi
+      ;;
+    bash)
+      [[ -f "$HOME/.bashrc" ]] && shell_configs+=("$HOME/.bashrc")
+      [[ -f "$HOME/.bash_profile" ]] && shell_configs+=("$HOME/.bash_profile")
+      if [[ ${#shell_configs[@]} -eq 0 ]]; then
+        touch "$HOME/.bashrc"
+        shell_configs+=("$HOME/.bashrc")
+      fi
+      ;;
+    fish)
+      is_fish=true
+      mkdir -p "$(dirname "$fish_config")"
+      touch "$fish_config"
+      ;;
+    *)
+      [[ -f "$HOME/.bashrc" ]] && shell_configs+=("$HOME/.bashrc")
+      [[ -f "$HOME/.zshrc" ]] && shell_configs+=("$HOME/.zshrc")
+      ;;
+  esac
+  if [[ "$is_fish" != true && -f "$HOME/.profile" ]]; then
+    shell_configs+=("$HOME/.profile")
+  fi
+
+  for cfg in "${shell_configs[@]}"; do
+    if ! grep -v '^[[:space:]]*#' "$cfg" 2>/dev/null | grep -qE 'PATH=.*\.local/bin'; then
+      echo "" >> "$cfg"
+      echo "$path_comment" >> "$cfg"
+      echo "$path_line" >> "$cfg"
+      log "Added ~/.local/bin to PATH in $cfg"
+    fi
+  done
+
+  if [[ "$is_fish" == true ]]; then
+    if ! grep -q 'fish_add_path.*\.local/bin' "$fish_config" 2>/dev/null; then
+      echo "" >> "$fish_config"
+      echo "$path_comment" >> "$fish_config"
+      echo 'fish_add_path "$HOME/.local/bin"' >> "$fish_config"
+      log "Added ~/.local/bin to PATH in $fish_config"
+    fi
+  fi
+
+  export PATH="$BIN_DIR:$PATH"
+}
+
+run_setup_wizard() {
+  local keprix_bin="$ROOT/.venv/bin/keprix"
+
+  if [[ "$KEPRIX_NONINTERACTIVE" = "1" ]]; then
+    log "KEPRIX_NONINTERACTIVE=1: skipping setup wizard"
+    return 0
+  fi
+
+  # Hermes: wizard reads /dev/tty so curl | bash can still prompt.
+  if ! (: </dev/tty) 2>/dev/null; then
+    log "Setup wizard skipped (no terminal available). After install, run: keprix"
+    return 0
+  fi
+
+  if [[ ! -x "$keprix_bin" ]]; then
+    warn "keprix binary missing; skip setup. After install, run: keprix"
+    return 0
+  fi
+
+  echo ""
+  log "Starting setup wizard (paste one provider key, or skip and add one later)..."
+  echo ""
+  "$keprix_bin" setup </dev/tty || warn "Setup wizard exited early. Run 'keprix' later to finish."
 }
 
 maybe_offer_docker() {
@@ -282,26 +416,23 @@ STATE
 }
 
 print_next_steps() {
-  local setup_hint="keprix setup"
-  if ! command -v keprix >/dev/null 2>&1 && [[ ! -x "$BIN_DIR/keprix" ]]; then
-    setup_hint="python scripts/wizard.py  # via $ROOT/.venv/bin/python"
-  elif [[ -x "$ROOT/.venv/bin/keprix" ]]; then
-    if ! "$ROOT/.venv/bin/keprix" setup --help >/dev/null 2>&1; then
-      setup_hint="$ROOT/.venv/bin/python $ROOT/scripts/wizard.py"
-    fi
-  fi
+  local login_shell
+  login_shell="$(basename "${SHELL:-/bin/bash}")"
 
   echo ""
-  echo "Keprix CLI install complete."
+  echo "Keprix install complete."
   echo ""
-  echo "Next steps:"
-  echo "  1. Ensure PATH includes ~/.local/bin, then: hash -r"
-  echo "     (or open a new shell)"
-  echo "  2. keprix --version"
-  echo "  3. $setup_hint"
-  echo "  4. keprix tui"
+  echo "Reload your shell, then start chatting:"
   echo ""
-  echo "Docker Compose is optional and not required for CLI/TUI."
+  case "$login_shell" in
+    zsh) echo "  source ~/.zshrc" ;;
+    fish) echo "  source ~/.config/fish/config.fish" ;;
+    *) echo "  source ~/.bashrc" ;;
+  esac
+  echo "  keprix"
+  echo ""
+  echo "If no API key is configured yet, keprix will offer setup in the same terminal."
+  echo "Dashboard is optional: keprix dashboard"
   echo "Data/config home: $KEPRIX_HOME"
   echo "Code root:        $ROOT"
 }
@@ -340,15 +471,9 @@ main() {
 
   ensure_python_env
   link_keprix_bin
+  ensure_local_bin_on_path
   write_state_file
-
-  if [[ "$KEPRIX_NONINTERACTIVE" = "1" ]]; then
-    log "KEPRIX_NONINTERACTIVE=1: skipping wizard prompts"
-  else
-    log "Run setup when ready: keprix setup"
-    log "(or: $ROOT/.venv/bin/python $ROOT/scripts/wizard.py)"
-  fi
-
+  run_setup_wizard
   maybe_offer_docker
   print_next_steps
 }

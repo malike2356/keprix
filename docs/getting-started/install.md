@@ -5,20 +5,25 @@
 Primary install path for Linux, macOS, and WSL2:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
+curl -fsSL https://keprixai.com/install.sh | bash
 ```
 
-The installer clones or updates code under `${KEPRIX_HOME:-$HOME/.keprix}/keprix`, creates an isolated Python env (prefers `uv` when available), installs the `[tui]` extra, and puts `keprix` on PATH via `~/.local/bin`.
+The installer clones or updates code under `${KEPRIX_HOME:-$HOME/.keprix}/keprix`, creates an isolated Python env (prefers `uv` when available), installs the `[tui]` extra, puts `keprix` on PATH via `~/.local/bin`, and writes that directory into your shell config. Re-running on a dirty clone or existing `.venv` is the update path, not a failure.
 
-The repository and raw installer are publicly readable. The curl command follows
-the development channel. Stable distribution uses `scripts/install-release.sh`
-with an exact version, manifest checksum, and signature verification.
+The curl command follows the development channel. GitHub raw is the same script. Stable distribution uses `scripts/install-release.sh` with an exact version, manifest checksum, and signature verification.
 
 **Windows:** use WSL2 and run the installer inside Linux. Native Windows is not claimed.
 
 Env overrides: `KEPRIX_HOME`, `KEPRIX_REPO_URL`, `KEPRIX_REF`, `KEPRIX_NONINTERACTIVE=1`, `KEPRIX_DRY_RUN=1`, optional `KEPRIX_INSTALL_DOCKER=1` (Compose is never required for CLI success).
 
-Next steps after install: `hash -r`, `keprix --version`, `keprix setup`, `keprix tui`.
+After install:
+
+```bash
+source ~/.bashrc   # or source ~/.zshrc
+keprix
+```
+
+If no provider key is set, `keprix` offers setup in the same terminal, then starts chatting. `keprix dashboard` is optional and is not the first-run product.
 
 ---
 

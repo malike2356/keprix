@@ -2285,12 +2285,16 @@ def cmd_chat(args):
             reply = input("Run setup now? [Y/n] ").strip().lower()
         except (EOFError, KeyboardInterrupt):
             reply = "n"
-        if reply in {"", "y", "yes"}:
-            cmd_setup(args)
-            return
-        print()
-        print("You can run 'keprix setup' at any time to configure.")
-        sys.exit(1)
+        if reply not in {"", "y", "yes"}:
+            print()
+            print("You can run 'keprix setup' at any time to configure.")
+            sys.exit(1)
+        cmd_setup(args)
+        if not _has_any_provider_configured():
+            print()
+            print("No provider configured yet. Run 'keprix' again after you add a key.")
+            sys.exit(1)
+        # Hermes: paste a key, then keep going into chat in the same TTY.
 
     # Start update check in background (runs while other init happens).
     # On Termux this imports rich/prompt_toolkit in the foreground and then

@@ -36,7 +36,7 @@ Use any model you want; [Nous Portal](https://portal.nousresearch.com), [OpenRou
 ### Linux, macOS, WSL2, Termux
 
 ```bash
-curl -fsSL https://keprix.nousresearch.com/install.sh | bash
+curl -fsSL https://keprixai.com/install.sh | bash
 ```
 
 ### Windows (native, PowerShell)
@@ -80,26 +80,19 @@ keprix update       # Update to the latest version
 keprix doctor       # Diagnose any issues
 ```
 
- **[Full documentation →](https://keprix.nousresearch.com/docs/)**
+ **[Full documentation →](https://keprixai.com/docs/)**
 
 ---
 
-## Skip the API-key collection; Nous Portal
+## Bring your own key
 
-Keprix works with whatever provider you want; that's not changing. But if you'd rather not collect five separate API keys for the model, web search, image generation, TTS, and a cloud browser, **[Nous Portal](https://portal.nousresearch.com)** covers all of them under one subscription:
-
-- **300+ models**; pick any of them with `/model <name>`
-- **Tool Gateway**; web search (Firecrawl), image generation (FAL), text-to-speech (OpenAI), cloud browser (Browser Use), all routed through your sub. No extra accounts.
-
-One command from a fresh install:
+Keprix is BYOK. After install, `keprix` offers setup if no provider is configured. Paste one API key for any provider in the list (DeepSeek, OpenRouter, OpenAI, Anthropic, and others). There is no Nous Portal login.
 
 ```bash
-keprix setup --portal
+keprix              # start chatting; setup runs first if needed
+keprix setup        # full wizard
+keprix model        # pick provider and model
 ```
-
-That logs you in via OAuth, sets Nous as your provider, and turns on the Tool Gateway. Check what's wired up any time with `keprix portal info`. Full details on the [Tool Gateway docs page](https://keprix.nousresearch.com/docs/user-guide/features/tool-gateway).
-
-You can still bring your own keys per-tool whenever you want; the gateway is per-backend, not all-or-nothing.
 
 ---
 

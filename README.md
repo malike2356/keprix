@@ -17,19 +17,18 @@ checksums, SBOMs, and provenance are published.
 Current source installation (Linux, macOS, WSL2):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
+curl -fsSL https://keprixai.com/install.sh | bash
 ```
 
 This follows the development branch and is not an immutable stable release. Review
-the script before running it. See [docs/operations/public-github-checklist.md](docs/operations/public-github-checklist.md).
+the script before running it. GitHub raw is the same file:
+`https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh`.
 
 Then:
 
 ```bash
-hash -r   # or open a new shell so ~/.local/bin is on PATH
-keprix --version
-keprix setup
-keprix tui
+source ~/.bashrc   # or source ~/.zshrc
+keprix             # offers setup if no key, then starts chatting
 ```
 
 Default home: `~/.keprix` (code at `~/.keprix/keprix`). Guide: [docs/getting-started/install.md](docs/getting-started/install.md).

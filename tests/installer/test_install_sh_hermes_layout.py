@@ -61,3 +61,31 @@ def test_install_sh_dry_run_mentions_home_layout() -> None:
         assert proc.returncode == 0
         assert "KEPRIX_HOME" in proc.stdout
         assert tmp in proc.stdout
+
+
+def test_install_sh_recovers_dirty_clone_and_existing_venv() -> None:
+    text = INSTALL_SH.read_text(encoding="utf-8")
+    assert "stash push" in text
+    assert "ls-files --unmerged" in text
+    assert "already exists, recreating" in text
+    assert "start chatting" in text.lower() or "keprix" in text
+    assert "source ~/.bashrc" in text
+    assert "4. keprix tui" not in text
+    assert "keprixai.com/install.sh" in text
+
+
+def test_marketing_hosts_install_sh() -> None:
+    dockerfile = REPO_ROOT / "docker" / "Dockerfile.frontend"
+    nxt = REPO_ROOT / "frontend" / "next.config.ts"
+    lib = REPO_ROOT / "frontend" / "src" / "lib" / "install.ts"
+    assert "scripts/install.sh" in dockerfile.read_text(encoding="utf-8")
+    assert "/install.sh" in nxt.read_text(encoding="utf-8")
+    assert "keprixai.com/install.sh" in lib.read_text(encoding="utf-8")
+
+
+def test_inner_install_sh_clones_public_keprix_github() -> None:
+    inner = REPO_ROOT / "src" / "keprix" / "scripts" / "install.sh"
+    text = inner.read_text(encoding="utf-8")
+    assert "malike2356/keprix.git" in text
+    assert "NousResearch/keprix.git" not in text
+    assert "keprixai.com/install.sh" in text

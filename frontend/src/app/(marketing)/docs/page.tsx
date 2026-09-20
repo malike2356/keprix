@@ -29,17 +29,16 @@ import {
   DOCS_SECTIONS,
 } from "@/lib/docs-catalog";
 import { DOCS_QUICKSTART_URL, docsPageUrl, isExternalDocsUrl } from "@/lib/docs-url";
+import { KEPRIX_INSTALL_CMD } from "@/lib/install";
 
 const DottedSurfaceBackground = dynamic(
   () => import("@/components/ui/dotted-surface-background").then((mod) => mod.DottedSurfaceBackground),
   { ssr: false },
 );
 
-const INSTALL_CMD = `curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
-# Full web stack (optional):
-git clone https://github.com/malike2356/keprix.git && cd keprix
-cp .env.example .env
-docker compose -f docker/docker-compose.yml up -d --build`;
+const INSTALL_CMD = `${KEPRIX_INSTALL_CMD}
+# Then:
+source ~/.bashrc && keprix`;
 
 const SECTION_META: Record<string, { icon: React.ElementType; color: string; accent: string }> = {
   "Getting started": { icon: RocketLaunchIcon, color: "#10B981", accent: "rgba(16,185,129,0.12)" },
@@ -502,12 +501,12 @@ export default function DocsPage() {
               Up and running in five minutes.
             </Typography>
             <Typography sx={{ color: c.textSecondary, fontSize: "0.9rem", lineHeight: 1.7, mb: 3, position: "relative" }}>
-              Three commands, Docker required. MIT licensed. No account.
+              CLI first. MIT licensed. No account. Docker is optional.
             </Typography>
             <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", position: "relative" }}>
               <Button
                 component="a"
-                href="/auth/setup"
+                href="/#install"
                 variant="contained"
                 sx={{
                   fontWeight: 700,
@@ -523,7 +522,7 @@ export default function DocsPage() {
                   },
                 }}
               >
-                Deploy instance
+                Install Keprix
               </Button>
               <Button
                 component="a"

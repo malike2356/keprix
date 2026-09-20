@@ -24,10 +24,10 @@ This site is the complete operator and developer reference for every workspace s
 Marketing site: [https://keprixai.com](https://keprixai.com) (origin may still be provisioning; see public GTM notes).
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
+curl -fsSL https://keprixai.com/install.sh | bash
 ```
 
-Requires a public GitHub repository. Until then, clone via SSH and run `bash scripts/install.sh` from the checkout.
+After install: `source ~/.bashrc` (or `source ~/.zshrc`), then `keprix`.
 
 ## Product map
 

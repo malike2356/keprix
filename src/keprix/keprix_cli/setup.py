@@ -3184,6 +3184,7 @@ def _run_first_time_quick_setup(config: dict, keprix_home, is_existing: bool):
     print()
     print_success("Setup complete! You're ready to go.")
     print()
+    print_info("  Start chatting:            keprix")
     print_info("  Configure all settings:    keprix setup")
     if gateway_choice != 0:
         print_info("  Connect Telegram/Discord:  keprix setup gateway")

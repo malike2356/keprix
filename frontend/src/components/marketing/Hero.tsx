@@ -19,6 +19,7 @@ import {
   MARKETING_MONO_FONT,
 } from "@/components/marketing/marketing-section";
 import { useThemeMode } from "@/components/providers/ThemeRegistry";
+import { KEPRIX_INSTALL_CMD } from "@/lib/install";
 
 const blink = keyframes`
   0%, 49% { opacity: 1; }
@@ -31,7 +32,7 @@ type TerminalLine = {
 };
 
 const TERMINAL_LINES: TerminalLine[] = [
-  { prefix: "$", text: "keprix tui" },
+  { prefix: "$", text: "keprix" },
   { prefix: ">", text: "Runtime ready. Memory, tools, and policies loaded." },
   { prefix: "[User]", text: "Build a workflow to protect inbound client emails" },
   { prefix: "[Keprix]", text: "Missing protection layer detected." },
@@ -40,9 +41,6 @@ const TERMINAL_LINES: TerminalLine[] = [
   { prefix: "[User]", text: "yes" },
   { prefix: "[Keprix]", text: "Waiting for approval before deployment." },
 ];
-
-const INSTALL_CMD =
-  "curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash";
 
 function typingDelay(line: TerminalLine, charIndex: number): number {
   if (line.prefix === "$") return 42;
@@ -249,7 +247,7 @@ export function Hero() {
   const handleCopyInstall = async () => {
     try {
       if (typeof navigator !== "undefined" && navigator.clipboard) {
-        await navigator.clipboard.writeText(INSTALL_CMD);
+        await navigator.clipboard.writeText(KEPRIX_INSTALL_CMD);
         setCopiedInstall(true);
         window.setTimeout(() => setCopiedInstall(false), 2000);
       }
@@ -421,7 +419,7 @@ export function Hero() {
                     mr: 1,
                   }}
                 >
-                  {INSTALL_CMD}
+                  {KEPRIX_INSTALL_CMD}
                 </Typography>
                 <Tooltip title={copiedInstall ? "Copied" : "Copy install command"}>
                   <IconButton

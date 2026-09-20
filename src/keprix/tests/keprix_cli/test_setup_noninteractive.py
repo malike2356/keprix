@@ -144,6 +144,34 @@ class TestNonInteractiveSetup:
         out = capsys.readouterr().out
         assert "keprix config set model.provider custom" in out
 
+    def test_chat_first_run_setup_yes_continues_into_chat(self):
+        """After first-run setup succeeds, bare keprix continues into chat."""
+        from keprix_cli.main import cmd_chat
+
+        args = _make_chat_args()
+        configured = {"ok": False}
+
+        def fake_has():
+            return configured["ok"]
+
+        def fake_setup(_args):
+            configured["ok"] = True
+
+        with (
+            patch("keprix_cli.main._has_any_provider_configured", side_effect=fake_has),
+            patch("keprix_cli.main.cmd_setup", side_effect=fake_setup) as mock_setup,
+            patch("keprix_cli.main._resolve_use_tui", return_value=False),
+            patch("keprix_cli.setup.is_interactive_stdin", return_value=True),
+            patch("builtins.input", return_value=""),
+            patch("keprix_cli.main._sync_bundled_skills_for_startup"),
+            patch("keprix_cli.main._pin_kanban_board_env"),
+            patch("cli.main") as mock_cli,
+        ):
+            cmd_chat(args)
+
+        mock_setup.assert_called_once()
+        mock_cli.assert_called_once()
+
     def test_main_accepts_tts_setup_section(self, monkeypatch):
         """`keprix setup tts` should parse and dispatch like other setup sections."""
         from keprix_cli import main as main_mod

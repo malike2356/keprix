@@ -22,9 +22,22 @@ const nextConfig: NextConfig = {
       { source: "/observability", destination: "/data?tab=observability", permanent: false },
     ];
   },
+  async headers() {
+    return [
+      {
+        source: "/install.sh",
+        headers: [{ key: "Content-Type", value: "text/plain; charset=utf-8" }],
+      },
+    ];
+  },
   async rewrites() {
     const base = backendBase.replace(/\/$/, "");
     return [
+      {
+        source: "/install.sh",
+        destination:
+          "https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh",
+      },
       {
         source: "/openapi.json",
         destination: `${base}/openapi.json`,

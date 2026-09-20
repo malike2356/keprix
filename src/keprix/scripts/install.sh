@@ -6,7 +6,12 @@
 # Uses uv for desktop/server installs and Python's stdlib venv + pip on Termux.
 #
 # Usage:
-#   curl -fsSL https://keprix.nousresearch.com/install.sh | bash
+#   curl -fsSL https://keprixai.com/install.sh | bash
+#
+# Public curl target is repo-root scripts/install.sh (same file hosted at
+# keprixai.com/install.sh). This copy is the Hermes-lineage installer used
+# by keprix update / Termux / desktop bootstrap. Keep clone URLs on the
+# public Keprix GitHub repo, not Nous Research.
 #
 # Or with options:
 #   curl -fsSL ... | bash -s -- --no-venv --skip-setup
@@ -43,8 +48,8 @@ NC='\033[0m' # No Color
 BOLD='\033[1m'
 
 # Configuration
-REPO_URL_SSH="git@github.com:NousResearch/keprix.git"
-REPO_URL_HTTPS="https://github.com/NousResearch/keprix.git"
+REPO_URL_SSH="git@github.com:malike2356/keprix.git"
+REPO_URL_HTTPS="https://github.com/malike2356/keprix.git"
 KEPRIX_HOME="${KEPRIX_HOME:-$HOME/.keprix}"
 # INSTALL_DIR is resolved AFTER arg parsing and OS detection so we can pick an
 # FHS-style layout for root installs.  Track whether the user gave us an
@@ -469,8 +474,8 @@ detect_os() {
         CYGWIN*|MINGW*|MSYS*)
             OS="windows"
             DISTRO="windows"
-            log_error "Windows detected. Please use the PowerShell installer:"
-            log_info "  iex (irm https://keprix.nousresearch.com/install.ps1)"
+            log_error "Windows detected. Please use WSL2 and re-run this installer inside Linux."
+            log_info "  curl -fsSL https://keprixai.com/install.sh | bash"
             exit 1
             ;;
         *)

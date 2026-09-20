@@ -10,6 +10,7 @@ RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 COPY --from=deps /app/frontend/node_modules ./node_modules
 COPY frontend/package.json frontend/pnpm-lock.yaml frontend/next.config.ts frontend/tsconfig.json frontend/postcss.config.mjs frontend/eslint.config.mjs frontend/next-env.d.ts frontend/tailwind.voice.config.ts frontend/vitest.config.ts ./
 COPY frontend/public ./public
+COPY scripts/install.sh ./public/install.sh
 COPY frontend/src ./src
 COPY ui/design-system /app/ui/design-system
 COPY CHANGELOG.md /app/CHANGELOG.md
