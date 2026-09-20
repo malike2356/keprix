@@ -2103,6 +2103,7 @@ class TestWebServerEndpoints:
             "/api/email/accounts",
             "/api/email/inbox",
             "/api/companies-house/status",
+            "/api/operator/context?workspace_id=default&detail=nav",
             "/api/notifications/inbox",
             "/api/voice/wake-words",
             "/api/audio/status",
@@ -2143,6 +2144,21 @@ class TestWebServerEndpoints:
         assert ch_put.status_code != 405, ch_put.text
         assert ch_put.status_code == 200, ch_put.text
         assert ch_put.json().get("ok") is True
+
+        operator_ctx = client.get(
+            "/api/operator/context?workspace_id=default&detail=full",
+            headers=headers,
+            follow_redirects=False,
+        )
+        assert operator_ctx.status_code == 200, operator_ctx.text
+        assert "summary_markdown" in operator_ctx.json()
+        operator_msg = client.post(
+            "/api/operator/copilot/message",
+            headers=headers,
+            json={"message": "What page am I on?", "workspace_id": "default"},
+        )
+        assert operator_msg.status_code != 404, operator_msg.text
+        assert operator_msg.status_code != 405, operator_msg.text
 
     def test_dashboard_starts_email_poller(self, monkeypatch):
         """keprix dashboard must poll IMAP; CE starts this, the dashboard did not."""
