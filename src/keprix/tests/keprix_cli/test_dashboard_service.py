@@ -22,9 +22,10 @@ def test_service_name_default():
     assert get_service_name().startswith("keprix-dashboard")
 
 
-def test_generate_systemd_unit_pins_loopback_and_skip_build():
+def test_generate_systemd_unit_pins_loopback_and_no_open():
     unit = generate_systemd_unit()
-    assert "dashboard --host 127.0.0.1 --port 9119 --no-open --skip-build" in unit
+    assert "dashboard --host 127.0.0.1 --port 9119 --no-open" in unit
+    assert "--skip-build" not in unit
     assert "KEPRIX_DASHBOARD_SERVICE=1" in unit
     assert "KEPRIX_DASHBOARD_FRONTEND_PORT=9120" in unit
     assert "WantedBy=default.target" in unit
@@ -49,7 +50,7 @@ def test_generate_launchd_plist_runs_dashboard_no_open():
     plist = generate_launchd_plist()
     assert "<string>dashboard</string>" in plist
     assert "<string>--no-open</string>" in plist
-    assert "<string>--skip-build</string>" in plist
+    assert "--skip-build" not in plist
     assert "<key>KEPRIX_DASHBOARD_SERVICE</key>" in plist
     assert f"<string>{DEFAULT_FRONTEND_PORT}</string>" in plist
 
@@ -144,5 +145,6 @@ def test_install_dispatch_writes_unit(tmp_path, monkeypatch):
 
     dashboard_service_command(args)
     text = unit_path.read_text(encoding="utf-8")
-    assert "dashboard --host 127.0.0.1 --port 9119 --no-open --skip-build" in text
+    assert "dashboard --host 127.0.0.1 --port 9119 --no-open" in text
+    assert "--skip-build" not in text
     assert "KEPRIX_DASHBOARD_FRONTEND_PORT=9120" in text

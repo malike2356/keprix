@@ -10945,20 +10945,24 @@ def cmd_dashboard(args):
         if not _build_web_ui(PROJECT_ROOT / "web", fatal=True):
             sys.exit(1)
     elif getattr(args, "skip_build", False):
-        # --build-mode skip trusts the caller to have pre-built the web UI.
-        # Verify the dist actually exists; otherwise the server will start
-        # and serve 404s with no obvious cause (issue #23817).
+        # Legacy Vite `web/` dist. That source tree is gone (Next.js lives in
+        # `frontend/`); only fail closed when the old package.json is still
+        # present and the dist is missing. A systemd unit that passed
+        # --skip-build used to crash-loop here even though the real UI build
+        # is handled below.
         _dist_root = (
             Path(os.environ["KEPRIX_WEB_DIST"])
             if "KEPRIX_WEB_DIST" in os.environ
             else PROJECT_ROOT / "keprix_cli" / "web_dist"
         )
-        if not (_dist_root / "index.html").exists():
+        _legacy_web = (PROJECT_ROOT / "web" / "package.json").exists()
+        if _legacy_web and not (_dist_root / "index.html").exists():
             print(f"✗ --skip-build was passed but no web dist found at: {_dist_root}")
             print("  Pre-build first:  npm install --workspace web && npm run build -w web")
             print("  Or drop --skip-build to build automatically.")
             sys.exit(1)
-        print(f"→ Skipping web UI build (--skip-build); using dist at {_dist_root}")
+        if (_dist_root / "index.html").exists():
+            print(f"→ Skipping web UI build (--skip-build); using dist at {_dist_root}")
 
     # The legacy web/ block above is a silent no-op today (that directory no
     # longer exists; migrated to frontend/, a Next.js standalone app). Build

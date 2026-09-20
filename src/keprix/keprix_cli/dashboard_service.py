@@ -3,7 +3,7 @@
 Sibling of ``keprix gateway install``. ``keprix dashboard`` remains the
 foreground launcher; this module writes a supervised unit that runs::
 
-    python -m keprix_cli.main dashboard --host 127.0.0.1 --port 9119 --no-open --skip-build
+    python -m keprix_cli.main dashboard --host 127.0.0.1 --port 9119 --no-open
 
 The unit pins ``KEPRIX_DASHBOARD_FRONTEND_PORT`` so the UI URL stays stable
 across restarts, and ``KEPRIX_DASHBOARD_SERVICE=1`` so the service never
@@ -157,7 +157,7 @@ def generate_systemd_unit(
     ]
 
     exec_tail = (
-        f"dashboard --host {host} --port {port} --no-open --skip-build"
+        f"dashboard --host {host} --port {port} --no-open"
     )
 
     if system:
@@ -307,7 +307,6 @@ def generate_launchd_plist(
             "<string>--port</string>",
             f"<string>{port}</string>",
             "<string>--no-open</string>",
-            "<string>--skip-build</string>",
         ]
     )
     prog_args_xml = "\n        ".join(prog_args)
@@ -389,6 +388,22 @@ def _require_installed(action: str, system: bool = False) -> None:
         sys.exit(1)
 
 
+def _refresh_unit_if_needed(system: bool = False) -> None:
+    unit_path = get_systemd_unit_path(system=system)
+    if not unit_path.exists() or systemd_unit_is_current(system=system):
+        return
+    installed = unit_path.read_text(encoding="utf-8")
+    host, port, frontend_port = _host_port_from_unit(installed)
+    new_unit = generate_systemd_unit(
+        host=host, port=port, frontend_port=frontend_port, system=system
+    )
+    if _refuse_temp_home(new_unit, "systemd unit"):
+        return
+    print(f"↻ Updating dashboard service definition at: {unit_path}")
+    unit_path.write_text(new_unit, encoding="utf-8")
+    _run_systemctl(["daemon-reload"], system=system, check=True, timeout=30)
+
+
 def systemd_install(
     *,
     force: bool = False,
@@ -428,6 +443,7 @@ def systemd_install(
                 ["enable", get_service_name()], system=system, check=True, timeout=30
             )
             print("✓ Dashboard service definition updated")
+            _ensure_frontend_dist(host, port)
             if start_now:
                 systemd_start(system=system)
             return
@@ -483,6 +499,7 @@ def systemd_start(system: bool = False) -> None:
     else:
         _preflight_user_systemd()
     _require_installed("start", system=system)
+    _refresh_unit_if_needed(system=system)
     _stop_stray_dashboards()
     _run_systemctl(["start", get_service_name()], system=system, check=True, timeout=30)
     unit = get_systemd_unit_path(system=system).read_text(encoding="utf-8")
