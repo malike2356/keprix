@@ -4613,6 +4613,7 @@ def _run_with_idle_timeout(
     *,
     idle_timeout_seconds: int = 180,
     indent: str = "    ",
+    env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess:
     """Run a subprocess that streams output, with an idle-output timeout.
 
@@ -4628,6 +4629,10 @@ def _run_with_idle_timeout(
     ``idle_timeout_seconds``, the process is terminated and the call
     returns with a non-zero ``returncode``. The caller's existing
     stale-dist fallback (#23817) takes over from there.
+
+    ``env`` (optional) replaces the child process environment when set;
+    used by the Next.js dashboard build to bake ``BACKEND_REWRITE_URL``
+    into rewrites at compile time.
 
     Returns a ``CompletedProcess`` with merged stdout (text), empty
     stderr, and an integer returncode. Never raises on idle timeout —
@@ -4647,6 +4652,7 @@ def _run_with_idle_timeout(
             encoding="utf-8",
             errors="replace",
             bufsize=1,
+            env=env,
         )
     except OSError as exc:
         # E.g. npm not on PATH between the which() check and now.
@@ -5567,6 +5573,9 @@ def _find_stale_dashboard_pids(
         "keprix dashboard",
         "keprix_cli.main dashboard",
         "keprix_cli/main.py dashboard",
+        # Orphan Next.js frontend child from frontend_standalone.py
+        # (normally reaped by the parent; this covers hard-kill cases).
+        os.sep.join(("keprix_cli", "frontend_dist", "server.js")),
     ]
     self_pid = os.getpid()
     dashboard_pids: list[int] = []
@@ -10933,6 +10942,36 @@ def cmd_dashboard(args):
             print("  Or drop --skip-build to build automatically.")
             sys.exit(1)
         print(f"→ Skipping web UI build (--skip-build); using dist at {_dist_root}")
+
+    # The legacy web/ block above is a silent no-op today (that directory no
+    # longer exists; migrated to frontend/, a Next.js standalone app). Build
+    # and verify the real dashboard frontend here. Does not change the
+    # --skip-build / KEPRIX_WEB_DIST meaning for anything still relying on them.
+    from keprix_cli import frontend_standalone as _fe
+
+    # Next.js rewrites() bake BACKEND_REWRITE_URL at build time (same as
+    # docker/Dockerfile.frontend). When --port 0 (OS auto-assign), pick the
+    # free port before the build so the baked rewrite target matches the
+    # live backend bind. Mutating args.port keeps start_server in sync.
+    if int(getattr(args, "port", 9119) or 0) == 0:
+        args.port = _fe.find_free_port(getattr(args, "host", "127.0.0.1") or "127.0.0.1")
+        print(f"→ Auto-assigned dashboard backend port {args.port} (needed before frontend rewrite bake)")
+
+    backend_url = f"http://{getattr(args, 'host', '127.0.0.1')}:{args.port}"
+
+    if "KEPRIX_FRONTEND_DIST" not in os.environ and not getattr(args, "skip_build", False):
+        if not _fe.build_frontend_standalone(backend_url=backend_url, fatal=False):
+            print("  ⚠ Dashboard web UI will not be available this run (backend still starts).")
+    elif getattr(args, "skip_build", False) and _fe.frontend_source_available():
+        if not (_fe.FRONTEND_DIST / "server.js").exists():
+            print(f"⚠ --skip-build was passed but no dashboard frontend dist found at: {_fe.FRONTEND_DIST}")
+            print("  Pre-build first:  cd frontend && BACKEND_REWRITE_URL=... pnpm exec next build")
+            print("  Or drop --skip-build to build automatically. Backend will still start.")
+        elif not _fe.frontend_dist_matches_backend(backend_url):
+            print(
+                f"⚠ --skip-build was passed but the existing frontend dist was not built "
+                f"for {backend_url}; /api rewrites may point at the wrong backend."
+            )
 
     # Discover and load plugins so any DashboardAuthProvider plugin
     # (e.g. plugins/dashboard_auth/nous) registers BEFORE start_server's

@@ -38,6 +38,10 @@ frontend/out/
 frontend/build/
 frontend/.env
 frontend/.env.local
+# Assembled by keprix_cli.frontend_standalone (keprix dashboard local build)
+src/keprix/keprix_cli/frontend_dist/
+src/keprix/keprix_cli/ui/
+src/keprix/keprix_cli/CHANGELOG.md
 frontend/.env.production.local
 
 # ---- Docker data ----

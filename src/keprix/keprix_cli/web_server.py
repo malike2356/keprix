@@ -11661,11 +11661,64 @@ def start_server(
             app.state.bound_port = actual_port
 
             print(f"KEPRIX_DASHBOARD_READY port={actual_port}", flush=True)
-            print(f"  Keprix Web UI → http://{host}:{actual_port}")
-            _maybe_open_browser(host, actual_port, open_browser, initial_profile)
 
-            await server.main_loop()
-            if server.started:
-                await server.shutdown()
+            # Spawn the standalone Next.js dashboard frontend as a sibling
+            # process (same shape docker-compose.yml uses: two processes,
+            # frontend proxies /api/* to the backend via next.config.ts
+            # rewrites). Soft-fail: a frontend that won't start must never
+            # block the backend from serving its API.
+            frontend_proc = None
+            open_host, open_port = host, actual_port
+            try:
+                from keprix_cli import frontend_standalone as _fe
+
+                if (_fe.FRONTEND_DIST / "server.js").exists():
+                    frontend_proc, frontend_port = _fe.spawn_frontend_server(
+                        host=host, backend_port=actual_port,
+                    )
+                    ready = await asyncio.get_event_loop().run_in_executor(
+                        None, _fe.wait_for_frontend_ready, host, frontend_port, frontend_proc, 30.0,
+                    )
+                    if ready:
+                        app.state.frontend_port = frontend_port
+                        open_host, open_port = host, frontend_port
+                        print(f"  Keprix Web UI → http://{open_host}:{open_port}", flush=True)
+                    else:
+                        _log.warning(
+                            "Dashboard frontend did not become ready within 30s "
+                            "(see ~/.keprix/logs/frontend-dashboard.log); "
+                            "falling back to the backend-only URL."
+                        )
+                        _fe.terminate_frontend_server(frontend_proc)
+                        frontend_proc = None
+                        print(
+                            f"  Keprix Web UI → http://{open_host}:{open_port} "
+                            f"(dashboard frontend unavailable)",
+                            flush=True,
+                        )
+                else:
+                    print(
+                        f"  Keprix Web UI → http://{open_host}:{open_port} "
+                        f"(dashboard frontend not built)",
+                        flush=True,
+                    )
+            except Exception:
+                _log.warning("Failed to start the dashboard frontend", exc_info=True)
+                print(
+                    f"  Keprix Web UI → http://{open_host}:{open_port} "
+                    f"(dashboard frontend unavailable)",
+                    flush=True,
+                )
+
+            _maybe_open_browser(open_host, open_port, open_browser, initial_profile)
+
+            try:
+                await server.main_loop()
+                if server.started:
+                    await server.shutdown()
+            finally:
+                if frontend_proc is not None:
+                    from keprix_cli import frontend_standalone as _fe
+                    _fe.terminate_frontend_server(frontend_proc)
 
     asyncio.run(_serve())
