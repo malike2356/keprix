@@ -165,3 +165,67 @@ async def test_mcp_server_lists_six_tools():
     assert len(names) >= 6
     assert "list_emails" in names
     assert "send_email" in names
+
+
+def test_postgres_not_used_without_explicit_url(monkeypatch):
+    from keprix.db.email_repo import postgres_configured, _use_db
+
+    monkeypatch.delenv("KEPRIX_DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    assert postgres_configured() is False
+    modules = {key: value for key, value in __import__("sys").modules.items() if key != "pytest"}
+    monkeypatch.setattr("keprix.db.email_repo.sys.modules", modules)
+    assert _use_db() is False
+
+
+def test_create_and_list_accounts_without_postgres(tmp_path, monkeypatch):
+    import asyncio
+
+    monkeypatch.delenv("KEPRIX_DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
+    reset_email_store()
+    store = get_email_store()
+
+    created = asyncio.run(
+        store.create_account(
+            "u-local",
+            {
+                "label": "Gmail",
+                "email_address": "me@gmail.com",
+                "imap_host": "imap.gmail.com",
+                "smtp_host": "smtp.gmail.com",
+                "username": "me@gmail.com",
+                "password": "app-password",
+            },
+        )
+    )
+    listed = asyncio.run(store.list_accounts("u-local"))
+    assert created.email_address == "me@gmail.com"
+    assert [row.id for row in listed] == [created.id]
+    assert (tmp_path / "workspace" / "email_store.json").exists()
+
+    reset_email_store()
+    restored = asyncio.run(get_email_store().list_accounts("u-local"))
+    assert [row.email_address for row in restored] == ["me@gmail.com"]
+
+
+def test_pg_list_accounts_returns_none_on_connect_error(monkeypatch):
+    import asyncio
+
+    from keprix.db import email_repo
+
+    monkeypatch.setattr(email_repo, "_use_db", lambda: True)
+
+    class Boom:
+        def __call__(self):
+            return self
+
+        async def __aenter__(self):
+            raise OSError("Connect call failed ('127.0.0.1', 5432)")
+
+        async def __aexit__(self, *args):
+            return None
+
+    monkeypatch.setattr(email_repo, "get_session_factory", lambda: Boom)
+    assert asyncio.run(email_repo.pg_list_accounts("u1")) is None

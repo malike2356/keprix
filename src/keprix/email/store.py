@@ -1,11 +1,15 @@
-"""In-memory email persistence (PostgreSQL schema in migrations/003)."""
+"""In-memory email persistence with a local JSON fallback when Postgres is off."""
 
 from __future__ import annotations
 
 import asyncio
+import json
+import os
+import sys
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 
 from keprix.email.crypto import decrypt_secret, encrypt_secret
@@ -13,6 +17,39 @@ from keprix.email.crypto import decrypt_secret, encrypt_secret
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _parse_dt(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value
+    if isinstance(value, str) and value:
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    return None
+
+
+def _json_default(value: Any) -> Any:
+    if isinstance(value, datetime):
+        return value.isoformat()
+    raise TypeError(f"Not serializable: {type(value)}")
+
+
+def _email_store_path() -> Path | None:
+    if "pytest" in sys.modules and not os.environ.get("KEPRIX_DATA_DIR"):
+        return None
+    try:
+        from keprix.auth.config import data_dir
+
+        root = Path(data_dir())
+    except Exception:
+        root = Path(os.environ.get("KEPRIX_DATA_DIR") or Path.home() / ".keprix")
+    path = root / "workspace" / "email_store.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 @dataclass
@@ -200,6 +237,77 @@ class EmailStore:
         self._drafts: dict[str, EmailDraftRecord] = {}
         self._batches: dict[str, EmailBatchRecord] = {}
         self._lock = asyncio.Lock()
+        self._load_from_disk()
+
+    def _load_from_disk(self) -> None:
+        path = _email_store_path()
+        if path is None or not path.exists():
+            return
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            return
+        for row in payload.get("accounts") or []:
+            try:
+                account_id = str(row.get("id") or "")
+                if not account_id:
+                    continue
+                record = EmailAccountRecord(
+                    id=account_id,
+                    user_id=str(row.get("user_id") or "local"),
+                    label=str(row.get("label") or "Default"),
+                    email_address=str(row["email_address"]),
+                    imap_host=str(row.get("imap_host") or ""),
+                    imap_port=int(row.get("imap_port") or 993),
+                    smtp_host=str(row.get("smtp_host") or ""),
+                    smtp_port=int(row.get("smtp_port") or 587),
+                    username=str(row.get("username") or row.get("email_address") or ""),
+                    password_encrypted=str(row.get("password_encrypted") or ""),
+                    use_tls=bool(row.get("use_tls", True)),
+                    use_starttls=bool(row.get("use_starttls", False)),
+                    poll_interval_seconds=int(row.get("poll_interval_seconds") or 300),
+                    last_polled_at=_parse_dt(row.get("last_polled_at")),
+                    is_active=bool(row.get("is_active", True)),
+                    created_at=_parse_dt(row.get("created_at")) or _utcnow(),
+                    oauth_provider=row.get("oauth_provider"),
+                    oauth_vault_item_id=row.get("oauth_vault_item_id"),
+                )
+                self._accounts[account_id] = record
+            except Exception:
+                continue
+
+    def _persist_to_disk(self) -> None:
+        path = _email_store_path()
+        if path is None:
+            return
+        payload = {
+            "accounts": [
+                {
+                    "id": account.id,
+                    "user_id": account.user_id,
+                    "label": account.label,
+                    "email_address": account.email_address,
+                    "imap_host": account.imap_host,
+                    "imap_port": account.imap_port,
+                    "smtp_host": account.smtp_host,
+                    "smtp_port": account.smtp_port,
+                    "username": account.username,
+                    "password_encrypted": account.password_encrypted,
+                    "use_tls": account.use_tls,
+                    "use_starttls": account.use_starttls,
+                    "poll_interval_seconds": account.poll_interval_seconds,
+                    "last_polled_at": account.last_polled_at,
+                    "is_active": account.is_active,
+                    "created_at": account.created_at,
+                    "oauth_provider": account.oauth_provider,
+                    "oauth_vault_item_id": account.oauth_vault_item_id,
+                }
+                for account in self._accounts.values()
+            ]
+        }
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text(json.dumps(payload, indent=2, default=_json_default), encoding="utf-8")
+        tmp.replace(path)
 
     async def create_account(self, user_id: str, data: dict[str, Any]) -> EmailAccountRecord:
         from keprix.db.email_repo import pg_create_account
@@ -208,6 +316,7 @@ class EmailStore:
         if pg_record is not None:
             async with self._lock:
                 self._accounts[pg_record.id] = pg_record
+            self._persist_to_disk()
             return pg_record
         account_id = str(uuid.uuid4())
         now = _utcnow()
@@ -233,6 +342,7 @@ class EmailStore:
         )
         async with self._lock:
             self._accounts[account_id] = record
+        self._persist_to_disk()
         return record
 
     async def list_accounts(self, user_id: str) -> list[EmailAccountRecord]:
@@ -282,11 +392,13 @@ class EmailStore:
         if pg_record is not None:
             async with self._lock:
                 self._accounts[pg_record.id] = pg_record
+            self._persist_to_disk()
             return pg_record
         async with self._lock:
             record = self._accounts.get(account_id)
             if record is None or record.user_id != user_id:
                 return None
+            self._persist_to_disk()
             return record
 
     async def delete_account(self, account_id: str, user_id: str) -> bool:
@@ -301,6 +413,7 @@ class EmailStore:
             self._emails = {
                 k: v for k, v in self._emails.items() if v.account_id != account_id
             }
+            self._persist_to_disk()
             return True
 
     async def touch_polled(self, account_id: str) -> None:
@@ -311,6 +424,7 @@ class EmailStore:
             if record:
                 record.last_polled_at = _utcnow()
         await pg_touch_polled(account_id)
+        self._persist_to_disk()
 
     async def list_active_accounts(self) -> list[EmailAccountRecord]:
         from keprix.db.email_repo import pg_list_active_accounts

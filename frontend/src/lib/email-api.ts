@@ -1,4 +1,4 @@
-import { ceApi } from "@/lib/ce-api";
+import { ceApi, parseApiErrorMessage } from "@/lib/ce-api";
 
 export type EmailAccount = {
   id: string;
@@ -45,11 +45,7 @@ export type EmailMessage = {
 async function parseJson<T>(response: Response, fallback: string): Promise<T> {
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
-    throw new Error(
-      (payload as { detail?: string; error?: string }).detail ||
-        (payload as { error?: string }).error ||
-        fallback,
-    );
+    throw new Error(parseApiErrorMessage(payload, fallback));
   }
   return response.json();
 }
@@ -63,7 +59,11 @@ export async function fetchEmailProviders(): Promise<{
 }
 
 export async function fetchEmailAccounts(): Promise<EmailAccount[]> {
-  return parseJson(await ceApi("/api/email/accounts"), "Failed to load accounts");
+  const data = await parseJson<EmailAccount[] | { items: EmailAccount[] }>(
+    await ceApi("/api/email/accounts"),
+    "Failed to load accounts",
+  );
+  return Array.isArray(data) ? data : data.items || [];
 }
 
 export async function createEmailAccount(body: {

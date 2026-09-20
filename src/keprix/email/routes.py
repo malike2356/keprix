@@ -123,7 +123,10 @@ async def create_account(body: EmailAccountCreate, user: dict = Depends(get_curr
     data["poll_interval_seconds"] = max(30, int(data.get("poll_interval_seconds") or 300))
     if not data.get("username"):
         data["username"] = data["email_address"]
-    record = await store.create_account(_user_id(user), data)
+    try:
+        record = await store.create_account(_user_id(user), data)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc) or "Failed to create account") from exc
     return record.to_public()
 
 
