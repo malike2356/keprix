@@ -74,6 +74,13 @@ Register product API routes from the API composition layer. Core gateway primiti
 
 Register product tools through the tool registry. The generic tool executor should handle schemas, permissions, execution, audit, and result formatting without importing product services.
 
+### Capability seams
+
+For swappable runtime capabilities (`fs`, `shell`, `memory`, `llm`, `subagent`, `web`),
+use Definition / Provider / Consumer contracts in `keprix.seams`. Soft Wall, Channel
+Shield, and vault floors wrap Providers. See `docs/architecture/capability-seams.md`.
+Do not turn Playbooks, CRM, billing, or Document Vault into plugins via seams.
+
 ### Config registry
 
 Register product config sections with typed defaults and validation. Core config loading should stay generic.

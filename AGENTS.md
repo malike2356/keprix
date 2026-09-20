@@ -67,6 +67,14 @@ Optional community support: open-amount "Buy me a coffee" donation (min £1, max
 - Flags are progressive UX, not a full module map. Wider catalog: `/settings/modules`, `/developer/module-inventory`.
 - **New menu items:** always choose the correct existing group (Workspace, Data, Research, Apps, Automations, Security, Admin) by relevance and same-type neighbors. Do not append randomly. Keep Developer last in Admin. Sync `navigation.py` and `frontend/src/lib/navigation.ts`. Rule: `.cursor/rules/keprix-sidebar-nav.mdc`.
 
+## Capability seams
+
+Swappable capability contracts (Definition / Provider / Consumer) for `fs`, `shell`,
+`memory`, `llm`, `subagent`, and `web` live in `keprix.seams`. Soft Wall, Channel
+Shield, and vault floors wrap Providers; they do not skip the seam. Product modules
+(Playbooks, CRM, billing, Document Vault) stay first-class, not plugins. Architecture:
+`docs/architecture/capability-seams.md`.
+
 ## Self-knowledge RAG
 
 Teach Keprix about itself via the shared RAG corpus (user `__keprix_self__`):
