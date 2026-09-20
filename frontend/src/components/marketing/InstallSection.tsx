@@ -110,30 +110,12 @@ export function InstallSection() {
         position: "relative",
         overflow: "hidden",
         scrollMarginTop: 80,
-        bgcolor: isDark ? "rgba(8, 10, 16, 0.95)" : alpha(c.bgDefault, 0.98),
+        bgcolor: "transparent",
         borderTop: `1px solid ${c.divider}`,
         borderBottom: `1px solid ${c.divider}`,
       }}
     >
       <span id="deploy" style={{ position: "absolute", top: -80, left: 0, height: 1, width: 1, opacity: 0 }} />
-
-      {/* Background ambient glow */}
-      <Box
-        aria-hidden
-        sx={{
-          position: "absolute",
-          top: "20%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 700,
-          height: 400,
-          borderRadius: "50%",
-          background: `radial-gradient(circle, ${alpha(c.primary, isDark ? 0.12 : 0.08)} 0%, transparent 70%)`,
-          filter: "blur(60px)",
-          pointerEvents: "none",
-          zIndex: 0,
-        }}
-      />
 
       <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
         <ScrollReveal>

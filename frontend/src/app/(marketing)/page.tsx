@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Hero } from "@/components/marketing/Hero";
 import { InstallSection } from "@/components/marketing/InstallSection";
 import { DeferredMarketingSections } from "@/components/marketing/DeferredMarketingSections";
+import { MarketingSection } from "@/components/marketing/MarketingSection";
 
 export const metadata: Metadata = {
   title: "Keprix - Self-hosted agent OS",
@@ -17,8 +18,11 @@ export const metadata: Metadata = {
 export default function HomePage() {
   return (
     <>
+      {/* Hero uses default (light) stripe; Install is alt (dark) so the page starts dark-light. */}
       <Hero />
-      <InstallSection />
+      <MarketingSection tone="dark">
+        <InstallSection />
+      </MarketingSection>
       <DeferredMarketingSections />
     </>
   );

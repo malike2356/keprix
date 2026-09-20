@@ -53,6 +53,8 @@ export function DeferredMarketingSections() {
     return <MarketingSection tone="light" sx={{ minHeight: 160 }} />;
   }
 
+  // Strict dark-light-dark stripe after Hero (light) + Install (dark):
+  // light, dark, light, dark, ... so adjacent sections never share a tone.
   return (
     <>
       <MarketingSection tone="light">
@@ -64,22 +66,22 @@ export function DeferredMarketingSections() {
       <MarketingSection tone="light">
         <MutationGovernanceBand />
       </MarketingSection>
-      <MarketingSection tone="light" id="how-it-works">
+      <MarketingSection tone="dark" id="how-it-works">
         <HowItWorks />
       </MarketingSection>
-      <MarketingSection tone="dark" id="integrations">
+      <MarketingSection tone="light" id="integrations">
         <Integrations />
       </MarketingSection>
-      <MarketingSection tone="light">
+      <MarketingSection tone="dark">
         <OpenSourceBand />
       </MarketingSection>
-      <MarketingSection tone="dark" id="compare">
+      <MarketingSection tone="light" id="compare">
         <ProductComparison />
       </MarketingSection>
-      <MarketingSection tone="light">
+      <MarketingSection tone="dark">
         <FAQ />
       </MarketingSection>
-      <MarketingSection tone="dark">
+      <MarketingSection tone="light">
         <CTABand />
       </MarketingSection>
     </>
