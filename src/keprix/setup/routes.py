@@ -79,8 +79,12 @@ async def wizard_step(step: int, request: Request) -> dict[str, Any]:
         body = WizardStep1Body.model_validate(await request.json())
         from keprix.auth.session import auth_manager
 
-        ok, message = auth_manager.register(body.email, body.password, email=body.email)
-        if not ok and "exists" not in message.lower():
+        ok, message = auth_manager.bootstrap_owner(
+            body.email,
+            body.password,
+            display_name=body.full_name,
+        )
+        if not ok:
             raise HTTPException(status_code=400, detail=message)
         return {"ok": True, "step": 1, "message": message}
 

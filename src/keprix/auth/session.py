@@ -142,6 +142,11 @@ class AuthManager:
         users = self._config.setdefault("users", {})
         existing = users.get(user_key)
         if existing is None:
+            has_owner = any(
+                str(row.get("role") or "") in {"admin", "owner"} for row in users.values()
+            )
+            if has_owner:
+                return
             users[user_key] = {
                 "id": str(uuid4()),
                 "username": user_key,
@@ -554,20 +559,33 @@ class AuthManager:
         if not multi_user_enabled():
             expected = admin_password()
             admin_key = admin_username()
-            if not expected or user_key != admin_key:
-                return None, None, "Invalid credentials"
-            self._bootstrap_admin_from_env()
-            user = self.get_user(admin_key)
-            if user is None:
-                return None, None, "Invalid credentials"
-            if password == expected and not _verify_password(password, user["password_hash"]):
-                with self._config_lock:
-                    locked_user = self.get_user(admin_key)
-                    if locked_user is not None:
-                        self._set_password_hash(locked_user, expected)
-                        self._save()
-                        user = locked_user
-            if not (_verify_password(password, user["password_hash"]) or password == expected):
+            env_admin_login = bool(expected) and (
+                user_key == admin_key
+                or (
+                    user is not None
+                    and str(user.get("email") or "").strip().lower() == admin_key
+                )
+            )
+            if env_admin_login:
+                self._bootstrap_admin_from_env()
+                user = self.get_user(admin_key) or self._find_user_by_login(username)
+                if user is None:
+                    return None, None, "Invalid credentials"
+                user_key = str(user.get("username") or user_key).strip().lower()
+                if password == expected and not _verify_password(password, user["password_hash"]):
+                    with self._config_lock:
+                        locked_user = self.get_user(user_key)
+                        if locked_user is not None:
+                            self._set_password_hash(locked_user, expected)
+                            self._save()
+                            user = locked_user
+                if not (_verify_password(password, user["password_hash"]) or password == expected):
+                    return None, None, "Invalid credentials"
+            elif user and str(user.get("role") or "") in {"admin", "owner"}:
+                # First-run wizard owner: stored hash, no KEPRIX_MULTI_USER.
+                if not _verify_password(password, user["password_hash"]):
+                    return None, None, "Invalid credentials"
+            else:
                 return None, None, "Invalid credentials"
         else:
             if not user:
@@ -677,6 +695,78 @@ class AuthManager:
             user.pop("recovery_code_hashes", None)
             self._save()
             return True
+
+    def bootstrap_owner(
+        self,
+        email: str,
+        password: str,
+        *,
+        display_name: str = "",
+    ) -> tuple[bool, str]:
+        """Mint the first local owner. Not gated by KEPRIX_MULTI_USER.
+
+        Extra signups still go through ``register()`` / ``/api/auth/register``,
+        which stay closed unless multi-user is on. This is the one account
+        every self-hosted install needs.
+        """
+        email_key = email.strip().lower()
+        if not email_key or not _EMAIL_RE.match(email_key):
+            return False, "Invalid email"
+        if len(password) < 8:
+            return False, "Password too short"
+        name = display_name.strip()
+        with self._config_lock:
+            users = self._config.setdefault("users", {})
+            existing = None
+            for candidate in users.values():
+                username = str(candidate.get("username") or "").strip().lower()
+                stored_email = str(candidate.get("email") or "").strip().lower()
+                if username == email_key or stored_email == email_key:
+                    existing = candidate
+                    break
+            if existing is not None:
+                return True, "Owner already exists"
+
+            placeholder_key = None
+            if len(users) == 1:
+                only_key = next(iter(users))
+                only_user = users[only_key]
+                stored_email = str(only_user.get("email") or "").strip().lower()
+                if only_key == "admin" or not stored_email:
+                    placeholder_key = only_key
+
+            if placeholder_key is not None:
+                owner = users.pop(placeholder_key)
+                owner["username"] = email_key
+                owner["email"] = email_key
+                owner["password_hash"] = _hash_password(password)
+                owner["role"] = "admin"
+                owner["is_approved"] = True
+                owner["is_active"] = True
+                if name:
+                    owner["display_name"] = name
+                users[email_key] = owner
+                self._save()
+                return True, "Owner updated"
+
+            if users:
+                return False, "An owner account already exists. Sign in instead."
+
+            users[email_key] = {
+                "id": str(uuid4()),
+                "username": email_key,
+                "email": email_key,
+                "display_name": name or None,
+                "password_hash": _hash_password(password),
+                "role": "admin",
+                "totp_enabled": False,
+                "totp_secret": None,
+                "is_approved": True,
+                "is_active": True,
+                "created_at": time.time(),
+            }
+            self._save()
+        return True, "Owner created"
 
     def register(self, username: str, password: str, *, email: str | None = None) -> tuple[bool, str]:
         if not multi_user_enabled():
