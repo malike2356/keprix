@@ -2443,7 +2443,7 @@ def get_plugin_toolsets() -> List[tuple]:
     result = []
     for ts_key in sorted(toolset_tools):
         plugin = toolset_plugin.get(ts_key)
-        label = f"🔌 {ts_key.replace('_', ' ').title()}"
+        label = ts_key.replace("_", " ").title()
         if plugin and plugin.manifest.description:
             desc = plugin.manifest.description
         else:

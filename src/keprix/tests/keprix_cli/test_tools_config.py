@@ -85,6 +85,16 @@ def test_gui_toolset_label_strips_leading_emoji():
     assert gui_toolset_label("👁️  Vision / Image Analysis") == "Vision / Image Analysis"
     assert gui_toolset_label("🔌 My Plugin") == "My Plugin"
     assert gui_toolset_label("Terminal & Processes") == "Terminal & Processes"
+    assert gui_toolset_label("🖥️  CLI") == "CLI"
+
+
+def test_configurable_toolset_and_platform_labels_are_plain_text():
+    from keprix_cli.platforms import PLATFORMS
+
+    for _, label, _ in CONFIGURABLE_TOOLSETS:
+        assert gui_toolset_label(label) == label
+    for info in PLATFORMS.values():
+        assert gui_toolset_label(info.label) == info.label
 
 
 def test_configurable_toolsets_include_messaging():

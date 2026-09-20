@@ -1906,7 +1906,7 @@ class SlashCommandCompleter(Completer):
                         self._completion_text(cmd_name, word),
                         start_position=-len(word),
                         display=f"/{cmd_name}",
-                        display_meta=f"🔌 {short_desc}",
+                        display_meta=short_desc,
                     )
         except Exception:
             pass

@@ -85,10 +85,10 @@ CONFIGURABLE_TOOLSETS = [
 
 
 def gui_toolset_label(label: str) -> str:
-    """Strip leading emoji/icons from toolset titles for GUI surfaces.
+    """Strip leading emoji/icons from toolset and platform titles.
 
-    Registry labels use ``<emoji> <title>``; plugin toolsets prefix with ``🔌``.
-    CLI/TUI keeps the raw ``label`` — only HTTP APIs call this helper.
+    Used by the CLI tools checklist, dashboard APIs, and any leftover
+    ``<emoji> <title>`` labels so menus stay plain text.
     """
     text = (label or "").strip()
     if not text:
@@ -1724,7 +1724,7 @@ def _prompt_toolset_checklist(
             and (TOOL_CATEGORIES.get(ts_key) or TOOLSET_ENV_REQUIREMENTS.get(ts_key))
         ):
             suffix = "  [no API key]"
-        labels.append(f"{ts_label}  ({ts_desc}){suffix}")
+        labels.append(f"{gui_toolset_label(ts_label)}  ({ts_desc}){suffix}")
 
     pre_selected = {
         i for i, (ts_key, _, _) in enumerate(effective)
@@ -1747,7 +1747,7 @@ def _prompt_toolset_checklist(
             return f"Est. tool context: ~{total} tokens"
 
     chosen = curses_checklist(
-        f"Tools for {platform_label}",
+        f"Tools for {gui_toolset_label(platform_label)}",
         labels,
         pre_selected,
         cancel_returns=pre_selected,
