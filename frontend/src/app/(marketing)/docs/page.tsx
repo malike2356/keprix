@@ -44,7 +44,7 @@ docker compose -f docker/docker-compose.yml up -d --build`;
 const SECTION_META: Record<string, { icon: React.ElementType; color: string; accent: string }> = {
   "Getting started": { icon: RocketLaunchIcon, color: "#10B981", accent: "rgba(16,185,129,0.12)" },
   "Configuration":   { icon: TuneIcon,          color: "#6495ed", accent: "rgba(100,149,237,0.12)" },
-  "Workspace":       { icon: SpaceDashboardIcon, color: "#6c5ce7", accent: "rgba(108,92,231,0.12)" },
+  "Workspace":       { icon: SpaceDashboardIcon, color: "#0F766E", accent: "rgba(15,118,110,0.12)" },
   "Apps and research": { icon: TravelExploreIcon, color: "#F59E0B", accent: "rgba(245,158,11,0.12)" },
   "Automations":     { icon: AutoFixHighIcon,    color: "#ef4444", accent: "rgba(239,68,68,0.12)" },
   "Security and admin": { icon: ShieldIcon,      color: "#64748b", accent: "rgba(100,116,139,0.12)" },
@@ -324,7 +324,7 @@ export default function DocsPage() {
           {DOCS_SECTIONS.map((section) => {
             const meta = SECTION_META[section.title] ?? {
               icon: ApiIcon,
-              color: "#6c5ce7",
+              color: "#0F766E",
               accent: "rgba(108,92,231,0.1)",
             };
             const Icon = meta.icon;

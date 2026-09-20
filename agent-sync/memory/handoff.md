@@ -1,9 +1,10 @@
 # Keprix agent handoff
 
-## 2026-09-20: DSH 768-773 live on Contabo
+## 2026-09-20: marketing makeover live on Contabo
 
-- **Git tip:** `8332a75` on `origin/main` (feature `17d64e8` mutation-as-mount)
-- **Deploy:** Contabo rsync + `deploy/contabo/docker-compose.app.yml up -d --build` done from this session (owner request)
-- **Smoke:** carinaai.uk 200, keprixai.com 200, app.keprixai.com 200, /api/health 200
-- **Shipped:** seams, plugin lifecycle, trajectory, capability presets, recorded-session tests, mutation-as-mount
-- **Prompts archived:** 768-773 under `archive/archived-prompts-library/keprix/keprix-dsh-idea-adoption/`
+- **Git tip:** `3ef62fb` on `origin/main`
+- **Site:** keprixai.com cosmetic redesign (stone + teal, Fraunces/DM Sans, brand-first hero)
+- **Backup:** `archive/website-backups/keprix-marketing-2026-09-20/`
+- **Deploy:** Contabo rsync + frontend rebuild done
+- **Smoke:** carinaai.uk / keprixai.com / app / api health expected 200
+- **Prior:** DSH 768-773 already live

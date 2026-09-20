@@ -31,7 +31,7 @@ const DottedSurfaceBackground = dynamic(
 const CATEGORY_META: Record<string, { icon: React.ElementType; color: string }> = {
   Added: { icon: AddCircleOutlineIcon, color: "#10B981" },
   Changed: { icon: EditOutlinedIcon, color: "#6495ed" },
-  Fixed: { icon: AutoFixHighIcon, color: "#6c5ce7" },
+  Fixed: { icon: AutoFixHighIcon, color: "#0F766E" },
   Removed: { icon: DeleteOutlineIcon, color: "#EF4444" },
   Deprecated: { icon: WarningAmberIcon, color: "#F59E0B" },
   Security: { icon: SecurityIcon, color: "#6495ed" },

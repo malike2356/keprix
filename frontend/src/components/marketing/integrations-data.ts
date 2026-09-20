@@ -8,5 +8,5 @@ export const INTEGRATION_PROVIDERS = [
   { name: "Telegram", color: "#2aabee" },
   { name: "Discord", color: "#5865f2" },
   { name: "Deepseek", color: "#3b82f6" },
-  { name: "OpenRouter", color: "#7c3aed" },
+  { name: "OpenRouter", color: "#0F766E" },
 ] as const;
