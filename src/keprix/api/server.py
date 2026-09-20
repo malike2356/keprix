@@ -220,6 +220,7 @@ from keprix.api.voice_routes import router as phone_voice_router
 from keprix.gateway.twilio_media_stream import router as twilio_media_stream_router
 from keprix.gateway.twilio_voice_handler import router as twilio_voice_router
 from keprix.mutation.routes import router as mutation_pipeline_router
+from keprix.mutation.mount.routes import router as mutation_mount_router
 from keprix.setup.routes import router as setup_router
 from keprix.security.cors import EXPOSED_HEADERS, add_cors, allowed_origins
 from keprix.security.headers import SecurityHeadersMiddleware
@@ -755,6 +756,7 @@ def create_app() -> FastAPI:
     app.include_router(developer_router)
     app.include_router(mutation_router)
     app.include_router(mutation_pipeline_router)
+    app.include_router(mutation_mount_router)
     app.include_router(sdk_router)
     app.include_router(slash_router)
     app.include_router(ui_contract_router)

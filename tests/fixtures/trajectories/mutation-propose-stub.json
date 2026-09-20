@@ -1,20 +1,20 @@
 {
   "schema_version": 1,
   "fixture_id": "mutation-propose-stub",
-  "title": "Mutation propose stub (pre-773)",
-  "description": "Stub path for mutation-as-mount. Asserts a propose stage is recorded without applying a live mount. Update after 773 lands.",
+  "title": "Mutation mount propose-approve-mount",
+  "description": "Full 773 path: propose mount, human approve, apply via reversible lifecycle. Soft Wall stays on.",
   "workspace_id": "fixture",
   "expectations": {
     "require_recorded_replay": true,
     "forbid_live_execute": true,
     "tool_names_in_order": [],
     "soft_wall_outcomes": [],
-    "mutation_stages": ["propose"],
+    "mutation_stages": ["propose", "approve", "mount"],
     "final_event_type": "message",
-    "min_event_count": 3,
+    "min_event_count": 4,
     "final_message_shape": {
       "role": "assistant",
-      "status": "proposal_pending"
+      "status": "mounted"
     }
   },
   "events": [
@@ -37,7 +37,8 @@
       "payload": {
         "stage": "propose",
         "kind": "mount",
-        "target": "skill:helper-pack",
+        "action": "mount_plugin",
+        "target_id": "helper-pack",
         "applied": false
       },
       "tool_name": null,
@@ -46,10 +47,14 @@
     },
     {
       "seq": 3,
-      "event_type": "checkpoint",
+      "event_type": "mutation",
       "timestamp": "2026-01-15T12:00:02Z",
       "payload": {
-        "label": "awaiting_four_eyes"
+        "stage": "approve",
+        "kind": "mount",
+        "action": "mount_plugin",
+        "target_id": "helper-pack",
+        "approved_by": "operator"
       },
       "tool_name": null,
       "soft_wall_outcome": null,
@@ -57,12 +62,38 @@
     },
     {
       "seq": 4,
-      "event_type": "message",
+      "event_type": "mutation",
       "timestamp": "2026-01-15T12:00:03Z",
       "payload": {
+        "stage": "mount",
+        "kind": "mount",
+        "action": "mount_plugin",
+        "target_id": "helper-pack",
+        "applied": true
+      },
+      "tool_name": null,
+      "soft_wall_outcome": null,
+      "error_text": null
+    },
+    {
+      "seq": 5,
+      "event_type": "checkpoint",
+      "timestamp": "2026-01-15T12:00:04Z",
+      "payload": {
+        "label": "lifecycle_mounted"
+      },
+      "tool_name": null,
+      "soft_wall_outcome": null,
+      "error_text": null
+    },
+    {
+      "seq": 6,
+      "event_type": "message",
+      "timestamp": "2026-01-15T12:00:05Z",
+      "payload": {
         "role": "assistant",
-        "status": "proposal_pending",
-        "text": "Mutation propose recorded; mount not applied."
+        "status": "mounted",
+        "text": "Helper pack mounted via reversible lifecycle after four-eyes approval."
       },
       "tool_name": null,
       "soft_wall_outcome": null,

@@ -70,7 +70,7 @@ hardline still blocks catastrophic shell commands.
   modules, not plugins, and are outside this lifecycle.
 - No Cordis / TypeScript rewrite.
 - No remote marketplace or unsigned auto-install.
-- Mutation Engine mount mapping is prompt 773.
+- Mutation Engine mount mapping: `docs/architecture/mutation-as-mount.md` (773)
 
 ## Restart case
 

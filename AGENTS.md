@@ -101,6 +101,14 @@ Offline trajectory snapshot tests (`keprix.trajectory.recorded`) replay checked-
 fixtures under `tests/fixtures/trajectories/` with no LLM API keys. Docs:
 `docs/architecture/recorded-session-tests.md`.
 
+## Mutation as mount
+
+Mutation capability changes propose mount/unmount of plugins/skills (or seam
+Provider swaps), require four-eyes approval, and apply only via reversible
+lifecycle. Soft Wall / RLS / first-class product modules are non-mutable on this
+path. Package: `keprix.mutation.mount`. Docs:
+`docs/architecture/mutation-as-mount.md`.
+
 ## Self-knowledge RAG
 
 Teach Keprix about itself via the shared RAG corpus (user `__keprix_self__`):

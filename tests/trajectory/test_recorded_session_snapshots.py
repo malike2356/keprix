@@ -79,7 +79,7 @@ def test_mutation_stub_propose(tmp_path: Path, offline_env):
         FIXTURES / "mutation-propose-stub.json",
         sqlite_path=tmp_path / "mut.db",
     )
-    assert report.mutation_stages == ["propose"]
+    assert report.mutation_stages == ["propose", "approve", "mount"]
     assert report.tool_names_in_order == []
 
 

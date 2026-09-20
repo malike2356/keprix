@@ -27,7 +27,7 @@ Shipped fixtures:
 
 1. `soft-wall-deny.json` - Soft Wall denial on `terminal`
 2. `multi-tool-success.json` - `read_file` then `memory_search`, both allowed
-3. `mutation-propose-stub.json` - mutation `propose` without mount (update after 773)
+3. `mutation-propose-stub.json` - propose → approve → mount (773)
 
 ## Offline harness
 
@@ -118,4 +118,4 @@ secrets required. An explicit step also runs the recorded-session file under
 ## Related
 
 - Session trajectory: `docs/architecture/session-trajectory.md` (770)
-- Mutation-as-mount: prompt 773 (update mutation fixture when it lands)
+- Mutation-as-mount: `docs/architecture/mutation-as-mount.md` (773)

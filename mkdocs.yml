@@ -148,6 +148,7 @@ nav:
       - Session trajectory: architecture/session-trajectory.md
       - Capability presets: architecture/capability-presets.md
       - Recorded-session tests: architecture/recorded-session-tests.md
+      - Mutation as mount: architecture/mutation-as-mount.md
       - TUI freeze and Hermes parity: architecture/tui-freeze-and-parity.md
       - TUI Hermes behavior parity contract: architecture/tui-hermes-behavior-parity-contract.md
       - TUI surpass Hermes contract: architecture/tui-surpass-hermes-contract.md
