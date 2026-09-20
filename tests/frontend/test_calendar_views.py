@@ -56,3 +56,11 @@ def test_calendar_page_honors_event_deeplink_and_booking_create() -> None:
     week = (CALENDAR / "CalendarWeekView.tsx").read_text(encoding="utf-8")
     assert "onSelectSlot" in day
     assert "onSelectSlot" in week
+
+
+def test_month_fetch_covers_overflow_grid_and_connect_reloads():
+    utils = (ROOT / "frontend" / "src" / "lib" / "calendar-utils.ts").read_text(encoding="utf-8")
+    assert "getMonthGrid(anchor)" in utils
+    panel = (CALENDAR / "CalendarSyncPanel.tsx").read_text(encoding="utf-8")
+    assert "onSynced?.()" in panel
+    assert "last_sync_ok" in panel

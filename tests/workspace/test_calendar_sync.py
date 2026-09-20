@@ -197,3 +197,162 @@ async def test_run_due_sources_invokes_sync(tmp_path: Path, monkeypatch: pytest.
     assert summary["errors"] == 0
     refreshed = repo.get_caldav_source(user, source["id"])
     assert refreshed["last_sync_ok"] is True
+
+
+def test_pick_calendar_uses_google_events_url():
+    from types import SimpleNamespace
+
+    from keprix.workspace.calendar_sync import _pick_calendar
+
+    class FakeClient:
+        def calendar(self, url=None):
+            return SimpleNamespace(url=url, kind="direct")
+
+        def principal(self):
+            raise AssertionError("principal should not be used for Google events URL")
+
+    source = {
+        "provider": "google",
+        "url": "https://apidata.googleusercontent.com/caldav/v2/me%40gmail.com/events",
+    }
+    calendar = _pick_calendar(FakeClient(), source)
+    assert calendar.kind == "direct"
+    assert calendar.url.endswith("/events")
+
+
+def test_google_calendar_api_pulls_events(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    import asyncio
+
+    monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("KEPRIX_SESSION_SECRET", "test-calendar-secret")
+    from keprix.workspace.calendar_sync import sync_one_source
+
+    repo = WorkspaceRepository()
+    user = {"id": "u-google"}
+    source = repo.add_caldav_source(
+        user,
+        name="Google Calendar",
+        provider="google",
+        username="me@example.com",
+        password="ya29.access-token",
+        sync_direction="pull",
+    )
+    full = repo.get_caldav_source(user, source["id"])
+
+    class FakeResponse:
+        status_code = 200
+
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "items": [
+                    {
+                        "id": "evt-dentist",
+                        "summary": "Dentist",
+                        "start": {"dateTime": "2026-09-20T10:00:00+01:00"},
+                        "end": {"dateTime": "2026-09-20T11:00:00+01:00"},
+                    },
+                    {
+                        "id": "evt-holiday",
+                        "summary": "Holiday",
+                        "start": {"date": "2026-09-21"},
+                        "end": {"date": "2026-09-22"},
+                    },
+                ]
+            }
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return None
+
+        async def get(self, url, headers=None, params=None):
+            assert "googleapis.com/calendar/v3/calendars/" in url
+            assert headers["Authorization"] == "Bearer ya29.access-token"
+            assert params["singleEvents"] == "true"
+            return FakeResponse()
+
+    monkeypatch.setattr("keprix.workspace.calendar_sync.httpx.AsyncClient", FakeClient)
+    outcome = asyncio.run(sync_one_source(user, full, repo))
+    assert outcome["ok"] is True
+    assert outcome["pulled"] == 2
+    events = repo.list_events(user)
+    titles = {event["title"] for event in events}
+    assert titles == {"Dentist", "Holiday"}
+    holiday = next(event for event in events if event["title"] == "Holiday")
+    assert holiday["all_day"] is True
+
+
+def test_add_source_syncs_immediately(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    import asyncio
+
+    monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("KEPRIX_SESSION_SECRET", "test-calendar-secret")
+    from keprix.workspace.routes import calendar_routes
+    from keprix.workspace.schemas import CaldavSourceCreate
+
+    repo = WorkspaceRepository()
+    called: dict[str, str] = {}
+
+    async def fake_sync(user_arg, source_arg, repo_arg):
+        called["id"] = source_arg["id"]
+        repo_arg.upsert_event_by_uid(
+            user_arg,
+            caldav_source_id=source_arg["id"],
+            uid="connected-1",
+            title="Imported after connect",
+            start_at=datetime(2026, 9, 20, 9, 0, tzinfo=timezone.utc),
+            end_at=datetime(2026, 9, 20, 10, 0, tzinfo=timezone.utc),
+        )
+        return {"message": "Google pull=1 push=0", "pulled": 1, "pushed": 0}
+
+    monkeypatch.setattr(calendar_routes, "workspace_repo", repo)
+    monkeypatch.setattr(calendar_routes, "sync_one_source", fake_sync)
+    body = CaldavSourceCreate(
+        name="Google Calendar",
+        provider="google",
+        username="me@example.com",
+        password="token",
+        sync_direction="bidirectional",
+    )
+    result = asyncio.run(calendar_routes.add_source(body, user={"id": "u-connect"}))
+    assert called["id"] == result["id"]
+    assert result["last_sync_ok"] is True
+    assert "Imported after connect" in {event["title"] for event in repo.list_events({"id": "u-connect"})}
+
+
+def test_list_events_expands_weekly_rrule(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
+    repo = WorkspaceRepository()
+    user = {"id": "u-rrule"}
+    repo.upsert_event_by_uid(
+        user,
+        caldav_source_id="src-rrule",
+        uid="standup@example",
+        title="Standup",
+        start_at=datetime(2026, 8, 3, 9, 0, tzinfo=timezone.utc),
+        end_at=datetime(2026, 8, 3, 9, 30, tzinfo=timezone.utc),
+        recurrence="FREQ=WEEKLY;BYDAY=MO",
+    )
+    rows = repo.list_events(
+        user,
+        start=datetime(2026, 9, 1, tzinfo=timezone.utc),
+        end=datetime(2026, 9, 30, 23, 59, tzinfo=timezone.utc),
+    )
+    mondays = [row for row in rows if row["title"] == "Standup"]
+    assert len(mondays) >= 4
+    assert all(row["start_at"].month == 9 for row in mondays)
+
+
+def test_dashboard_lifespan_starts_calendar_scheduler():
+    text = Path(__file__).resolve().parents[2] / "src" / "keprix" / "keprix_cli" / "web_server.py"
+    source = text.read_text(encoding="utf-8")
+    assert "start_calendar_sync_scheduler" in source
+    assert "stop_calendar_sync_scheduler" in source

@@ -145,7 +145,12 @@ async def add_source(body: CaldavSourceCreate, user: dict = Depends(get_current_
     }:
         data["push_local_events"] = True
     source = workspace_repo.add_caldav_source(user, **data)
-    return source
+    try:
+        full = workspace_repo.get_caldav_source(user, source["id"])
+        outcome = await sync_one_source(user, full, workspace_repo)
+        return workspace_repo.mark_source_synced(user, source["id"], ok=True, message=outcome.get("message"))
+    except Exception as exc:
+        return workspace_repo.mark_source_synced(user, source["id"], ok=False, message=str(exc))
 
 
 @router.patch("/sources/{source_id}")

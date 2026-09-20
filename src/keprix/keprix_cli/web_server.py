@@ -151,10 +151,23 @@ async def _lifespan(app: "FastAPI"):
         cron_thread.start()
 
     try:
+        from keprix.workspace.calendar_sync_scheduler import start_calendar_sync_scheduler
+
+        start_calendar_sync_scheduler()
+    except Exception:
+        logging.getLogger(__name__).exception("calendar auto-sync scheduler failed to start")
+
+    try:
         yield
     finally:
         if cron_stop is not None:
             cron_stop.set()
+        try:
+            from keprix.workspace.calendar_sync_scheduler import stop_calendar_sync_scheduler
+
+            await stop_calendar_sync_scheduler()
+        except Exception:
+            pass
 
 
 def _get_event_state(app: "FastAPI"):

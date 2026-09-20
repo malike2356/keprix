@@ -24,7 +24,7 @@ PROVIDER_PRESETS: list[dict[str, Any]] = [
         "provider": "google",
         "sync_modes": ["pull", "push", "bidirectional"],
         "url_hint": "https://apidata.googleusercontent.com/caldav/v2/YOUR_EMAIL/events",
-        "help": "Use your Google account email as username and an OAuth access token (or app password where allowed) as the password. For pull-only, paste the calendar secret ICS URL as an ICS feed instead.",
+        "help": "Use your Google account email as username and an OAuth access token with Calendar access as the password. Gmail app passwords do not work with Google Calendar. For pull-only, connect the secret ICS URL instead.",
     },
     {
         "id": "google-ics",
@@ -123,6 +123,11 @@ def _vevent_to_fields(component: Any) -> dict[str, Any] | None:
     uid = str(component.get("uid") or "").strip()
     if not uid:
         return None
+    rid = component.get("recurrence-id")
+    if rid is not None:
+        rid_dt = _parse_dt(rid)
+        if rid_dt is not None:
+            uid = f"{uid}#{rid_dt.strftime('%Y%m%dT%H%M%SZ')}"
     summary = str(component.get("summary") or "Untitled").strip() or "Untitled"
     description = str(component.get("description") or "")
     location = str(component.get("location") or "")
@@ -194,6 +199,119 @@ def default_google_caldav_url(email: str) -> str:
     return f"https://apidata.googleusercontent.com/caldav/v2/{quote(email.strip())}/events"
 
 
+def _rfc3339(value: datetime) -> str:
+    return _as_aware(value).isoformat().replace("+00:00", "Z")
+
+
+def expand_events_for_range(
+    events: list[dict[str, Any]],
+    start: datetime | None,
+    end: datetime | None,
+) -> list[dict[str, Any]]:
+    """Keep events that overlap [start, end], expanding RRULE masters into instances.
+
+    With no window, return stored rows unchanged so push/sync does not explode recurrences.
+    """
+    if start is None and end is None:
+        return sorted(list(events), key=lambda row: row.get("start_at") or datetime.min.replace(tzinfo=timezone.utc))
+    window_start = _as_aware(start) if isinstance(start, datetime) else _parse_dt(start)
+    window_end = _as_aware(end) if isinstance(end, datetime) else _parse_dt(end)
+    out: list[dict[str, Any]] = []
+    for event in events:
+        event_start = _as_aware(_parse_dt(event.get("start_at")))
+        event_end = _as_aware(_parse_dt(event.get("end_at")))
+        if event_start is None or event_end is None:
+            continue
+        recurrence = str(event.get("recurrence") or "").strip()
+        if not recurrence:
+            if window_start and event_end < window_start:
+                continue
+            if window_end and event_start > window_end:
+                continue
+            out.append(event)
+            continue
+        out.extend(_expand_recurrence(event, event_start, event_end, window_start, window_end))
+    out.sort(key=lambda row: row["start_at"])
+    return out
+
+
+def _expand_recurrence(
+    event: dict[str, Any],
+    event_start: datetime,
+    event_end: datetime,
+    window_start: datetime | None,
+    window_end: datetime | None,
+) -> list[dict[str, Any]]:
+    from dateutil.rrule import rrulestr
+
+    duration = event_end - event_start
+    text = str(event.get("recurrence") or "").strip()
+    if text.upper().startswith("RRULE:"):
+        text = text.split(":", 1)[1]
+    try:
+        rule = rrulestr(text, dtstart=event_start)
+    except Exception:
+        if window_start and event_end < window_start:
+            return []
+        if window_end and event_start > window_end:
+            return []
+        return [event]
+    range_start = window_start or event_start
+    range_end = window_end or (event_start + timedelta(days=400))
+    try:
+        occurrences = rule.between(range_start - duration, range_end, inc=True)
+    except Exception:
+        return [event]
+    rows: list[dict[str, Any]] = []
+    for occ in occurrences:
+        occ_start = _as_aware(occ)
+        if occ_start is None:
+            continue
+        occ_end = occ_start + duration
+        if window_start and occ_end < window_start:
+            continue
+        if window_end and occ_start > window_end:
+            continue
+        copy = dict(event)
+        copy["start_at"] = occ_start
+        copy["end_at"] = occ_end
+        copy["id"] = f"{event.get('id')}:{occ_start.strftime('%Y%m%dT%H%M%SZ')}"
+        rows.append(copy)
+    return rows
+
+
+def _google_item_to_fields(item: dict[str, Any]) -> dict[str, Any] | None:
+    if str(item.get("status") or "").lower() == "cancelled":
+        return None
+    uid = str(item.get("id") or "").strip()
+    if not uid:
+        return None
+    start_blob = item.get("start") or {}
+    end_blob = item.get("end") or {}
+    all_day = "date" in start_blob and "dateTime" not in start_blob
+    start = _parse_dt(start_blob.get("dateTime") or start_blob.get("date"))
+    end = _parse_dt(end_blob.get("dateTime") or end_blob.get("date"))
+    if start is None:
+        return None
+    if end is None:
+        end = start + (timedelta(days=1) if all_day else timedelta(hours=1))
+    return {
+        "uid": uid,
+        "title": str(item.get("summary") or "Untitled").strip() or "Untitled",
+        "description": str(item.get("description") or ""),
+        "location": str(item.get("location") or ""),
+        "start_at": start,
+        "end_at": end,
+        "all_day": all_day,
+        "recurrence": None,
+    }
+
+
+def _is_direct_calendar_collection(url: str) -> bool:
+    lowered = url.rstrip("/").lower()
+    return lowered.endswith("/events") or "/caldav/v2/" in lowered
+
+
 async def sync_caldav(user_id: str, sources: list[dict[str, Any]]) -> dict[str, Any]:
     """Backward-compatible entrypoint used by routes."""
     from keprix.workspace.repository import workspace_repo
@@ -257,16 +375,17 @@ async def sync_one_source(user: dict[str, Any], source: dict[str, Any], repo: An
     pulled = 0
     pushed = 0
     if direction in {"pull", "bidirectional"}:
-        pulled = await _pull_caldav(user, source, repo)
+        pulled = await _pull_external(user, source, repo)
     if direction in {"push", "bidirectional"}:
         pushed = await _push_caldav(user, source, repo)
+    kind = "Google" if str(source.get("provider") or "").lower() == "google" else "CalDAV"
     return {
         "source_id": source["id"],
         "name": source.get("name"),
         "ok": True,
         "pulled": pulled,
         "pushed": pushed,
-        "message": f"CalDAV pull={pulled} push={pushed}",
+        "message": f"{kind} pull={pulled} push={pushed}",
     }
 
 
@@ -311,16 +430,54 @@ def _caldav_client(source: dict[str, Any], password: str | None):
         raise ValueError("CalDAV username is required")
     if not password:
         raise ValueError("CalDAV password or access token is required")
-    # Google CalDAV often expects Bearer-style tokens; caldav uses basic auth with token as password.
-    return caldav.DAVClient(url=url, username=username, password=password)
+    kwargs: dict[str, Any] = {"url": url, "username": username, "password": password}
+    if str(source.get("provider") or "").lower() == "google":
+        kwargs["headers"] = {"Authorization": f"Bearer {password}"}
+    try:
+        return caldav.DAVClient(**kwargs)
+    except TypeError:
+        kwargs.pop("headers", None)
+        return caldav.DAVClient(**kwargs)
+
+
+def _calendar_from_url(client: Any, url: str):
+    if not url:
+        return None
+    try:
+        if hasattr(client, "calendar"):
+            return client.calendar(url=url)
+    except Exception:
+        logger.debug("direct CalDAV calendar url failed", exc_info=True)
+    try:
+        import caldav
+
+        return caldav.Calendar(client=client, url=url)
+    except Exception:
+        return None
 
 
 def _pick_calendar(client: Any, source: dict[str, Any]):
-    principal = client.principal()
-    calendars = principal.calendars()
+    url = str(source.get("url") or "").strip()
+    preferred = str(source.get("calendar_href") or "").strip() or url
+    if preferred and (
+        _is_direct_calendar_collection(preferred) or str(source.get("provider") or "").lower() == "google"
+    ):
+        calendar = _calendar_from_url(client, preferred)
+        if calendar is not None:
+            return calendar
+    try:
+        principal = client.principal()
+        calendars = principal.calendars()
+    except Exception as exc:
+        calendar = _calendar_from_url(client, url)
+        if calendar is not None:
+            return calendar
+        raise ValueError(f"Could not list CalDAV calendars: {exc}") from exc
     if not calendars:
+        calendar = _calendar_from_url(client, url)
+        if calendar is not None:
+            return calendar
         raise ValueError("No calendars found on this CalDAV account")
-    preferred = str(source.get("calendar_href") or "").strip()
     if preferred:
         for calendar in calendars:
             href = str(getattr(calendar, "url", "") or "")
@@ -336,6 +493,76 @@ def _pick_calendar(client: Any, source: dict[str, Any]):
             if name_hint in display:
                 return calendar
     return calendars[0]
+
+
+async def _try_google_calendar_api(user: dict[str, Any], source: dict[str, Any], repo: Any) -> int:
+    password = repo.get_source_password(source["id"])
+    if not password:
+        raise ValueError("Google Calendar access token is required")
+    calendar_id = str(source.get("calendar_name") or source.get("username") or "primary").strip() or "primary"
+    start = _utcnow() - timedelta(days=int(source.get("pull_past_days") or 90))
+    end = _utcnow() + timedelta(days=int(source.get("pull_future_days") or 365))
+    headers = {"Authorization": f"Bearer {password}", "Accept": "application/json"}
+    params = {
+        "timeMin": _rfc3339(start),
+        "timeMax": _rfc3339(end),
+        "singleEvents": "true",
+        "orderBy": "startTime",
+        "maxResults": "2500",
+    }
+    encoded_id = quote(calendar_id, safe="@.")
+    url = f"https://www.googleapis.com/calendar/v3/calendars/{encoded_id}/events"
+    items: list[dict[str, Any]] = []
+    page_token: str | None = None
+    retried_primary = False
+    async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+        while True:
+            query = dict(params)
+            if page_token:
+                query["pageToken"] = page_token
+            response = await client.get(url, headers=headers, params=query)
+            if response.status_code in {401, 403}:
+                raise ValueError(
+                    "Google Calendar rejected the token. Use an OAuth access token with calendar.events "
+                    "scope, not a Gmail app password. For pull-only, connect the secret ICS URL instead."
+                )
+            if response.status_code == 404 and not retried_primary:
+                url = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
+                retried_primary = True
+                page_token = None
+                continue
+            response.raise_for_status()
+            payload = response.json()
+            items.extend(payload.get("items") or [])
+            page_token = payload.get("nextPageToken")
+            if not page_token:
+                break
+    count = 0
+    direction = str(source.get("sync_direction") or "bidirectional").lower()
+    for item in items:
+        fields = _google_item_to_fields(item)
+        if not fields:
+            continue
+        fields["external_readonly"] = direction == "pull"
+        repo.upsert_event_by_uid(user, caldav_source_id=source["id"], **fields)
+        count += 1
+    return count
+
+
+async def _pull_external(user: dict[str, Any], source: dict[str, Any], repo: Any) -> int:
+    google_error: Exception | None = None
+    if str(source.get("provider") or "").lower() == "google":
+        try:
+            return await _try_google_calendar_api(user, source, repo)
+        except Exception as exc:
+            google_error = exc
+            logger.info("Google Calendar API pull failed, trying CalDAV: %s", exc)
+    try:
+        return await _pull_caldav(user, source, repo)
+    except Exception as caldav_exc:
+        if google_error is not None:
+            raise ValueError(f"{google_error} CalDAV also failed: {caldav_exc}") from caldav_exc
+        raise
 
 
 async def _pull_caldav(user: dict[str, Any], source: dict[str, Any], repo: Any) -> int:

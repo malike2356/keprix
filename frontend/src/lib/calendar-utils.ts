@@ -88,10 +88,12 @@ export function rangeForView(anchor: Date, mode: CalendarViewMode): { start: str
       start = startOfDay(anchor);
       end = endOfDay(addDays(anchor, 30));
       break;
-    default:
-      start = startOfMonth(anchor);
-      end = endOfMonth(anchor);
+    default: {
+      const cells = getMonthGrid(anchor);
+      start = startOfDay(cells[0]);
+      end = endOfDay(cells[cells.length - 1]);
       break;
+    }
   }
 
   return { start: start.toISOString(), end: end.toISOString() };

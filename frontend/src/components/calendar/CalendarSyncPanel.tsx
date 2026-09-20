@@ -144,7 +144,7 @@ export default function CalendarSyncPanel({ onSynced }: Props) {
     setSaving(true);
     setError(null);
     try {
-      await createCalendarSource({
+      const created = await createCalendarSource({
         name: name.trim(),
         provider: preset.provider,
         url: url.trim() || undefined,
@@ -161,12 +161,22 @@ export default function CalendarSyncPanel({ onSynced }: Props) {
       setUrl("");
       setUsername("");
       setCalendarName("");
-      setStatus(
-        autoSync
-          ? `Calendar connected. Auto 2-way sync every ${intervalMinutes} min (ICS stays pull-only).`
-          : "Calendar connected. Auto-sync is off; use Sync manually.",
-      );
       await load();
+      onSynced?.();
+      if (created.last_sync_ok === false) {
+        setStatus(null);
+        setError(
+          created.last_sync_message ||
+            "Calendar connected, but the first sync failed. Check the token and click Sync.",
+        );
+      } else {
+        setStatus(
+          created.last_sync_message ||
+            (autoSync
+              ? `Calendar connected. Auto 2-way sync every ${intervalMinutes} min (ICS stays pull-only).`
+              : "Calendar connected. Auto-sync is off; use Sync manually."),
+        );
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to connect calendar");
     } finally {

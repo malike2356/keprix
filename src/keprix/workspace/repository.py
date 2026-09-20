@@ -400,12 +400,9 @@ class WorkspaceRepository:
                 rows = filtered
         except Exception:
             pass
-        if start:
-            rows = [event for event in rows if event["end_at"] >= start]
-        if end:
-            rows = [event for event in rows if event["start_at"] <= end]
-        rows.sort(key=lambda row: row["start_at"])
-        return rows
+        from keprix.workspace.calendar_sync import expand_events_for_range
+
+        return expand_events_for_range(rows, start, end)
 
     def get_event(self, user: dict[str, Any], event_id: str) -> dict[str, Any]:
         event = self.calendar_events.get(event_id)
