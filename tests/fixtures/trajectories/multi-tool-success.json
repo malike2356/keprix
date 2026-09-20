@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "fixture_id": "multi-tool-success",
+  "title": "Successful multi-tool turn",
+  "description": "Agent reads a file then searches memory; Soft Wall allows both.",
+  "workspace_id": "fixture",
+  "expectations": {
+    "require_recorded_replay": true,
+    "forbid_live_execute": true,
+    "tool_names_in_order": ["read_file", "memory_search"],
+    "soft_wall_outcomes": ["allowed", "allowed"],
+    "mutation_stages": [],
+    "final_event_type": "message",
+    "min_event_count": 7,
+    "final_message_shape": {
+      "role": "assistant",
+      "status": "ok"
+    }
+  },
+  "events": [
+    {
+      "seq": 1,
+      "event_type": "message",
+      "timestamp": "2026-01-15T11:00:00Z",
+      "payload": {
+        "role": "user",
+        "text": "Summarise README and related notes"
+      },
+      "tool_name": null,
+      "soft_wall_outcome": null,
+      "error_text": null
+    },
+    {
+      "seq": 2,
+      "event_type": "tool_call",
+      "timestamp": "2026-01-15T11:00:01Z",
+      "payload": {
+        "path": "README.md"
+      },
+      "tool_name": "read_file",
+      "soft_wall_outcome": null,
+      "error_text": null
+    },
+    {
+      "seq": 3,
+      "event_type": "soft_wall",
+      "timestamp": "2026-01-15T11:00:01Z",
+      "payload": {
+        "reason": "workspace_read"
+      },
+      "tool_name": "read_file",
+      "soft_wall_outcome": "allowed",
+      "error_text": null
+    },
+    {
+      "seq": 4,
+      "event_type": "tool_result",
+      "timestamp": "2026-01-15T11:00:02Z",
+      "payload": {
+        "ok": true,
+        "excerpt": "Keprix is a self-hosted agent OS."
+      },
+      "tool_name": "read_file",
+      "soft_wall_outcome": null,
+      "error_text": null
+    },
+    {
+      "seq": 5,
+      "event_type": "tool_call",
+      "timestamp": "2026-01-15T11:00:03Z",
+      "payload": {
+        "query": "README notes"
+      },
+      "tool_name": "memory_search",
+      "soft_wall_outcome": null,
+      "error_text": null
+    },
+    {
+      "seq": 6,
+      "event_type": "soft_wall",
+      "timestamp": "2026-01-15T11:00:03Z",
+      "payload": {
+        "reason": "memory_read"
+      },
+      "tool_name": "memory_search",
+      "soft_wall_outcome": "allowed",
+      "error_text": null
+    },
+    {
+      "seq": 7,
+      "event_type": "tool_result",
+      "timestamp": "2026-01-15T11:00:04Z",
+      "payload": {
+        "ok": true,
+        "hits": 2
+      },
+      "tool_name": "memory_search",
+      "soft_wall_outcome": null,
+      "error_text": null
+    },
+    {
+      "seq": 8,
+      "event_type": "message",
+      "timestamp": "2026-01-15T11:00:05Z",
+      "payload": {
+        "role": "assistant",
+        "status": "ok",
+        "text": "README describes Keprix; two related notes found."
+      },
+      "tool_name": null,
+      "soft_wall_outcome": null,
+      "error_text": null
+    }
+  ]
+}

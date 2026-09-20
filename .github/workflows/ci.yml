@@ -36,6 +36,10 @@ jobs:
         run: uv run mypy src/keprix
       - name: Pytest
         run: uv run pytest tests/ -q
+      - name: Recorded-session snapshots (no LLM keys)
+        run: |
+          env -u OPENAI_API_KEY -u ANTHROPIC_API_KEY -u GOOGLE_API_KEY \
+            uv run pytest tests/trajectory/test_recorded_session_snapshots.py -q
       - name: Capability mesh soft gate
         run: bash scripts/check-capability-mesh.sh
       - name: Dependency audit

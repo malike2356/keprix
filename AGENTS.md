@@ -95,6 +95,12 @@ Declarative YAML packs (`coding`, `crm`, `sidecar`) in `keprix.capability_preset
 mount plugins/skills/seams via reversible lifecycle. Soft Wall cannot be disabled
 by a pack. CLI: `keprix presets`. Docs: `docs/architecture/capability-presets.md`.
 
+## Recorded-session tests
+
+Offline trajectory snapshot tests (`keprix.trajectory.recorded`) replay checked-in
+fixtures under `tests/fixtures/trajectories/` with no LLM API keys. Docs:
+`docs/architecture/recorded-session-tests.md`.
+
 ## Self-knowledge RAG
 
 Teach Keprix about itself via the shared RAG corpus (user `__keprix_self__`):

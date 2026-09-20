@@ -56,8 +56,8 @@ Do not store vault secrets or full Channel Shield raw payloads.
 
 Operator-managed SQLite file. No automatic purge in 770. Prefer short-lived
 debug trajectories; export fixtures via
-`TrajectoryStore.export_events_for_fixture` for prompt 772 recorded-session
-tests.
+`keprix.trajectory.recorded.export_recorded_fixture` for recorded-session
+tests (see `docs/architecture/recorded-session-tests.md`).
 
 ## Recording helpers
 
@@ -81,10 +81,10 @@ Wire Soft Wall / Mutation Engine call sites to these helpers as follow-on work;
 
 - Full time-travel debugger product
 - Cordis / TypeScript rewrite
-- Snapshot CI harness (772)
+- Golden LLM quality evals (see recorded-session tests for structural CI)
 
 ## Related
 
 - Brain session replay (`/api/brain/sessions/...`) remains graph-activation focused
 - Capability seams / reversible plugins: 768, 769
-- Recorded-session tests: 772
+- Recorded-session tests: `docs/architecture/recorded-session-tests.md` (772)
