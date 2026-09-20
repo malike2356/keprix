@@ -93,7 +93,7 @@ def check_compression_model_feasibility(agent: Any) -> None:
             get_text_auxiliary_client,
         )
         from agent.model_metadata import (
-            MINIMUM_CONTEXT_LENGTH,
+            get_minimum_context_length,
             get_model_context_length,
         )
 
@@ -156,18 +156,21 @@ def check_compression_model_feasibility(agent: Any) -> None:
         )
 
         # Hard floor: the auxiliary compression model must have at least
-        # MINIMUM_CONTEXT_LENGTH (64K) tokens of context.  The main model
-        # is already required to meet this floor (checked earlier in
-        # __init__), so the compression model must too — otherwise it
-        # cannot summarise a full threshold-sized window of main-model
-        # content.  Mirrors the main-model rejection pattern.
-        if aux_context and aux_context < MINIMUM_CONTEXT_LENGTH:
+        # the minimum context (64K by default, configurable via
+        # KEPRIX_MIN_CONTEXT_LENGTH / agent.min_context_length; 0 disables
+        # the check).  The main model is already required to meet this
+        # floor (checked earlier in __init__), so the compression model
+        # must too — otherwise it cannot summarise a full threshold-sized
+        # window of main-model content.  Mirrors the main-model rejection
+        # pattern.
+        min_ctx = get_minimum_context_length()
+        if aux_context and min_ctx and aux_context < min_ctx:
             raise ValueError(
                 f"Auxiliary compression model {aux_model} has a context "
                 f"window of {aux_context:,} tokens, which is below the "
-                f"minimum {MINIMUM_CONTEXT_LENGTH:,} required by Keprix "
+                f"minimum {min_ctx:,} required by Keprix "
                 f"Agent.  Choose a compression model with at least "
-                f"{MINIMUM_CONTEXT_LENGTH // 1000}K context (set "
+                f"{min_ctx // 1000}K context (set "
                 f"auxiliary.compression.model in config.yaml), or set "
                 f"auxiliary.compression.context_length to override the "
                 f"detected value if it is wrong."
@@ -177,8 +180,8 @@ def check_compression_model_feasibility(agent: Any) -> None:
         if aux_context < threshold:
             # Auto-correct: lower the live session threshold so
             # compression actually works this session.  The hard floor
-            # above guarantees aux_context >= MINIMUM_CONTEXT_LENGTH,
-            # so the new threshold is always >= 64K.
+            # above guarantees aux_context >= the minimum context floor,
+            # so the new threshold is never below that floor.
             #
             # The compression summariser sends a single user-role
             # prompt (no system prompt, no tools) to the aux model, so

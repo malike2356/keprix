@@ -309,6 +309,11 @@ def get_tool_definitions(
             cfg_fp = (cfg_stat.st_mtime_ns, cfg_stat.st_size)
         except (FileNotFoundError, OSError, ImportError):
             cfg_fp = None
+        try:
+            from agent.prompt_profile import get_prompt_profile
+            _profile = get_prompt_profile()
+        except Exception:  # pragma: no cover — profile is optional
+            _profile = "full"
         cache_key = (
             frozenset(enabled_toolsets) if enabled_toolsets is not None else None,
             frozenset(disabled_toolsets) if disabled_toolsets else None,
@@ -316,6 +321,7 @@ def get_tool_definitions(
             cfg_fp,
             bool(os.environ.get("KEPRIX_KANBAN_TASK")),
             bool(skip_tool_search_assembly),
+            _profile,
         )
         cached = _tool_defs_cache.get(cache_key)
         if cached is not None:
@@ -502,6 +508,15 @@ def _compute_tool_definitions(
         filtered_tools = sanitize_tool_schemas(filtered_tools)
     except Exception as e:  # pragma: no cover — defensive
         logger.warning("Schema sanitization skipped: %s", e)
+
+    # ── Prompt profile (compact = small local models) ──────────────────
+    # No-op for the default "full" profile.  Runs before Tool Search so the
+    # bridge tools it adds are never filtered out.  See agent/prompt_profile.py.
+    try:
+        from agent.prompt_profile import filter_tools_for_profile
+        filtered_tools = filter_tools_for_profile(filtered_tools)
+    except Exception as e:  # pragma: no cover — never break tool loading
+        logger.warning("Prompt profile tool filter skipped: %s", e)
 
     # ── Tool Search (progressive disclosure) ────────────────────────────
     # Conditionally replace MCP + plugin (non-core) tools with three bridge

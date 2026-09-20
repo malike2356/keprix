@@ -26,7 +26,8 @@ from typing import Any, Dict, List, Optional
 from agent.auxiliary_client import call_llm, _is_connection_error
 from agent.context_engine import ContextEngine
 from agent.model_metadata import (
-    MINIMUM_CONTEXT_LENGTH,
+    MINIMUM_CONTEXT_LENGTH,  # noqa: F401  (re-exported for callers/tests)
+    compute_compression_threshold,
     get_model_context_length,
     estimate_messages_tokens_rough,
 )
@@ -656,9 +657,8 @@ class ContextCompressor(ContextEngine):
         self.provider = provider
         self.api_mode = api_mode
         self.context_length = context_length
-        self.threshold_tokens = max(
-            int(context_length * self.threshold_percent),
-            MINIMUM_CONTEXT_LENGTH,
+        self.threshold_tokens = compute_compression_threshold(
+            context_length, self.threshold_percent,
         )
         # Recalculate token budgets for the new context length so the
         # compressor stays calibrated after a model switch (e.g. 200K → 32K).
@@ -705,13 +705,13 @@ class ContextCompressor(ContextEngine):
             config_context_length=config_context_length,
             provider=provider,
         )
-        # Floor: never compress below MINIMUM_CONTEXT_LENGTH tokens even if
-        # the percentage would suggest a lower value.  This prevents premature
-        # compression on large-context models at 50% while keeping the % sane
-        # for models right at the minimum.
-        self.threshold_tokens = max(
-            int(self.context_length * threshold_percent),
-            MINIMUM_CONTEXT_LENGTH,
+        # Floor: never compress below the minimum context length (64K by
+        # default, configurable) even if the percentage would suggest a
+        # lower value.  This prevents premature compression on large-context
+        # models at 50% while keeping the % sane for models right at the
+        # minimum.  Never exceeds the model's actual window.
+        self.threshold_tokens = compute_compression_threshold(
+            self.context_length, threshold_percent,
         )
         self.compression_count = 0
 

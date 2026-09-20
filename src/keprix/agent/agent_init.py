@@ -36,6 +36,7 @@ from agent.memory_manager import StreamingContextScrubber
 from agent.model_metadata import (
     MINIMUM_CONTEXT_LENGTH,
     fetch_model_metadata,
+    get_minimum_context_length,
     is_local_endpoint,
     query_ollama_num_ctx,
 )
@@ -1561,15 +1562,27 @@ def init_agent(
     agent.compression_enabled = compression_enabled
 
     # Reject models whose context window is below the minimum required
-    # for reliable tool-calling workflows (64K tokens).
+    # for reliable tool-calling workflows (64K tokens by default; lower it
+    # for small local models with KEPRIX_MIN_CONTEXT_LENGTH or
+    # agent.min_context_length, or set it to 0 to warn instead of reject).
     _ctx = getattr(agent.context_compressor, "context_length", 0)
-    if _ctx and _ctx < MINIMUM_CONTEXT_LENGTH:
+    _min_ctx = get_minimum_context_length()
+    if _ctx and _min_ctx and _ctx < _min_ctx:
         raise ValueError(
             f"Model {agent.model} has a context window of {_ctx:,} tokens, "
-            f"which is below the minimum {MINIMUM_CONTEXT_LENGTH:,} required "
+            f"which is below the minimum {_min_ctx:,} required "
             f"by Keprix.  Choose a model with at least "
-            f"{MINIMUM_CONTEXT_LENGTH // 1000}K context, or set "
-            f"model.context_length in config.yaml to override."
+            f"{_min_ctx // 1000}K context, or set "
+            f"model.context_length in config.yaml to override.  To run a "
+            f"small local model anyway, lower the floor with "
+            f"agent.min_context_length (or KEPRIX_MIN_CONTEXT_LENGTH); "
+            f"0 disables the check."
+        )
+    if _ctx and not _min_ctx and _ctx < MINIMUM_CONTEXT_LENGTH:
+        logger.warning(
+            "Model %s has a %s-token context window, below the recommended "
+            "%s; continuing because the minimum-context check is disabled.",
+            agent.model, f"{_ctx:,}", f"{MINIMUM_CONTEXT_LENGTH:,}",
         )
 
     # Inject context engine tool schemas (e.g. lcm_grep, lcm_describe, lcm_expand).

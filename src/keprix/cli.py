@@ -5218,7 +5218,8 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
 
         # Warn about low context lengths (common with local servers). Keep
         # this tied to the runtime guard so guidance cannot drift again.
-        from agent.model_metadata import MINIMUM_CONTEXT_LENGTH
+        from agent.model_metadata import get_context_warning_threshold
+        MINIMUM_CONTEXT_LENGTH = get_context_warning_threshold()
         if ctx_len and ctx_len < MINIMUM_CONTEXT_LENGTH:
             self._console_print()
             self._console_print(

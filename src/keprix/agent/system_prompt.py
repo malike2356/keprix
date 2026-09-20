@@ -224,10 +224,20 @@ def build_system_prompt_parts(agent: Any, system_message: Optional[str] = None) 
             )
         except Exception:
             _compact_cats = frozenset()
+        _skills_kwargs: Dict[str, Any] = {}
+        try:
+            from agent.prompt_profile import is_compact_profile
+
+            if is_compact_profile():
+                # Names-only index + short preamble for small local models.
+                _skills_kwargs["names_only"] = True
+        except Exception:
+            pass
         skills_prompt = _r.build_skills_system_prompt(
             available_tools=agent.valid_tool_names,
             available_toolsets=avail_toolsets,
             compact_categories=_compact_cats or None,
+            **_skills_kwargs,
         )
     else:
         skills_prompt = ""

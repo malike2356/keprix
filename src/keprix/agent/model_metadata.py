@@ -184,6 +184,86 @@ DEFAULT_FALLBACK_CONTEXT = CONTEXT_PROBE_TIERS[0]
 # Sessions, model switches, and cron jobs should reject models below this.
 MINIMUM_CONTEXT_LENGTH = 64_000
 
+# Lowest value an override is allowed to set.  Even the compact prompt
+# profile needs roughly 8K for its fixed prefix plus room to work, so
+# anything below this cannot run tool-calling workflows at all.
+ABSOLUTE_MINIMUM_CONTEXT_LENGTH = 8_192
+
+MIN_CONTEXT_ENV_VAR = "KEPRIX_MIN_CONTEXT_LENGTH"
+
+
+def _configured_minimum_context() -> Optional[int]:
+    """Return the user-configured floor, or None when nothing is set.
+
+    Precedence: ``KEPRIX_MIN_CONTEXT_LENGTH`` env var, then
+    ``agent.min_context_length`` in config.yaml.  (Not under ``model:``
+    because that key is a plain string in many configs.)  Unparseable or
+    negative values are ignored so a typo cannot disable the guard.
+    """
+    raw: Any = os.getenv(MIN_CONTEXT_ENV_VAR)
+    if raw is None or str(raw).strip() == "":
+        try:
+            from keprix_cli.config import load_config_readonly
+
+            agent_cfg = load_config_readonly().get("agent")
+            raw = agent_cfg.get("min_context_length") if isinstance(agent_cfg, dict) else None
+        except Exception:
+            raw = None
+    if raw is None or isinstance(raw, bool):
+        return None
+    try:
+        value = int(str(raw).strip().replace("_", "").replace(",", ""))
+    except ValueError:
+        logger.warning("Ignoring invalid minimum context length %r", raw)
+        return None
+    return value if value >= 0 else None
+
+
+def get_minimum_context_length() -> int:
+    """Effective minimum context window Keprix will run with.
+
+    Defaults to ``MINIMUM_CONTEXT_LENGTH`` (64K).  Can be lowered for
+    small local models via env/config (see ``_configured_minimum_context``),
+    clamped to ``ABSOLUTE_MINIMUM_CONTEXT_LENGTH``.  ``0`` disables
+    enforcement entirely: callers must then warn instead of rejecting
+    (see ``is_context_floor_enforced``).
+    """
+    configured = _configured_minimum_context()
+    if configured is None:
+        return MINIMUM_CONTEXT_LENGTH
+    if configured == 0:
+        return 0
+    return max(configured, ABSOLUTE_MINIMUM_CONTEXT_LENGTH)
+
+
+def is_context_floor_enforced() -> bool:
+    """False when the user set the minimum to 0 (warn-only mode)."""
+    return get_minimum_context_length() > 0
+
+
+def get_context_warning_threshold() -> int:
+    """Context size below which the UI should warn.
+
+    Same as the enforced floor, except in warn-only mode where the
+    default 64K recommendation is used so the user still sees the warning.
+    """
+    return get_minimum_context_length() or MINIMUM_CONTEXT_LENGTH
+
+
+def compute_compression_threshold(context_length: int, threshold_percent: float) -> int:
+    """Token count at which context compression triggers.
+
+    ``max(percent of context, minimum floor)`` as before, but never above
+    the model's actual window: with a lowered floor on a small model the
+    old formula could otherwise produce a threshold larger than the
+    context itself, so compression would never fire.
+    """
+    percent_tokens = int(context_length * threshold_percent)
+    threshold = max(percent_tokens, get_minimum_context_length())
+    if context_length and threshold > context_length:
+        return percent_tokens
+    return threshold
+
 # Thin fallback defaults — only broad model family patterns.
 # These fire only when provider is unknown AND models.dev/OpenRouter/Anthropic
 # all miss. Replaced the previous 80+ entry dict.

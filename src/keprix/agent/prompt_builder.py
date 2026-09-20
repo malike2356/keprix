@@ -1132,6 +1132,7 @@ def build_skills_system_prompt(
     available_tools: "set[str] | None" = None,
     available_toolsets: "set[str] | None" = None,
     compact_categories: "frozenset[str] | None" = None,
+    names_only: bool = False,
 ) -> str:
     """Build a compact skill index for the system prompt.
 
@@ -1152,6 +1153,11 @@ def build_skills_system_prompt(
     the rendered index. Nothing is ever hidden: every skill name stays
     visible and loadable via ``skill_view`` / ``skills_list``; only the
     descriptions are dropped, and a footer note explains the demotion.
+
+    ``names_only`` (the ``compact`` prompt profile — see
+    agent/prompt_profile.py) demotes *every* category and swaps the long
+    "mandatory" preamble for a short one, for small local models where the
+    fixed prompt prefix must stay small.
     """
     skills_dir = get_skills_dir()
     external_dirs = get_all_skills_dirs()[1:]  # skip local (index 0)
@@ -1177,6 +1183,7 @@ def build_skills_system_prompt(
         _platform_hint,
         tuple(sorted(disabled)),
         tuple(sorted(compact_categories or ())),
+        bool(names_only),
     )
     with _SKILLS_PROMPT_CACHE_LOCK:
         cached = _SKILLS_PROMPT_CACHE.get(cache_key)
@@ -1321,11 +1328,11 @@ def build_skills_system_prompt(
     # their parent.
     demoted = frozenset(
         cat for cat in skills_by_category
-        if cat.split("/", 1)[0] in (compact_categories or frozenset())
+        if names_only or cat.split("/", 1)[0] in (compact_categories or frozenset())
     )
 
     hidden_note = ""
-    if demoted:
+    if demoted and not names_only:
         hidden_note = (
             "\n(Categories marked [names only] are outside the current coding "
             "context, so their descriptions are omitted — the skills work "
@@ -1341,7 +1348,8 @@ def build_skills_system_prompt(
             seen = set()
             if category in demoted:
                 names = sorted({name for name, _ in skills_by_category[category]})
-                index_lines.append(f"  {category} [names only]: {', '.join(names)}")
+                tag = "" if names_only else " [names only]"
+                index_lines.append(f"  {category}{tag}: {', '.join(names)}")
                 continue
             cat_desc = category_descriptions.get(category, "")
             if cat_desc:
@@ -1386,6 +1394,19 @@ def build_skills_system_prompt(
             "Only proceed without loading a skill if genuinely none are relevant to the task."
             + hidden_note
         )
+        if names_only:
+            # Compact prompt profile: short preamble, names only.
+            result = (
+                "## Skills\n"
+                "Skills are saved instructions for specific tasks; only their names are listed. "
+                "If a skill clearly matches the task, load it with skill_view(name) and follow it "
+                "before answering. For anything about configuring Keprix itself, load the "
+                "`keprix` skill first.\n"
+                "\n"
+                "<available_skills>\n"
+                + "\n".join(index_lines) + "\n"
+                "</available_skills>"
+            )
 
     # ── Store in LRU cache ────────────────────────────────────────────
     with _SKILLS_PROMPT_CACHE_LOCK:

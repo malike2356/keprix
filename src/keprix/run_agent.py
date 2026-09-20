@@ -658,11 +658,11 @@ class AIAgent:
         if (self.provider or "").strip().lower() != "lmstudio":
             return
         try:
-            from agent.model_metadata import MINIMUM_CONTEXT_LENGTH
+            from agent.model_metadata import get_context_warning_threshold
             from keprix_cli.models import ensure_lmstudio_model_loaded
             if config_context_length is None:
                 config_context_length = getattr(self, "_config_context_length", None)
-            target_ctx = max(config_context_length or 0, MINIMUM_CONTEXT_LENGTH)
+            target_ctx = max(config_context_length or 0, get_context_warning_threshold())
             loaded_ctx = ensure_lmstudio_model_loaded(
                 self.model, self.base_url, getattr(self, "api_key", ""), target_ctx,
             )

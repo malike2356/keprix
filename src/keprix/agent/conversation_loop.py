@@ -46,10 +46,11 @@ from agent.message_sanitization import (
     _strip_non_ascii,
 )
 from agent.model_metadata import (
-    MINIMUM_CONTEXT_LENGTH,
+    MINIMUM_CONTEXT_LENGTH,  # noqa: F401  (re-exported for callers/tests)
     estimate_messages_tokens_rough,
     estimate_request_tokens_rough,
     get_context_length_from_provider_error,
+    get_minimum_context_length,
     parse_available_output_tokens_from_error,
     save_context_length,
 )
@@ -108,7 +109,8 @@ def _ollama_context_limit_error(agent: Any, request_tokens: int) -> Optional[str
     runtime_ctx = getattr(agent, "_ollama_num_ctx", None)
     if not isinstance(runtime_ctx, int) or runtime_ctx <= 0:
         return None
-    if runtime_ctx >= MINIMUM_CONTEXT_LENGTH:
+    min_ctx = get_minimum_context_length()
+    if not min_ctx or runtime_ctx >= min_ctx:
         return None
 
     model = getattr(agent, "model", "") or "the selected model"
@@ -125,7 +127,7 @@ def _ollama_context_limit_error(agent: Any, request_tokens: int) -> Optional[str
         provider,
         base_url,
         runtime_ctx,
-        MINIMUM_CONTEXT_LENGTH,
+        min_ctx,
         request_tokens,
         tool_count,
         getattr(agent, "session_id", None) or "none",
@@ -133,14 +135,17 @@ def _ollama_context_limit_error(agent: Any, request_tokens: int) -> Optional[str
 
     return (
         f"Ollama loaded `{model}` with only {runtime_ctx:,} tokens of runtime "
-        f"context, but Keprix needs at least {MINIMUM_CONTEXT_LENGTH:,} tokens "
+        f"context, but Keprix needs at least {min_ctx:,} tokens "
         "for reliable tool use.\n\n"
         "Increase the Ollama context for this model and restart/reload the "
         "model before trying again. A known-good starting point is 65,536 "
         "tokens. In Keprix config, set `model.ollama_num_ctx: 65536` "
         "(and `model.context_length: 65536` if you also override the displayed "
         "model context). If you manage the model through an Ollama Modelfile, "
-        "set `PARAMETER num_ctx 65536` there instead."
+        "set `PARAMETER num_ctx 65536` there instead.\n\n"
+        "Memory-constrained machine? Set `agent.min_context_length` (or the "
+        "`KEPRIX_MIN_CONTEXT_LENGTH` env var) to lower the floor, and pair it "
+        "with `agent.prompt_profile: compact` so the prompt fits."
     )
 
 

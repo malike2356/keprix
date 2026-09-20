@@ -885,6 +885,21 @@ DEFAULT_CONFIG = {
         # plausible-looking output when a real path is blocked.  Costs ~80
         # tokens in the cached system prompt.  Set False to disable globally.
         "task_completion_guidance": True,
+        # Prompt profile — how large the fixed prompt prefix is.
+        #   "full"    (default) — all enabled tools + full skills index.
+        #   "compact" — for small local models: core tool allow-list (terminal,
+        #               file tools, web, todo, memory, skill loading; MCP tools
+        #               are kept) + names-only skills index. Cuts the prefix by
+        #               several thousand tokens. The KEPRIX_PROMPT_PROFILE env
+        #               var overrides this.
+        "prompt_profile": "full",
+        # Extra tool names to keep when prompt_profile is "compact".
+        "compact_tools": [],
+        # Minimum model context window (tokens) Keprix will run with.
+        # null = the built-in default (64000). Lower it for small local
+        # models (clamped to >= 8192); 0 = never reject, only warn. The
+        # KEPRIX_MIN_CONTEXT_LENGTH env var overrides this.
+        "min_context_length": None,
         # Local-environment toolchain probe — surfaces Python/pip/uv/PEP-668
         # state in the system prompt when something non-default is detected
         # (e.g. python3 has no pip module, pip→python version mismatch, PEP
