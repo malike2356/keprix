@@ -24,9 +24,9 @@ const METRICS = [
     detail: "Use commercially, modify freely, then self-host.",
   },
   {
-    value: "2m",
-    label: "minutes to deploy",
-    detail: "Curl install, local setup, then start running.",
+    value: "~3m",
+    label: "cold install on Linux",
+    detail: "Curl install with Python 3.11+, then keprix --version.",
   },
 ] as const;
 

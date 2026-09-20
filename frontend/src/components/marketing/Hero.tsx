@@ -446,7 +446,7 @@ export function Hero() {
                   color: colors.textSecondary,
                 }}
               >
-                Linux, macOS, WSL2. Deploy in about two minutes.
+                Linux, macOS, WSL2 with Python 3.11 or 3.12.
               </Typography>
             </Box>
 

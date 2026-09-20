@@ -144,22 +144,47 @@ clone_or_update() {
   fi
 }
 
+ensure_python_bin() {
+  # Prefer an explicit PYTHON=, then 3.12/3.11, then python3 if it is new enough.
+  local candidates=()
+  local bin ver major minor
+  if [[ -n "${PYTHON:-}" && "$PYTHON" != "python3" ]]; then
+    candidates+=("$PYTHON")
+  fi
+  candidates+=(python3.12 python3.11 python3)
+  for bin in "${candidates[@]}"; do
+    if ! command -v "$bin" >/dev/null 2>&1; then
+      continue
+    fi
+    ver="$("$bin" -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null || true)"
+    major="${ver%%.*}"
+    minor="${ver#*.}"
+    if [[ "$major" =~ ^[0-9]+$ && "$minor" =~ ^[0-9]+$ ]]; then
+      if (( major > 3 || (major == 3 && minor >= 11 && minor < 13) )); then
+        PYTHON="$bin"
+        log "Using Python $ver ($bin)"
+        return 0
+      fi
+    fi
+  done
+  die "Keprix needs Python 3.11 or 3.12. Found none on PATH. Install python3.11+ and re-run (Ubuntu 22.04: sudo apt install python3.11 python3.11-venv)."
+}
+
 ensure_python_env() {
   local venv="$ROOT/.venv"
   if [[ ! -d "$ROOT" || ! -f "$ROOT/pyproject.toml" ]]; then
     die "Missing pyproject.toml under $ROOT"
   fi
 
+  ensure_python_bin
+
   log "Creating Python env at $venv"
   if command -v uv >/dev/null 2>&1; then
-    (cd "$ROOT" && uv venv "$venv")
+    (cd "$ROOT" && uv venv --python "$PYTHON" "$venv")
     # shellcheck disable=SC1091
     source "$venv/bin/activate"
     (cd "$ROOT" && uv pip install -e ".[tui]")
   else
-    if ! command -v "$PYTHON" >/dev/null 2>&1; then
-      die "python3 not found. Install Python 3.11+ and re-run."
-    fi
     "$PYTHON" -m venv "$venv"
     # shellcheck disable=SC1091
     source "$venv/bin/activate"
@@ -304,6 +329,8 @@ main() {
   fi
 
   ensure_home_layout
+  # Fail before clone when the host Python is too old (common on Ubuntu 22.04).
+  ensure_python_bin
 
   if [[ "$MODE" == "piped" ]]; then
     clone_or_update

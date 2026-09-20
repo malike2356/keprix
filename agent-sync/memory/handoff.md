@@ -1,10 +1,10 @@
 # Keprix agent handoff
 
-## 2026-09-20: marketing makeover live on Contabo
+## 2026-09-20: claim tests + installer Python guard
 
-- **Git tip:** `3ef62fb` on `origin/main`
-- **Site:** keprixai.com cosmetic redesign (stone + teal, Fraunces/DM Sans, brand-first hero)
-- **Backup:** `archive/website-backups/keprix-marketing-2026-09-20/`
-- **Deploy:** Contabo rsync + frontend rebuild done
-- **Smoke:** carinaai.uk / keprixai.com / app / api health expected 200
-- **Prior:** DSH 768-773 already live
+- **Git tip:** pending push
+- **Finding:** marketed curl install failed on Ubuntu 22.04 Python 3.10
+- **Fix:** install.sh requires 3.11/3.12 before clone; marketing copy updated
+- **Virtual proof:** Ubuntu 22.04 + python3.11 -> keprix 0.16.0; module imports PASS
+- **Report:** archive/workspace-audits/2026-09-20-keprix-claim-virtual-tests.md
+

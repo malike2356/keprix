@@ -34,7 +34,7 @@ const INSTALL_METHODS = [
     id: "curl",
     label: "Quick Install (curl)",
     icon: <TerminalIcon fontSize="small" />,
-    summary: "One-line script installer for Linux, macOS, and WSL2. Sets up Python env and puts keprix on your PATH.",
+    summary: "One-line script installer for Linux, macOS, and WSL2 (Python 3.11 or 3.12). Sets up a venv and puts keprix on your PATH.",
     command: "curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash",
     nextSteps: [
       { step: "1", title: "Configure models", code: "keprix setup", desc: "Interactive wizard to connect your LLM provider key." },
@@ -42,7 +42,7 @@ const INSTALL_METHODS = [
     ],
     details: [
       "Clones and updates under ~/.keprix/keprix",
-      "Creates an isolated Python 3.11+ virtual environment",
+      "Creates an isolated Python 3.11 or 3.12 virtual environment",
       "Adds keprix CLI and Command Center TUI to ~/.local/bin",
     ],
   },
