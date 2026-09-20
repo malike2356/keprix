@@ -157,11 +157,10 @@ export function InstallSection() {
                   height: 6,
                   borderRadius: "50%",
                   bgcolor: c.primary,
-                  boxShadow: `0 0 8px ${c.primary}`,
                 }}
               />
               <Typography sx={{ ...MARKETING_EYEBROW_SX, color: c.primary }}>
-                Deploy Free - 100% Open Source
+                Free to install - MIT open source
               </Typography>
             </Box>
 
@@ -243,11 +242,11 @@ export function InstallSection() {
             sx={{
               maxWidth: 880,
               mx: "auto",
-              bgcolor: isDark ? "rgba(12, 14, 24, 0.95)" : "#0f141c",
+              bgcolor: isDark ? c.bgPaper : "#141413",
               color: "#f0f6fc",
-              border: `1px solid ${alpha(c.primary, 0.35)}`,
-              borderRadius: 3.5,
-              boxShadow: `0 8px 32px ${alpha("#000", isDark ? 0.6 : 0.2)}, 0 0 40px ${alpha(c.primary, 0.1)}`,
+              border: `1px solid ${c.divider}`,
+              borderRadius: "8px",
+              boxShadow: "none",
               overflow: "hidden",
             }}
           >

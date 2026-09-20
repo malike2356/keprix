@@ -61,13 +61,13 @@ const STEPS = [
 
 const ROLE_COLORS_DARK: Record<string, string> = {
   user: "rgba(96,165,250,0.9)",
-  agent: "rgba(108,92,231,0.9)",
+  agent: "rgba(45,212,191,0.9)",
   system: "rgba(251,191,36,0.9)",
 };
 
 const ROLE_COLORS_LIGHT: Record<string, string> = {
   user: "#2563EB",
-  agent: "#6c5ce7",
+  agent: "#0F766E",
   system: "#D97706",
 };
 

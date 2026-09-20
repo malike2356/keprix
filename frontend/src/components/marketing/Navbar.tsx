@@ -133,7 +133,20 @@ export function Navbar() {
               href={isAuthed ? "/home" : "/#install"}
               variant="contained"
               size="small"
-              sx={{ ml: 1, fontWeight: 600 }}
+              sx={{
+                ml: 1,
+                fontWeight: 600,
+                borderRadius: "6px",
+                boxShadow: "none",
+                textTransform: "none",
+                bgcolor: colors.primary,
+                color: isDark ? "#0C0C0B" : "#FAFAF9",
+                "&:hover": {
+                  bgcolor: colors.primary,
+                  filter: "brightness(1.06)",
+                  boxShadow: "none",
+                },
+              }}
               onClick={(e) => {
                 if (!isAuthed && typeof window !== "undefined" && window.location.pathname === "/") {
                   const el = document.getElementById("install");
@@ -145,7 +158,7 @@ export function Navbar() {
                 }
               }}
             >
-              {isAuthed ? "Open app" : "Deploy free"}
+              {isAuthed ? "Open app" : "Install free"}
             </Button>
           </Box>
 
@@ -234,7 +247,7 @@ export function Navbar() {
               }
             }}
           >
-            {isAuthed ? "Open app" : "Deploy free"}
+            {isAuthed ? "Open app" : "Install free"}
           </Button>
         </Box>
       </Drawer>

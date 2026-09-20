@@ -1,5 +1,4 @@
 import type { ThemeMode } from "@/theme/tokens/colors";
-import { keprixTypography } from "@/theme/tokens/typography";
 
 export type MarketingTone = "default" | "alt";
 
@@ -17,18 +16,24 @@ export type MarketingColors = {
   divider: string;
 };
 
-/** Same display stack as Google AI Studio / Keprix workspace. */
-export const MARKETING_DISPLAY_FONT = keprixTypography.fontFamilyDisplay;
+/**
+ * Marketing type: one serif display, one sans body, one mono.
+ * Loaded in (marketing)/layout.tsx via next/font CSS variables.
+ */
+export const MARKETING_DISPLAY_FONT =
+  'var(--font-mkt-display), "Fraunces", "Source Serif 4", Georgia, "Times New Roman", serif';
 
-export const MARKETING_BODY_FONT = keprixTypography.fontFamily;
+export const MARKETING_BODY_FONT =
+  'var(--font-mkt-sans), "DM Sans", "Helvetica Neue", Arial, sans-serif';
 
-export const MARKETING_MONO_FONT = keprixTypography.fontFamilyMono;
+export const MARKETING_MONO_FONT =
+  'var(--font-mkt-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
 
 export const MARKETING_EYEBROW_SX = {
   fontFamily: MARKETING_BODY_FONT,
-  fontSize: "0.78rem",
+  fontSize: "0.72rem",
   fontWeight: 600,
-  letterSpacing: "0.12em",
+  letterSpacing: "0.08em",
   textTransform: "uppercase",
 } as const;
 
@@ -39,46 +44,50 @@ export const MARKETING_HEADING_SX = {
   lineHeight: 1.08,
 } as const;
 
+/**
+ * Engineered palette: stone paper + one teal accent.
+ * No purple gradients, no glow spheres, no rainbow KPI tiles.
+ */
 const DARK_DEFAULT: MarketingColors = {
-  primary: "#6c5ce7",
-  secondary: "#6495ed",
-  success: "#10B981",
-  warning: "#F59E0B",
-  info: "#6495ed",
-  bgDefault: "#08080f",
-  bgPaper: "#0d0d1a",
-  bgCard: "#0f0f1e",
-  textPrimary: "#ededf8",
-  textSecondary: "#8888a8",
-  divider: "rgba(255,255,255,0.07)",
+  primary: "#2DD4BF",
+  secondary: "#2DD4BF",
+  success: "#34D399",
+  warning: "#FBBF24",
+  info: "#2DD4BF",
+  bgDefault: "#0C0C0B",
+  bgPaper: "#141413",
+  bgCard: "#1A1A18",
+  textPrimary: "rgba(250,250,249,0.92)",
+  textSecondary: "rgba(250,250,249,0.58)",
+  divider: "rgba(250,250,249,0.08)",
 };
 
 const DARK_ALT: MarketingColors = {
   ...DARK_DEFAULT,
-  bgDefault: "#0d0d1a",
-  bgPaper: "#12121f",
-  bgCard: "#161628",
+  bgDefault: "#141413",
+  bgPaper: "#1A1A18",
+  bgCard: "#222220",
 };
 
 const LIGHT_DEFAULT: MarketingColors = {
-  primary: "#6c5ce7",
-  secondary: "#4682b4",
-  success: "#059669",
-  warning: "#D97706",
-  info: "#2563EB",
-  bgDefault: "#ffffff",
-  bgPaper: "#ffffff",
-  bgCard: "#f8f8fc",
-  textPrimary: "#18181e",
-  textSecondary: "#4a4a66",
-  divider: "#e2e2ec",
+  primary: "#0F766E",
+  secondary: "#0F766E",
+  success: "#047857",
+  warning: "#B45309",
+  info: "#0F766E",
+  bgDefault: "#FAFAF9",
+  bgPaper: "#FFFFFF",
+  bgCard: "#F5F5F4",
+  textPrimary: "#1C1917",
+  textSecondary: "#57534E",
+  divider: "rgba(28,25,23,0.1)",
 };
 
 const LIGHT_ALT: MarketingColors = {
   ...LIGHT_DEFAULT,
-  bgDefault: "#f5f5fa",
-  bgPaper: "#ffffff",
-  bgCard: "#eeeef6",
+  bgDefault: "#F5F5F4",
+  bgPaper: "#FFFFFF",
+  bgCard: "#E7E5E4",
 };
 
 /** Resolve marketing palette from global theme mode and optional section stripe. */
@@ -95,3 +104,6 @@ export function resolveMarketingTone(tone: "light" | "dark" | MarketingTone): Ma
   if (tone === "dark" || tone === "alt") return "alt";
   return "default";
 }
+
+/** Shared button shapes for the makeover: square-ish, not pills. */
+export const MARKETING_BTN_RADIUS = "6px";

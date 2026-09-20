@@ -12,9 +12,11 @@ import {
   useMarketingColors,
 } from "@/components/marketing/MarketingSection";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
+import { useThemeMode } from "@/components/providers/ThemeRegistry";
 
 export function OpenSourceBand() {
   const c = useMarketingColors();
+  const { mode } = useThemeMode();
 
   return (
     <Box
@@ -84,13 +86,17 @@ export function OpenSourceBand() {
             variant="contained"
             startIcon={<CodeIcon />}
             sx={{
-              fontWeight: 700,
-              borderRadius: "9999px",
-              px: 3.5,
-              background: `linear-gradient(135deg, ${c.primary} 0%, ${c.secondary} 100%)`,
-              boxShadow: `0 4px 24px ${alpha(c.primary, 0.4)}`,
+              fontWeight: 600,
+              borderRadius: "6px",
+              px: 3,
+              bgcolor: c.primary,
+              color: mode === "dark" ? "#0C0C0B" : "#FAFAF9",
+              boxShadow: "none",
+              textTransform: "none",
               "&:hover": {
-                boxShadow: `0 6px 32px ${alpha(c.primary, 0.55)}`,
+                bgcolor: c.primary,
+                filter: "brightness(1.06)",
+                boxShadow: "none",
               },
             }}
           >

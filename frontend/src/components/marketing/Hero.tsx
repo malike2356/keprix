@@ -4,16 +4,17 @@ import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import { alpha, keyframes } from "@mui/material/styles";
 import * as React from "react";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckIcon from "@mui/icons-material/Check";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { KeprixLogo } from "@/components/shared/KeprixLogo";
 import {
   getMarketingColors,
+  MARKETING_BTN_RADIUS,
   MARKETING_DISPLAY_FONT,
   MARKETING_MONO_FONT,
 } from "@/components/marketing/marketing-section";
@@ -22,11 +23,6 @@ import { useThemeMode } from "@/components/providers/ThemeRegistry";
 const blink = keyframes`
   0%, 49% { opacity: 1; }
   50%, 100% { opacity: 0; }
-`;
-
-const marqueeScroll = keyframes`
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
 `;
 
 type TerminalLine = {
@@ -45,8 +41,8 @@ const TERMINAL_LINES: TerminalLine[] = [
   { prefix: "[Keprix]", text: "Waiting for approval before deployment." },
 ];
 
-const USER_COLOR = "#58a6ff";
-const KEPRIX_COLOR = "#bb9af7";
+const INSTALL_CMD =
+  "curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash";
 
 function typingDelay(line: TerminalLine, charIndex: number): number {
   if (line.prefix === "$") return 42;
@@ -96,7 +92,7 @@ function TerminalWindow() {
   }, []);
 
   React.useEffect(() => {
-    const timer = window.setTimeout(() => setStarted(true), 500);
+    const timer = window.setTimeout(() => setStarted(true), 400);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -125,8 +121,8 @@ function TerminalWindow() {
   }, [started, lineIndex, charIndex, reduceMotion]);
 
   const prefixColor = (prefix: TerminalLine["prefix"]) => {
-    if (prefix === "[User]") return USER_COLOR;
-    if (prefix === "[Keprix]") return KEPRIX_COLOR;
+    if (prefix === "[User]") return colors.textSecondary;
+    if (prefix === "[Keprix]") return colors.primary;
     return colors.textSecondary;
   };
 
@@ -139,7 +135,7 @@ function TerminalWindow() {
         <Box key={`${line.prefix}-${line.text}`} sx={{ mb: 0.75 }}>
           <Typography
             component="div"
-            sx={{ color, fontFamily: MARKETING_MONO_FONT, fontSize: "inherit", lineHeight: 1.6 }}
+            sx={{ color, fontFamily: MARKETING_MONO_FONT, fontSize: "inherit", lineHeight: 1.55 }}
           >
             {line.prefix}
           </Typography>
@@ -149,7 +145,7 @@ function TerminalWindow() {
               color: colors.textPrimary,
               fontFamily: MARKETING_MONO_FONT,
               fontSize: "inherit",
-              lineHeight: 1.6,
+              lineHeight: 1.55,
               pl: 0.5,
             }}
           >
@@ -168,7 +164,10 @@ function TerminalWindow() {
         >
           {line.prefix}
         </Typography>
-        <Typography component="span" sx={{ color: colors.textPrimary, fontFamily: MARKETING_MONO_FONT, fontSize: "inherit" }}>
+        <Typography
+          component="span"
+          sx={{ color: colors.textPrimary, fontFamily: MARKETING_MONO_FONT, fontSize: "inherit" }}
+        >
           {visibleText}
           {showCursor ? <TerminalCursor color={colors.textPrimary} /> : null}
         </Typography>
@@ -179,7 +178,8 @@ function TerminalWindow() {
   const completedCount = reduceMotion ? TERMINAL_LINES.length : lineIndex;
   const activeLine = reduceMotion ? null : TERMINAL_LINES[lineIndex];
   const activeText = activeLine ? activeLine.text.slice(0, charIndex) : "";
-  const showActiveCursor = Boolean(activeLine) && (charIndex < (activeLine?.text.length ?? 0) || lineIndex < TERMINAL_LINES.length);
+  const showActiveCursor =
+    Boolean(activeLine) && (charIndex < (activeLine?.text.length ?? 0) || lineIndex < TERMINAL_LINES.length);
   const finished = lineIndex >= TERMINAL_LINES.length;
 
   return (
@@ -187,39 +187,36 @@ function TerminalWindow() {
       role="img"
       aria-label="Keprix terminal demo showing Channel Shield workflow"
       sx={{
-        bgcolor: mode === "dark" ? "rgba(10,12,20,0.85)" : alpha(colors.bgCard, 0.95),
-        border: `1px solid ${alpha(colors.primary, 0.3)}`,
-        borderRadius: 3,
+        bgcolor: colors.bgPaper,
+        border: `1px solid ${colors.divider}`,
+        borderRadius: "8px",
         overflow: "hidden",
         fontFamily: MARKETING_MONO_FONT,
-        fontSize: { xs: "0.75rem", sm: "0.85rem" },
-        lineHeight: 1.7,
-        backdropFilter: "blur(12px)",
-        boxShadow: `0 0 60px ${alpha(colors.primary, 0.18)}, 0 24px 64px ${alpha("#000", mode === "dark" ? 0.6 : 0.12)}`,
+        fontSize: { xs: "0.75rem", sm: "0.82rem" },
+        lineHeight: 1.65,
       }}
     >
       <Box
         sx={{
           px: 2,
           py: 1,
-          bgcolor: alpha(mode === "dark" ? "#fff" : "#000", 0.04),
-          borderBottom: `1px solid ${alpha(colors.divider, 0.5)}`,
+          borderBottom: `1px solid ${colors.divider}`,
           display: "flex",
           gap: 0.75,
           alignItems: "center",
         }}
       >
-        {["#ff5f57", "#febc2e", "#28c840"].map((c) => (
-          <Box key={c} sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: c }} />
+        {["#78716C", "#78716C", "#78716C"].map((c, i) => (
+          <Box key={i} sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: c, opacity: 0.55 }} />
         ))}
         <Typography
-          sx={{ ml: 1, fontSize: "0.7rem", color: colors.textSecondary, fontFamily: MARKETING_MONO_FONT }}
+          sx={{ ml: 1, fontSize: "0.68rem", color: colors.textSecondary, fontFamily: MARKETING_MONO_FONT }}
         >
           keprix - command center
         </Typography>
       </Box>
 
-      <Box sx={{ p: { xs: 2, sm: 3 }, minHeight: { xs: 260, sm: 300 } }}>
+      <Box sx={{ p: { xs: 2, sm: 2.5 }, minHeight: { xs: 260, sm: 300 } }}>
         {TERMINAL_LINES.slice(0, completedCount).map((line) => renderLine(line, line.text, false))}
         {activeLine ? renderLine(activeLine, activeText, showActiveCursor && !finished) : null}
         {finished && !reduceMotion ? (
@@ -233,117 +230,15 @@ function TerminalWindow() {
 }
 
 const STACK_ITEMS = [
-  { name: "Anthropic", color: "#cc785c" },
-  { name: "OpenAI", color: "#10a37f" },
-  { name: "Gemini", color: "#4285f4" },
-  { name: "Ollama", color: "#9b9b9b" },
-  { name: "Groq", color: "#f55036" },
-  { name: "Telegram", color: "#2aabee" },
-  { name: "Discord", color: "#5865f2" },
-  { name: "Docker", color: "#2496ed" },
+  "Anthropic",
+  "OpenAI",
+  "Gemini",
+  "Ollama",
+  "Groq",
+  "Telegram",
+  "Discord",
+  "Docker",
 ] as const;
-
-type StackItem = (typeof STACK_ITEMS)[number];
-
-function StackPill({
-  item,
-  colors,
-  isDark,
-}: {
-  item: StackItem;
-  colors: ReturnType<typeof getMarketingColors>;
-  isDark: boolean;
-}) {
-  return (
-    <Box
-      sx={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 1,
-        px: 2,
-        py: 0.75,
-        borderRadius: 999,
-        flexShrink: 0,
-        fontSize: "0.8rem",
-        fontWeight: 600,
-        letterSpacing: "0.02em",
-        color: colors.textPrimary,
-        bgcolor: isDark ? alpha("#fff", 0.06) : colors.bgCard,
-        border: `1px solid ${isDark ? alpha("#fff", 0.14) : colors.divider}`,
-        whiteSpace: "nowrap",
-      }}
-    >
-      <Box
-        aria-hidden
-        sx={{
-          width: 8,
-          height: 8,
-          borderRadius: "50%",
-          bgcolor: item.color,
-          flexShrink: 0,
-          boxShadow: `0 0 8px ${alpha(item.color, isDark ? 0.8 : 0.45)}`,
-        }}
-      />
-      {item.name}
-    </Box>
-  );
-}
-
-function StackCarousel({
-  colors,
-  isDark,
-}: {
-  colors: ReturnType<typeof getMarketingColors>;
-  isDark: boolean;
-}) {
-  const [reduceMotion, setReduceMotion] = React.useState(false);
-  const loopItems = React.useMemo(() => [...STACK_ITEMS, ...STACK_ITEMS], []);
-
-  React.useEffect(() => {
-    setReduceMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  }, []);
-
-  return (
-    <Box
-      sx={{
-        position: "relative",
-        flex: 1,
-        minWidth: 0,
-        py: 1,
-        overflow: "hidden",
-        maskImage: isDark
-          ? "linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%)"
-          : "linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%)",
-        WebkitMaskImage: isDark
-          ? "linear-gradient(to right, transparent 0%, #000 8%, #000 92%, transparent 100%)"
-          : "linear-gradient(to right, transparent 0%, #000 6%, #000 94%, transparent 100%)",
-      }}
-    >
-      <Box
-        aria-label="Supported integrations"
-        sx={{
-          display: "flex",
-          width: "max-content",
-          gap: 1.25,
-          animation: reduceMotion ? "none" : `${marqueeScroll} 32s linear infinite`,
-          "@media (prefers-reduced-motion: reduce)": {
-            animation: "none",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            width: "100%",
-          },
-          "&:hover": {
-            animationPlayState: "paused",
-          },
-        }}
-      >
-        {(reduceMotion ? STACK_ITEMS : loopItems).map((item, index) => (
-          <StackPill key={`${item.name}-${index}`} item={item} colors={colors} isDark={isDark} />
-        ))}
-      </Box>
-    </Box>
-  );
-}
 
 export function Hero() {
   const { mode } = useThemeMode();
@@ -354,234 +249,151 @@ export function Hero() {
   const handleCopyInstall = async () => {
     try {
       if (typeof navigator !== "undefined" && navigator.clipboard) {
-        await navigator.clipboard.writeText("curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash");
+        await navigator.clipboard.writeText(INSTALL_CMD);
         setCopiedInstall(true);
-        window.setTimeout(() => setCopiedInstall(false), 2200);
+        window.setTimeout(() => setCopiedInstall(false), 2000);
       }
     } catch {
-      // ignore clipboard error
+      // ignore
+    }
+  };
+
+  const scrollToInstall = (e: React.MouseEvent) => {
+    const el = document.getElementById("install");
+    if (el) {
+      e.preventDefault();
+      el.scrollIntoView({ behavior: "smooth" });
+      window.history.pushState(null, "", "#install");
     }
   };
 
   return (
     <>
-      {/* Hero section */}
       <Box
         component="section"
         sx={{
           position: "relative",
           overflow: "hidden",
-          minHeight: { xs: "100vh", md: "95vh" },
+          minHeight: { xs: "100vh", md: "92vh" },
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           bgcolor: colors.bgDefault,
-          transition: "background-color 0.25s ease",
+          backgroundImage: isDark
+            ? `linear-gradient(${alpha("#fff", 0.03)} 1px, transparent 1px), linear-gradient(90deg, ${alpha("#fff", 0.03)} 1px, transparent 1px)`
+            : `linear-gradient(${alpha("#000", 0.04)} 1px, transparent 1px), linear-gradient(90deg, ${alpha("#000", 0.04)} 1px, transparent 1px)`,
+          backgroundSize: "48px 48px",
+          backgroundPosition: "center top",
         }}
       >
-        <Box
-          aria-hidden
-          sx={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 0,
-            pointerEvents: "none",
-            background: isDark
-              ? `
-              radial-gradient(circle at 72% 35%, ${alpha(colors.primary, 0.28)} 0%, transparent 26%),
-              radial-gradient(circle at 86% 58%, ${alpha(colors.secondary, 0.22)} 0%, transparent 25%),
-              linear-gradient(135deg, ${colors.bgDefault} 0%, ${alpha(colors.bgPaper, 0.94)} 100%)
-            `
-              : `
-              radial-gradient(circle at 76% 36%, ${alpha(colors.primary, 0.18)} 0%, transparent 28%),
-              radial-gradient(circle at 88% 60%, ${alpha(colors.secondary, 0.14)} 0%, transparent 24%),
-              linear-gradient(135deg, ${colors.bgDefault} 0%, ${alpha(colors.bgCard, 0.96)} 100%)
-            `,
-          }}
-        />
-
-        {/* Readability overlay: keep particles atmospheric, protect copy */}
-        <Box
-          aria-hidden
-          sx={{
-            position: "absolute",
-            inset: 0,
-            zIndex: 0,
-            background: isDark
-              ? `
-              radial-gradient(ellipse 80% 60% at 50% 20%, rgba(10,10,16,0.35) 0%, rgba(10,10,16,0.72) 70%),
-              linear-gradient(to bottom, rgba(10,10,16,0.2) 0%, rgba(10,10,16,0.85) 100%)
-            `
-              : `
-              linear-gradient(90deg, ${colors.bgDefault} 0%, ${alpha(colors.bgDefault, 0.97)} 32%, ${alpha(colors.bgDefault, 0.72)} 48%, ${alpha(colors.bgDefault, 0.28)} 68%, transparent 100%),
-              linear-gradient(to bottom, ${alpha(colors.bgDefault, 0.2)} 0%, transparent 40%, ${alpha(colors.bgDefault, 0.35)} 100%),
-              radial-gradient(ellipse 60% 55% at 82% 45%, ${alpha(colors.primary, 0.12)} 0%, transparent 72%)
-            `,
-            pointerEvents: "none",
-          }}
-        />
-
-        {/* Content */}
         <Container
           maxWidth="lg"
           sx={{
             position: "relative",
             zIndex: 1,
-            pt: { xs: 16, md: 20 },
-            pb: { xs: 10, md: 14 },
+            pt: { xs: 14, md: 18 },
+            pb: { xs: 8, md: 12 },
           }}
         >
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
-              gap: { xs: 6, lg: 8 },
+              gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1.05fr) minmax(0, 0.95fr)" },
+              gap: { xs: 5, lg: 7 },
               alignItems: "center",
             }}
           >
-            {/* Left: copy */}
-            <Box
-              sx={{
-                position: "relative",
-                ...(isDark
-                  ? {}
-                  : {
-                      "&::before": {
-                        content: '""',
-                        position: "absolute",
-                        inset: { xs: "-12px -16px", md: "-20px -28px" },
-                        borderRadius: 3,
-                        background: `linear-gradient(135deg, ${alpha(colors.bgDefault, 0.92)} 0%, ${alpha(colors.bgDefault, 0.78)} 70%, ${alpha(colors.bgDefault, 0.35)} 100%)`,
-                        zIndex: -1,
-                        pointerEvents: "none",
-                      },
-                    }),
-              }}
-            >
+            <Box>
               <Box sx={{ mb: 3 }}>
                 <KeprixLogo variant="full" size="lg" onDark={isDark} />
               </Box>
-              <Chip
-                label="Open source - MIT license"
-                size="small"
-                sx={{
-                  mb: 2,
-                  bgcolor: alpha(colors.primary, 0.12),
-                  color: colors.primary,
-                  border: `1px solid ${alpha(colors.primary, 0.3)}`,
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                }}
-              />
-              <Typography
-                component="p"
-                sx={{
-                  fontSize: { xs: "0.9rem", md: "0.98rem" },
-                  fontWeight: 700,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                  color: alpha(colors.primary, 0.95),
-                  mb: 1.5,
-                }}
-              >
-                Self-hosted. Soft Wall. User approve.
-              </Typography>
+
               <Typography
                 component="h1"
                 sx={{
                   fontFamily: MARKETING_DISPLAY_FONT,
-                  fontSize: { xs: "3rem", sm: "3.85rem", md: "4.4rem", lg: "4.9rem" },
-                  fontWeight: 700,
-                  lineHeight: 0.98,
+                  fontSize: { xs: "2.6rem", sm: "3.25rem", md: "3.75rem" },
+                  fontWeight: 600,
+                  lineHeight: 1.08,
                   letterSpacing: "-0.03em",
                   color: colors.textPrimary,
-                  mb: 2,
-                }}
-              >
-                The AI agent
-                <Box
-                  component="span"
-                  sx={{ display: "block", color: colors.primary }}
-                >
-                  that creates the tools it needs.
-                </Box>
-              </Typography>
-              <Typography
-                sx={{
-                  fontSize: { xs: "1rem", md: "1.0625rem" },
-                  color: alpha(colors.textPrimary, 0.9),
-                  lineHeight: 1.8,
-                  mb: 4,
+                  mb: 2.5,
                   maxWidth: 560,
                 }}
               >
-                Propose tools, protect channels, run CRM, and embed via sidecar; Keprix tests
-                changes and waits for your approval before anything goes live.
+                Self-hosted agent OS that proposes tools, then waits for you.
               </Typography>
-              <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 2.5 }}>
+
+              <Typography
+                sx={{
+                  fontSize: { xs: "1.02rem", md: "1.08rem" },
+                  color: colors.textSecondary,
+                  lineHeight: 1.65,
+                  mb: 3.5,
+                  maxWidth: 480,
+                }}
+              >
+                Channel Shield, Soft Wall, CRM, memory, and reviewable self-coding on your
+                infrastructure. MIT licensed. No shared keys.
+              </Typography>
+
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2.5, flexWrap: "wrap", mb: 3 }}>
                 <Button
                   component="a"
                   href="#install"
                   variant="contained"
                   size="large"
-                  onClick={(e) => {
-                    const el = document.getElementById("install");
-                    if (el) {
-                      e.preventDefault();
-                      el.scrollIntoView({ behavior: "smooth" });
-                      window.history.pushState(null, "", "#install");
-                    }
-                  }}
+                  onClick={scrollToInstall}
                   sx={{
-                    fontWeight: 700,
-                    px: 3.5,
-                    borderRadius: "9999px",
-                    background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%)`,
-                    boxShadow: `0 4px 24px ${alpha(colors.primary, 0.4)}`,
+                    fontWeight: 600,
+                    px: 2.75,
+                    py: 1.15,
+                    borderRadius: MARKETING_BTN_RADIUS,
+                    bgcolor: colors.primary,
+                    color: isDark ? "#0C0C0B" : "#FAFAF9",
+                    boxShadow: "none",
+                    textTransform: "none",
                     "&:hover": {
-                      boxShadow: `0 6px 32px ${alpha(colors.primary, 0.55)}`,
+                      bgcolor: colors.primary,
+                      filter: "brightness(1.06)",
+                      boxShadow: "none",
                     },
                   }}
                 >
-                  Install Community
+                  Install on your machine
                 </Button>
                 <Button
                   component="a"
                   href="https://github.com/malike2356/keprix"
                   target="_blank"
                   rel="noopener noreferrer"
-                  variant="outlined"
-                  size="large"
+                  endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
                   sx={{
-                    fontWeight: 600,
-                    px: 3.5,
-                    borderRadius: "9999px",
-                    borderColor: alpha(colors.divider, 0.6),
+                    fontWeight: 500,
+                    px: 0.5,
                     color: colors.textSecondary,
+                    textTransform: "none",
+                    minWidth: 0,
                     "&:hover": {
-                      borderColor: colors.primary,
+                      bgcolor: "transparent",
                       color: colors.textPrimary,
-                      bgcolor: alpha(colors.primary, 0.06),
                     },
                   }}
                 >
-                  View on GitHub
+                  View source
                 </Button>
               </Box>
 
-              {/* Quick install snippet on first page */}
               <Box
                 sx={{
                   display: "inline-flex",
                   alignItems: "center",
                   maxWidth: "100%",
-                  bgcolor: isDark ? "rgba(10, 12, 20, 0.85)" : alpha(colors.bgCard, 0.95),
-                  border: `1px solid ${alpha(colors.primary, 0.3)}`,
-                  borderRadius: 2.5,
-                  p: 0.75,
-                  pl: 2,
-                  backdropFilter: "blur(8px)",
-                  boxShadow: `0 4px 20px ${alpha("#000", isDark ? 0.4 : 0.06)}`,
+                  bgcolor: colors.bgPaper,
+                  border: `1px solid ${colors.divider}`,
+                  borderRadius: MARKETING_BTN_RADIUS,
+                  p: 0.5,
+                  pl: 1.5,
                 }}
               >
                 <Typography
@@ -589,9 +401,9 @@ export function Hero() {
                   sx={{
                     color: colors.primary,
                     fontFamily: MARKETING_MONO_FONT,
-                    fontSize: "0.85rem",
-                    fontWeight: 700,
-                    mr: 1.25,
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    mr: 1,
                     userSelect: "none",
                   }}
                 >
@@ -601,27 +413,24 @@ export function Hero() {
                   component="code"
                   sx={{
                     fontFamily: MARKETING_MONO_FONT,
-                    fontSize: { xs: "0.75rem", sm: "0.825rem" },
+                    fontSize: { xs: "0.7rem", sm: "0.78rem" },
                     color: colors.textPrimary,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
-                    mr: 1.5,
+                    mr: 1,
                   }}
                 >
-                  curl -fsSL https://raw.githubusercontent.com/malike2356/keprix/main/scripts/install.sh | bash
+                  {INSTALL_CMD}
                 </Typography>
-                <Tooltip title={copiedInstall ? "Copied!" : "Copy install command"}>
+                <Tooltip title={copiedInstall ? "Copied" : "Copy install command"}>
                   <IconButton
                     onClick={handleCopyInstall}
                     size="small"
                     sx={{
                       color: copiedInstall ? colors.primary : colors.textSecondary,
-                      bgcolor: alpha(colors.primary, copiedInstall ? 0.15 : 0.08),
-                      "&:hover": {
-                        bgcolor: alpha(colors.primary, 0.2),
-                        color: colors.textPrimary,
-                      },
+                      borderRadius: "4px",
+                      "&:hover": { bgcolor: alpha(colors.primary, 0.08) },
                     }}
                     aria-label="Copy install command"
                   >
@@ -632,57 +441,29 @@ export function Hero() {
 
               <Typography
                 sx={{
-                  mt: 1,
+                  mt: 1.25,
                   fontSize: "0.75rem",
                   color: colors.textSecondary,
-                  letterSpacing: "0.02em",
                 }}
               >
-                Linux, macOS, WSL2. Self-hosted and MIT-licensed.
+                Linux, macOS, WSL2. Deploy in about two minutes.
               </Typography>
             </Box>
 
-            {/* Right: terminal */}
-            <Box sx={{ position: "relative" }}>
+            <Box>
               <TerminalWindow />
-              {/* Subtle glow behind terminal */}
-              <Box
-                aria-hidden
-                sx={{
-                  position: "absolute",
-                  inset: "-20%",
-                  background: `radial-gradient(ellipse at center, ${alpha(colors.primary, 0.1)} 0%, transparent 70%)`,
-                  pointerEvents: "none",
-                  zIndex: -1,
-                }}
-              />
             </Box>
           </Box>
         </Container>
-
-        {/* Bottom fade into stack band */}
-        <Box
-          aria-hidden
-          sx={{
-            position: "absolute",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 96,
-            background: `linear-gradient(to bottom, transparent 0%, ${colors.bgDefault} 100%)`,
-            pointerEvents: "none",
-          }}
-        />
       </Box>
 
-      {/* Infinite logo slider section */}
       <Box
         component="section"
         sx={{
           bgcolor: colors.bgDefault,
-          py: 4,
-          borderBottom: `1px solid ${alpha(colors.divider, isDark ? 0.4 : 1)}`,
-          transition: "background-color 0.25s ease",
+          py: 3.5,
+          borderTop: `1px solid ${colors.divider}`,
+          borderBottom: `1px solid ${colors.divider}`,
         }}
       >
         <Container maxWidth="lg">
@@ -690,36 +471,45 @@ export function Hero() {
             sx={{
               display: "flex",
               flexDirection: { xs: "column", md: "row" },
-              alignItems: "center",
-              gap: { xs: 3, md: 0 },
+              alignItems: { xs: "flex-start", md: "center" },
+              gap: { xs: 2, md: 4 },
             }}
           >
-            <Box
+            <Typography
               sx={{
                 flexShrink: 0,
-                textAlign: { xs: "center", md: "right" },
-                pr: { md: 4 },
-                borderRight: { md: `1px solid ${alpha(colors.divider, isDark ? 0.4 : 1)}` },
-                minWidth: { md: 160 },
+                fontSize: "0.72rem",
+                color: colors.textSecondary,
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                fontWeight: 600,
+                minWidth: { md: 110 },
               }}
             >
-              <Typography
-                sx={{
-                  fontSize: "0.75rem",
-                  color: colors.textSecondary,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  fontWeight: 700,
-                  lineHeight: 1.4,
-                }}
-              >
-                Works with
-                <br />
-                your stack
-              </Typography>
+              Works with
+            </Typography>
+            <Box
+              sx={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: { xs: 1.5, md: 2.5 },
+                rowGap: 1,
+              }}
+            >
+              {STACK_ITEMS.map((name) => (
+                <Typography
+                  key={name}
+                  sx={{
+                    fontSize: "0.875rem",
+                    fontWeight: 500,
+                    color: colors.textPrimary,
+                    opacity: 0.78,
+                  }}
+                >
+                  {name}
+                </Typography>
+              ))}
             </Box>
-
-            <StackCarousel colors={colors} isDark={isDark} />
           </Box>
         </Container>
       </Box>

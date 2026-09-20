@@ -4,13 +4,13 @@ import { InstallSection } from "@/components/marketing/InstallSection";
 import { DeferredMarketingSections } from "@/components/marketing/DeferredMarketingSections";
 
 export const metadata: Metadata = {
-  title: "Keprix - The self-mutating agent OS",
+  title: "Keprix - Self-hosted agent OS",
   description:
     "Self-hosted agent OS with Agent OS, Channel Shield, Agentic CRM, Universal Sidecar, Soft Wall, memory, and reviewable self-coding. MIT licensed.",
   openGraph: {
-    title: "Keprix - The self-mutating agent OS",
+    title: "Keprix - Self-hosted agent OS",
     description:
-      "Create tools on demand, protect inbound channels, run CRM with Soft Wall, and embed via Universal Sidecar. Always with operator approval.",
+      "Propose tools, protect channels, run CRM, embed via sidecar. Keprix tests changes and waits for your approval.",
   },
 };
 

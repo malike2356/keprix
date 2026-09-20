@@ -149,15 +149,16 @@ export function MutationGovernanceBand() {
               variant="outlined"
               endIcon={<OpenInNewIcon />}
               sx={{
-                borderRadius: "9999px",
+                borderRadius: "6px",
                 px: 3,
-                fontWeight: 700,
-                borderColor: alpha(c.primary, 0.38),
+                fontWeight: 600,
+                textTransform: "none",
+                borderColor: c.divider,
                 color: c.textPrimary,
-                bgcolor: alpha(c.primary, 0.04),
+                bgcolor: "transparent",
                 "&:hover": {
                   borderColor: c.primary,
-                  bgcolor: alpha(c.primary, 0.09),
+                  bgcolor: alpha(c.primary, 0.06),
                 },
               }}
             >

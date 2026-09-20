@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -16,18 +15,13 @@ import StorefrontIcon from "@mui/icons-material/Storefront";
 import ExtensionIcon from "@mui/icons-material/Extension";
 import LockIcon from "@mui/icons-material/Lock";
 import {
+  MARKETING_BTN_RADIUS,
   MARKETING_EYEBROW_SX,
   MARKETING_HEADING_SX,
   useMarketingColors,
 } from "@/components/marketing/MarketingSection";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
 import { MARKETING_FEATURE_HIGHLIGHTS } from "@/lib/marketing-features-catalog";
-import { useThemeMode } from "@/components/providers/ThemeRegistry";
-
-const DottedSurfaceBackground = dynamic(
-  () => import("@/components/ui/dotted-surface-background").then((mod) => mod.DottedSurfaceBackground),
-  { ssr: false },
-);
 
 const HIGHLIGHT_ICONS = {
   tui: CodeIcon,
@@ -40,106 +34,8 @@ const HIGHLIGHT_ICONS = {
   vault: LockIcon,
 } as const;
 
-function GlowCard({
-  children,
-  glowColor,
-}: {
-  children: React.ReactNode;
-  glowColor: string;
-}) {
-  const c = useMarketingColors();
-  const { mode } = useThemeMode();
-  const isDark = mode === "dark";
-  const [tilt, setTilt] = React.useState({ x: 0, y: 0 });
-  const [hovered, setHovered] = React.useState(false);
-  const ref = React.useRef<HTMLDivElement>(null);
-
-  function onMove(e: React.MouseEvent) {
-    if (!ref.current) return;
-    const r = ref.current.getBoundingClientRect();
-    const cx = (e.clientX - r.left) / r.width - 0.5;
-    const cy = (e.clientY - r.top) / r.height - 0.5;
-    setTilt({ x: cy * -9, y: cx * 9 });
-  }
-
-  return (
-    <Box
-      ref={ref}
-      onMouseMove={onMove}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => { setHovered(false); setTilt({ x: 0, y: 0 }); }}
-      sx={{
-        position: "relative",
-        height: "100%",
-        transform: `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) ${hovered ? "translateZ(6px)" : ""}`,
-        transition: hovered ? "transform 0.08s linear" : "transform 0.5s ease",
-        willChange: "transform",
-      }}
-    >
-      {/* Ambient glow behind card */}
-      <Box
-        aria-hidden
-        sx={{
-          position: "absolute",
-          inset: -16,
-          borderRadius: 3,
-          background: `radial-gradient(ellipse at center, ${alpha(glowColor, isDark ? 0.22 : 0.14)} 0%, transparent 72%)`,
-          filter: "blur(18px)",
-          opacity: hovered ? 1 : 0,
-          transition: "opacity 0.35s",
-          pointerEvents: "none",
-          zIndex: -1,
-        }}
-      />
-
-      {/* Card */}
-      <Box
-        sx={{
-          height: "100%",
-          borderRadius: 2.5,
-          p: 3.5,
-          bgcolor: isDark ? "rgba(12,12,24,0.7)" : c.bgPaper,
-          border: `1px solid ${hovered ? alpha(glowColor, 0.35) : isDark ? "rgba(255,255,255,0.07)" : c.divider}`,
-          backdropFilter: isDark ? "blur(24px)" : "none",
-          position: "relative",
-          overflow: "hidden",
-          transition: "border-color 0.25s, background-color 0.25s ease",
-          boxShadow: hovered
-            ? isDark
-              ? `0 20px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)`
-              : `0 12px 28px ${alpha("#000", 0.08)}, 0 0 0 1px ${alpha(glowColor, 0.12)}`
-            : isDark
-              ? `0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)`
-              : `0 2px 10px ${alpha("#000", 0.05)}`,
-        }}
-      >
-        {/* Specular gloss at top-left */}
-        {isDark ? (
-          <Box
-            aria-hidden
-            sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: "50%",
-              background:
-                "linear-gradient(160deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.015) 40%, transparent 70%)",
-              pointerEvents: "none",
-              borderRadius: "10px 10px 0 0",
-            }}
-          />
-        ) : null}
-        {children}
-      </Box>
-    </Box>
-  );
-}
-
 export function FeaturesGrid() {
   const c = useMarketingColors();
-  const { mode } = useThemeMode();
-  const isDark = mode === "dark";
 
   const features = MARKETING_FEATURE_HIGHLIGHTS.map((item) => ({
     ...item,
@@ -150,58 +46,20 @@ export function FeaturesGrid() {
     <Box
       id="features"
       sx={{
-        py: { xs: 12, md: 16 },
+        py: { xs: 10, md: 14 },
         position: "relative",
-        overflow: "hidden",
         bgcolor: c.bgDefault,
       }}
     >
-      <DottedSurfaceBackground mode={isDark ? "dark" : "light"} />
-
-      <Box
-        aria-hidden
-        sx={{
-          position: "absolute",
-          inset: 0,
-          zIndex: 0,
-          pointerEvents: "none",
-          background: isDark
-            ? `
-            radial-gradient(ellipse at 50% 35%, ${alpha(c.primary, 0.08)} 0%, transparent 45%),
-            radial-gradient(ellipse at 50% 100%, ${alpha(c.bgDefault, 0.35)} 0%, transparent 65%)
-          `
-            : `
-            radial-gradient(ellipse at 50% 0%, ${alpha(c.primary, 0.1)} 0%, transparent 50%),
-            radial-gradient(ellipse at 80% 100%, ${alpha(c.secondary, 0.08)} 0%, transparent 45%)
-          `,
-        }}
-      />
-
-      {/* Ambient top glow */}
-      <Box
-        aria-hidden
-        sx={{
-          position: "absolute",
-          top: -200,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 900,
-          height: 600,
-          borderRadius: "50%",
-          background: `radial-gradient(ellipse at center, ${alpha(c.primary, 0.09)} 0%, transparent 70%)`,
-          pointerEvents: "none",
-        }}
-      />
-
-      <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
+      <Container maxWidth="lg">
         <ScrollReveal>
-          <Box sx={{ textAlign: "center", mb: 10 }}>
+          <Box sx={{ mb: 8, maxWidth: 640 }}>
             <Typography
               component="p"
               sx={{
                 ...MARKETING_EYEBROW_SX,
                 color: c.primary,
-                mb: 2,
+                mb: 1.5,
               }}
             >
               Capabilities
@@ -210,20 +68,16 @@ export function FeaturesGrid() {
               component="h2"
               sx={{
                 ...MARKETING_HEADING_SX,
-                fontSize: { xs: "2.2rem", md: "3rem" },
+                fontSize: { xs: "2rem", md: "2.75rem" },
                 mb: 2,
                 color: c.textPrimary,
               }}
             >
-              Everything your agent needs,
-              <br />
-              in one runtime.
+              One runtime for agents, approvals, and ops.
             </Typography>
-            <Typography
-              sx={{ color: c.textSecondary, maxWidth: 520, mx: "auto", fontSize: "1rem", lineHeight: 1.7 }}
-            >
-              Self-hosted agent OS with CRM, sidecars, Soft Wall approvals, and reviewable self-coding.
-              MIT licensed. No vendor lock-in.
+            <Typography sx={{ color: c.textSecondary, fontSize: "1rem", lineHeight: 1.7 }}>
+              Self-hosted agent OS with CRM, sidecars, Soft Wall approvals, and reviewable
+              self-coding. MIT licensed. No vendor lock-in.
             </Typography>
           </Box>
         </ScrollReveal>
@@ -232,79 +86,86 @@ export function FeaturesGrid() {
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", lg: "1fr 1fr 1fr 1fr" },
-            gap: 2.5,
+            gap: 0,
+            borderTop: `1px solid ${c.divider}`,
+            borderLeft: `1px solid ${c.divider}`,
           }}
         >
           {features.map((f, i) => {
             const Icon = f.icon;
             return (
-              <ScrollReveal key={f.title} delay={i * 0.07}>
-                <Box sx={{ height: "100%" }}>
-                  <GlowCard glowColor={f.color}>
-                    {/* Icon with point glow */}
-                    <Box sx={{ position: "relative", mb: 3, display: "inline-flex" }}>
-                      <Box
-                        aria-hidden
-                        sx={{
-                          position: "absolute",
-                          inset: -8,
-                          borderRadius: "50%",
-                          background: `radial-gradient(circle, ${alpha(f.color, 0.4)} 0%, transparent 70%)`,
-                          filter: "blur(8px)",
-                        }}
-                      />
-                      <Box
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: 2,
-                          bgcolor: alpha(f.color, 0.1),
-                          border: `1px solid ${alpha(f.color, 0.25)}`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          position: "relative",
-                        }}
-                      >
-                        <Icon sx={{ color: f.color, fontSize: 22 }} />
-                      </Box>
-                    </Box>
-
-                    <Typography
-                      sx={{
-                        fontWeight: 700,
-                        color: c.textPrimary,
-                        mb: 1.25,
-                        fontSize: "1.05rem",
-                        letterSpacing: "-0.01em",
-                      }}
-                    >
-                      {f.title}
-                    </Typography>
-                    <Typography
-                      sx={{ fontSize: "0.875rem", color: c.textSecondary, lineHeight: 1.7 }}
-                    >
-                      {f.body}
-                    </Typography>
-                  </GlowCard>
+              <ScrollReveal key={f.title} delay={i * 0.04}>
+                <Box
+                  sx={{
+                    height: "100%",
+                    p: 3,
+                    borderRight: `1px solid ${c.divider}`,
+                    borderBottom: `1px solid ${c.divider}`,
+                    bgcolor: c.bgDefault,
+                    transition: "background-color 0.15s ease",
+                    "&:hover": {
+                      bgcolor: alpha(c.primary, 0.04),
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      mb: 2,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: `1px solid ${c.divider}`,
+                      borderRadius: "4px",
+                      color: c.textPrimary,
+                    }}
+                  >
+                    <Icon sx={{ fontSize: 18 }} />
+                  </Box>
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      color: c.textPrimary,
+                      mb: 1,
+                      fontSize: "0.98rem",
+                      letterSpacing: "-0.01em",
+                    }}
+                  >
+                    {f.title}
+                  </Typography>
+                  <Typography sx={{ fontSize: "0.875rem", color: c.textSecondary, lineHeight: 1.65 }}>
+                    {f.body}
+                  </Typography>
                 </Box>
               </ScrollReveal>
             );
           })}
         </Box>
 
-        <ScrollReveal delay={0.2}>
-          <Box sx={{ mt: 6, textAlign: "center" }}>
+        <ScrollReveal delay={0.15}>
+          <Box sx={{ mt: 5 }}>
             <Button
               component="a"
               href="/features"
               variant="outlined"
               size="large"
-              sx={{ textTransform: "none", fontWeight: 600, px: 3 }}
+              sx={{
+                textTransform: "none",
+                fontWeight: 600,
+                px: 2.5,
+                borderRadius: MARKETING_BTN_RADIUS,
+                borderColor: c.divider,
+                color: c.textPrimary,
+                "&:hover": {
+                  borderColor: c.primary,
+                  bgcolor: alpha(c.primary, 0.04),
+                },
+              }}
             >
               See full capabilities list
             </Button>
-            <Typography sx={{ mt: 1.5, fontSize: "0.85rem", color: c.textSecondary }}>
+            <Typography sx={{ mt: 1.25, fontSize: "0.85rem", color: c.textSecondary }}>
               Every module by name, description, and what it is used for.
             </Typography>
           </Box>

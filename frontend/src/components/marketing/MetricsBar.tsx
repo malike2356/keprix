@@ -5,31 +5,28 @@ import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import { useMarketingColors } from "@/components/marketing/MarketingSection";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
+import { MARKETING_DISPLAY_FONT } from "@/components/marketing/marketing-section";
 
 const METRICS = [
   {
     value: "1",
     label: "runtime, many surfaces",
     detail: "Web workspace, TUI, CLI, API, and mobile.",
-    color: "#6c5ce7",
   },
   {
     value: "100%",
     label: "self-hosted, your data",
     detail: "Your server. Your database. No shared keys.",
-    color: "#10B981",
   },
   {
     value: "MIT",
     label: "open source license",
-    detail: "Use commercially, modify freely, and then self-host.",
-    color: "#6495ed",
+    detail: "Use commercially, modify freely, then self-host.",
   },
   {
     value: "2m",
     label: "minutes to deploy",
     detail: "Curl install, local setup, then start running.",
-    color: "#F59E0B",
   },
 ] as const;
 
@@ -39,7 +36,7 @@ export function MetricsBar() {
   return (
     <Box
       sx={{
-        py: { xs: 6, md: 8 },
+        py: { xs: 6, md: 7 },
         borderTop: `1px solid ${c.divider}`,
         borderBottom: `1px solid ${c.divider}`,
       }}
@@ -59,9 +56,7 @@ export function MetricsBar() {
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  alignItems: "center",
-                  textAlign: "center",
-                  px: { xs: 2, md: 4 },
+                  px: { xs: 1, md: 3 },
                   py: { xs: 1, md: 0 },
                   borderRight: {
                     xs: "none",
@@ -71,12 +66,14 @@ export function MetricsBar() {
               >
                 <Typography
                   sx={{
-                    fontSize: { xs: "2rem", md: "2.5rem" },
-                    fontWeight: 800,
-                    letterSpacing: "-0.04em",
+                    fontFamily: MARKETING_DISPLAY_FONT,
+                    fontSize: { xs: "2rem", md: "2.35rem" },
+                    fontWeight: 600,
+                    letterSpacing: "-0.03em",
                     lineHeight: 1,
-                    mb: 0.75,
-                    color: m.color,
+                    mb: 1,
+                    color: c.textPrimary,
+                    fontVariantNumeric: "tabular-nums",
                   }}
                 >
                   {m.value}
@@ -84,23 +81,14 @@ export function MetricsBar() {
                 <Typography
                   sx={{
                     fontSize: "0.8rem",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
+                    fontWeight: 600,
                     color: c.textPrimary,
                     mb: 0.5,
                   }}
                 >
                   {m.label}
                 </Typography>
-                <Typography
-                  sx={{
-                    fontSize: "0.78rem",
-                    color: c.textSecondary,
-                    lineHeight: 1.5,
-                    maxWidth: 180,
-                  }}
-                >
+                <Typography sx={{ fontSize: "0.8rem", color: c.textSecondary, lineHeight: 1.5 }}>
                   {m.detail}
                 </Typography>
               </Box>

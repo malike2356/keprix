@@ -25,6 +25,7 @@ export {
   MARKETING_MONO_FONT,
   MARKETING_EYEBROW_SX,
   MARKETING_HEADING_SX,
+  MARKETING_BTN_RADIUS,
 } from "@/components/marketing/marketing-section";
 
 type MarketingSectionProps = {
