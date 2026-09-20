@@ -89,7 +89,9 @@ def test_wizard_owner_step_without_env_admin_password(tmp_path, monkeypatch):
 
 
 def test_wizard_blocked_after_complete(wizard_client):
-    client, _auth, tmp = wizard_client
+    client, auth, tmp = wizard_client
+    ok, _message = auth.bootstrap_owner("owner@example.com", "x" * 12)
+    assert ok
     mark_setup_complete(owner_email="owner@example.com")
     assert is_setup_complete() is True
 
@@ -98,6 +100,20 @@ def test_wizard_blocked_after_complete(wizard_client):
 
     status = client.get("/api/setup/wizard")
     assert status.json()["complete"] is True
+
+
+def test_is_setup_complete_ignores_marker_without_owner(tmp_path, monkeypatch):
+    monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
+    monkeypatch.delenv("KEPRIX_SETUP_COMPLETE", raising=False)
+    monkeypatch.delenv("KEPRIX_ADMIN_PASSWORD", raising=False)
+    monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+    auth = AuthManager(str(tmp_path / "auth.json"))
+    monkeypatch.setattr("keprix.auth.session.auth_manager", auth)
+    mark_setup_complete()
+    assert is_setup_complete() is False
+    ok, _message = auth.bootstrap_owner("owner@example.com", "x" * 12)
+    assert ok
+    assert is_setup_complete() is True
 
 
 class TestPublicSetupDisabled:

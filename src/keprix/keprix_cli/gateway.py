@@ -2353,6 +2353,18 @@ def _build_service_path_dirs(project_root: Path | None = None) -> list[str]:
     if _is_dir(keprix_nm):
         candidates.append(str(keprix_nm))
 
+    nvm_versions = Path.home() / ".nvm" / "versions" / "node"
+    if _is_dir(nvm_versions):
+        try:
+            versions = sorted(nvm_versions.iterdir(), key=lambda p: p.name, reverse=True)
+        except OSError:
+            versions = []
+        for version_dir in versions:
+            nvm_bin = version_dir / "bin"
+            if _is_dir(nvm_bin) and ((nvm_bin / "pnpm").exists() or (nvm_bin / "node").exists()):
+                candidates.append(str(nvm_bin))
+                break
+
     return candidates
 
 

@@ -77,6 +77,15 @@ def frontend_source_available() -> bool:
     return (FRONTEND_SRC / "package.json").exists()
 
 
+def _backend_url_mismatch(backend_url: str) -> bool:
+    """True when the assembled dist was baked for a different rewrite target."""
+    try:
+        recorded = json.loads(_BUILD_META_FILE.read_text())
+    except Exception:
+        return True
+    return recorded.get("backend_url") != backend_url
+
+
 def _frontend_build_needed(backend_url: str) -> bool:
     """Return True if the standalone dist is missing, stale, or built for a different backend.
 
@@ -93,11 +102,7 @@ def _frontend_build_needed(backend_url: str) -> bool:
     sentinel = FRONTEND_DIST / "server.js"
     if not sentinel.exists():
         return True
-    try:
-        recorded = json.loads(_BUILD_META_FILE.read_text())
-        if recorded.get("backend_url") != backend_url:
-            return True
-    except Exception:
+    if _backend_url_mismatch(backend_url):
         return True
     dist_mtime = sentinel.stat().st_mtime
     for base in (FRONTEND_SRC / "src", FRONTEND_SRC / "public"):
@@ -446,6 +451,12 @@ def build_frontend_standalone(*, backend_url: str, fatal: bool = False) -> bool:
 
     pnpm = shutil.which("pnpm")
     if not pnpm:
+        if _backend_url_mismatch(backend_url):
+            _say("pnpm is not on PATH; cannot rebuild the dashboard frontend for this backend URL.")
+            _say("  The existing dist still proxies /api to a different port, so login/setup will fail.")
+            _say("  Install pnpm (corepack enable && corepack prepare pnpm@9.15.0 --activate), then:")
+            _say(f"  cd frontend && BACKEND_REWRITE_URL={backend_url} pnpm exec next build")
+            return False
         if fatal:
             _say("Dashboard frontend not built and pnpm is not available.")
             _say("Install Node.js + pnpm (corepack enable && corepack prepare pnpm@9.15.0 --activate), then run:")
@@ -493,12 +504,14 @@ def build_frontend_standalone(*, backend_url: str, fatal: bool = False) -> bool:
     if r2.returncode != 0:
         build_output = (getattr(r2, "stderr", "") or "") + (getattr(r2, "stdout", "") or "")
         stderr_tail = "\n  ".join(build_output.strip().splitlines()[-10:]) if build_output.strip() else ""
-        if (FRONTEND_DIST / "server.js").exists():
+        if (FRONTEND_DIST / "server.js").exists() and not _backend_url_mismatch(backend_url):
             _say("  ⚠ Dashboard frontend build failed; serving stale dist as fallback")
             if stderr_tail:
                 _say(f"  Build error:\n  {stderr_tail}")
             return True
         _say(f"  {'✗' if fatal else '⚠'} Dashboard frontend build failed" + ("" if fatal else " (dashboard web UI will not be available)"))
+        if _backend_url_mismatch(backend_url):
+            _say("  Existing dist proxies /api to a different backend; refusing to serve it.")
         if stderr_tail:
             _say(f"  {stderr_tail}")
         if fatal:

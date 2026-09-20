@@ -77,7 +77,18 @@ def is_setup_complete() -> bool:
     env = os.environ.get("KEPRIX_SETUP_COMPLETE", "").strip().lower()
     if env in {"1", "true", "yes"}:
         return True
-    return _marker_path().exists()
+    if not _marker_path().exists():
+        return False
+    return _owner_exists()
+
+
+def _owner_exists() -> bool:
+    try:
+        from keprix.auth.session import auth_manager
+
+        return bool(auth_manager.has_owner())
+    except Exception:
+        return False
 
 
 def is_public_setup_disabled() -> bool:

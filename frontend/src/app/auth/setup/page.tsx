@@ -33,11 +33,13 @@ export default function AuthSetupPage() {
   // marketing/demo instance, never a place for a visitor to create an
   // owner account. See keprix.setup.wizard.is_public_setup_disabled().
   const [publicSetupDisabled, setPublicSetupDisabled] = React.useState<boolean | null>(null);
+  const [apiUnreachable, setApiUnreachable] = React.useState(false);
 
   React.useEffect(() => {
     void ceApi("/api/setup/wizard")
       .then(async (response) => {
         if (!response.ok) {
+          setApiUnreachable(true);
           setPublicSetupDisabled(false);
           return;
         }
@@ -59,9 +61,28 @@ export default function AuthSetupPage() {
         }
       })
       .catch(() => {
+        setApiUnreachable(true);
         setPublicSetupDisabled(false);
       });
   }, [router]);
+
+  if (apiUnreachable) {
+    return (
+      <AuthLayout>
+        <Typography variant="h5" gutterBottom>
+          Cannot reach the Keprix API
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          The web UI is up, but it could not load /api/setup/wizard. That usually
+          means this frontend was built for a different backend port.
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Restart with <code>keprix dashboard restart</code> (or rebuild with
+          pnpm on PATH) and open http://127.0.0.1:9120/auth/setup again.
+        </Typography>
+      </AuthLayout>
+    );
+  }
 
   if (publicSetupDisabled === null) {
     return (

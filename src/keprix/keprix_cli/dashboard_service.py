@@ -146,6 +146,13 @@ def generate_systemd_unit(
         resolved_node_dir = str(Path(resolved_node).resolve().parent)
         if resolved_node_dir not in path_entries:
             path_entries.append(resolved_node_dir)
+    for exe in ("pnpm", "corepack"):
+        resolved = shutil.which(exe)
+        if not resolved:
+            continue
+        resolved_dir = str(Path(resolved).resolve().parent)
+        if resolved_dir not in path_entries:
+            path_entries.append(resolved_dir)
 
     common_bin_paths = [
         "/usr/local/sbin",

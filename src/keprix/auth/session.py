@@ -196,6 +196,12 @@ class AuthManager:
     def users(self) -> dict[str, Any]:
         return dict(self._config.get("users", {}))
 
+    def has_owner(self) -> bool:
+        """True when a stored admin/owner exists, or env bootstrap can sign in."""
+        if any(str(row.get("role") or "") in {"admin", "owner"} for row in self.users.values()):
+            return True
+        return bool(admin_password())
+
     def get_user(self, username: str) -> dict[str, Any] | None:
         return self.users.get(username.strip().lower())
 

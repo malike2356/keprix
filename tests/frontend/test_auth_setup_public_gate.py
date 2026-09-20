@@ -36,6 +36,7 @@ def test_auth_setup_page_shows_self_host_message_for_public_instances() -> None:
     assert "public_setup_disabled" in page
     assert "self-hosted product" in page.lower()
     assert "/download" in page
+    assert "Cannot reach the Keprix API" in page
 
 
 def test_auth_setup_page_can_skip_llm_provider() -> None:

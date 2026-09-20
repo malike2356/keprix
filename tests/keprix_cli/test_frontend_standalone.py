@@ -41,7 +41,34 @@ def test_frontend_build_needed_backend_url_mismatch(tmp_path, monkeypatch):
     assert fe._frontend_build_needed("http://127.0.0.1:9130") is True
 
 
-def test_write_build_meta(tmp_path, monkeypatch):
+def test_backend_url_mismatch_refuses_stale_dist(tmp_path, monkeypatch):
+    dist = tmp_path / "frontend_dist"
+    dist.mkdir()
+    (dist / "server.js").write_text("// sentinel\n")
+    meta = dist / ".keprix-build-meta.json"
+    meta.write_text(json.dumps({"backend_url": "http://127.0.0.1:60619"}))
+    monkeypatch.setattr(fe, "FRONTEND_DIST", dist)
+    monkeypatch.setattr(fe, "_BUILD_META_FILE", meta)
+    assert fe._backend_url_mismatch("http://127.0.0.1:9119") is True
+    assert fe._backend_url_mismatch("http://127.0.0.1:60619") is False
+
+
+def test_build_frontend_refuses_url_mismatch_without_pnpm(tmp_path, monkeypatch, capsys):
+    dist = tmp_path / "frontend_dist"
+    dist.mkdir()
+    (dist / "server.js").write_text("// sentinel\n")
+    meta = dist / ".keprix-build-meta.json"
+    meta.write_text(json.dumps({"backend_url": "http://127.0.0.1:60619"}))
+    src = tmp_path / "frontend"
+    (src / "src").mkdir(parents=True)
+    (src / "package.json").write_text("{}")
+    monkeypatch.setattr(fe, "FRONTEND_DIST", dist)
+    monkeypatch.setattr(fe, "_BUILD_META_FILE", meta)
+    monkeypatch.setattr(fe, "FRONTEND_SRC", src)
+    monkeypatch.setattr(fe.shutil, "which", lambda name: None)
+    assert fe.build_frontend_standalone(backend_url="http://127.0.0.1:9119", fatal=False) is False
+    out = capsys.readouterr().out
+    assert "pnpm is not on PATH" in out
     dist = tmp_path / "frontend_dist"
     monkeypatch.setattr(fe, "FRONTEND_DIST", dist)
     monkeypatch.setattr(fe, "_BUILD_META_FILE", dist / ".keprix-build-meta.json")
