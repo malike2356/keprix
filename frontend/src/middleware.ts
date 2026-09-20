@@ -12,5 +12,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: "/",
+  matcher: [
+    // matcher: "/" compiles to an /index pattern and never runs on the homepage.
+    "/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)",
+  ],
 };

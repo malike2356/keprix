@@ -33,6 +33,9 @@ RUN addgroup --system --gid 1001 keprix && \
 COPY --from=builder --chown=keprix:keprix /app/frontend/.next/standalone ./
 COPY --from=builder --chown=keprix:keprix /app/frontend/.next/static ./.next/static
 COPY --from=builder --chown=keprix:keprix /app/frontend/public ./public
+COPY --from=builder --chown=keprix:keprix /app/frontend/.next/server/src ./.next/server/src
+COPY --from=builder --chown=keprix:keprix /app/frontend/.next/server/edge-runtime-webpack.js ./.next/server/edge-runtime-webpack.js
+COPY --from=builder --chown=keprix:keprix /app/frontend/.next/server/middleware-manifest.json ./.next/server/middleware-manifest.json
 COPY --from=builder --chown=keprix:keprix /app/ui/design-system /app/ui/design-system
 COPY --from=builder --chown=keprix:keprix /app/CHANGELOG.md /app/CHANGELOG.md
 

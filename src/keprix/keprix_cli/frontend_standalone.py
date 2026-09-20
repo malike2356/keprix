@@ -343,6 +343,30 @@ def _heal_missing_standalone_modules(*, max_attempts: int = 10) -> None:
                     pass
 
 
+def _copy_next_middleware_into_dist(next_dir: Path, dest: Path) -> None:
+    """Copy Edge middleware into the assembled standalone dist.
+
+    ``.next/standalone`` does not include ``server/src/middleware.js``. Without
+    those files, ``keprix dashboard`` serves the marketing homepage at ``/``
+    instead of redirecting localhost to ``/home``.
+    """
+    server_src = next_dir / "server"
+    server_dst = dest / ".next" / "server"
+    for rel in (
+        Path("src") / "middleware.js",
+        Path("src") / "middleware.js.map",
+        Path("edge-runtime-webpack.js"),
+        Path("edge-runtime-webpack.js.map"),
+        Path("middleware-manifest.json"),
+    ):
+        src = server_src / rel
+        if not src.is_file():
+            continue
+        dst = server_dst / rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)
+
+
 def assemble_standalone_dist(*, backend_url: Optional[str] = None) -> None:
     """Copy the Next.js standalone build output into FRONTEND_DIST.
 
@@ -381,6 +405,8 @@ def assemble_standalone_dist(*, backend_url: Optional[str] = None) -> None:
     changelog_src = REPO_ROOT / "CHANGELOG.md"
     if changelog_src.exists():
         shutil.copy2(changelog_src, FRONTEND_DIST.parent / "CHANGELOG.md")
+
+    _copy_next_middleware_into_dist(next_dir, FRONTEND_DIST)
 
     if not (FRONTEND_DIST / "server.js").exists():
         raise FileNotFoundError(

@@ -51,7 +51,17 @@ def test_write_build_meta(tmp_path, monkeypatch):
     assert "built_at" in data
 
 
-def test_extract_missing_module():
+def test_copy_next_middleware_into_dist(tmp_path):
+    next_dir = tmp_path / ".next"
+    src_mw = next_dir / "server" / "src"
+    src_mw.mkdir(parents=True)
+    (src_mw / "middleware.js").write_text("export function middleware() {}")
+    (next_dir / "server" / "edge-runtime-webpack.js").write_text("// edge\n")
+    dest = tmp_path / "frontend_dist"
+    dest.mkdir()
+    fe._copy_next_middleware_into_dist(next_dir, dest)
+    assert (dest / ".next" / "server" / "src" / "middleware.js").is_file()
+    assert (dest / ".next" / "server" / "edge-runtime-webpack.js").is_file()
     blob = "Error: Cannot find module 'client-only'\nRequire stack:\n- /tmp/x.js\n"
     assert fe._extract_missing_module(blob) == "client-only"
     blob2 = "Error: Cannot find module '@swc/helpers/_/_interop_require_default'\n"
