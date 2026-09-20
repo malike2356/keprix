@@ -22,7 +22,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import CheckIcon from "@mui/icons-material/Check";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import { getMarketingColors } from "@/components/marketing/marketing-section";
+import { getMarketingColors, MARKETING_BTN_RADIUS } from "@/components/marketing/marketing-section";
 import { useThemeMode } from "@/components/providers/ThemeRegistry";
 import {
   DOCS_GITHUB_EDIT_URL,
@@ -137,11 +137,6 @@ export default function DocsPage() {
           textAlign: "center",
         }}
       >
-        {/* Background glows */}
-        <Box aria-hidden sx={{ position: "absolute", top: -200, left: "50%", transform: "translateX(-50%)", width: 800, height: 600, borderRadius: "50%", background: "radial-gradient(ellipse at center, rgba(108,92,231,0.14) 0%, transparent 70%)", filter: "blur(48px)", pointerEvents: "none" }} />
-        <Box aria-hidden sx={{ position: "absolute", top: "30%", left: "20%", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(100,149,237,0.07) 0%, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
-        <Box aria-hidden sx={{ position: "absolute", top: "20%", right: "15%", width: 280, height: 280, borderRadius: "50%", background: "radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 70%)", filter: "blur(36px)", pointerEvents: "none" }} />
-
         <Container maxWidth="lg" sx={{ position: "relative" }}>
           {/* Version badge */}
           <Box
@@ -208,10 +203,15 @@ export default function DocsPage() {
               sx={{
                 fontWeight: 700,
                 px: 4,
-                borderRadius: "9999px",
-                background: `linear-gradient(135deg, ${c.primary} 0%, ${c.secondary} 100%)`,
-                boxShadow: `0 4px 28px ${alpha(c.primary, 0.45)}`,
-                "&:hover": { boxShadow: `0 6px 36px ${alpha(c.primary, 0.6)}` },
+                borderRadius: MARKETING_BTN_RADIUS,
+                bgcolor: c.primary,
+                color: isDark ? "#0C0C0B" : "#FAFAF9",
+                boxShadow: "none",
+                "&:hover": {
+                  bgcolor: c.primary,
+                  filter: "brightness(1.06)",
+                  boxShadow: "none",
+                },
               }}
             >
               Get started
@@ -227,7 +227,7 @@ export default function DocsPage() {
               sx={{
                 fontWeight: 600,
                 px: 4,
-                borderRadius: "9999px",
+                borderRadius: MARKETING_BTN_RADIUS,
                 borderColor: c.divider,
                 color: c.textSecondary,
                 "&:hover": { borderColor: alpha(c.primary, 0.5), color: c.textPrimary, bgcolor: alpha(c.primary, 0.06) },
@@ -246,7 +246,7 @@ export default function DocsPage() {
               sx={{
                 fontWeight: 600,
                 px: 3.5,
-                borderRadius: "9999px",
+                borderRadius: MARKETING_BTN_RADIUS,
                 borderColor: c.divider,
                 color: c.textSecondary,
                 "&:hover": { borderColor: alpha(c.textPrimary, 0.2), color: c.textPrimary, bgcolor: alpha(c.textPrimary, 0.04) },
@@ -325,7 +325,7 @@ export default function DocsPage() {
             const meta = SECTION_META[section.title] ?? {
               icon: ApiIcon,
               color: "#0F766E",
-              accent: "rgba(108,92,231,0.1)",
+              accent: alpha(c.primary, 0.1),
             };
             const Icon = meta.icon;
             const firstHref = section.items[0]?.href ?? "#";
@@ -478,7 +478,6 @@ export default function DocsPage() {
               overflow: "hidden",
             }}
           >
-            <Box aria-hidden sx={{ position: "absolute", top: -80, left: -80, width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(108,92,231,0.1) 0%, transparent 70%)", filter: "blur(32px)", pointerEvents: "none" }} />
             <Typography
               component="p"
               sx={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: c.primary, mb: 1.5 }}
@@ -513,10 +512,15 @@ export default function DocsPage() {
                 sx={{
                   fontWeight: 700,
                   px: 3,
-                  borderRadius: "9999px",
-                  background: `linear-gradient(135deg, ${c.primary} 0%, ${c.secondary} 100%)`,
-                  boxShadow: `0 4px 20px ${alpha(c.primary, 0.4)}`,
-                  "&:hover": { boxShadow: `0 6px 28px ${alpha(c.primary, 0.55)}` },
+                  borderRadius: MARKETING_BTN_RADIUS,
+                  bgcolor: c.primary,
+                  color: isDark ? "#0C0C0B" : "#FAFAF9",
+                  boxShadow: "none",
+                  "&:hover": {
+                    bgcolor: c.primary,
+                    filter: "brightness(1.06)",
+                    boxShadow: "none",
+                  },
                 }}
               >
                 Deploy instance
@@ -530,7 +534,7 @@ export default function DocsPage() {
                 sx={{
                   fontWeight: 600,
                   px: 3,
-                  borderRadius: "9999px",
+                  borderRadius: MARKETING_BTN_RADIUS,
                   borderColor: c.divider,
                   color: c.textSecondary,
                   "&:hover": { borderColor: alpha(c.primary, 0.4), color: c.textPrimary, bgcolor: alpha(c.primary, 0.06) },
@@ -567,7 +571,7 @@ export default function DocsPage() {
             >
               {INSTALL_CMD.split("\n").map((line, i) => (
                 <Box key={i} component="div" sx={{ display: "flex", gap: 1.5 }}>
-                  <Box component="span" sx={{ color: "rgba(108,92,231,0.6)", userSelect: "none", flexShrink: 0 }}>$</Box>
+                  <Box component="span" sx={{ color: alpha(c.primary, 0.65), userSelect: "none", flexShrink: 0 }}>$</Box>
                   <Box component="span">{line.replace(/^\$ /, "")}</Box>
                 </Box>
               ))}

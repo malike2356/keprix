@@ -12,7 +12,7 @@ export function syncKeprixCssAliases() {
   const mode = dark ? "dark" : "light";
   const read = (name: string, fallback: string) => styles.getPropertyValue(name).trim() || fallback;
 
-  const primary = read("--primary", "#7c3aed");
+  const primary = read("--primary", "#0F766E");
   const background = read("--background", dark ? "#0a0a0a" : "#ffffff");
   const foregroundRaw = read("--foreground", dark ? "#fafafa" : "#111827");
   const mutedRaw = read("--muted-foreground", dark ? "#d1d5db" : "#374151");

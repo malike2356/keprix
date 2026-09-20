@@ -9,6 +9,8 @@ import ChatWorkspaceShell from "@/components/workspace/ChatWorkspaceShell";
 import { SessionProvider, useRequireSession } from "@/lib/ce-auth";
 import { WorkspaceThemeRestore } from "@/components/providers/WorkspaceThemeRestore";
 import { simplifiedModeGuard } from "@/lib/simplifiedMode";
+import { KeprixConfirmHost } from "@/components/ui/confirm/KeprixConfirm";
+import ScrollRestoration from "@/components/navigation/ScrollRestoration";
 
 function WorkspaceLayoutInner({ children }: { children: React.ReactNode }) {
   useRequireSession();
@@ -50,6 +52,8 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   return (
     <SessionProvider>
       <WorkspaceThemeRestore />
+      <KeprixConfirmHost />
+      <ScrollRestoration />
       <WorkspaceLayoutInner>{children}</WorkspaceLayoutInner>
     </SessionProvider>
   );

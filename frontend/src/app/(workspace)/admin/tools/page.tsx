@@ -21,6 +21,7 @@ import { SkeletonBlock, SkeletonTable } from "@/components/ui/loading";
 import StatCard from "@/components/admin/StatCard";
 import EmptyState from "@/components/ui/EmptyState";
 import { ceApi } from "@/lib/ce-api";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 
 type GeneratedTool = {
   id: string;
@@ -125,9 +126,14 @@ export default function AdminToolsPage() {
   };
 
   const removeTool = async (tool: GeneratedTool) => {
-    const confirmed = window.confirm(
-      `Delete generated tool "${tool.tool_name}"?\n\nThis removes the proposal from history and any installed files for that tool.`,
-    );
+    const confirmed = await keprixConfirm({
+      title: `Delete generated tool "${tool.tool_name}"?`,
+      description: "This removes the proposal from history and any installed files for that tool.",
+      confirmLabel: "Delete generated tool",
+      destructive: true,
+      requireTypedMatch: tool.tool_name,
+      typedMatchLabel: "Type the tool name to confirm",
+    });
     if (!confirmed) return;
     setActingId(tool.id);
     setActionError(null);

@@ -307,7 +307,6 @@ export function HowItWorks() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        boxShadow: `0 0 12px ${alpha(c.primary, isDark ? 0.2 : 0.12)}`,
                       }}
                     >
                       <Icon sx={{ color: c.primary, fontSize: 16 }} />

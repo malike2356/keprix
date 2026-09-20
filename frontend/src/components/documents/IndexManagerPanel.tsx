@@ -16,6 +16,7 @@ import UploadFileIcon from "@mui/icons-material/UploadFile";
 import * as React from "react";
 import useSWR from "swr";
 import StructuredDataView from "@/components/ui/StructuredDataView";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 import {
   addDiskFolder,
   createDocumentIndex,
@@ -88,7 +89,12 @@ export default function IndexManagerPanel() {
 
   async function onDelete() {
     if (!activeId) return;
-    if (!window.confirm("Delete this index?")) return;
+    if (!(await keprixConfirm({
+      title: "Delete document index?",
+      description: "The index must be rebuilt before these documents can be searched again.",
+      confirmLabel: "Delete index",
+      destructive: true,
+    }))) return;
     setBusy(true);
     try {
       await deleteDocumentIndex(activeId);
@@ -170,7 +176,12 @@ export default function IndexManagerPanel() {
   }
 
   async function onDeleteFolder(folderId: string) {
-    if (!window.confirm("Remove this disk folder link?")) return;
+    if (!(await keprixConfirm({
+      title: "Remove disk folder link?",
+      description: "Keprix will stop syncing this folder. Files on disk are not deleted.",
+      confirmLabel: "Remove folder link",
+      destructive: true,
+    }))) return;
     setBusy(true);
     try {
       await deleteDiskFolder(folderId);

@@ -72,7 +72,7 @@ export function ThemeAppearanceControls({ onSkinSelect }: ThemeAppearanceControl
               width: "100%",
               height: compact ? 16 : 20,
               borderRadius: 0.5,
-              background: `linear-gradient(135deg, ${item.primary} 0%, ${item.background} 100%)`,
+              bgcolor: item.primary,
               border: 1,
               borderColor: "divider",
             }}

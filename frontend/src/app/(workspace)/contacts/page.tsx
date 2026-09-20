@@ -22,8 +22,11 @@ import * as React from "react";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import { SkeletonList } from "@/components/ui/loading";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
+import { useContextMenu } from "@/components/ui/ContextMenuSystem";
 import {
   createContact,
+  deleteContact,
   fetchContacts,
   primaryEmail,
   primaryPhone,
@@ -43,6 +46,7 @@ export default function ContactsPage() {
   const [limit, setLimit] = React.useState(100);
   const [createOpen, setCreateOpen] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
+  const { openContextMenu, contextMenu } = useContextMenu();
   const [form, setForm] = React.useState({
     display_name: "",
     email: "",
@@ -134,6 +138,19 @@ export default function ContactsPage() {
     }
   };
 
+  const removeContact = async (contact: Contact) => {
+    if (!contact.editable) return;
+    const confirmed = await keprixConfirm({
+      title: `Delete ${contact.display_name}?`,
+      description: "This contact will be permanently removed from the workspace.",
+      confirmLabel: "Delete contact",
+      destructive: true,
+    });
+    if (!confirmed) return;
+    await deleteContact(contact.id);
+    setContacts((items) => items.filter((item) => item.id !== contact.id));
+  };
+
   return (
     <Box>
       <PageHeader
@@ -161,6 +178,7 @@ export default function ContactsPage() {
       <TextField
         fullWidth
         size="small"
+        label="Search contacts"
         placeholder="Search name, email, phone, company..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -215,6 +233,18 @@ export default function ContactsPage() {
                       key={contact.id}
                       component="a"
                       href={`/contacts/${contact.id}`}
+                      onContextMenu={(event) =>
+                        openContextMenu(
+                          event,
+                          [
+                            { id: "open", label: "Open contact", onClick: () => router.push(`/contacts/${contact.id}`) },
+                            ...(contact.editable
+                              ? [{ id: "delete", label: "Delete contact", destructive: true, dividerBefore: true, onClick: () => removeContact(contact) }]
+                              : []),
+                          ],
+                          contact.display_name,
+                        )
+                      }
                       sx={{ border: 1, borderColor: "divider", borderRadius: 1, mb: 0.5 }}
                     >
                       <ListItemText
@@ -260,6 +290,7 @@ export default function ContactsPage() {
           ) : null}
         </>
       )}
+      {contextMenu}
 
       <Dialog open={createOpen} onClose={() => setCreateOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Add contact</DialogTitle>

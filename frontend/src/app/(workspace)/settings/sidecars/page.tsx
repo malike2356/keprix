@@ -12,6 +12,7 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 import { ceApi, parseApiErrorMessage } from "@/lib/ce-api";
 
 type SidecarProject = {
@@ -180,7 +181,14 @@ export default function SidecarsSettingsPage() {
   }
 
   async function deleteProject(key: string) {
-    if (!window.confirm(`Delete sidecar project ${key}? This does not delete the external application.`)) return;
+    if (!(await keprixConfirm({
+      title: `Delete sidecar project ${key}?`,
+      description: "This removes the Keprix project configuration. It does not delete the external application.",
+      confirmLabel: "Delete sidecar project",
+      destructive: true,
+      requireTypedMatch: key,
+      typedMatchLabel: "Type the project key to confirm",
+    }))) return;
     const response = await ceApi(`/sidecar/v1/admin/projects/${encodeURIComponent(key)}`, { method: "DELETE" });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) {

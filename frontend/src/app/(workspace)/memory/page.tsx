@@ -331,7 +331,13 @@ export default function MemoryPage() {
             ))}
           </Stack>
           {rows.length === 0 ? (
-            <EmptyState title="No memory entries" description="Add facts above, chat with REM on, ingest OCR, or run dream." icon={<MemoryIcon sx={{ fontSize: 48 }} />} />
+            <EmptyState
+              title="No memory entries"
+              description="Add facts above, chat with REM on, ingest OCR, or run dream."
+              icon={<MemoryIcon sx={{ fontSize: 48 }} />}
+              actionLabel="Open chat"
+              actionHref="/chat"
+            />
           ) : (
             <Table size="small">
               <TableHead>

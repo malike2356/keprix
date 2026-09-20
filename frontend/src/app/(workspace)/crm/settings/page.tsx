@@ -13,6 +13,7 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import useSWR from "swr";
 import { CRM_WORKSPACE } from "@/components/crm/types";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 import {
   approveCrmApproval,
   deleteCrmConnectionCredential,
@@ -234,7 +235,14 @@ function DemoDataPanel() {
   }, [demo.data]);
 
   const removeDemo = async () => {
-    if (!window.confirm("Remove all local CRM demo-seed rows? Real CRM data is left alone.")) {
+    if (!(await keprixConfirm({
+      title: "Remove all CRM demo data?",
+      description: "This removes local demo-seed rows. Real CRM data is left alone.",
+      confirmLabel: "Remove demo data",
+      destructive: true,
+      requireTypedMatch: "DELETE",
+      typedMatchLabel: "Type DELETE to confirm",
+    }))) {
       return;
     }
     setError(null);

@@ -20,7 +20,11 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import { alpha } from "@mui/material/styles";
 import type { ChangelogRelease } from "@/lib/changelog";
 import { ScrollReveal } from "@/components/marketing/ScrollReveal";
-import { getMarketingColors, MARKETING_MONO_FONT } from "@/components/marketing/marketing-section";
+import {
+  getMarketingColors,
+  MARKETING_BTN_RADIUS,
+  MARKETING_MONO_FONT,
+} from "@/components/marketing/marketing-section";
 import { useThemeMode } from "@/components/providers/ThemeRegistry";
 
 const DottedSurfaceBackground = dynamic(
@@ -464,9 +468,16 @@ export function ChangelogView({ releases }: ChangelogViewProps) {
                   endIcon={<OpenInNewIcon sx={{ fontSize: "0.85rem !important" }} />}
                   sx={{
                     fontWeight: 700,
-                    borderRadius: "9999px",
+                    borderRadius: MARKETING_BTN_RADIUS,
                     px: 3,
-                    background: `linear-gradient(135deg, ${c.primary} 0%, ${c.secondary} 100%)`,
+                    bgcolor: c.primary,
+                    color: isDark ? "#0C0C0B" : "#FAFAF9",
+                    boxShadow: "none",
+                    "&:hover": {
+                      bgcolor: c.primary,
+                      filter: "brightness(1.06)",
+                      boxShadow: "none",
+                    },
                   }}
                 >
                   View commits
@@ -479,7 +490,7 @@ export function ChangelogView({ releases }: ChangelogViewProps) {
                   variant="outlined"
                   sx={{
                     fontWeight: 600,
-                    borderRadius: "9999px",
+                    borderRadius: MARKETING_BTN_RADIUS,
                     px: 3,
                     borderColor: alpha(c.divider, 0.5),
                     color: c.textSecondary,

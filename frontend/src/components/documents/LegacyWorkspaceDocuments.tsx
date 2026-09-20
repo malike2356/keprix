@@ -31,6 +31,7 @@ import StructuredDataView from "@/components/ui/StructuredDataView";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
 import { SkeletonDetailPanel, SkeletonList } from "@/components/ui/loading";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 import MarkdownRenderer from "@/components/workspace/MarkdownRenderer";
 import {
   aiEditDocument,
@@ -202,7 +203,12 @@ export default function LegacyWorkspaceDocuments() {
 
   async function handleDeleteSelected() {
     if (!selected) return;
-    if (!window.confirm(`Delete "${selected.title}"?`)) return;
+    if (!(await keprixConfirm({
+      title: `Delete "${selected.title}"?`,
+      description: "This document will be removed from the workspace.",
+      confirmLabel: "Delete document",
+      destructive: true,
+    }))) return;
     setSaving(true);
     try {
       await deleteDocument(selected.id);

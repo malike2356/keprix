@@ -46,12 +46,21 @@ function Surface({ name, workspaceId }: { name: string; workspaceId: string }) {
   const surface = useSWR(["property-surface", name, workspaceId], () => fetchPropertySurface(name, workspaceId));
   const [input, setInput] = React.useState("");
   const [message, setMessage] = React.useState<string | null>(null);
+  const [inputError, setInputError] = React.useState<string | null>(null);
+  const [actionBusy, setActionBusy] = React.useState(false);
+  const inputRef = React.useRef<HTMLInputElement>(null);
   const busy = surface.isLoading && !surface.data;
   const values = surface.data?.data || {};
   const items = Array.isArray(values.items) ? values.items : [];
 
   async function runAction() {
-    if (!input.trim()) return;
+    if (!input.trim()) {
+      setInputError("Enter a property query or action first.");
+      inputRef.current?.focus();
+      return;
+    }
+    setActionBusy(true);
+    setInputError(null);
     setMessage(null);
     try {
       await postPropertySurface(name, { query: input.trim() }, workspaceId);
@@ -60,8 +69,19 @@ function Surface({ name, workspaceId }: { name: string; workspaceId: string }) {
       await surface.mutate();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Request failed");
+    } finally {
+      setActionBusy(false);
     }
   }
+
+  const actionLabel =
+    name === "discovery" ? "Run discovery" :
+    name === "due-diligence" ? "Run due diligence" :
+    name === "saved-searches" ? "Save search" :
+    name === "calculators" ? "Run calculation" :
+    name === "floor-plan" ? "Analyse floor plan" :
+    name === "data-api" ? "Create API key" :
+    "Run action";
 
   return (
     <Stack spacing={2}>
@@ -90,14 +110,20 @@ function Surface({ name, workspaceId }: { name: string; workspaceId: string }) {
             fullWidth
             size="small"
             label={name === "due-diligence" ? "UPRN or address" : "Search or action input"}
+            inputRef={inputRef}
             value={input}
-            onChange={(event) => setInput(event.target.value)}
+            error={Boolean(inputError)}
+            helperText={inputError}
+            onChange={(event) => {
+              setInput(event.target.value);
+              if (event.target.value.trim()) setInputError(null);
+            }}
             onKeyDown={(event) => {
               if (event.key === "Enter") void runAction();
             }}
           />
-          <Button variant="contained" onClick={() => void runAction()} disabled={!input.trim()}>
-            {name === "discovery" ? "Run discovery" : "Submit"}
+          <Button variant="contained" onClick={() => void runAction()} disabled={actionBusy}>
+            {actionBusy ? "Working..." : actionLabel}
           </Button>
         </Stack>
       ) : null}
@@ -109,6 +135,8 @@ function Surface({ name, workspaceId }: { name: string; workspaceId: string }) {
 export default function PropertyPage() {
   const [tab, setTab] = React.useState(0);
   const [prompt, setPrompt] = React.useState("");
+  const [promptError, setPromptError] = React.useState<string | null>(null);
+  const promptRef = React.useRef<HTMLInputElement>(null);
   const active = TABS[tab];
   const askHref = prompt.trim() ? `/chat?prompt=${encodeURIComponent(prompt.trim())}` : "/chat";
 
@@ -131,10 +159,28 @@ export default function PropertyPage() {
               size="small"
               label="Ask about a property"
               placeholder="Find undervalued flats in Portsmouth"
+              inputRef={promptRef}
               value={prompt}
-              onChange={(event) => setPrompt(event.target.value)}
+              error={Boolean(promptError)}
+              helperText={promptError}
+              onChange={(event) => {
+                setPrompt(event.target.value);
+                if (event.target.value.trim()) setPromptError(null);
+              }}
             />
-            <Button component="a" href={askHref} variant="contained" disabled={!prompt.trim()}>Ask</Button>
+            <Button
+              component="a"
+              href={askHref}
+              variant="contained"
+              onClick={(event) => {
+                if (prompt.trim()) return;
+                event.preventDefault();
+                setPromptError("Enter a property question first.");
+                promptRef.current?.focus();
+              }}
+            >
+              Ask Keprix
+            </Button>
           </Stack>
         </CardContent>
       </Card>

@@ -22,6 +22,7 @@ import { renderPanelContent } from "@/components/brain/panel-content/panel-regis
 import { ceApi } from "@/lib/ce-api";
 import { fetchSharedBrainNode } from "@/lib/brain-share-api";
 import type { BrainGraphData, GraphNode } from "@/types/brain-graph";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 
 type Props = {
   node: GraphNode | null;
@@ -139,7 +140,12 @@ export default function NodeContentPanel({ node, onClose, onNavigateTo, readOnly
 
   const remove = async () => {
     if (!full) return;
-    const ok = window.confirm(`Delete this ${full.kind}? Connections will also be removed.`);
+    const ok = await keprixConfirm({
+      title: `Delete ${full.kind}?`,
+      description: "Connections to this item will also be removed.",
+      confirmLabel: `Delete ${full.kind}`,
+      destructive: true,
+    });
     if (!ok) return;
     const endpoint = editEndpoint(full);
     if (endpoint) {

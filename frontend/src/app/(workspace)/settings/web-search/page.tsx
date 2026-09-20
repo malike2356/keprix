@@ -22,6 +22,7 @@ import * as React from "react";
 import useSWR from "swr";
 import PageHeader from "@/components/ui/PageHeader";
 import { SkeletonList } from "@/components/ui/loading";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 import {
   activateWebSearchProvider,
   deleteWebSearchSettings,
@@ -143,8 +144,13 @@ export default function WebSearchSettingsPage() {
                         size="small"
                         color="error"
                         disabled={busy}
-                        onClick={() => {
-                          if (!window.confirm(`Remove credentials for ${provider.label}?`)) return;
+                        onClick={async () => {
+                          if (!(await keprixConfirm({
+                            title: `Remove ${provider.label} credentials?`,
+                            description: "Web research will not use this provider until credentials are configured again.",
+                            confirmLabel: "Remove credentials",
+                            destructive: true,
+                          }))) return;
                           setBusy(true);
                           void deleteWebSearchSettings(provider.id)
                             .then(() => mutate())

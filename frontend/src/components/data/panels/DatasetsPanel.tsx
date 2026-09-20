@@ -145,7 +145,7 @@ export default function DatasetsPanel() {
         </Alert>
       ) : null}
 
-      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+      <Paper id="import-dataset" variant="outlined" sx={{ p: 2, mb: 2, scrollMarginTop: 8 }}>
         <Typography variant="subtitle1" sx={{ mb: 1 }}>
           Plane status
         </Typography>
@@ -191,7 +191,12 @@ export default function DatasetsPanel() {
       {catalog.isLoading ? (
         <SkeletonTable rows={4} />
       ) : datasets.length === 0 ? (
-        <EmptyState title="No datasets" description="Import a CSV or Parquet file to start querying." />
+        <EmptyState
+          title="No datasets"
+          description="Import a CSV or Parquet file to start querying."
+          actionLabel="Import dataset"
+          actionHref="#import-dataset"
+        />
       ) : (
         <Table size="small" sx={{ mb: 2 }}>
           <TableHead>

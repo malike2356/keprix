@@ -256,6 +256,8 @@ export default function EmailPage() {
               title="Inbox is empty"
               description="Connect Gmail or another IMAP account, then Sync now."
               icon={<EmailIcon sx={{ fontSize: 40 }} />}
+              actionLabel="Sync inbox"
+              onAction={() => void handleSync()}
             />
           ) : (
             <List dense disablePadding sx={{ maxHeight: 520, overflow: "auto" }}>

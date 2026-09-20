@@ -14,6 +14,7 @@ import LlmProvidersPanel from "@/components/admin/LlmProvidersPanel";
 import ModelsAdminTable from "@/components/admin/ModelsAdminTable";
 import PageContainer from "@/components/shared/PageContainer";
 import { SkeletonDetailPanel } from "@/components/ui/loading";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 import {
   createCustomProvider,
   deleteCustomProvider,
@@ -102,7 +103,12 @@ export default function AdminModelsPage() {
           busy={providerBusy}
           onConfigureBuiltin={openBuiltinDialog}
           onRemoveBuiltin={async (providerId) => {
-            if (!window.confirm(`Remove credentials for ${providerId}?`)) return;
+            if (!(await keprixConfirm({
+              title: `Remove ${providerId} credentials?`,
+              description: "Keprix will no longer use this provider until credentials are configured again.",
+              confirmLabel: "Remove credentials",
+              destructive: true,
+            }))) return;
             setProviderBusy(true);
             try {
               await deleteProviderSettings(providerId);
@@ -124,7 +130,12 @@ export default function AdminModelsPage() {
           }}
           onConfigureCustom={openCustomDialog}
           onRemoveCustom={async (providerId) => {
-            if (!window.confirm("Delete this custom provider?")) return;
+            if (!(await keprixConfirm({
+              title: "Delete custom provider?",
+              description: "This removes the custom model provider configuration.",
+              confirmLabel: "Delete provider",
+              destructive: true,
+            }))) return;
             setProviderBusy(true);
             try {
               await deleteCustomProvider(providerId);

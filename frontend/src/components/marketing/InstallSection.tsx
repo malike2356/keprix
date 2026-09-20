@@ -5,7 +5,6 @@ import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
@@ -20,6 +19,7 @@ import CodeIcon from "@mui/icons-material/Code";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import {
+  MARKETING_BTN_RADIUS,
   MARKETING_DISPLAY_FONT,
   MARKETING_MONO_FONT,
   MARKETING_EYEBROW_SX,
@@ -513,7 +513,7 @@ export function InstallSection() {
               endIcon={<ArrowForwardIcon fontSize="small" />}
               sx={{
                 fontWeight: 600,
-                borderRadius: 999,
+                borderRadius: MARKETING_BTN_RADIUS,
                 px: 3,
                 borderColor: alpha(c.divider, 0.8),
                 color: c.textSecondary,
@@ -533,7 +533,7 @@ export function InstallSection() {
               endIcon={<ArrowForwardIcon fontSize="small" />}
               sx={{
                 fontWeight: 600,
-                borderRadius: 999,
+                borderRadius: MARKETING_BTN_RADIUS,
                 px: 3,
                 borderColor: alpha(c.divider, 0.8),
                 color: c.textSecondary,
@@ -555,7 +555,7 @@ export function InstallSection() {
               endIcon={<OpenInNewIcon fontSize="small" />}
               sx={{
                 fontWeight: 600,
-                borderRadius: 999,
+                borderRadius: MARKETING_BTN_RADIUS,
                 px: 3,
                 borderColor: alpha(c.divider, 0.8),
                 color: c.textSecondary,

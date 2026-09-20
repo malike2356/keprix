@@ -22,6 +22,8 @@ import { useStartNewConversation } from "@/hooks/useStartNewConversation";
 import { useSessionList } from "@/hooks/useSessionList";
 import { groupSessionsByDate, truncateSessionTitle } from "@/lib/session-groups";
 import { formatTimeAgo } from "@/lib/time-ago";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
+import { useContextMenu } from "@/components/ui/ContextMenuSystem";
 
 type SessionListProps = {
   onNavigate?: () => void;
@@ -32,6 +34,17 @@ export default function SessionList({ onNavigate }: SessionListProps) {
   const { sessions, remove, isLoading } = useSessionList(100);
   const { startNewConversation, starting } = useStartNewConversation();
   const [query, setQuery] = React.useState("");
+  const { openContextMenu, contextMenu } = useContextMenu();
+
+  const deleteSession = React.useCallback(async (sessionId: string) => {
+    const confirmed = await keprixConfirm({
+      title: "Delete conversation?",
+      description: "This conversation will be removed from your session history.",
+      confirmLabel: "Delete conversation",
+      destructive: true,
+    });
+    if (confirmed) await remove(sessionId);
+  }, [remove]);
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -134,6 +147,13 @@ export default function SessionList({ onNavigate }: SessionListProps) {
                     href={`/chat/${session.id}`}
                     selected={active}
                     onClick={onNavigate}
+                    onContextMenu={(event) =>
+                      openContextMenu(
+                        event,
+                        [{ id: "delete", label: "Delete conversation", destructive: true, onClick: () => deleteSession(session.id) }],
+                        truncateSessionTitle(session.title || "Conversation"),
+                      )
+                    }
                     sx={{
                       borderRadius: 1,
                       mb: 0.5,
@@ -154,9 +174,7 @@ export default function SessionList({ onNavigate }: SessionListProps) {
                       onClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
-                        if (window.confirm("Delete this conversation?")) {
-                          void remove(session.id);
-                        }
+                        void deleteSession(session.id);
                       }}
                     >
                       <DeleteOutlineIcon fontSize="small" />
@@ -168,6 +186,7 @@ export default function SessionList({ onNavigate }: SessionListProps) {
           ))
         )}
       </List>
+      {contextMenu}
       <Box sx={{ flexShrink: 0, p: 2, borderTop: 1, borderColor: "divider" }}>
         <ChatShellNav variant="footer" />
       </Box>

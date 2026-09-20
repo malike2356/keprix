@@ -33,6 +33,7 @@ import useSWR from "swr";
 import EmptyState from "@/components/ui/EmptyState";
 import { SkeletonList } from "@/components/ui/loading";
 import PageHeader from "@/components/ui/PageHeader";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 import {
   addMcpFromCatalog,
   addMcpServer,
@@ -453,7 +454,12 @@ export default function McpAdminPage() {
   };
 
   const handleDelete = async (serverName: string) => {
-    if (!window.confirm(`Delete MCP server "${serverName}"?`)) {
+    if (!(await keprixConfirm({
+      title: `Delete MCP server "${serverName}"?`,
+      description: "The server configuration and its available tools will be removed.",
+      confirmLabel: "Delete MCP server",
+      destructive: true,
+    }))) {
       return;
     }
     setError(null);

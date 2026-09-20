@@ -12,6 +12,7 @@ import { alpha } from "@mui/material/styles";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import {
   MARKETING_EYEBROW_SX,
+  MARKETING_BTN_RADIUS,
   MARKETING_HEADING_SX,
   useMarketingColors,
 } from "@/components/marketing/MarketingSection";
@@ -211,13 +212,15 @@ export function ProductComparisonTable() {
           variant="contained"
           endIcon={<OpenInNewIcon />}
           sx={{
-            borderRadius: "9999px",
+            borderRadius: MARKETING_BTN_RADIUS,
             px: 3,
             fontWeight: 700,
             bgcolor: c.primary,
-            color: "#fff",
+            color: c.bgDefault,
+            boxShadow: "none",
             "&:hover": {
               bgcolor: alpha(c.primary, 0.88),
+              boxShadow: "none",
             },
           }}
         >

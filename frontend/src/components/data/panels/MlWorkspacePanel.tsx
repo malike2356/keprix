@@ -99,7 +99,7 @@ export default function MlWorkspacePanel() {
         </Alert>
       ) : null}
 
-      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+      <Paper id="new-experiment" variant="outlined" sx={{ p: 2, mb: 2, scrollMarginTop: 8 }}>
         <Typography variant="subtitle1" sx={{ mb: 1 }}>
           New experiment
         </Typography>
@@ -127,7 +127,12 @@ export default function MlWorkspacePanel() {
       {experiments.isLoading ? (
         <SkeletonTable rows={4} />
       ) : items.length === 0 ? (
-        <EmptyState title="No experiments" description="Create an experiment to track runs and metrics." />
+        <EmptyState
+          title="No experiments"
+          description="Create an experiment to track runs and metrics."
+          actionLabel="Create experiment"
+          actionHref="#new-experiment"
+        />
       ) : (
         <Table size="small" sx={{ mb: 2 }}>
           <TableHead>

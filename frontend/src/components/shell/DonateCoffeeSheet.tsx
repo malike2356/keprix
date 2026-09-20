@@ -102,7 +102,7 @@ export default function DonateCoffeeSheet({ open, onClose }: DonateCoffeeSheetPr
         <Button onClick={onClose} disabled={loading}>
           Cancel
         </Button>
-        <Button variant="contained" onClick={handleContinue} disabled={loading || !valid}>
+        <Button variant="contained" onClick={handleContinue} disabled={loading}>
           {loading ? "Opening Stripe..." : `Donate £${valid ? parsed.toFixed(2) : "-"}`}
         </Button>
       </DialogActions>

@@ -11,6 +11,7 @@ import * as React from "react";
 import PageContainer from "@/components/shared/PageContainer";
 import BlankCard from "@/components/cards/BlankCard";
 import { fetchKeprixHealth, restartKeprixEngine } from "@/lib/admin-workspace-api";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 
 type EngineState = "checking" | "ready" | "restarting" | "offline" | "error";
 
@@ -35,7 +36,14 @@ export default function EngineControlPage() {
   }, [checkHealth]);
 
   const restart = async () => {
-    if (!window.confirm("Restart the Keprix engine now? Active requests may be interrupted.")) return;
+    if (!(await keprixConfirm({
+      title: "Restart the Keprix engine?",
+      description: "Active requests may be interrupted while the engine restarts.",
+      confirmLabel: "Restart engine",
+      destructive: true,
+      requireTypedMatch: "RESTART",
+      typedMatchLabel: "Type RESTART to confirm",
+    }))) return;
     setBusy(true);
     setState("restarting");
     setMessage("Restart requested. Waiting for Keprix to become healthy again...");

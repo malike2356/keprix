@@ -19,6 +19,7 @@ import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import PageHeader from "@/components/ui/PageHeader";
 import { SkeletonDetailPanel } from "@/components/ui/loading";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 import {
   deleteContact,
   digitsForDial,
@@ -127,7 +128,12 @@ export default function ContactDetailPage() {
 
   const onDelete = async () => {
     if (!contact?.editable) return;
-    if (!window.confirm(`Delete ${contact.display_name}?`)) return;
+    if (!(await keprixConfirm({
+      title: `Delete ${contact.display_name}?`,
+      description: "This contact will be permanently removed from the workspace.",
+      confirmLabel: "Delete contact",
+      destructive: true,
+    }))) return;
     setBusy(true);
     try {
       await deleteContact(contact.id);

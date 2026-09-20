@@ -11,6 +11,7 @@ type EmptyStateProps = {
   icon?: ReactNode;
   actionLabel?: string;
   onAction?: () => void;
+  actionHref?: string;
 };
 
 export default function EmptyState({
@@ -19,6 +20,7 @@ export default function EmptyState({
   icon,
   actionLabel,
   onAction,
+  actionHref,
 }: EmptyStateProps) {
   return (
     <Box
@@ -45,8 +47,13 @@ export default function EmptyState({
       <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 420, mb: actionLabel ? 3 : 0 }}>
         {description}
       </Typography>
-      {actionLabel && onAction && (
-        <Button variant="contained" onClick={onAction}>
+      {actionLabel && (onAction || actionHref) && (
+        <Button
+          variant="contained"
+          onClick={onAction}
+          component={actionHref ? "a" : "button"}
+          href={actionHref}
+        >
           {actionLabel}
         </Button>
       )}

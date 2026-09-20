@@ -39,7 +39,7 @@ export default function ThemeAppearancePanel() {
                 height: 28,
                 flexShrink: 0,
                 borderRadius: 1,
-                background: `linear-gradient(135deg, ${activeSkin.primary} 0%, ${activeSkin.background} 100%)`,
+                bgcolor: activeSkin.primary,
                 border: 1,
                 borderColor: "divider",
                 transition: "transform 0.25s ease",

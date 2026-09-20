@@ -22,6 +22,7 @@ import SettingsOperatorSections from "@/components/admin/SettingsOperatorSection
 import BlankCard from "@/components/cards/BlankCard";
 import PageContainer from "@/components/shared/PageContainer";
 import { SkeletonDetailPanel } from "@/components/ui/loading";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 import {
   createCustomProvider,
   deleteCustomProvider,
@@ -60,6 +61,7 @@ export default function AdminSettingsPage() {
   const [customModel, setCustomModel] = React.useState("");
   const [testMessage, setTestMessage] = React.useState<string | null>(null);
   const [providerBusy, setProviderBusy] = React.useState(false);
+  const [search, setSearch] = React.useState("");
 
   React.useEffect(() => {
     if (data?.settings) setSettings(data.settings);
@@ -82,6 +84,16 @@ export default function AdminSettingsPage() {
   const customProviders = data?.custom_providers || [];
   const tabs = ["General", "LLM Providers", "Agent behaviour", "Storage"];
   if (data?.governance_enabled) tabs.push("Governance connector");
+  const sectionTerms = [
+    "general instance name URL timezone language",
+    "LLM providers API keys credentials models custom provider",
+    "agent behaviour tool iterations compression guardrails mutation cache routing",
+    "storage PostgreSQL Redis vector store memory documents",
+    "governance connector license audit policy endpoint",
+  ];
+  const visibleTabs = tabs
+    .map((label, index) => ({ label, index }))
+    .filter(({ index }) => `${tabs[index]} ${sectionTerms[index]}`.toLowerCase().includes(search.trim().toLowerCase()));
 
   const openBuiltinDialog = (providerId: string) => {
     const state = data?.providers?.[providerId];
@@ -115,7 +127,12 @@ export default function AdminSettingsPage() {
   };
 
   const removeBuiltinProvider = async (providerId: string) => {
-    if (!window.confirm(`Remove credentials for ${providerId}?`)) return;
+    if (!(await keprixConfirm({
+      title: `Remove ${providerId} credentials?`,
+      description: "Keprix will no longer be able to use this provider until credentials are configured again.",
+      confirmLabel: "Remove credentials",
+      destructive: true,
+    }))) return;
     setProviderBusy(true);
     try {
       await deleteProviderSettings(providerId);
@@ -129,7 +146,12 @@ export default function AdminSettingsPage() {
   };
 
   const removeCustomProvider = async (providerId: string) => {
-    if (!window.confirm("Delete this custom provider?")) return;
+    if (!(await keprixConfirm({
+      title: "Delete custom provider?",
+      description: "This removes the provider configuration from this Keprix instance.",
+      confirmLabel: "Delete provider",
+      destructive: true,
+    }))) return;
     setProviderBusy(true);
     try {
       await deleteCustomProvider(providerId);
@@ -144,16 +166,34 @@ export default function AdminSettingsPage() {
 
   return (
     <PageContainer title="Settings" description="Configure your Keprix instance." padded={false}>
+      <TextField
+        fullWidth
+        size="small"
+        label="Search settings"
+        placeholder="Search providers, storage, guardrails..."
+        value={search}
+        onChange={(event) => {
+          const nextSearch = event.target.value;
+          setSearch(nextSearch);
+          if (nextSearch.trim()) {
+            const match = tabs.findIndex((label, index) =>
+              `${label} ${sectionTerms[index]}`.toLowerCase().includes(nextSearch.trim().toLowerCase()),
+            );
+            if (match >= 0) setTab(match);
+          }
+        }}
+        sx={{ mb: 2, maxWidth: 640 }}
+      />
       <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "220px 1fr" }, gap: 2 }}>
         <BlankCard>
           <Tabs
             orientation="vertical"
-            value={tab}
+            value={visibleTabs.some((item) => item.index === tab) ? tab : false}
             onChange={(_, value) => setTab(value)}
             sx={{ borderRight: 1, borderColor: "divider", minHeight: 320 }}
           >
-            {tabs.map((label) => (
-              <Tab key={label} label={label} sx={{ alignItems: "flex-start" }} />
+            {visibleTabs.map(({ label, index }) => (
+              <Tab key={label} value={index} label={label} sx={{ alignItems: "flex-start" }} />
             ))}
           </Tabs>
         </BlankCard>
@@ -169,6 +209,7 @@ export default function AdminSettingsPage() {
                   <MenuItem value="en">English</MenuItem>
                   <MenuItem value="fr">French</MenuItem>
                 </TextField>
+                {/* These settings are draft values until the explicit save action is used. */}
                 <Button variant="contained" onClick={() => void save()}>
                   Save changes
                 </Button>
@@ -393,6 +434,25 @@ export default function AdminSettingsPage() {
                   Save changes
                 </Button>
               </>
+            ) : null}
+            {tab !== 1 ? (
+              <Box
+                sx={{
+                  position: "sticky",
+                  bottom: 0,
+                  zIndex: 2,
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  py: 1.5,
+                  bgcolor: "background.paper",
+                  borderTop: 1,
+                  borderColor: "divider",
+                }}
+              >
+                <Button variant="contained" onClick={() => void save()}>
+                  Save settings
+                </Button>
+              </Box>
             ) : null}
           </Box>
         </BlankCard>

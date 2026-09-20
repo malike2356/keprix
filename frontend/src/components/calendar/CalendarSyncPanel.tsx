@@ -21,6 +21,7 @@ import Typography from "@mui/material/Typography";
 import SyncIcon from "@mui/icons-material/Sync";
 import LinkIcon from "@mui/icons-material/Link";
 import * as React from "react";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 import {
   createCalendarSource,
   deleteCalendarSource,
@@ -174,8 +175,19 @@ export default function CalendarSyncPanel({ onSynced }: Props) {
   }
 
   async function handleRemove(source: CalendarSource) {
-    if (!window.confirm(`Disconnect "${source.name}"?`)) return;
-    const dropEvents = window.confirm("Also delete events imported from this source?");
+    if (!(await keprixConfirm({
+      title: `Disconnect "${source.name}"?`,
+      description: "Calendar syncing will stop. You can choose whether to delete imported events next.",
+      confirmLabel: "Disconnect calendar source",
+      destructive: true,
+    }))) return;
+    const dropEvents = await keprixConfirm({
+      title: "Delete imported events?",
+      description: "Delete events that were imported from this source. Choose Keep imported events to leave them in Keprix.",
+      confirmLabel: "Delete imported events",
+      cancelLabel: "Keep imported events",
+      destructive: true,
+    });
     try {
       await deleteCalendarSource(source.id, dropEvents);
       await load();

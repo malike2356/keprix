@@ -26,6 +26,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import StatusPill from "@/components/ui/StatusPill";
 import ResearchWorkspaceShell from "@/components/research/ResearchWorkspaceShell";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 import NotebookDepthPanel from "./NotebookDepthPanel";
 import {
   downloadResearchExport,
@@ -313,7 +314,12 @@ export default function ResearchPage() {
   };
 
   const handleDeleteJob = async (jobId: string) => {
-    if (!window.confirm("Delete this research run? This cannot be undone.")) {
+    if (!(await keprixConfirm({
+      title: "Delete research run?",
+      description: "The run, report, and recorded events cannot be recovered.",
+      confirmLabel: "Delete research run",
+      destructive: true,
+    }))) {
       return;
     }
     setDeleteError(null);

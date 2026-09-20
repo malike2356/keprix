@@ -8,7 +8,7 @@
 @layer theme, base, mui, components, utilities;
 
 :root {
-  --kp-primary: var(--primary, #7c3aed);
+  --kp-primary: var(--primary, #0F766E);
   --kp-primary-light: var(--ring, #a78bfa);
   --kp-secondary: var(--secondary, #06b6d4);
   /* Fallbacks match light paper until a skin + mode sync runs. Dark mode overrides via html.dark / sync. */

@@ -121,19 +121,22 @@ function ProviderRow({ name, connected, isDefault, detail, busy, onConfigure, on
           </MenuItem>
         ) : null}
         {onRemove ? (
-          <MenuItem
-            disabled={busy}
-            onClick={() => {
-              closeMenu();
-              onRemove();
-            }}
-            sx={{ color: "error.main" }}
-          >
-            <ListItemIcon sx={{ color: "inherit" }}>
-              <DeleteOutlineIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Remove</ListItemText>
-          </MenuItem>
+          <>
+            <Divider />
+            <MenuItem
+              disabled={busy}
+              onClick={() => {
+                closeMenu();
+                onRemove();
+              }}
+              sx={{ color: "error.main" }}
+            >
+              <ListItemIcon sx={{ color: "inherit" }}>
+                <DeleteOutlineIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Remove" secondary="Danger zone" />
+            </MenuItem>
+          </>
         ) : null}
       </Menu>
     </Box>

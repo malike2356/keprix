@@ -9,6 +9,8 @@ import CommandPalette from "@/components/shared/CommandPalette";
 import WorkspaceFooter from "@/components/shell/WorkspaceFooter";
 import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { WorkspaceThemeRestore } from "@/components/providers/WorkspaceThemeRestore";
+import { KeprixConfirmHost } from "@/components/ui/confirm/KeprixConfirm";
+import ScrollRestoration from "@/components/navigation/ScrollRestoration";
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
   useRequireSession();
@@ -54,6 +56,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <SessionProvider>
       <WorkspaceThemeRestore />
+      <KeprixConfirmHost />
+      <ScrollRestoration />
       <AdminLayoutInner>{children}</AdminLayoutInner>
     </SessionProvider>
   );

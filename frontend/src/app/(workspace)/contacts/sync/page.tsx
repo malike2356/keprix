@@ -21,6 +21,7 @@ import SyncIcon from "@mui/icons-material/Sync";
 import * as React from "react";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 import {
   createCardDavSource,
   deleteSyncSource,
@@ -265,7 +266,12 @@ export default function ContactsSyncPage() {
   }
 
   async function handleRemove(source: SyncSource) {
-    if (!window.confirm(`Remove "${source.display_name}"?`)) return;
+    if (!(await keprixConfirm({
+      title: `Remove "${source.display_name}"?`,
+      description: "Recurring contact sync for this source will stop.",
+      confirmLabel: "Remove contact source",
+      destructive: true,
+    }))) return;
     try {
       await deleteSyncSource(source.id);
       await reload();

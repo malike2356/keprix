@@ -140,7 +140,12 @@ export default function JobsQueuePanel() {
       {jobs.isLoading ? (
         <SkeletonTable rows={5} />
       ) : rows.length === 0 ? (
-        <EmptyState title="No jobs" description="Background jobs from data import, research, and ML appear here." />
+        <EmptyState
+          title="No jobs"
+          description="Background jobs from data import, research, and ML appear here."
+          actionLabel="Refresh jobs"
+          onAction={() => void jobs.mutate()}
+        />
       ) : (
         <Table size="small">
           <TableHead>

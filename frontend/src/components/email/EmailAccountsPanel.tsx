@@ -20,6 +20,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import LinkIcon from "@mui/icons-material/Link";
 import * as React from "react";
+import { keprixConfirm } from "@/components/ui/confirm/KeprixConfirm";
 import {
   createEmailAccount,
   deleteEmailAccount,
@@ -150,7 +151,12 @@ export default function EmailAccountsPanel({ accounts, onChanged }: Props) {
   }
 
   async function handleRemove(account: EmailAccount) {
-    if (!window.confirm(`Remove ${account.email_address}?`)) return;
+    if (!(await keprixConfirm({
+      title: `Remove ${account.email_address}?`,
+      description: "Email syncing for this account will stop.",
+      confirmLabel: "Remove account",
+      destructive: true,
+    }))) return;
     try {
       await deleteEmailAccount(account.id);
       onChanged();
