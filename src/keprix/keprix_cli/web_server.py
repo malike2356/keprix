@@ -11518,6 +11518,7 @@ _mount_plugin_api_routes()
 from keprix.setup.routes import router as _workspace_setup_router  # noqa: E402
 from keprix.auth.routes import router as _workspace_auth_router  # noqa: E402
 from keprix.api.conversation_routes import router as _workspace_conversation_router  # noqa: E402
+from keprix.trajectory.routes import router as _workspace_trajectory_router  # noqa: E402
 from keprix_cli.dashboard_auth.routes import router as _dashboard_auth_router  # noqa: E402
 
 # Workspace login/setup must win over dashboard-oauth /api/auth/me so the
@@ -11525,6 +11526,7 @@ from keprix_cli.dashboard_auth.routes import router as _dashboard_auth_router  #
 app.include_router(_workspace_setup_router)
 app.include_router(_workspace_auth_router)
 app.include_router(_workspace_conversation_router)
+app.include_router(_workspace_trajectory_router)
 app.include_router(_dashboard_auth_router)
 
 mount_spa(app)

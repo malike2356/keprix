@@ -8,6 +8,7 @@ import Typography from "@mui/material/Typography";
 import MenuItem from "@mui/material/MenuItem";
 import * as React from "react";
 import PageHeader from "@/components/ui/PageHeader";
+import { ceApi, parseApiErrorMessage } from "@/lib/ce-api";
 
 type TrajectoryRow = {
   trajectory_id: string;
@@ -28,25 +29,23 @@ type TrajectoryEvent = {
   payload?: Record<string, unknown>;
 };
 
-async function apiGet<T>(path: string): Promise<T> {
-  const res = await fetch(path, { credentials: "include" });
-  if (!res.ok) {
-    throw new Error(`${res.status} ${await res.text()}`);
+async function parseJson<T>(response: Response, fallback: string): Promise<T> {
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(parseApiErrorMessage(payload, fallback));
   }
-  return (await res.json()) as T;
+  return payload as T;
+}
+
+async function apiGet<T>(path: string): Promise<T> {
+  return parseJson<T>(await ceApi(path), path);
 }
 
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(path, {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    throw new Error(`${res.status} ${await res.text()}`);
-  }
-  return (await res.json()) as T;
+  return parseJson<T>(
+    await ceApi(path, { method: "POST", body: JSON.stringify(body) }),
+    path,
+  );
 }
 
 export default function TrajectoryPage() {

@@ -1974,6 +1974,46 @@ class TestWebServerEndpoints:
         assert listed.status_code == 200, listed.text
         assert "items" in listed.json()
 
+    def test_workspace_trajectories_list_on_dashboard(self, tmp_path, monkeypatch):
+        """Next.js /trajectory must hit the dashboard, not a bare CE API."""
+        from starlette.testclient import TestClient
+        from keprix.auth.session import AuthManager
+        from keprix.trajectory.service import reset_trajectory_service_for_tests
+        from keprix_cli.web_server import app
+
+        reset_trajectory_service_for_tests(sqlite_path=tmp_path / "traj.db")
+        monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
+        monkeypatch.delenv("KEPRIX_ADMIN_PASSWORD", raising=False)
+        monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+        auth = AuthManager(str(tmp_path / "auth.json"))
+        ok, _message = auth.bootstrap_owner("owner@example.com", "solo-pass-1")
+        assert ok is True
+        token, _user, error = auth.login("owner@example.com", "solo-pass-1")
+        assert error is None and token
+        monkeypatch.setattr("keprix.auth.session.auth_manager", auth)
+        monkeypatch.setattr("keprix.auth.dependencies.auth_manager", auth)
+
+        unauth_client = TestClient(app)
+        missing = unauth_client.get("/api/trajectories")
+        assert missing.status_code == 401
+        assert missing.json() == {"detail": "Unauthorized"}
+
+        headers = {"Authorization": f"Bearer {token}"}
+        listed = unauth_client.get("/api/trajectories", headers=headers)
+        assert listed.status_code == 200, listed.text
+        assert "trajectories" in listed.json()
+
+        created = unauth_client.post(
+            "/api/trajectories",
+            headers=headers,
+            json={"title": "Operator trajectory"},
+        )
+        assert created.status_code == 200, created.text
+        tid = created.json()["trajectory_id"]
+        listed2 = unauth_client.get("/api/trajectories", headers=headers)
+        ids = [row["trajectory_id"] for row in listed2.json()["trajectories"]]
+        assert tid in ids
+
     def test_path_traversal_blocked(self):
         """Verify URL-encoded path traversal is blocked."""
         # %2e%2e = ..

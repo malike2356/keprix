@@ -147,6 +147,9 @@ def test_trajectory_page_exists():
     assert "trajectory-page" in text
     assert "Fork" in text
     assert "Replay" in text
+    # Loopback dashboard gates /api/* on the workspace Bearer; raw fetch 401s.
+    assert 'from "@/lib/ce-api"' in text
+    assert "ceApi(" in text
 
 
 def test_no_cordis_or_dsh_dependency():
