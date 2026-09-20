@@ -146,6 +146,7 @@ nav:
       - Capability seams: architecture/capability-seams.md
       - Reversible plugin lifecycle: architecture/reversible-plugin-lifecycle.md
       - Session trajectory: architecture/session-trajectory.md
+      - Capability presets: architecture/capability-presets.md
       - TUI freeze and Hermes parity: architecture/tui-freeze-and-parity.md
       - TUI Hermes behavior parity contract: architecture/tui-hermes-behavior-parity-contract.md
       - TUI surpass Hermes contract: architecture/tui-surpass-hermes-contract.md

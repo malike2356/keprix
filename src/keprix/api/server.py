@@ -181,6 +181,7 @@ from keprix.api.brain_graph_routes import router as brain_graph_router
 from keprix.api.brain_health_routes import router as brain_health_router
 from keprix.api.brain_session_replay_routes import router as brain_session_replay_router
 from keprix.trajectory.routes import router as trajectory_router
+from keprix.capability_presets.routes import router as capability_presets_router
 from keprix.api.brain_export_routes import router as brain_export_router
 from keprix.api.brain_share_routes import public_router as brain_share_public_router
 from keprix.api.brain_share_routes import router as brain_share_router
@@ -956,6 +957,7 @@ def create_app() -> FastAPI:
     app.include_router(brain_health_router)
     app.include_router(brain_session_replay_router)
     app.include_router(trajectory_router)
+    app.include_router(capability_presets_router)
     app.include_router(brain_export_router)
     app.include_router(brain_share_router)
     app.include_router(brain_share_public_router)

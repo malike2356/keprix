@@ -300,6 +300,7 @@ from keprix_cli.subcommands.insights import build_insights_parser
 from keprix_cli.subcommands.skills import build_skills_parser
 from keprix_cli.subcommands.pairing import build_pairing_parser
 from keprix_cli.subcommands.plugins import build_plugins_parser
+from keprix_cli.subcommands.presets import build_presets_parser, cmd_presets
 from keprix_cli.subcommands.mcp import build_mcp_parser
 from keprix_cli.subcommands.claw import build_claw_parser
 from keprix_cli.subcommands.self_config import build_self_config_parsers
@@ -12148,6 +12149,7 @@ def main():
     # plugins command  (parser built in keprix_cli/subcommands/plugins.py)
     # =========================================================================
     build_plugins_parser(subparsers, cmd_plugins=cmd_plugins)
+    build_presets_parser(subparsers, cmd_presets=cmd_presets)
 
     # =========================================================================
     # Plugin CLI commands — dynamically registered by memory/general plugins.

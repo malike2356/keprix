@@ -1,0 +1,22 @@
+name: coding
+description: >
+  Coding agent profile. Emphasises local filesystem and shell seams for
+  development work. Soft Wall stays on. Does not convert Playbooks, billing,
+  or Document Vault into plugins.
+version: 1
+plugins: []
+skills: []
+declared_tools:
+  - name: preset_coding_workspace_hint
+    description: Marker tool present only while the coding preset is active.
+seams:
+  fs: policy:fs.local
+  shell: policy:shell.local
+soft_wall:
+  profile: standard
+  require_approval: true
+env_refs:
+  - TERMINAL_ENV
+  - TERMINAL_CWD
+notes:
+  - First-class OS modules stay mounted regardless of this pack.

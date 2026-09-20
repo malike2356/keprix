@@ -89,6 +89,12 @@ Append-only session event trajectories (`keprix.trajectory`) support search,
 fork, and recorded-result replay for Soft Wall / mutation debugging. UI:
 `/trajectory`. Docs: `docs/architecture/session-trajectory.md`.
 
+## Capability presets
+
+Declarative YAML packs (`coding`, `crm`, `sidecar`) in `keprix.capability_presets`
+mount plugins/skills/seams via reversible lifecycle. Soft Wall cannot be disabled
+by a pack. CLI: `keprix presets`. Docs: `docs/architecture/capability-presets.md`.
+
 ## Self-knowledge RAG
 
 Teach Keprix about itself via the shared RAG corpus (user `__keprix_self__`):

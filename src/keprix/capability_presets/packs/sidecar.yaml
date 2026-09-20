@@ -1,0 +1,20 @@
+name: sidecar
+description: >
+  Narrow embed/sidecar profile. Filesystem and shell stay sandboxed; Soft Wall
+  strict. Intended for product sidecars, not full coding agents.
+version: 1
+plugins: []
+skills: []
+declared_tools:
+  - name: preset_sidecar_health_hint
+    description: Marker tool present only while the sidecar preset is active.
+seams:
+  fs: policy:fs.sandboxed
+  shell: policy:shell.sandboxed
+soft_wall:
+  profile: strict
+  require_approval: true
+env_refs: []
+notes:
+  - Do not mount full coding toolsets via this pack.
+  - Soft Wall cannot be disabled by this pack.

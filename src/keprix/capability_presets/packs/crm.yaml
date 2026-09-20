@@ -1,0 +1,22 @@
+name: crm
+description: >
+  CRM / contacts oriented profile. Prefer sandboxed shell by default; no broad
+  host shell emphasis. Soft Wall stays strict. CRM product module remains
+  first-class (not turned into a plugin by this pack).
+version: 1
+plugins: []
+skills: []
+declared_tools:
+  - name: preset_crm_outreach_hint
+    description: Marker tool present only while the CRM preset is active.
+seams:
+  fs: policy:fs.local
+  shell: policy:shell.sandboxed
+soft_wall:
+  profile: strict
+  require_approval: true
+env_refs:
+  - KEPRIX_OUTREACH_SOFT_WALL
+notes:
+  - Does not drop tenant RLS.
+  - Does not disable Soft Wall.
