@@ -60,6 +60,52 @@ In a measured session (31 tools loaded) the fixed prefix dropped from about
 Explicit `model.context_length` and `model.ollama_num_ctx` settings always win
 over the automatic cap. The default `full` profile is unchanged.
 
+## Running Keprix fully locally (Ollama, no API key)
+
+Measured on a laptop with an RTX 3050 (4 GB VRAM) and 14 GB RAM. Adjust to taste.
+
+1. Install [Ollama](https://ollama.com). Without `sudo`, unpack the Linux archive
+   into `~/.local` (`tar --zstd -xf ollama-linux-amd64.tar.zst -C ~/.local`).
+2. Start it with a compact KV cache and a context Keprix can afford:
+
+   ```bash
+   OLLAMA_FLASH_ATTENTION=1 OLLAMA_KV_CACHE_TYPE=q8_0 OLLAMA_CONTEXT_LENGTH=32768 ollama serve
+   ```
+
+3. Pull a **non-thinking** model: `ollama pull qwen3:4b-instruct-2507-q4_K_M`.
+   Avoid the plain `qwen3:4b` tag for agent use: it spends 1,000+ tokens
+   reasoning about a one-line question, which at laptop speeds means 60 to 80
+   seconds per model call (the instruct variant answered the same question in
+   under a second).
+4. Give the local model its own profile so your cloud default stays untouched.
+   A profile is a separate `KEPRIX_HOME`:
+
+   ```bash
+   keprix profile create local --no-alias --description "Local Ollama model"
+   H=~/.keprix/profiles/local
+   KEPRIX_HOME=$H keprix config set model.default qwen3:4b-instruct-2507-q4_K_M
+   KEPRIX_HOME=$H keprix config set model.provider custom
+   KEPRIX_HOME=$H keprix config set model.base_url http://127.0.0.1:11434/v1
+   KEPRIX_HOME=$H keprix config set agent.prompt_profile compact
+   KEPRIX_HOME=$H keprix -z "In two sentences, what is a mutex?"
+   ```
+
+   The wrapper that `keprix profile alias` generates runs `keprix -p <name>`;
+   in 0.16.0 that flag is rejected, so use the `KEPRIX_HOME=...` form (or a
+   two-line shell script that sets it).
+
+What to expect on that hardware: about 22 tok/s on short prompts, about 7 tok/s
+with an 8K-token prompt and about 2 tok/s with a nearly full 28K context;
+follow-up turns reuse Ollama's prompt cache (about 8 s each with an ~8K prefix).
+The model plus a 32K context takes about 5.4 GB and is split between GPU and CPU.
+A plain question through Keprix took about 23 s end to end.
+
+!!! note "Tool tasks"
+    In 0.16.0 the standalone CLI's product tool ACL rejects built-in tool calls
+    (`[tool_acl_denied] ... not_listed`) whichever model is used, so a local
+    profile is reliable for chat and drafting today, while tasks that need
+    tools depend on that being resolved.
+
 ## API
 
 | Action | Endpoint |
