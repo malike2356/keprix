@@ -97,9 +97,8 @@ class PlatformEntry:
     # If True, session descriptions redact PII (phone numbers, etc.)
     pii_safe: bool = False
 
-    # ── Display ──
-    # Emoji for CLI/gateway display (e.g. "💬")
-    emoji: str = "🔌"
+    # Display (left empty: CLI setup lists are text-only)
+    emoji: str = ""
 
     # Whether this platform should appear in _UPDATE_ALLOWED_PLATFORMS
     # (allows /update command from this platform).

@@ -3322,7 +3322,7 @@ def register(ctx) -> None:
         # Chat caps text messages at 4096 chars; we leave margin to fit
         # the "Keprix is thinking..." marker patches and edit overhead.
         max_message_length=4000,
-        emoji="💬",
+        emoji="",
         allow_update_command=True,
         platform_hint=(
             "You are on Google Chat. Limited markdown subset is rendered: "

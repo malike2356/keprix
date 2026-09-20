@@ -2594,10 +2594,10 @@ def cmd_whatsapp(args):
     print()
     print("─" * 50)
     if wa_mode == "bot":
-        print("📱 Open WhatsApp (or WhatsApp Business) on the")
+        print("Open WhatsApp (or WhatsApp Business) on the")
         print("   phone with the BOT's number, then scan:")
     else:
-        print("📱 Open WhatsApp on your phone, then scan:")
+        print("Open WhatsApp on your phone, then scan:")
     print()
     print("   Settings → Linked Devices → Link a Device")
     print("─" * 50)

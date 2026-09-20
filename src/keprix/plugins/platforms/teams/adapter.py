@@ -1355,7 +1355,7 @@ def register(ctx) -> None:
         # Teams supports up to ~28 KB per message
         max_message_length=28000,
         # Display
-        emoji="💼",
+        emoji="",
         allow_update_command=True,
         # LLM guidance
         platform_hint=(

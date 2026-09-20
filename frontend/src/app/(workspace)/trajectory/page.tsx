@@ -176,7 +176,7 @@ export default function TrajectoryPage() {
     <Box sx={{ p: 2, maxWidth: 1200, mx: "auto" }} data-testid="trajectory-page">
       <PageHeader
         title="Session trajectory"
-        subtitle="Append-only event log for Soft Wall, mutations, tools, and fork/replay debugging."
+        description="Append-only event log for Soft Wall, mutations, tools, and fork/replay debugging."
       />
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mt: 2 }}>
         <Box sx={{ width: { xs: "100%", md: 280 }, flexShrink: 0 }}>

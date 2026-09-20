@@ -2014,6 +2014,146 @@ class TestWebServerEndpoints:
         ids = [row["trajectory_id"] for row in listed2.json()["trajectories"]]
         assert tid in ids
 
+    def test_workspace_calendar_events_on_dashboard(self, tmp_path, monkeypatch):
+        """Next.js /calendar must hit dashboard /api/workspace/calendar, not a 302 loop."""
+        from starlette.testclient import TestClient
+        from keprix.auth.session import AuthManager
+        from keprix.workspace.repository import WorkspaceRepository
+        from keprix_cli.web_server import app
+
+        monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
+        monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
+        monkeypatch.delenv("KEPRIX_ADMIN_PASSWORD", raising=False)
+        monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+        auth = AuthManager(str(tmp_path / "auth.json"))
+        ok, _message = auth.bootstrap_owner("owner@example.com", "solo-pass-1")
+        assert ok is True
+        token, _user, error = auth.login("owner@example.com", "solo-pass-1")
+        assert error is None and token
+        monkeypatch.setattr("keprix.auth.session.auth_manager", auth)
+        monkeypatch.setattr("keprix.auth.dependencies.auth_manager", auth)
+        repo = WorkspaceRepository()
+        monkeypatch.setattr("keprix.workspace.routes.calendar_routes.workspace_repo", repo)
+
+        unauth_client = TestClient(app)
+        missing = unauth_client.get("/api/workspace/calendar/events")
+        assert missing.status_code == 401
+
+        headers = {"Authorization": f"Bearer {token}"}
+        listed = unauth_client.get(
+            "/api/workspace/calendar/events?start=2026-09-01T00:00:00Z&end=2026-09-30T00:00:00Z",
+            headers=headers,
+        )
+        assert listed.status_code == 200, listed.text
+        assert "items" in listed.json()
+
+        created = unauth_client.post(
+            "/api/workspace/calendar/events",
+            headers=headers,
+            json={
+                "title": "Standup",
+                "start_at": "2026-09-20T09:00:00Z",
+                "end_at": "2026-09-20T09:30:00Z",
+            },
+        )
+        assert created.status_code == 201, created.text
+        assert created.json()["title"] == "Standup"
+
+        providers = unauth_client.get("/api/workspace/calendar/providers", headers=headers)
+        assert providers.status_code == 200, providers.text
+        assert providers.json()["items"]
+
+    def test_daily_work_list_endpoints_on_dashboard(self, tmp_path, monkeypatch):
+        """Notes/tasks/email/notifications/voice must be served on the dashboard."""
+        from starlette.testclient import TestClient
+        from keprix.auth.session import AuthManager
+        from keprix.workspace.repository import WorkspaceRepository
+        from keprix_cli.web_server import app
+
+        monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
+        monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
+        monkeypatch.delenv("KEPRIX_ADMIN_PASSWORD", raising=False)
+        monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+        auth = AuthManager(str(tmp_path / "auth.json"))
+        ok, _message = auth.bootstrap_owner("owner@example.com", "solo-pass-1")
+        assert ok is True
+        token, _user, error = auth.login("owner@example.com", "solo-pass-1")
+        assert error is None and token
+        monkeypatch.setattr("keprix.auth.session.auth_manager", auth)
+        monkeypatch.setattr("keprix.auth.dependencies.auth_manager", auth)
+        repo = WorkspaceRepository()
+        monkeypatch.setattr("keprix.workspace.routes.note_routes.workspace_repo", repo)
+        monkeypatch.setattr("keprix.workspace.routes.task_routes.workspace_repo", repo)
+        monkeypatch.setattr("keprix.workspace.routes.calendar_routes.workspace_repo", repo)
+
+        async def _skip_note_ingest(*_args, **_kwargs):
+            return None
+
+        monkeypatch.setattr("keprix.workspace.routes.note_routes._ingest_note", _skip_note_ingest)
+
+        client = TestClient(app)
+        headers = {"Authorization": f"Bearer {token}"}
+        paths = (
+            "/api/workspace/notes",
+            "/api/workspace/tasks",
+            "/api/workspace/calendar/events",
+            "/api/workspace/calendar/providers",
+            "/api/email/accounts",
+            "/api/email/inbox",
+            "/api/notifications/inbox",
+            "/api/voice/wake-words",
+            "/api/vical/status",
+            "/api/conversations?limit=5&sort=updated_at:desc",
+            "/api/trajectories",
+        )
+        for path in paths:
+            resp = client.get(path, headers=headers, follow_redirects=False)
+            assert resp.status_code == 200, f"{path} -> {resp.status_code}: {resp.text[:400]}"
+            assert resp.headers.get("location") is None
+
+        created = client.post(
+            "/api/workspace/notes",
+            headers=headers,
+            json={"title": "Scratch", "content": "hello"},
+        )
+        assert created.status_code == 201, created.text
+        listed = client.get("/api/workspace/notes", headers=headers)
+        titles = [row["title"] for row in listed.json()["items"]]
+        assert "Scratch" in titles
+
+    def test_missing_api_does_not_redirect_to_frontend(self, tmp_path, monkeypatch):
+        """Authenticated GET /api/* with no handler must 404, not 302 to Next.js."""
+        from starlette.testclient import TestClient
+        from keprix.auth.session import AuthManager
+        from keprix_cli.web_server import app
+
+        monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
+        monkeypatch.delenv("KEPRIX_ADMIN_PASSWORD", raising=False)
+        monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+        auth = AuthManager(str(tmp_path / "auth.json"))
+        ok, _message = auth.bootstrap_owner("owner@example.com", "solo-pass-1")
+        assert ok is True
+        token, _user, error = auth.login("owner@example.com", "solo-pass-1")
+        assert error is None and token
+        monkeypatch.setattr("keprix.auth.session.auth_manager", auth)
+        monkeypatch.setattr("keprix.auth.dependencies.auth_manager", auth)
+
+        previous_port = getattr(app.state, "frontend_port", None)
+        app.state.frontend_port = 59887
+        try:
+            client = TestClient(app)
+            resp = client.get(
+                "/api/this-route-is-not-mounted",
+                headers={"Authorization": f"Bearer {token}"},
+                follow_redirects=False,
+            )
+        finally:
+            app.state.frontend_port = previous_port
+
+        assert resp.status_code == 404, resp.text
+        assert resp.headers.get("location") is None
+        assert resp.json()["detail"] == "Not Found"
+
     def test_path_traversal_blocked(self):
         """Verify URL-encoded path traversal is blocked."""
         # %2e%2e = ..

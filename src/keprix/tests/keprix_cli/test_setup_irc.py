@@ -31,7 +31,7 @@ def _register_irc_platform(**overrides):
         allow_all_env="IRC_ALLOW_ALL_USERS",
         max_message_length=450,
         pii_safe=False,
-        emoji="💬",
+        emoji="",
         allow_update_command=True,
         platform_hint="You are chatting via IRC.",
     )
@@ -74,7 +74,7 @@ class TestIRCFreshInstallDiscovery:
 
             irc_plat = next(p for p in platforms if p["key"] == "irc")
             assert irc_plat["label"] == "IRC"
-            assert irc_plat["emoji"] == "💬"
+            assert irc_plat["emoji"] == ""
         finally:
             _unregister_irc_platform()
 
@@ -212,7 +212,8 @@ class TestIRCGatewaySetupFreshInstall:
                 f"No platform prompt found in {checklist_calls}"
             choices_text = "\n".join(platform_prompt["choices"])
             assert "IRC" in choices_text
-            assert "💬" in choices_text
+            assert "💬" not in choices_text
+            assert "📱" not in choices_text
             assert "not configured" in choices_text.lower()
         finally:
             _unregister_irc_platform()

@@ -1504,7 +1504,7 @@ def register(ctx) -> None:
         allowed_users_env="PHOTON_ALLOWED_USERS",
         allow_all_env="PHOTON_ALLOW_ALL_USERS",
         max_message_length=_MAX_MESSAGE_LENGTH,
-        emoji="📱",
+        emoji="",
         # iMessage carries E.164 phone numbers — treat session descriptions
         # as PII-sensitive so they get redacted before reaching the LLM
         # (matches the BlueBubbles iMessage channel in _PII_SAFE_PLATFORMS).

@@ -615,7 +615,7 @@ def interactive_setup() -> None:
             save_env_value("IRC_NICKSERV_PASSWORD", nickserv)
 
     print()
-    print_info("🔒 Access control: restrict who can message the bot")
+    print_info("Access control: restrict who can message the bot")
     print_info("   IRC nicks are not authenticated — anyone can claim any nick.")
     print_info("   For public channels, pair with NickServ-only mode on your network")
     print_info("   if you want stronger identity guarantees.")
@@ -956,7 +956,7 @@ def register(ctx):
         # IRC line limit after protocol overhead
         max_message_length=450,
         # Display
-        emoji="💬",
+        emoji="",
         # IRC doesn't have phone numbers to redact
         pii_safe=False,
         allow_update_command=True,

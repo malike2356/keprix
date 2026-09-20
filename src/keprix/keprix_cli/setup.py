@@ -598,7 +598,7 @@ def _print_setup_summary(config: dict, keprix_home):
 
     # Show file locations prominently
     from keprix_constants import display_keprix_home as _dhh
-    print(color(f"📁 All your files are in {_dhh()}/:", Colors.CYAN, Colors.BOLD))
+    print(color(f"All your files are in {_dhh()}/:", Colors.CYAN, Colors.BOLD))
     print()
     print(f"   {color('Settings:', Colors.YELLOW)}  {get_config_path()}")
     print(f"   {color('API Keys:', Colors.YELLOW)}  {get_env_path()}")
@@ -631,7 +631,7 @@ def _print_setup_summary(config: dict, keprix_home):
 
     print(color("─" * 60, Colors.DIM))
     print()
-    print(color("🚀 Ready to go!", Colors.CYAN, Colors.BOLD))
+    print(color("Ready to go!", Colors.CYAN, Colors.BOLD))
     print()
     print(f"   {color('keprix', Colors.GREEN)}              Start chatting")
     print(f"   {color('keprix gateway', Colors.GREEN)}      Start messaging gateway")
@@ -1699,7 +1699,7 @@ def _setup_telegram():
         if not prompt_yes_no("Reconfigure Telegram?", False):
             # Check missing allowlist on existing config
             if not get_env_value("TELEGRAM_ALLOWED_USERS"):
-                print_info("⚠️  Telegram has no user allowlist - anyone can use your bot!")
+                print_info("Warning: Telegram has no user allowlist - anyone can use your bot!")
                 if prompt_yes_no("Add allowed users now?", True):
                     print_info("   To find your Telegram user ID: message @userinfobot")
                     allowed_users = prompt("Allowed user IDs (comma-separated)")
@@ -1746,7 +1746,7 @@ def _setup_telegram():
     print_success("Telegram token saved")
 
     print()
-    print_info("🔒 Security: Restrict who can use your bot")
+    print_info("Security: Restrict who can use your bot")
     print_info("   To find your Telegram user ID:")
     print_info("   1. Message @userinfobot on Telegram")
     print_info("   2. It will reply with your numeric ID (e.g., 123456789)")
@@ -1777,7 +1777,7 @@ def _setup_telegram():
         save_env_value("TELEGRAM_ALLOWED_USERS", allowed_users)
         print_success("Telegram allowlist configured - only listed users can use the bot")
     else:
-        print_info("⚠️  No allowlist set - anyone who finds your bot can use it!")
+        print_info("Warning: No allowlist set - anyone who finds your bot can use it!")
 
     print()
     print_info("📬 Home Channel: where Keprix delivers cron job results,")
@@ -1844,7 +1844,7 @@ def _setup_slack():
     print_success("Slack tokens saved")
 
     print()
-    print_info("🔒 Security: Restrict who can use your bot")
+    print_info("Security: Restrict who can use your bot")
     print_info("   To find a Member ID: click a user's name → View full profile → ⋮ → Copy member ID")
     print()
     allowed_users = prompt(
@@ -1854,7 +1854,7 @@ def _setup_slack():
         save_env_value("SLACK_ALLOWED_USERS", allowed_users.replace(" ", ""))
         print_success("Slack allowlist configured")
     else:
-        print_warning("⚠️  No Slack allowlist set - unpaired users will be denied by default.")
+        print_warning("Warning: No Slack allowlist set - unpaired users will be denied by default.")
         print_info("   Set SLACK_ALLOW_ALL_USERS=true or GATEWAY_ALLOW_ALL_USERS=true only if you intentionally want open workspace access.")
 
     print()
@@ -2008,7 +2008,7 @@ def _setup_matrix():
                         print_info(f"  Error: {result.stderr.strip().splitlines()[-1]}")
 
         print()
-        print_info("🔒 Security: Restrict who can use your bot")
+        print_info("Security: Restrict who can use your bot")
         print_info("   Matrix user IDs look like @username:server")
         print()
         allowed_users = prompt("Allowed user IDs (comma-separated, leave empty for open access)")
@@ -2016,7 +2016,7 @@ def _setup_matrix():
             save_env_value("MATRIX_ALLOWED_USERS", allowed_users.replace(" ", ""))
             print_success("Matrix allowlist configured")
         else:
-            print_info("⚠️  No allowlist set - anyone who can message the bot can use it!")
+            print_info("Warning: No allowlist set - anyone who can message the bot can use it!")
 
         print()
         print_info("📬 Home Room: where Keprix delivers cron job results and notifications.")
@@ -2058,7 +2058,7 @@ def _setup_bluebubbles():
     print_success("BlueBubbles credentials saved")
 
     print()
-    print_info("🔒 Security: Restrict who can message your bot")
+    print_info("Security: Restrict who can message your bot")
     print_info("   Use iMessage addresses: email (user@icloud.com) or phone (+15551234567)")
     print()
     allowed_users = prompt("Allowed iMessage addresses (comma-separated, leave empty for open access)")
@@ -2066,7 +2066,7 @@ def _setup_bluebubbles():
         save_env_value("BLUEBUBBLES_ALLOWED_USERS", allowed_users.replace(" ", ""))
         print_success("BlueBubbles allowlist configured")
     else:
-        print_info("⚠️  No allowlist set — anyone who can iMessage you can use the bot!")
+        print_info("Warning: No allowlist set — anyone who can iMessage you can use the bot!")
 
     print()
     print_info("📬 Home Channel: phone or email for cron job delivery and notifications.")
@@ -2147,7 +2147,12 @@ def _setup_webhooks():
 
 def setup_gateway(config: dict):
     """Configure messaging platform integrations."""
-    from keprix_cli.gateway import _all_platforms, _platform_status, _configure_platform
+    from keprix_cli.gateway import (
+        _all_platforms,
+        _platform_choice_label,
+        _platform_status,
+        _configure_platform,
+    )
 
     print_header("Messaging Platforms")
     print_info("Connect to messaging platforms to chat with Keprix from anywhere.")
@@ -2161,7 +2166,7 @@ def setup_gateway(config: dict):
     pre_selected = []
     for i, plat in enumerate(platforms):
         status = _platform_status(plat)
-        items.append(f"{plat['emoji']} {plat['label']}  ({status})")
+        items.append(_platform_choice_label(plat))
         if status == "configured":
             pre_selected.append(i)
 
@@ -3306,14 +3311,7 @@ def _run_quick_setup(config: dict, keprix_home):
                 platform_order.append(plat)
             platforms.setdefault(plat, []).append(var)
 
-        platform_labels = [
-            {
-                "Telegram": "📱 Telegram",
-                "Discord": "💬 Discord",
-                "Slack": "💼 Slack",
-            }.get(p, p)
-            for p in platform_order
-        ]
+        platform_labels = list(platform_order)
 
         selected_indices = prompt_checklist(
             "Which platforms would you like to set up?",
@@ -3323,9 +3321,8 @@ def _run_quick_setup(config: dict, keprix_home):
         for idx in selected_indices:
             plat = platform_order[idx]
             vars_list = platforms[plat]
-            emoji = {"Telegram": "📱", "Discord": "💬", "Slack": "💼"}.get(plat, "")
             print()
-            print(color(f"  ─── {emoji} {plat} ───", Colors.CYAN))
+            print(color(f"  ─── {plat} ───", Colors.CYAN))
             print()
             for var in vars_list:
                 print_info(f"  {var.get('description', '')}")

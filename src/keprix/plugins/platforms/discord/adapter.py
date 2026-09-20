@@ -6610,7 +6610,7 @@ def interactive_setup() -> None:
     print_success("Discord token saved")
 
     print()
-    print_info("🔒 Security: Restrict who can use your bot")
+    print_info("Security: Restrict who can use your bot")
     print_info("   To find your Discord user ID:")
     print_info("   1. Enable Developer Mode in Discord settings")
     print_info("   2. Right-click your name → Copy ID")
@@ -6796,6 +6796,6 @@ def register(ctx) -> None:
         # Discord hard limit per message
         max_message_length=2000,
         # Display
-        emoji="🎮",
+        emoji="",
         allow_update_command=True,
     )

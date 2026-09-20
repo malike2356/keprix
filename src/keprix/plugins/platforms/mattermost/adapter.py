@@ -1135,7 +1135,7 @@ def interactive_setup() -> None:
     print_success("Mattermost token saved")
 
     print()
-    print_info("🔒 Security: Restrict who can use your bot")
+    print_info("Security: Restrict who can use your bot")
     print_info("   To find your user ID: click your avatar → Profile")
     print_info("   or use the API: GET /api/v4/users/me")
     print()
@@ -1263,6 +1263,6 @@ def register(ctx) -> None:
         # day one).
         max_message_length=MAX_POST_LENGTH,
         # Display
-        emoji="💬",
+        emoji="",
         allow_update_command=True,
     )

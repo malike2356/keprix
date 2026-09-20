@@ -10431,6 +10431,26 @@ def _normalise_prefix(raw: Optional[str]) -> str:
     return normalise_prefix(raw)
 
 
+_BACKEND_API_PREFIXES: tuple[str, ...] = (
+    "/api/",
+    "/sidecar/",
+    "/v1/",
+    "/carina/",
+)
+
+
+def _is_backend_api_path(path: str) -> bool:
+    """True for paths Next.js rewrites to this backend.
+
+    The SPA catch-all must not 302 these back to the frontend port: that
+    loop is what Firefox surfaces as ``NetworkError when attempting to fetch
+    resource`` on pages like /calendar when a route is missing.
+    """
+    if path == "/api":
+        return True
+    return any(path.startswith(prefix) for prefix in _BACKEND_API_PREFIXES)
+
+
 def mount_spa(application: FastAPI):
     """Mount the built SPA. Falls back to index.html for client-side routing.
 
@@ -10456,6 +10476,11 @@ def mount_spa(application: FastAPI):
         # so this keeps working across the whole app lifetime.
         @application.get("/{full_path:path}")
         async def no_frontend(request: Request, full_path: str):
+            # Next.js rewrites /api/* to this backend. If the route is missing,
+            # a 302 back to the frontend port loops (browser: NetworkError).
+            path = request.url.path
+            if _is_backend_api_path(path):
+                return JSONResponse({"detail": "Not Found"}, status_code=404)
             frontend_port = getattr(application.state, "frontend_port", None)
             if frontend_port:
                 target_host = request.url.hostname or "127.0.0.1"
@@ -11511,24 +11536,66 @@ def _mount_plugin_api_routes():
 # Mount plugin API routes before the SPA catch-all.
 _mount_plugin_api_routes()
 
-# Mount the dashboard auth routes (/login, /auth/*, /api/auth/*) before the
-# SPA catch-all so /{full_path:path} doesn't swallow them.  These are
-# always mounted — the gate middleware decides whether to enforce auth,
-# not whether the routes exist.
-from keprix.setup.routes import router as _workspace_setup_router  # noqa: E402
-from keprix.auth.routes import router as _workspace_auth_router  # noqa: E402
-from keprix.api.conversation_routes import router as _workspace_conversation_router  # noqa: E402
-from keprix.trajectory.routes import router as _workspace_trajectory_router  # noqa: E402
-from keprix_cli.dashboard_auth.routes import router as _dashboard_auth_router  # noqa: E402
 
-# Workspace login/setup must win over dashboard-oauth /api/auth/me so the
-# Next.js /auth/setup wizard can mint the owner account on loopback.
-app.include_router(_workspace_setup_router)
-app.include_router(_workspace_auth_router)
-app.include_router(_workspace_conversation_router)
-app.include_router(_workspace_trajectory_router)
-app.include_router(_dashboard_auth_router)
+def _mount_dashboard_workspace_routers() -> None:
+    """Mount CE/workspace APIs the Next.js dashboard calls on loopback.
 
+    ``keprix dashboard`` rewrites ``/api/*`` here. A missing GET used to 302
+    to the frontend port and loop (Firefox: NetworkError on /notes, /calendar,
+    and the rest of Daily work). Keep setup/auth before dashboard-oauth
+    ``/api/auth/me``.
+    """
+    from keprix.setup.routes import router as setup_router
+    from keprix.auth.routes import router as auth_router
+    from keprix.api.conversation_routes import router as conversation_router
+    from keprix.trajectory.routes import router as trajectory_router
+    from keprix.workspace.routes import (
+        admin_wipe_router,
+        assistant_router,
+        calendar_router,
+        document_router,
+        draft_router,
+        gallery_router,
+        note_router,
+        personal_router,
+        preset_router,
+        session_router,
+        task_router,
+    )
+    from keprix.vical.routes import router as vical_router
+    from keprix.email.routes import router as email_router
+    from keprix.backend.notifications.routes import router as notifications_router
+    from keprix.voice.routes import router as voice_wake_router
+    from keprix.voice_templates.routes import router as voice_templates_router
+    from keprix_cli.dashboard_auth.routes import router as dashboard_auth_router
+
+    for router in (
+        setup_router,
+        auth_router,
+        conversation_router,
+        trajectory_router,
+        calendar_router,
+        vical_router,
+        note_router,
+        task_router,
+        document_router,
+        draft_router,
+        gallery_router,
+        session_router,
+        preset_router,
+        assistant_router,
+        personal_router,
+        admin_wipe_router,
+        email_router,
+        notifications_router,
+        voice_wake_router,
+        voice_templates_router,
+        dashboard_auth_router,
+    ):
+        app.include_router(router)
+
+
+_mount_dashboard_workspace_routers()
 mount_spa(app)
 
 

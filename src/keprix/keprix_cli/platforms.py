@@ -19,28 +19,28 @@ class PlatformInfo(NamedTuple):
 
 # Ordered so that TUI menus are deterministic.
 PLATFORMS: OrderedDict[str, PlatformInfo] = OrderedDict([
-    ("cli",            PlatformInfo(label="🖥️  CLI",            default_toolset="keprix-cli")),
-    ("telegram",       PlatformInfo(label="📱 Telegram",        default_toolset="keprix-telegram")),
-    ("discord",        PlatformInfo(label="💬 Discord",         default_toolset="keprix-discord")),
-    ("slack",          PlatformInfo(label="💼 Slack",           default_toolset="keprix-slack")),
-    ("whatsapp",       PlatformInfo(label="📱 WhatsApp",        default_toolset="keprix-whatsapp")),
-    ("whatsapp_cloud", PlatformInfo(label="📱 WhatsApp Business (Cloud)", default_toolset="keprix-whatsapp")),
-    ("signal",         PlatformInfo(label="📡 Signal",          default_toolset="keprix-signal")),
-    ("bluebubbles",    PlatformInfo(label="💙 BlueBubbles",     default_toolset="keprix-bluebubbles")),
-    ("email",          PlatformInfo(label="📧 Email",           default_toolset="keprix-email")),
-    ("homeassistant",  PlatformInfo(label="🏠 Home Assistant",  default_toolset="keprix-homeassistant")),
-    ("mattermost",     PlatformInfo(label="💬 Mattermost",      default_toolset="keprix-mattermost")),
-    ("matrix",         PlatformInfo(label="💬 Matrix",          default_toolset="keprix-matrix")),
-    ("dingtalk",       PlatformInfo(label="💬 DingTalk",        default_toolset="keprix-dingtalk")),
-    ("feishu",         PlatformInfo(label="🪽 Feishu",          default_toolset="keprix-feishu")),
-    ("wecom",          PlatformInfo(label="💬 WeCom",           default_toolset="keprix-wecom")),
-    ("wecom_callback", PlatformInfo(label="💬 WeCom Callback",  default_toolset="keprix-wecom-callback")),
-    ("weixin",         PlatformInfo(label="💬 Weixin",          default_toolset="keprix-weixin")),
-    ("qqbot",          PlatformInfo(label="💬 QQBot",           default_toolset="keprix-qqbot")),
-    ("yuanbao",        PlatformInfo(label="🤖 Yuanbao",         default_toolset="keprix-yuanbao")),
-    ("webhook",        PlatformInfo(label="🔗 Webhook",         default_toolset="keprix-webhook")),
-    ("api_server",     PlatformInfo(label="🌐 API Server",      default_toolset="keprix-api-server")),
-    ("cron",           PlatformInfo(label="⏰ Cron",            default_toolset="keprix-cron")),
+    ("cli",            PlatformInfo(label="CLI",            default_toolset="keprix-cli")),
+    ("telegram",       PlatformInfo(label="Telegram",        default_toolset="keprix-telegram")),
+    ("discord",        PlatformInfo(label="Discord",         default_toolset="keprix-discord")),
+    ("slack",          PlatformInfo(label="Slack",           default_toolset="keprix-slack")),
+    ("whatsapp",       PlatformInfo(label="WhatsApp",        default_toolset="keprix-whatsapp")),
+    ("whatsapp_cloud", PlatformInfo(label="WhatsApp Business (Cloud)", default_toolset="keprix-whatsapp")),
+    ("signal",         PlatformInfo(label="Signal",          default_toolset="keprix-signal")),
+    ("bluebubbles",    PlatformInfo(label="BlueBubbles",     default_toolset="keprix-bluebubbles")),
+    ("email",          PlatformInfo(label="Email",           default_toolset="keprix-email")),
+    ("homeassistant",  PlatformInfo(label="Home Assistant",  default_toolset="keprix-homeassistant")),
+    ("mattermost",     PlatformInfo(label="Mattermost",      default_toolset="keprix-mattermost")),
+    ("matrix",         PlatformInfo(label="Matrix",          default_toolset="keprix-matrix")),
+    ("dingtalk",       PlatformInfo(label="DingTalk",        default_toolset="keprix-dingtalk")),
+    ("feishu",         PlatformInfo(label="Feishu",          default_toolset="keprix-feishu")),
+    ("wecom",          PlatformInfo(label="WeCom",           default_toolset="keprix-wecom")),
+    ("wecom_callback", PlatformInfo(label="WeCom Callback",  default_toolset="keprix-wecom-callback")),
+    ("weixin",         PlatformInfo(label="Weixin",          default_toolset="keprix-weixin")),
+    ("qqbot",          PlatformInfo(label="QQBot",           default_toolset="keprix-qqbot")),
+    ("yuanbao",        PlatformInfo(label="Yuanbao",         default_toolset="keprix-yuanbao")),
+    ("webhook",        PlatformInfo(label="Webhook",         default_toolset="keprix-webhook")),
+    ("api_server",     PlatformInfo(label="API Server",      default_toolset="keprix-api-server")),
+    ("cron",           PlatformInfo(label="Cron",            default_toolset="keprix-cron")),
 ])
 
 
@@ -58,7 +58,7 @@ def platform_label(key: str, default: str = "") -> str:
         from gateway.platform_registry import platform_registry
         entry = platform_registry.get(key)
         if entry:
-            return f"{entry.emoji}  {entry.label}" if entry.emoji else entry.label
+            return entry.label
     except Exception:
         pass
     return default
@@ -76,7 +76,7 @@ def get_all_platforms() -> "OrderedDict[str, PlatformInfo]":
         for entry in platform_registry.plugin_entries():
             if entry.name not in merged:
                 merged[entry.name] = PlatformInfo(
-                    label=f"{entry.emoji}  {entry.label}" if entry.emoji else entry.label,
+                    label=entry.label,
                     default_toolset=f"keprix-{entry.name}",
                 )
     except Exception:

@@ -4099,7 +4099,7 @@ _PLATFORMS = [
     {
         "key": "telegram",
         "label": "Telegram",
-        "emoji": "📱",
+        "emoji": "",
         "token_var": "TELEGRAM_BOT_TOKEN",
         "setup_instructions": [
             "1. Open Telegram and message @BotFather",
@@ -4135,7 +4135,7 @@ _PLATFORMS = [
     {
         "key": "slack",
         "label": "Slack",
-        "emoji": "💼",
+        "emoji": "",
         "token_var": "SLACK_BOT_TOKEN",
         "setup_instructions": [
             "1. Go to https://api.slack.com/apps → Create New App → From Scratch",
@@ -4147,7 +4147,7 @@ _PLATFORMS = [
             "4. Subscribe to Events: Features → Event Subscriptions → Enable",
             "   Required events: message.im, message.channels, app_mention",
             "   Optional: message.groups (for private channels)",
-            "   ⚠ Without message.channels the bot will ONLY work in DMs!",
+            "   Warning: Without message.channels the bot will ONLY work in DMs!",
             "5. Install to Workspace: Settings → Install App → copy xoxb-... token",
             "6. Reinstall the app after any scope or event changes",
             "7. Find your user ID: click your profile → three dots → Copy member ID",
@@ -4178,7 +4178,7 @@ _PLATFORMS = [
     {
         "key": "matrix",
         "label": "Matrix",
-        "emoji": "🔐",
+        "emoji": "",
         "token_var": "MATRIX_ACCESS_TOKEN",
         "setup_instructions": [
             "1. Works with any Matrix homeserver (self-hosted Synapse/Conduit/Dendrite or matrix.org)",
@@ -4227,7 +4227,7 @@ _PLATFORMS = [
     {
         "key": "mattermost",
         "label": "Mattermost",
-        "emoji": "💬",
+        "emoji": "",
         "token_var": "MATTERMOST_TOKEN",
         "setup_instructions": [
             "1. In Mattermost: Integrations → Bot Accounts → Add Bot Account",
@@ -4276,19 +4276,19 @@ _PLATFORMS = [
     {
         "key": "whatsapp",
         "label": "WhatsApp",
-        "emoji": "📲",
+        "emoji": "",
         "token_var": "WHATSAPP_ENABLED",
     },
     {
         "key": "signal",
         "label": "Signal",
-        "emoji": "📡",
+        "emoji": "",
         "token_var": "SIGNAL_HTTP_URL",
     },
     {
         "key": "email",
         "label": "Email",
-        "emoji": "📧",
+        "emoji": "",
         "token_var": "EMAIL_ADDRESS",
         "setup_instructions": [
             "1. Use a dedicated email account for your Keprix agent",
@@ -4334,7 +4334,7 @@ _PLATFORMS = [
     {
         "key": "sms",
         "label": "SMS (Twilio)",
-        "emoji": "📱",
+        "emoji": "",
         "token_var": "TWILIO_ACCOUNT_SID",
         "setup_instructions": [
             "1. Create a Twilio account at https://www.twilio.com/",
@@ -4381,7 +4381,7 @@ _PLATFORMS = [
     {
         "key": "dingtalk",
         "label": "DingTalk",
-        "emoji": "💬",
+        "emoji": "",
         "token_var": "DINGTALK_CLIENT_ID",
         "setup_instructions": [
             "1. Go to https://open-dev.dingtalk.com → Create Application",
@@ -4407,7 +4407,7 @@ _PLATFORMS = [
     {
         "key": "feishu",
         "label": "Feishu / Lark",
-        "emoji": "🪽",
+        "emoji": "",
         "token_var": "FEISHU_APP_ID",
         "setup_instructions": [
             "1. Go to https://open.feishu.cn/ (or https://open.larksuite.com/ for Lark)",
@@ -4460,7 +4460,7 @@ _PLATFORMS = [
     {
         "key": "wecom",
         "label": "WeCom (Enterprise WeChat)",
-        "emoji": "💬",
+        "emoji": "",
         "token_var": "WECOM_BOT_ID",
         "setup_instructions": [
             "1. Go to WeCom Admin Console → Applications → Create AI Bot",
@@ -4500,7 +4500,7 @@ _PLATFORMS = [
     {
         "key": "wecom_callback",
         "label": "WeCom Callback (Self-Built App)",
-        "emoji": "💬",
+        "emoji": "",
         "token_var": "WECOM_CALLBACK_CORP_ID",
         "setup_instructions": [
             "1. Go to WeCom Admin Console → Applications → Create Self-Built App",
@@ -4559,13 +4559,13 @@ _PLATFORMS = [
     {
         "key": "weixin",
         "label": "Weixin / WeChat",
-        "emoji": "💬",
+        "emoji": "",
         "token_var": "WEIXIN_ACCOUNT_ID",
     },
     {
         "key": "bluebubbles",
         "label": "BlueBubbles (iMessage)",
-        "emoji": "💬",
+        "emoji": "",
         "token_var": "BLUEBUBBLES_SERVER_URL",
         "setup_instructions": [
             "1. Install BlueBubbles on a Mac that will act as your iMessage server:",
@@ -4609,7 +4609,7 @@ _PLATFORMS = [
     {
         "key": "qqbot",
         "label": "QQ Bot",
-        "emoji": "🐧",
+        "emoji": "",
         "token_var": "QQ_APP_ID",
         "setup_instructions": [
             "1. Register a QQ Bot application at q.qq.com",
@@ -4648,7 +4648,7 @@ _PLATFORMS = [
     {
         "key": "yuanbao",
         "label": "Yuanbao",
-        "emoji": "💎",
+        "emoji": "",
         "token_var": "YUANBAO_APP_ID",
         "setup_instructions": [
             "1. Download the Yuanbao app from https://yuanbao.tencent.com/",
@@ -4725,13 +4725,22 @@ def _all_platforms() -> list[dict]:
             {
                 "key": entry.name,
                 "label": entry.label,
-                "emoji": entry.emoji,
+                "emoji": "",
                 "token_var": entry.required_env[0] if entry.required_env else "",
                 "install_hint": entry.install_hint,
                 "_registry_entry": entry,
             }
         )
     return platforms
+
+
+def _platform_choice_label(platform: dict) -> str:
+    """Checklist/menu line for a platform. Labels only, no emoji."""
+    return f"{platform['label']}  ({_platform_status(platform)})"
+
+
+def _platform_setup_banner(platform: dict) -> str:
+    return f"  ─── {platform['label']} Setup ───"
 
 
 def _platform_status(platform: dict) -> str:
@@ -4851,12 +4860,11 @@ def _runtime_health_lines() -> list[str]:
 
 def _setup_standard_platform(platform: dict):
     """Interactive setup for Telegram, Discord, or Slack."""
-    emoji = platform["emoji"]
     label = platform["label"]
     token_var = platform["token_var"]
 
     print()
-    print(color(f"  ─── {emoji} {label} Setup ───", Colors.CYAN))
+    print(color(_platform_setup_banner(platform), Colors.CYAN))
 
     # Show step-by-step setup instructions if this platform has them
     instructions = platform.get("setup_instructions")
@@ -5005,7 +5013,7 @@ def _setup_standard_platform(platform: dict):
             print_success(f"  Home channel set to {first_id}")
 
     print()
-    print_success(f"{emoji} {label} configured!")
+    print_success(f"{label} configured!")
 
 
 def _setup_whatsapp():
@@ -5026,11 +5034,10 @@ def _setup_dingtalk():
     )
 
     dingtalk_platform = next(p for p in _PLATFORMS if p["key"] == "dingtalk")
-    emoji = dingtalk_platform["emoji"]
     label = dingtalk_platform["label"]
 
     print()
-    print(color(f"  ─── {emoji} {label} Setup ───", Colors.CYAN))
+    print(color(_platform_setup_banner(dingtalk_platform), Colors.CYAN))
 
     existing = get_env_value("DINGTALK_CLIENT_ID")
     if existing:
@@ -5070,7 +5077,7 @@ def _setup_dingtalk():
         save_env_value("DINGTALK_CLIENT_ID", client_id)
         save_env_value("DINGTALK_CLIENT_SECRET", client_secret)
         print()
-        print_success(f"{emoji} {label} configured via QR scan!")
+        print_success(f"{label} configured via QR scan!")
     else:
         # ── Manual entry ──
         _setup_standard_platform(dingtalk_platform)
@@ -5079,7 +5086,7 @@ def _setup_dingtalk():
 def _setup_wecom():
     """Interactive setup for WeCom — scan QR code or manual credential input."""
     print()
-    print(color("  ─── 💬 WeCom (Enterprise WeChat) Setup ───", Colors.CYAN))
+    print(color("  ─── WeCom (Enterprise WeChat) Setup ───", Colors.CYAN))
 
     existing_bot_id = get_env_value("WECOM_BOT_ID")
     existing_secret = get_env_value("WECOM_SECRET")
@@ -5198,7 +5205,7 @@ def _setup_wecom():
         print_success(f"  Home channel set to {home}")
 
     print()
-    print_success("💬 WeCom configured!")
+    print_success("WeCom configured!")
 
 
 def _is_service_installed() -> bool:
@@ -5277,7 +5284,7 @@ def _is_service_running() -> bool:
 def _setup_weixin():
     """Interactive setup for Weixin / WeChat personal accounts."""
     print()
-    print(color("  ─── 💬 Weixin / WeChat Setup ───", Colors.CYAN))
+    print(color("  ─── Weixin / WeChat Setup ───", Colors.CYAN))
     print()
     print_info("  1. Keprix will open Tencent iLink QR login in this terminal.")
     print_info("  2. Use WeChat to scan and confirm the QR code.")
@@ -5444,7 +5451,7 @@ def _setup_weixin():
 def _setup_feishu():
     """Interactive setup for Feishu / Lark — scan-to-create or manual credentials."""
     print()
-    print(color("  ─── 🪽 Feishu / Lark Setup ───", Colors.CYAN))
+    print(color("  ─── Feishu / Lark Setup ───", Colors.CYAN))
 
     existing_app_id = get_env_value("FEISHU_APP_ID")
     existing_secret = get_env_value("FEISHU_APP_SECRET")
@@ -5627,7 +5634,7 @@ def _setup_feishu():
         print_success(f"  Home channel set to {home_channel}")
 
     print()
-    print_success("🪽 Feishu / Lark configured!")
+    print_success("Feishu / Lark configured!")
     print_info(f"  App ID: {app_id}")
     print_info(f"  Domain: {domain}")
     if bot_name:
@@ -5637,7 +5644,7 @@ def _setup_feishu():
 def _setup_qqbot():
     """Interactive setup for QQ Bot — scan-to-configure or manual credentials."""
     print()
-    print(color("  ─── 🐧 QQ Bot Setup ───", Colors.CYAN))
+    print(color("  ─── QQ Bot Setup ───", Colors.CYAN))
 
     existing_app_id = get_env_value("QQ_APP_ID")
     existing_secret = get_env_value("QQ_CLIENT_SECRET")
@@ -5756,7 +5763,7 @@ def _setup_qqbot():
             print_success(f"  Home channel set to {home_channel.strip()}")
 
     print()
-    print_success("🐧 QQ Bot configured!")
+    print_success("QQ Bot configured!")
     print_info(f"  App ID: {credentials['app_id']}")
 
 
@@ -5765,7 +5772,7 @@ def _setup_signal():
     import shutil
 
     print()
-    print(color("  ─── 📡 Signal Setup ───", Colors.CYAN))
+    print(color("  ─── Signal Setup ───", Colors.CYAN))
 
     existing_url = get_env_value("SIGNAL_HTTP_URL")
     existing_account = get_env_value("SIGNAL_ACCOUNT")
@@ -5951,9 +5958,8 @@ def _configure_platform(platform: dict) -> None:
 
     # Plugin with no setup helper — show env-var instructions.
     label = platform.get("label", platform["key"])
-    emoji = platform.get("emoji", "🔌")
     print()
-    print(color(f"  ─── {emoji} {label} Setup ───", Colors.CYAN))
+    print(color(_platform_setup_banner(platform), Colors.CYAN))
     required = entry.required_env if entry else []
     if required:
         print_info(f"  Set these env vars in ~/.keprix/.env: {', '.join(required)}")
@@ -6055,9 +6061,7 @@ def gateway_setup():
 
         platforms = _all_platforms()
 
-        menu_items = [
-            f"{p['emoji']} {p['label']}  ({_platform_status(p)})" for p in platforms
-        ]
+        menu_items = [_platform_choice_label(p) for p in platforms]
         menu_items.append("Done")
 
         choice = prompt_choice(

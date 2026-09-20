@@ -53,34 +53,34 @@ from keprix_cli.cli_output import (  # noqa: E402 — late import block
 # Each entry: (toolset_name, label, description)
 # These map to keys in toolsets.py TOOLSETS dict.
 CONFIGURABLE_TOOLSETS = [
-    ("web",             "🔍 Web Search & Scraping",    "web_search, web_extract"),
-    ("browser",         "🌐 Browser Automation",       "navigate, click, type, scroll"),
-    ("terminal",        "💻 Terminal & Processes",      "terminal, process"),
-    ("file",            "📁 File Operations",           "read, write, patch, search"),
-    ("companies_house", "🏢 Companies House (UK)",      "search:companies_house, get:company_profile"),
-    ("code_execution",  "⚡ Code Execution",            "execute_code"),
-    ("vision",          "👁️  Vision / Image Analysis",  "vision_analyze"),
-    ("video",           "🎬 Video Analysis",            "video_analyze (requires video-capable model)"),
-    ("image_gen",       "🎨 Image Generation",          "image_generate"),
-    ("video_gen",       "🎬 Video Generation",          "video_generate (text-to-video + image-to-video)"),
-    ("x_search",        "🐦 X (Twitter) Search",        "x_search (requires xAI OAuth or XAI_API_KEY)"),
-    ("moa",             "🧠 Mixture of Agents",         "mixture_of_agents"),
-    ("tts",             "🔊 Text-to-Speech",            "text_to_speech"),
-    ("skills",          "📚 Skills",                    "list, view, manage"),
-    ("todo",            "📋 Task Planning",             "todo"),
-    ("memory",          "💾 Memory",                    "persistent memory across sessions"),
-    ("context_engine",  "🧩 Context Engine",            "runtime tools from the active context engine"),
-    ("session_search",  "🔎 Session Search",            "search past conversations"),
-    ("clarify",         "❓ Clarifying Questions",      "clarify"),
-    ("delegation",      "👥 Task Delegation",           "delegate_task"),
-    ("cronjob",         "⏰ Cron Jobs",                 "create/list/update/pause/resume/run, with optional attached skills"),
-    ("messaging",       "📨 Cross-Platform Messaging",  "send_message"),
-    ("homeassistant",    "🏠 Home Assistant",           "smart home device control"),
-    ("spotify",          "🎵 Spotify",                  "playback, search, playlists, library"),
-    ("discord",         "💬 Discord (read/participate)", "fetch messages, search members, create thread"),
-    ("discord_admin",   "🛡️  Discord Server Admin",    "list channels/roles, pin, assign roles"),
-    ("yuanbao",          "🤖 Yuanbao",                  "group info, member queries, DM"),
-    ("computer_use",     "🖱️  Computer Use (macOS)",     "background desktop control via cua-driver"),
+    ("web",             "Web Search & Scraping",    "web_search, web_extract"),
+    ("browser",         "Browser Automation",       "navigate, click, type, scroll"),
+    ("terminal",        "Terminal & Processes",      "terminal, process"),
+    ("file",            "File Operations",           "read, write, patch, search"),
+    ("companies_house", "Companies House (UK)",      "search:companies_house, get:company_profile"),
+    ("code_execution",  "Code Execution",            "execute_code"),
+    ("vision",          "Vision / Image Analysis",  "vision_analyze"),
+    ("video",           "Video Analysis",            "video_analyze (requires video-capable model)"),
+    ("image_gen",       "Image Generation",          "image_generate"),
+    ("video_gen",       "Video Generation",          "video_generate (text-to-video + image-to-video)"),
+    ("x_search",        "X (Twitter) Search",        "x_search (requires xAI OAuth or XAI_API_KEY)"),
+    ("moa",             "Mixture of Agents",         "mixture_of_agents"),
+    ("tts",             "Text-to-Speech",            "text_to_speech"),
+    ("skills",          "Skills",                    "list, view, manage"),
+    ("todo",            "Task Planning",             "todo"),
+    ("memory",          "Memory",                    "persistent memory across sessions"),
+    ("context_engine",  "Context Engine",            "runtime tools from the active context engine"),
+    ("session_search",  "Session Search",            "search past conversations"),
+    ("clarify",         "Clarifying Questions",      "clarify"),
+    ("delegation",      "Task Delegation",           "delegate_task"),
+    ("cronjob",         "Cron Jobs",                 "create/list/update/pause/resume/run, with optional attached skills"),
+    ("messaging",       "Cross-Platform Messaging",  "send_message"),
+    ("homeassistant",    "Home Assistant",           "smart home device control"),
+    ("spotify",          "Spotify",                  "playback, search, playlists, library"),
+    ("discord",         "Discord (read/participate)", "fetch messages, search members, create thread"),
+    ("discord_admin",   "Discord Server Admin",    "list channels/roles, pin, assign roles"),
+    ("yuanbao",          "Yuanbao",                  "group info, member queries, DM"),
+    ("computer_use",     "Computer Use (macOS)",     "background desktop control via cua-driver"),
 ]
 
 
@@ -241,11 +241,11 @@ PLATFORMS = {
 TOOL_CATEGORIES = {
     "tts": {
         "name": "Text-to-Speech",
-        "icon": "🔊",
+        "icon": "",
         "providers": [
             {
                 "name": "Microsoft Edge TTS",
-                "badge": "★ recommended · free",
+                "badge": "recommended · free",
                 "tag": "Good quality, no API key needed",
                 "env_vars": [],
                 "tts_provider": "edge",
@@ -326,7 +326,7 @@ TOOL_CATEGORIES = {
         "name": "Web Search & Extract",
         "setup_title": "Select Search Provider",
         "setup_note": "A free DuckDuckGo search skill is also included — skip this if you don't need a premium provider.",
-        "icon": "🔍",
+        "icon": "",
         # Per-provider rows are injected at runtime from
         # plugins.web.<vendor>.provider via _plugin_web_search_providers()
         # in _visible_providers(). Only non-provider UX setup-flow rows
@@ -360,7 +360,7 @@ TOOL_CATEGORIES = {
     },
     "image_gen": {
         "name": "Image Generation",
-        "icon": "🎨",
+        "icon": "",
         # Per-provider rows for FAL.ai (`plugins/image_gen/fal`), OpenAI,
         # OpenAI Codex, and xAI are injected at runtime from each
         # ``plugins.image_gen.<vendor>`` package via
@@ -386,7 +386,7 @@ TOOL_CATEGORIES = {
     },
     "video_gen": {
         "name": "Video Generation",
-        "icon": "🎬",
+        "icon": "",
         # "Nous Subscription" row mirrors the image_gen pattern — managed
         # FAL video generation billed via the Nous Portal.  Plugin-backed
         # provider rows (FAL BYOK, xAI, …) are injected at runtime by
@@ -418,7 +418,7 @@ TOOL_CATEGORIES = {
             "already have. SuperGrok OAuth is preferred when both are set "
             "(uses your subscription quota instead of API spend)."
         ),
-        "icon": "🐦",
+        "icon": "",
         "providers": [
             {
                 "name": "xAI Grok OAuth (SuperGrok / Premium+)",
@@ -443,7 +443,7 @@ TOOL_CATEGORIES = {
     },
     "browser": {
         "name": "Browser Automation",
-        "icon": "🌐",
+        "icon": "",
         # Per-provider rows for Browserbase, Browser Use, and Firecrawl are
         # injected at runtime from plugins.browser.<vendor>.provider via
         # _plugin_browser_providers() in _visible_providers(). Only
@@ -461,7 +461,7 @@ TOOL_CATEGORIES = {
         "providers": [
             {
                 "name": "Local Browser",
-                "badge": "★ recommended · free",
+                "badge": "recommended · free",
                 "tag": "Headless Chromium, no API key needed",
                 "env_vars": [],
                 "browser_provider": "local",
@@ -493,7 +493,7 @@ TOOL_CATEGORIES = {
     },
     "homeassistant": {
         "name": "Smart Home",
-        "icon": "🏠",
+        "icon": "",
         "providers": [
             {
                 "name": "Home Assistant",
@@ -507,7 +507,7 @@ TOOL_CATEGORIES = {
     },
     "spotify": {
         "name": "Spotify",
-        "icon": "🎵",
+        "icon": "",
         "providers": [
             {
                 "name": "Spotify Web API",
@@ -519,12 +519,12 @@ TOOL_CATEGORIES = {
     },
     "computer_use": {
         "name": "Computer Use (macOS)",
-        "icon": "🖱️",
+        "icon": "",
         "platform_gate": "darwin",
         "providers": [
             {
                 "name": "cua-driver (background)",
-                "badge": "★ recommended · free · local",
+                "badge": "recommended · free · local",
                 "tag": (
                     "macOS background computer-use via SkyLight SPIs — does "
                     "NOT steal your cursor or focus. Works with any model."
@@ -540,7 +540,7 @@ TOOL_CATEGORIES = {
     },
     "langfuse": {
         "name": "Langfuse Observability",
-        "icon": "📊",
+        "icon": "",
         "providers": [
             {
                 "name": "Langfuse Cloud",
@@ -2203,7 +2203,6 @@ def _configure_tool_category(
     force_fresh: bool = True,
 ):
     """Configure a tool category with provider selection."""
-    icon = cat.get("icon", "")
     name = cat["name"]
     providers = _visible_providers(cat, config, force_fresh=force_fresh)
     hidden_nous_message = _hidden_nous_gateway_message(
@@ -2226,7 +2225,7 @@ def _configure_tool_category(
         # Single provider - configure directly
         provider = providers[0]
         print()
-        print(color(f"  --- {icon} {name} ({provider['name']}) ---", Colors.CYAN))
+        print(color(f"  --- {name} ({provider['name']}) ---", Colors.CYAN))
         if provider.get("tag"):
             _print_info(f"  {provider['tag']}")
         # For single-provider tools, show a note if available
@@ -2241,7 +2240,7 @@ def _configure_tool_category(
         print()
         # Use custom title if provided (e.g. "Select Search Provider")
         title = cat.get("setup_title", "Choose a provider")
-        print(color(f"  --- {icon} {name} - {title} ---", Colors.CYAN))
+        print(color(f"  --- {name} - {title} ---", Colors.CYAN))
         if cat.get("setup_note"):
             _print_info(f"  {cat['setup_note']}")
         if hidden_nous_message:
@@ -2284,9 +2283,9 @@ def _configure_tool_category(
             sub_marker = ""
             if p.get("managed_nous_feature"):
                 if _nous_logged_in:
-                    sub_marker = "  ★ Included with your Nous subscription"
+                    sub_marker = "  Included with your Nous subscription"
                 else:
-                    sub_marker = "  ★ via Nous Portal (login on select)"
+                    sub_marker = "  via Nous Portal (login on select)"
             provider_choices.append(f"{p['name']}{badge}{tag}{configured}{sub_marker}")
 
         # Add skip option
@@ -3112,7 +3111,6 @@ def _configure_tool_category_for_reconfig(
     force_fresh: bool = True,
 ):
     """Reconfigure a tool category - provider selection + API key update."""
-    icon = cat.get("icon", "")
     name = cat["name"]
     providers = _visible_providers(cat, config, force_fresh=force_fresh)
     hidden_nous_message = _hidden_nous_gateway_message(
@@ -3125,14 +3123,14 @@ def _configure_tool_category_for_reconfig(
     if len(providers) == 1:
         provider = providers[0]
         print()
-        print(color(f"  --- {icon} {name} ({provider['name']}) ---", Colors.CYAN))
+        print(color(f"  --- {name} ({provider['name']}) ---", Colors.CYAN))
         if hidden_nous_message:
             for line in hidden_nous_message.splitlines():
                 _print_warning(f"  {line}")
         _reconfigure_provider(provider, config, force_fresh=force_fresh)
     else:
         print()
-        print(color(f"  --- {icon} {name} - Choose a provider ---", Colors.CYAN))
+        print(color(f"  --- {name} - Choose a provider ---", Colors.CYAN))
         if hidden_nous_message:
             for line in hidden_nous_message.splitlines():
                 _print_warning(f"  {line}")
