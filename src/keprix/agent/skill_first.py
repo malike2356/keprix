@@ -278,6 +278,30 @@ class SkillFirstGate:
 
 
 def resolve_skill_first_profile(agent: Any = None) -> str:
+    """Resolve the skill-first profile, relaxed for the compact prompt profile.
+
+    Under ``agent.prompt_profile: compact`` (small local models) a
+    ``standard`` gate is downgraded to ``permissive`` (warn once, then
+    allow).  A 4B model tends to loop on the "view this skill first" error
+    instead of issuing the ``skill_view`` call, which dead-ends every tool
+    task.  Only this quality gate is relaxed: ``strict`` stays strict and
+    no other operator-policy knob (dual-use depth, package installs,
+    sandboxes, egress) is touched.
+    """
+    profile = _resolve_base_skill_first_profile(agent)
+    if profile != "standard":
+        return profile
+    try:
+        from agent.prompt_profile import is_compact_profile
+
+        if is_compact_profile():
+            return "permissive"
+    except Exception:
+        pass
+    return profile
+
+
+def _resolve_base_skill_first_profile(agent: Any = None) -> str:
     """Resolve skill-first profile from operator policy kernel (Prompt 297)."""
     if agent is not None:
         # Prefer operator-policy-derived skill_first mapping when stamped.

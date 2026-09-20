@@ -218,3 +218,61 @@ class TestLocalContextCap:
         monkeypatch.setenv("KEPRIX_MIN_CONTEXT_LENGTH", "20000")
         with _config({"compact_context_cap": 10_000}):
             assert compact_context_cap() == 20_000
+
+
+class TestSkillFirstRelaxedInCompact:
+    """Compact mode downgrades a standard skill-first gate to warn-once."""
+
+    def _agent(self, profile):
+        from types import SimpleNamespace
+
+        return SimpleNamespace(_operator_policy=SimpleNamespace(skill_first_profile=profile))
+
+    def test_full_profile_keeps_standard(self):
+        from agent.skill_first import resolve_skill_first_profile
+
+        assert resolve_skill_first_profile(self._agent("standard")) == "standard"
+
+    def test_compact_relaxes_standard_to_permissive(self, monkeypatch):
+        from agent.skill_first import resolve_skill_first_profile
+
+        monkeypatch.setenv(PROFILE_ENV_VAR, "compact")
+        assert resolve_skill_first_profile(self._agent("standard")) == "permissive"
+
+    def test_compact_never_relaxes_strict(self, monkeypatch):
+        from agent.skill_first import resolve_skill_first_profile
+
+        monkeypatch.setenv(PROFILE_ENV_VAR, "compact")
+        assert resolve_skill_first_profile(self._agent("strict")) == "strict"
+
+    def test_compact_leaves_permissive_alone(self, monkeypatch):
+        from agent.skill_first import resolve_skill_first_profile
+
+        monkeypatch.setenv(PROFILE_ENV_VAR, "compact")
+        assert resolve_skill_first_profile(self._agent("permissive")) == "permissive"
+
+    def test_gate_warns_once_then_allows_in_compact(self, monkeypatch):
+        from agent.skill_first import (
+            SkillFirstAction,
+            SkillFirstGate,
+            resolve_skill_first_profile,
+        )
+
+        monkeypatch.setenv(PROFILE_ENV_VAR, "compact")
+        catalog = [{"name": "himalaya", "description": "email headers list head"}]
+        gate = SkillFirstGate(
+            profile=resolve_skill_first_profile(self._agent("standard")),
+            skill_catalog=catalog,
+        )
+        first = gate.before_tool("terminal", {"command": "ls | head -3 himalaya"})
+        second = gate.before_tool("terminal", {"command": "ls | head -3 himalaya"})
+        assert first.action != SkillFirstAction.REQUIRE_SKILL_READ
+        assert second.action != SkillFirstAction.REQUIRE_SKILL_READ
+
+    def test_gate_still_blocks_with_full_profile(self):
+        from agent.skill_first import SkillFirstAction, SkillFirstGate
+
+        catalog = [{"name": "himalaya", "description": "email headers list head"}]
+        gate = SkillFirstGate(profile="standard", skill_catalog=catalog)
+        decision = gate.before_tool("terminal", {"command": "ls | head -3 himalaya"})
+        assert decision.action == SkillFirstAction.REQUIRE_SKILL_READ
