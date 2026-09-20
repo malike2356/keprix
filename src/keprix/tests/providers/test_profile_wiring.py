@@ -148,6 +148,7 @@ class TestOpenRouterProfileParity:
 
 
 class TestNousProfileParity:
+    pytestmark = pytest.mark.skip(reason="Nous Portal provider was removed")
     def test_tags(self, transport):
         legacy = transport.build_kwargs(
             model="keprix-3", messages=_msgs(), tools=None, provider_profile=get_provider_profile("nous"),
@@ -277,6 +278,7 @@ class TestRequestOverridesParity:
         assert kw["extra_body"]["custom_key"] == "custom_val"
 
     def test_extra_body_override_merges_with_provider_body(self, transport):
+        pytest.skip("Nous Portal provider was removed")
         """Override extra_body merges WITH provider extra_body, not replaces."""
         from agent.portal_tags import nous_portal_tags
         kw = transport.build_kwargs(

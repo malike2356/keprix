@@ -2951,9 +2951,12 @@ def run_setup_wizard(args):
         )
         return
 
-    # --portal: one-shot Nous Portal setup. Skips the rest of the wizard.
+    # --portal was removed with Nous Portal. Ignore leftover flag if present.
     if bool(getattr(args, "portal", False)):
-        _run_portal_one_shot(config)
+        print_error(
+            "Nous Portal was removed from Keprix. "
+            "Run `keprix setup` and pick a BYOK provider (DeepSeek, OpenRouter, ...)."
+        )
         return
 
     # Check if a specific section was requested
@@ -3068,18 +3071,7 @@ def run_setup_wizard(args):
         if migration_ran:
             config = load_config()
 
-        setup_mode = prompt_choice(
-            "How would you like to set up Keprix?",
-            [
-                "Quick Setup (Nous Portal) — free OAuth login, no API keys, model + tools (recommended)",
-                "Full setup — configure every provider, tool & option yourself (bring your own keys)",
-            ],
-            0,
-        )
-
-        if setup_mode == 0:
-            _run_first_time_quick_setup(config, keprix_home, is_existing)
-            return
+        # First-time setup is BYOK. Nous Portal is not a Keprix provider.
 
     # ── Full Setup — run all sections ──
     print_header("Configuration Location")

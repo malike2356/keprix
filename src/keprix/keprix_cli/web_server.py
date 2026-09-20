@@ -5012,14 +5012,6 @@ def _claude_code_only_status() -> Dict[str, Any]:
 # to a third-party CLI like Claude Code or Qwen).
 _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
     {
-        "id": "nous",
-        "name": "Nous Portal",
-        "flow": "device_code",
-        "cli_command": "keprix auth add nous",
-        "docs_url": "https://portal.nousresearch.com",
-        "status_fn": None,  # dispatched via auth.get_nous_auth_status
-    },
-    {
         "id": "openai-codex",
         "name": "OpenAI OAuth (ChatGPT)",
         "flow": "device_code",
@@ -5563,6 +5555,14 @@ async def _start_device_code_flow(
     so the UI can render the verification page link + user code.
     """
     if provider_id == "nous":
+        return {
+            "ok": False,
+            "status": "error",
+            "message": (
+                "Nous Portal was removed from Keprix. "
+                "Use `keprix model` with a BYOK provider."
+            ),
+        }
         from keprix_cli.auth import (
             _request_device_code,
             PROVIDER_REGISTRY,
@@ -11565,15 +11565,17 @@ def start_server(
             # without it the operator would only see "no providers" which
             # is misleading when the provider IS installed but unconfigured.
             skip_reasons: list[str] = []
-            try:
-                from plugins.dashboard_auth import nous as _nous_plugin
-
-                if _nous_plugin.LAST_SKIP_REASON:
-                    skip_reasons.append(
-                        f"  • nous: {_nous_plugin.LAST_SKIP_REASON}"
+            for _plugin_name in ("basic", "self_hosted"):
+                try:
+                    _mod = __import__(
+                        f"plugins.dashboard_auth.{_plugin_name}",
+                        fromlist=["LAST_SKIP_REASON"],
                     )
-            except Exception:
-                pass
+                    reason = getattr(_mod, "LAST_SKIP_REASON", None)
+                    if reason:
+                        skip_reasons.append(f"  • {_plugin_name}: {reason}")
+                except Exception:
+                    pass
 
             if skip_reasons:
                 raise SystemExit(
@@ -11592,7 +11594,7 @@ def start_server(
                 f"Refusing to bind dashboard to {host} — the OAuth auth "
                 f"gate engages on non-loopback binds, but no auth providers "
                 f"are registered and no bundled plugin reported a reason "
-                f"(was the dashboard_auth/nous plugin removed?).\n"
+                f"(was a dashboard_auth plugin removed?).\n"
                 f"Install a DashboardAuthProvider plugin, or pass --insecure "
                 f"to skip the auth gate (NOT recommended on untrusted "
                 f"networks)."

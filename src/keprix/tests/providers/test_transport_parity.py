@@ -196,6 +196,7 @@ class TestOpenRouterParity:
 
 
 class TestNousParity:
+    pytestmark = pytest.mark.skip(reason="Nous Portal provider was removed")
     """Nous: product tags, reasoning, omit when disabled."""
 
     def test_tags(self, transport):

@@ -1579,6 +1579,8 @@ def resolve_provider(
     try:
         auth_store = _load_auth_store()
         active = auth_store.get("active_provider")
+        if active == "nous":
+            active = None
         if active and active in PROVIDER_REGISTRY:
             status = get_auth_status(active)
             if status.get("logged_in"):
@@ -1631,8 +1633,8 @@ def resolve_provider(
 
     raise AuthError(
         "No inference provider configured. Run 'keprix model' to choose a "
-        "provider and model, or set an API key (OPENROUTER_API_KEY, "
-        "OPENAI_API_KEY, etc.) in ~/.keprix/.env.",
+        "provider and model, or set an API key (DEEPSEEK_API_KEY, "
+        "OPENROUTER_API_KEY, OPENAI_API_KEY, etc.) in ~/.keprix/.env.",
         code="no_provider_configured",
     )
 
@@ -5551,15 +5553,14 @@ def resolve_nous_runtime_credentials(
     ca_bundle: Optional[str] = None,
     force_refresh: bool = False,
 ) -> Dict[str, Any]:
-    """
-    Resolve Nous inference credentials for runtime use.
-
-    Ensures access_token is a valid inference-scoped JWT, refreshing it when
-    needed. Concurrent processes coordinate through the auth store file lock.
-
-    Returns dict with: provider, base_url, api_key, key_id, expires_at,
-    expires_in, source ("invoke_jwt"), and auth_path.
-    """
+    """Nous Portal was removed from Keprix."""
+    raise AuthError(
+        "Nous Portal was removed from Keprix. Run `keprix model` and use your "
+        "own API keys (DeepSeek, OpenRouter, OpenAI, Anthropic).",
+        provider="nous",
+        code="provider_removed",
+        relogin_required=False,
+    )
     sequence_id = uuid.uuid4().hex[:12]
 
     with _auth_store_lock():
@@ -5889,20 +5890,12 @@ def invalidate_nous_auth_status_cache() -> None:
 
 
 def get_nous_auth_status() -> Dict[str, Any]:
-    """Status snapshot for Nous auth.
-
-    Prefer the auth-store provider state, because that is the live source of
-    truth for refresh operations. When provider state exists, validate it
-    by resolving runtime credentials so revoked refresh sessions do not show up
-    as a healthy login. If provider state is absent, fall back to the credential
-    pool for the just-logged-in / not-yet-promoted case.
-
-    The returned snapshot is memoised for ~15s keyed on the auth.json mtime,
-    so menu/status surfaces that ask repeatedly don't trigger one refresh POST
-    per call. Login/logout flows write to auth.json and therefore invalidate
-    the cache automatically; tests can also call
-    ``invalidate_nous_auth_status_cache()`` explicitly.
-    """
+    """Nous Portal was removed. Always report logged out."""
+    return {
+        "logged_in": False,
+        "error": "Nous Portal was removed from Keprix. Use `keprix model` with a BYOK provider.",
+        "error_code": "provider_removed",
+    }
     global _nous_auth_status_cache
     now = time.monotonic()
     auth_file_key, mtime = _auth_file_cache_key()
@@ -7931,6 +7924,11 @@ def _nous_device_code_login(
 
 
 def _login_nous(args, pconfig: ProviderConfig) -> None:
+    """Nous Portal was removed from Keprix."""
+    del args, pconfig
+    print("Nous Portal was removed from Keprix.")
+    print("Use `keprix model` and bring your own API keys (DeepSeek, OpenRouter, OpenAI, Anthropic).")
+    raise SystemExit(1)
     """Nous Portal device authorization flow."""
     timeout_seconds = getattr(args, "timeout", None) or 15.0
     insecure = bool(getattr(args, "insecure", False))

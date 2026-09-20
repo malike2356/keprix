@@ -237,6 +237,7 @@ class TestChatCompletionsBuildKwargs:
         ]
 
     def test_nous_tags(self, transport):
+        pytest.skip("Nous Portal provider was removed")
         from agent.portal_tags import nous_portal_tags
         from providers import get_provider_profile
         profile = get_provider_profile("nous")
@@ -253,6 +254,7 @@ class TestChatCompletionsBuildKwargs:
         assert kw["extra_body"]["reasoning"] == {"enabled": True, "effort": "medium"}
 
     def test_nous_omits_disabled_reasoning(self, transport):
+        pytest.skip("Nous Portal provider was removed")
         from providers import get_provider_profile
         profile = get_provider_profile("nous")
         msgs = [{"role": "user", "content": "Hi"}]
@@ -986,6 +988,7 @@ class TestChatCompletionsCacheStats:
 
 
 class TestChatCompletionsGeminiNativeExtraBodyStrip:
+    pytestmark = pytest.mark.skip(reason="Nous Portal provider was removed")
     """Profile extra_body (e.g. Nous portal tags) must not reach a native
     Gemini endpoint — Google's REST API rejects unknown fields with HTTP 400.
     """

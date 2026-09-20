@@ -51,6 +51,8 @@ def test_auxiliary_client_nous_extra_body_uses_helper():
 
 
 def test_nous_provider_profile_uses_helper():
+    import pytest
+    pytest.skip("Nous Portal provider was removed")
     """The Nous provider profile (main agent loop) must use the canonical tags."""
     from agent.portal_tags import nous_portal_tags
     from providers import get_provider_profile

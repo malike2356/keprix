@@ -44,27 +44,18 @@ class TestNameGenerator:
 
 class TestFastFails:
     def test_not_logged_in_exits_1_with_setup_hint(self, capsys):
-        from keprix_cli.auth import AuthError
-
-        err = AuthError("not logged in", provider="nous", relogin_required=True)
-        with patch.object(dr, "cmd_dashboard_register", dr.cmd_dashboard_register):
-            with patch(
-                "keprix_cli.auth.resolve_nous_access_token", side_effect=err
-            ), patch("keprix_cli.config.is_managed", return_value=False):
-                with pytest.raises(SystemExit) as exc:
-                    dr.cmd_dashboard_register(_ns())
+        with pytest.raises(SystemExit) as exc:
+            dr.cmd_dashboard_register(_ns())
         assert exc.value.code == 1
         out = capsys.readouterr().out
-        assert "not logged into Nous Portal" in out
-        assert "keprix setup" in out
+        assert "removed" in out.lower()
 
     def test_managed_install_refuses(self, capsys):
-        with patch("keprix_cli.config.is_managed", return_value=True):
-            with pytest.raises(SystemExit) as exc:
-                dr.cmd_dashboard_register(_ns())
+        with pytest.raises(SystemExit) as exc:
+            dr.cmd_dashboard_register(_ns())
         assert exc.value.code == 1
         out = capsys.readouterr().out
-        assert "not available in a managed" in out
+        assert "removed" in out.lower()
 
 
 def _fake_http_ok(payload: dict):
@@ -75,6 +66,7 @@ def _fake_http_ok(payload: dict):
 
 
 class TestHappyPath:
+    pytestmark = pytest.mark.skip(reason="Nous Portal dashboard registration was removed")
     def _run(self, *, args, account_token="tok_abc", portal="https://portal.nousresearch.com",
              response=None, captured=None, existing_client_id=None):
         response = response or {
@@ -279,6 +271,7 @@ class TestIdempotentRerun(TestHappyPath):
 
 
 class TestCustomPortalPersistence:
+    pytestmark = pytest.mark.skip(reason="Nous Portal dashboard registration was removed")
     """`--portal-url` / KEPRIX_DASHBOARD_PORTAL_URL is persisted to .env.
 
     An *explicitly supplied* custom portal URL is an intentional choice the
@@ -396,6 +389,7 @@ class TestCustomPortalPersistence:
 
 
 class TestPublicUrlPersistence:
+    pytestmark = pytest.mark.skip(reason="Nous Portal dashboard registration was removed")
     """`--redirect-uri` derives & persists KEPRIX_DASHBOARD_PUBLIC_URL in .env.
 
     --redirect-uri is the full public callback (e.g.
@@ -555,6 +549,7 @@ class TestPublicUrlPersistence:
 
 
 class TestPortalResolution:
+    pytestmark = pytest.mark.skip(reason="Nous Portal dashboard registration was removed")
     def test_override_arg_wins(self):
         assert (
             dr._resolve_portal_base_url("https://preview.example.com/")
@@ -583,6 +578,7 @@ class TestPortalResolution:
 
 
 class TestPortalErrors:
+    pytestmark = pytest.mark.skip(reason="Nous Portal dashboard registration was removed")
     def _run_http_error(self, code, body):
         err = urllib.error.HTTPError(
             url="https://portal.nousresearch.com/api/oauth/self-hosted-client",

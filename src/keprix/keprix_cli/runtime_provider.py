@@ -1215,6 +1215,13 @@ def _resolve_explicit_runtime(
         }
 
     if provider == "nous":
+        raise AuthError(
+            "Nous Portal was removed from Keprix. Run `keprix model` and use "
+            "your own API keys (DeepSeek, OpenRouter, OpenAI, Anthropic).",
+            provider="nous",
+            code="provider_removed",
+            relogin_required=False,
+        )
         state = auth_mod.get_provider_auth_state("nous") or {}
         base_url = (
             explicit_base_url
@@ -1425,6 +1432,14 @@ def resolve_runtime_provider(
         # non-runtime contexts like `keprix auth list`).  If the key is
         # expired, clear pool_api_key so we fall through to
         # resolve_nous_runtime_credentials() which handles refresh.
+        if provider == "nous":
+            raise AuthError(
+                "Nous Portal was removed from Keprix. Run `keprix model` and use "
+                "your own API keys (DeepSeek, OpenRouter, OpenAI, Anthropic).",
+                provider="nous",
+                code="provider_removed",
+                relogin_required=False,
+            )
         if provider == "nous" and entry is not None and pool_api_key:
             min_ttl = max(60, env_int("KEPRIX_NOUS_MIN_KEY_TTL_SECONDS", 1800))
             nous_state = {
@@ -1446,6 +1461,13 @@ def resolve_runtime_provider(
             )
 
     if provider == "nous":
+        raise AuthError(
+            "Nous Portal was removed from Keprix. Run `keprix model` and use "
+            "your own API keys (DeepSeek, OpenRouter, OpenAI, Anthropic).",
+            provider="nous",
+            code="provider_removed",
+            relogin_required=False,
+        )
         try:
             creds = resolve_nous_runtime_credentials(
                 timeout_seconds=float(os.getenv("KEPRIX_NOUS_TIMEOUT_SECONDS", "15")),

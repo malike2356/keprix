@@ -21,12 +21,9 @@ def build_login_parser(subparsers, *, cmd_login: Callable) -> None:
     )
     login_parser.add_argument(
         "--provider",
-        choices=["nous", "openai-codex", "xai-oauth"],
+        choices=["openai-codex", "xai-oauth"],
         default=None,
-        help="Provider to authenticate with (default: nous)",
-    )
-    login_parser.add_argument(
-        "--portal-url", help="Portal base URL (default: production portal)"
+        help="Provider to authenticate with",
     )
     login_parser.add_argument(
         "--inference-url",

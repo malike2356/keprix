@@ -36,7 +36,7 @@ def cmd_proxy_start(args: Any) -> int:
         _print_aiohttp_missing()
         return 1
 
-    provider = getattr(args, "provider", None) or "nous"
+    provider = getattr(args, "provider", None) or "xai"
     try:
         adapter = get_adapter(provider)
     except ValueError as exc:

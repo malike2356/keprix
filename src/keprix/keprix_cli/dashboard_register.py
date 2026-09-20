@@ -228,6 +228,14 @@ def _print_post_register_hint(
 
 
 def cmd_dashboard_register(args) -> None:
+    """Nous Portal dashboard registration was removed."""
+    del args
+    print(
+        "Nous Portal dashboard registration was removed from Keprix. "
+        "Use KEPRIX_ADMIN_EMAIL / KEPRIX_ADMIN_PASSWORD (basic auth) "
+        "or a self-hosted OIDC provider."
+    )
+    raise SystemExit(1)
     """Register a self-hosted dashboard OAuth client with Nous Portal."""
     from keprix_cli.auth import AuthError, resolve_nous_access_token
     from keprix_cli.config import get_env_value, is_managed, save_env_value

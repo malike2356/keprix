@@ -2033,44 +2033,11 @@ def _visible_providers(
 ) -> list[dict]:
     """Return provider entries visible for the current auth/config state.
 
-    Nous-managed Tool Gateway rows (``managed_nous_feature``) are always
-    shown — even to logged-out / unentitled users — so the picker advertises
-    that the capability exists.  Selecting one drives an inline Nous Portal
-    login + entitlement check (see ``_configure_provider``); the row only
-    *activates* the gateway once paid access is confirmed.
+    Nous Portal Tool Gateway rows are not offered. Use BYOK backends.
     """
-    features = get_nous_subscription_features(config, force_fresh=force_fresh)
-    acct = features.account_info
-    # Pool-only users (entitled to managed tools via the free tool pool but with
-    # no paid access) get image gen but NOT video gen — the pool doesn't fund
-    # `fal-video`. Rather than advertise a managed video row that would be denied
-    # on select, hide it for them. Logged-out users still see it (advertising)
-    # and paid users are entitled to it.
-    pool_only = bool(
-        acct
-        and acct.logged_in
-        and acct.paid_service_access is not True
-        and acct.tool_gateway_entitled
-    )
     visible = []
     for provider in cat.get("providers", []):
-        # Nous-managed Tool Gateway rows stay visible regardless of auth —
-        # selecting one drives an inline Portal login. A `requires_nous_auth`
-        # row that is NOT a managed gateway feature (pure pre-auth UX) is
-        # still hidden until the user is logged in.
-        if (
-            provider.get("requires_nous_auth")
-            and not provider.get("managed_nous_feature")
-            and not features.nous_auth_present
-        ):
-            continue
-        # Hide the managed video-gen row from pool-only users — their free tool
-        # pool doesn't cover video, so showing it would only lead to a denial.
-        if (
-            pool_only
-            and provider.get("managed_nous_feature") == "video_gen"
-            and not (acct and acct.tool_gateway_entitled_for("fal-video"))
-        ):
+        if provider.get("managed_nous_feature") or provider.get("requires_nous_auth"):
             continue
         visible.append(provider)
 

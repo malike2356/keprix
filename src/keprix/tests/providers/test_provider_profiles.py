@@ -1,5 +1,6 @@
 """Tests for the provider module registry and profiles."""
 
+import pytest
 from providers import get_provider_profile, _REGISTRY
 from providers.base import ProviderProfile, OMIT_TEMPERATURE
 
@@ -15,7 +16,6 @@ class TestRegistry:
         assert get_provider_profile("moonshot").name == "kimi-coding"
         assert get_provider_profile("kimi-coding-cn").name == "kimi-coding-cn"
         assert get_provider_profile("or").name == "openrouter"
-        assert get_provider_profile("nous-portal").name == "nous"
         assert get_provider_profile("qwen").name == "qwen-oauth"
         assert get_provider_profile("qwen-portal").name == "qwen-oauth"
 
@@ -408,6 +408,7 @@ class TestOpenRouterProfile:
 
 
 class TestNousProfile:
+    pytestmark = pytest.mark.skip(reason="Nous Portal provider was removed")
     def test_tags(self):
         from agent.portal_tags import nous_portal_tags
         p = get_provider_profile("nous")

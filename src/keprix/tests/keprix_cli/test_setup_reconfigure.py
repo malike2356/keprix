@@ -184,22 +184,28 @@ class TestQuickFlag:
 
 
 class TestFreshInstall:
-    """On a fresh install (no active provider), flags are no-ops."""
+    """On a fresh install (no active provider), setup is BYOK full wizard."""
 
-    def test_bare_setup_runs_first_time_flow(self, fresh_install):
+    def test_bare_setup_runs_full_byok_wizard(self, fresh_install):
         args = _make_setup_args()
 
         with ExitStack() as stack:
             m = _enter_fresh_install_patches(
                 stack,
-                prompt=("keprix_cli.setup.prompt_choice", {"return_value": 0}),
-                first="keprix_cli.setup._run_first_time_quick_setup",
+                prompt="keprix_cli.setup.prompt_choice",
+                model="keprix_cli.setup.setup_model_provider",
+                terminal="keprix_cli.setup.setup_terminal_backend",
+                gateway="keprix_cli.setup.setup_gateway",
+                tools="keprix_cli.setup.setup_tools",
             )
             from keprix_cli.setup import run_setup_wizard
             run_setup_wizard(args)
 
-        m["prompt"].assert_called_once()  # quick-vs-full prompt
-        m["first"].assert_called_once()
+        m["prompt"].assert_not_called()
+        m["model"].assert_called_once()
+        m["terminal"].assert_called_once()
+        m["gateway"].assert_called_once()
+        m["tools"].assert_called_once()
 
     def test_reconfigure_on_fresh_install_falls_through(self, fresh_install):
         args = _make_setup_args(reconfigure=True)
@@ -207,14 +213,17 @@ class TestFreshInstall:
         with ExitStack() as stack:
             m = _enter_fresh_install_patches(
                 stack,
-                prompt=("keprix_cli.setup.prompt_choice", {"return_value": 0}),
-                first="keprix_cli.setup._run_first_time_quick_setup",
+                prompt="keprix_cli.setup.prompt_choice",
+                model="keprix_cli.setup.setup_model_provider",
+                terminal="keprix_cli.setup.setup_terminal_backend",
+                gateway="keprix_cli.setup.setup_gateway",
+                tools="keprix_cli.setup.setup_tools",
             )
             from keprix_cli.setup import run_setup_wizard
             run_setup_wizard(args)
 
-        m["prompt"].assert_called_once()
-        m["first"].assert_called_once()
+        m["prompt"].assert_not_called()
+        m["model"].assert_called_once()
 
     def test_quick_on_fresh_install_falls_through(self, fresh_install):
         args = _make_setup_args(quick=True)
@@ -222,14 +231,17 @@ class TestFreshInstall:
         with ExitStack() as stack:
             m = _enter_fresh_install_patches(
                 stack,
-                prompt=("keprix_cli.setup.prompt_choice", {"return_value": 0}),
-                first="keprix_cli.setup._run_first_time_quick_setup",
+                prompt="keprix_cli.setup.prompt_choice",
+                model="keprix_cli.setup.setup_model_provider",
+                terminal="keprix_cli.setup.setup_terminal_backend",
+                gateway="keprix_cli.setup.setup_gateway",
+                tools="keprix_cli.setup.setup_tools",
             )
             from keprix_cli.setup import run_setup_wizard
             run_setup_wizard(args)
 
-        m["prompt"].assert_called_once()
-        m["first"].assert_called_once()
+        m["prompt"].assert_not_called()
+        m["model"].assert_called_once()
 
 
 class TestArgparse:

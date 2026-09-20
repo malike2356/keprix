@@ -320,13 +320,43 @@ def _resolve_browser_feature_state(
     return "local", available, active, False
 
 
+def _removed_feature(key: str, label: str) -> NousFeatureState:
+    return NousFeatureState(
+        key=key,
+        label=label,
+        included_by_default=False,
+        available=False,
+        active=False,
+        managed_by_nous=False,
+        direct_override=False,
+        toolset_enabled=False,
+    )
+
+
 def get_nous_subscription_features(
     config: Optional[Dict[str, object]] = None,
     *,
     force_fresh: bool = False,
 ) -> NousSubscriptionFeatures:
-    if config is None:
-        config = load_config() or {}
+    del config, force_fresh
+    return NousSubscriptionFeatures(
+        subscribed=False,
+        nous_auth_present=False,
+        provider_is_nous=False,
+        features={
+            "web": _removed_feature("web", "Web"),
+            "image_gen": _removed_feature("image_gen", "Image generation"),
+            "video_gen": _removed_feature("video_gen", "Video generation"),
+            "tts": _removed_feature("tts", "TTS"),
+            "stt": _removed_feature("stt", "STT"),
+            "browser": _removed_feature("browser", "Browser"),
+            "modal": _removed_feature("modal", "Modal"),
+        },
+        account_info=None,
+    )
+    if False:  # unreachable; original body kept below for git blame only
+        if config is None:
+            config = load_config() or {}
     config = dict(config)
     model_cfg = _model_config_dict(config)
     provider_is_nous = str(model_cfg.get("provider") or "").strip().lower() == "nous"
@@ -1047,6 +1077,9 @@ def prompt_enable_tool_gateway(
     *,
     force_fresh: bool = True,
 ) -> set[str]:
+    """Nous Tool Gateway was removed. Never prompt."""
+    del config, force_fresh
+    return set()
     """If eligible tools exist, prompt the user (per tool) to enable the Tool
     Gateway.
 
@@ -1134,6 +1167,9 @@ def ensure_nous_portal_access(
     capability: str = "the Nous Tool Gateway",
     coverage_category: Optional[str] = None,
 ) -> bool:
+    """Nous Portal was removed. Never entitle or start OAuth."""
+    del capability, coverage_category
+    return False
     """Make sure the user is entitled to the Nous Tool Gateway, logging in if
     needed.
 

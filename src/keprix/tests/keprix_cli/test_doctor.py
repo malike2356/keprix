@@ -1212,7 +1212,6 @@ class TestDoctorXaiOAuthStatus:
         monkeypatch.setitem(sys.modules, "model_tools", fake_model_tools)
 
         from keprix_cli import auth as _auth_mod
-        monkeypatch.setattr(_auth_mod, "get_nous_auth_status", lambda: {"logged_in": True})
         monkeypatch.setattr(_auth_mod, "get_codex_auth_status", lambda: {"logged_in": False})
         monkeypatch.setattr(_auth_mod, "get_gemini_oauth_auth_status", lambda: {"logged_in": False})
         monkeypatch.setattr(_auth_mod, "get_minimax_oauth_auth_status", lambda: {"logged_in": False})
@@ -1222,8 +1221,8 @@ class TestDoctorXaiOAuthStatus:
         with contextlib.redirect_stdout(buf):
             doctor_mod.run_doctor(Namespace(fix=False))
         out = buf.getvalue()
-        assert "Nous Portal auth" in out
-        assert "logged in" in out
+        assert "Nous Portal auth" not in out
+        assert "OpenAI Codex auth" in out
 
     def test_function_raises_does_not_crash_doctor(self, monkeypatch, tmp_path):
         """A runtime exception from get_xai_oauth_auth_status must be swallowed."""

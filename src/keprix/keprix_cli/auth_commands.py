@@ -34,7 +34,7 @@ from keprix_cli.secret_prompt import masked_secret_prompt
 
 
 # Providers that support OAuth login in addition to API keys.
-_OAUTH_CAPABLE_PROVIDERS = {"anthropic", "nous", "openai-codex", "xai-oauth", "qwen-oauth", "google-gemini-cli", "minimax-oauth"}
+_OAUTH_CAPABLE_PROVIDERS = {"anthropic", "openai-codex", "xai-oauth", "qwen-oauth", "google-gemini-cli", "minimax-oauth"}
 
 
 def _get_custom_provider_names() -> list:
@@ -248,6 +248,12 @@ def auth_add_command(args) -> None:
         return
 
     if provider == "nous":
+        print(
+            "Nous Portal was removed from Keprix. "
+            "Use `keprix model` and bring your own API keys "
+            "(DeepSeek, OpenRouter, OpenAI, Anthropic)."
+        )
+        return
         # Codex-style auto-import: if a shared Nous credential lives at
         # <keprix-root>/shared/nous_auth.json (written by any previous
         # successful login), offer to import it instead of running the

@@ -3046,8 +3046,6 @@ def select_provider_and_model(args=None):
     # Step 2: Provider-specific setup + model selection
     if selected_provider == "openrouter":
         _model_flow_openrouter(config, current_model)
-    elif selected_provider == "nous":
-        _model_flow_nous(config, current_model, args=args)
     elif selected_provider == "openai-codex":
         _model_flow_openai_codex(config, current_model)
     elif selected_provider == "xai-oauth":
@@ -11024,10 +11022,13 @@ def cmd_dashboard(args):
 
 
 def cmd_dashboard_register(args):
-    """Register a self-hosted dashboard OAuth client with Nous Portal."""
-    from keprix_cli.dashboard_register import cmd_dashboard_register as _impl
-
-    _impl(args)
+    """Nous Portal dashboard registration was removed."""
+    print(
+        "Nous Portal dashboard registration was removed from Keprix. "
+        "Use KEPRIX_ADMIN_EMAIL / KEPRIX_ADMIN_PASSWORD (basic auth) "
+        "or a self-hosted OIDC provider."
+    )
+    raise SystemExit(1)
 
 
 def cmd_completion(args, parser=None):
@@ -11086,7 +11087,7 @@ _BUILTIN_SUBCOMMANDS = frozenset(
         "health", "proposals", "reject", "repair", "readiness", "rollback",
         "dump", "fallback", "gateway", "hooks", "import", "insights",
         "gui", "desktop", "kanban", "login", "logout", "logs", "lsp", "mcp", "memory", "migrate",
-        "model", "pairing", "plugins", "portal", "postinstall", "profile", "proxy",
+        "model", "pairing", "plugins", "postinstall", "profile", "proxy",
         "prompt-size",
         "send", "sessions", "setup",
         "skills", "slack", "status", "tools", "uninstall", "update", "upgrade",
@@ -11843,12 +11844,6 @@ def main():
     # webhook command  (parser built in keprix_cli/subcommands/webhook.py)
     # =========================================================================
     build_webhook_parser(subparsers, cmd_webhook=cmd_webhook)
-
-    # =========================================================================
-    # portal command — Nous Portal status + Tool Gateway routing
-    # =========================================================================
-    from keprix_cli.portal_cli import add_parser as _add_portal_parser
-    _add_portal_parser(subparsers)
 
     # =========================================================================
     # kanban command — multi-profile collaboration board
