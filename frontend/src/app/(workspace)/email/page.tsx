@@ -253,8 +253,12 @@ export default function EmailPage() {
             <SkeletonList rows={8} rowHeight={64} />
           ) : messages.length === 0 ? (
             <EmptyState
-              title="Inbox is empty"
-              description="Connect Gmail or another IMAP account, then Sync now."
+              title={accounts.length ? "No messages yet" : "Inbox is empty"}
+              description={
+                accounts.length
+                  ? "Sync now to pull mail from the connected IMAP account."
+                  : "Connect Gmail or another IMAP account, then Sync now."
+              }
               icon={<EmailIcon sx={{ fontSize: 40 }} />}
               actionLabel="Sync inbox"
               onAction={() => void handleSync()}

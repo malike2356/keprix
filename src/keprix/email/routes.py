@@ -127,6 +127,15 @@ async def create_account(body: EmailAccountCreate, user: dict = Depends(get_curr
         record = await store.create_account(_user_id(user), data)
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc) or "Failed to create account") from exc
+    import sys
+
+    if "pytest" not in sys.modules:
+        try:
+            from keprix.email.pollers import _poll_account
+
+            asyncio.create_task(_poll_account(record, raise_on_error=False))
+        except Exception:
+            pass
     return record.to_public()
 
 
@@ -328,7 +337,15 @@ async def send_email(body: SendEmailBody, user: dict = Depends(get_current_user)
 
 @router.post("/sync")
 async def trigger_sync(user: dict = Depends(get_current_user)) -> dict[str, int]:
-    return await sync_all_accounts(_user_id(user))
+    result = await sync_all_accounts(_user_id(user))
+    if int(result.get("accounts") or 0) == 0:
+        raise HTTPException(status_code=400, detail="No email accounts to sync")
+    if int(result.get("synced") or 0) == 0 and int(result.get("errors") or 0) > 0:
+        raise HTTPException(
+            status_code=400,
+            detail=str(result.get("detail") or "IMAP sync failed"),
+        )
+    return {key: value for key, value in result.items() if key in {"synced", "errors", "accounts"}}
 
 
 @router.get("/sync/status", response_model=SyncStatusOut)

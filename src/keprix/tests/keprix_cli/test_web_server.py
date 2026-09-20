@@ -2129,6 +2129,27 @@ class TestWebServerEndpoints:
         titles = [row["title"] for row in listed.json()["items"]]
         assert "Scratch" in titles
 
+    def test_dashboard_starts_email_poller(self, monkeypatch):
+        """keprix dashboard must poll IMAP; CE starts this, the dashboard did not."""
+        from starlette.testclient import TestClient
+        import keprix.email.pollers as pollers
+        from keprix_cli.web_server import app
+
+        started = {"email": False}
+
+        def fake_start():
+            started["email"] = True
+            return None
+
+        async def fake_stop():
+            return None
+
+        monkeypatch.setattr(pollers, "start_email_poller", fake_start)
+        monkeypatch.setattr(pollers, "stop_email_poller", fake_stop)
+        with TestClient(app):
+            pass
+        assert started["email"] is True
+
     def test_crm_overview_endpoints_on_dashboard(self, tmp_path, monkeypatch):
         """CRM overview and nav pages rewrite /api/crm/* to the dashboard."""
         from starlette.testclient import TestClient

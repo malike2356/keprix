@@ -158,6 +158,13 @@ async def _lifespan(app: "FastAPI"):
         logging.getLogger(__name__).exception("calendar auto-sync scheduler failed to start")
 
     try:
+        from keprix.email.pollers import start_email_poller
+
+        start_email_poller()
+    except Exception:
+        logging.getLogger(__name__).exception("email IMAP poller failed to start")
+
+    try:
         yield
     finally:
         if cron_stop is not None:
@@ -166,6 +173,12 @@ async def _lifespan(app: "FastAPI"):
             from keprix.workspace.calendar_sync_scheduler import stop_calendar_sync_scheduler
 
             await stop_calendar_sync_scheduler()
+        except Exception:
+            pass
+        try:
+            from keprix.email.pollers import stop_email_poller
+
+            await stop_email_poller()
         except Exception:
             pass
 

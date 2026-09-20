@@ -229,3 +229,46 @@ def test_pg_list_accounts_returns_none_on_connect_error(monkeypatch):
 
     monkeypatch.setattr(email_repo, "get_session_factory", lambda: Boom)
     assert asyncio.run(email_repo.pg_list_accounts("u1")) is None
+
+
+def test_sync_reports_imap_failure(monkeypatch):
+    import asyncio
+
+    from keprix.email.pollers import sync_all_accounts
+    from keprix.email.store import EmailAccountRecord, _utcnow
+
+    account = EmailAccountRecord(
+        id="acc-1",
+        user_id="u1",
+        label="Gmail",
+        email_address="me@gmail.com",
+        imap_host="imap.gmail.com",
+        imap_port=993,
+        smtp_host="smtp.gmail.com",
+        smtp_port=587,
+        username="me@gmail.com",
+        password_encrypted="",
+        use_tls=True,
+        use_starttls=True,
+        poll_interval_seconds=300,
+        last_polled_at=None,
+        is_active=True,
+        created_at=_utcnow(),
+    )
+
+    class Store:
+        async def list_active_accounts(self):
+            return [account]
+
+    monkeypatch.setattr("keprix.email.pollers.get_email_store", lambda: Store())
+
+    async def boom(_account, *, raise_on_error=False):
+        if raise_on_error:
+            raise RuntimeError("AUTHENTICATIONFAILED")
+        return 0
+
+    monkeypatch.setattr("keprix.email.pollers._poll_account", boom)
+    result = asyncio.run(sync_all_accounts("u1"))
+    assert result["errors"] == 1
+    assert result["synced"] == 0
+    assert "AUTHENTICATIONFAILED" in str(result["detail"])

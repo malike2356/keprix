@@ -40,13 +40,16 @@ def account_is_due(account: Any, *, now: datetime | None = None) -> bool:
     return last + timedelta(seconds=interval) <= now
 
 
-async def _poll_account(account: Any) -> int:
+async def _poll_account(account: Any, *, raise_on_error: bool = False) -> int:
     store = get_email_store()
     try:
         account_conn = await resolve_account_connection(account)
         messages = await asyncio.to_thread(fetch_new_messages, account_conn)
-    except Exception:
+    except Exception as exc:
         logger.exception("IMAP poll failed for account %s", getattr(account, "id", "?"))
+        if raise_on_error:
+            raise
+        _ = exc
         return 0
     new_count = 0
     refreshed = await store.get_account(account.id, account.user_id)
@@ -103,17 +106,27 @@ async def stop_email_poller() -> None:
     _stop_event = None
 
 
-async def sync_all_accounts(user_id: str | None = None) -> dict[str, int]:
+async def sync_all_accounts(user_id: str | None = None) -> dict[str, int | str | list[str]]:
     store = get_email_store()
     accounts = await store.list_active_accounts()
     if user_id:
         accounts = [account for account in accounts if account.user_id == user_id]
     synced = 0
     errors = 0
+    error_details: list[str] = []
     for account in accounts:
         try:
-            synced += await _poll_account(account)
-        except Exception:
+            synced += await _poll_account(account, raise_on_error=True)
+        except Exception as exc:
             errors += 1
+            error_details.append(str(exc) or f"IMAP sync failed for {account.id}")
             logger.exception("manual email sync failed for %s", account.id)
-    return {"synced": synced, "errors": errors, "accounts": len(accounts)}
+    result: dict[str, int | str | list[str]] = {
+        "synced": synced,
+        "errors": errors,
+        "accounts": len(accounts),
+    }
+    if error_details:
+        result["detail"] = error_details[0]
+        result["error_details"] = error_details
+    return result
