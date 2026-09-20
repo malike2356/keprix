@@ -272,3 +272,124 @@ def test_sync_reports_imap_failure(monkeypatch):
     assert result["errors"] == 1
     assert result["synced"] == 0
     assert "AUTHENTICATIONFAILED" in str(result["detail"])
+
+
+def test_imap_port_993_uses_ssl_when_smtp_starttls_set(monkeypatch):
+    from keprix.email import helpers
+
+    created: dict[str, bool] = {}
+
+    class FakeSSL:
+        def __init__(self, *args, **kwargs):
+            created["ssl"] = True
+
+    class FakePlain:
+        def __init__(self, *args, **kwargs):
+            created["plain"] = True
+
+        def starttls(self):
+            created["starttls"] = True
+
+    monkeypatch.setattr(helpers.imaplib, "IMAP4_SSL", FakeSSL)
+    monkeypatch.setattr(helpers.imaplib, "IMAP4", FakePlain)
+    helpers.open_imap_connection("imap.gmail.com", 993, use_tls=True, use_starttls=True)
+    assert created.get("ssl") is True
+    assert "plain" not in created
+
+
+def test_fetch_falls_back_when_search_all_empty(monkeypatch):
+    from contextlib import contextmanager
+    from email.mime.text import MIMEText
+
+    from keprix.email.helpers import fetch_new_messages
+
+    raw = MIMEText("Body", "plain", "utf-8")
+    raw["From"] = "sender@example.com"
+    raw["Subject"] = "Hello"
+    raw["Message-ID"] = "<hello@example.com>"
+
+    class FakeConn:
+        def select(self, mailbox, readonly=False):
+            return ("OK", [b"2"])
+
+        def uid(self, command, *args):
+            cmd = command.upper()
+            if cmd == "SEARCH":
+                if args and args[-1] == "ALL":
+                    return ("OK", [b""])
+                return ("OK", [b"17"])
+            if cmd == "FETCH":
+                return ("OK", [(b"1 (RFC822 {n}", raw.as_bytes()), b")"])
+            return ("NO", [])
+
+        def list(self):
+            return ("OK", [b'(\\HasNoChildren) "/" INBOX'])
+
+        def xatom(self, *args):
+            return ("OK", [None])
+
+        def logout(self):
+            return ("BYE", [b""])
+
+        def login(self, *args):
+            return ("OK", [b""])
+
+    @contextmanager
+    def fake_session(_account):
+        yield FakeConn()
+
+    monkeypatch.setattr("keprix.email.helpers.imap_session", fake_session)
+    messages = fetch_new_messages(
+        {
+            "imap_host": "imap.gmail.com",
+            "imap_port": 993,
+            "username": "me@gmail.com",
+            "password": "secret",
+            "email_address": "me@gmail.com",
+        }
+    )
+    assert len(messages) == 1
+    assert messages[0]["subject"] == "Hello"
+    assert messages[0]["uid"] == 17
+
+
+def test_emails_persist_across_store_reload(tmp_path, monkeypatch):
+    import asyncio
+
+    monkeypatch.delenv("KEPRIX_DATABASE_URL", raising=False)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
+    reset_email_store()
+    store = get_email_store()
+    account = asyncio.run(
+        store.create_account(
+            "u-local",
+            {
+                "email_address": "me@gmail.com",
+                "imap_host": "imap.gmail.com",
+                "smtp_host": "smtp.gmail.com",
+                "username": "me@gmail.com",
+                "password": "app-password",
+            },
+        )
+    )
+    created = asyncio.run(
+        store.upsert_email(
+            account,
+            {
+                "message_id": "m-persist",
+                "uid": 9,
+                "folder": "INBOX",
+                "from_address": "sender@example.com",
+                "to_addresses": ["me@gmail.com"],
+                "subject": "Persisted",
+                "body_text": "Hello",
+                "preview": "Hello",
+                "received_at": account.created_at,
+            },
+        )
+    )
+    assert created is not None
+    reset_email_store()
+    restored = asyncio.run(get_email_store().list_emails("u-local"))
+    assert [row.subject for row in restored] == ["Persisted"]

@@ -275,6 +275,40 @@ class EmailStore:
                 self._accounts[account_id] = record
             except Exception:
                 continue
+        for row in payload.get("emails") or []:
+            try:
+                email_id = str(row.get("id") or "")
+                if not email_id:
+                    continue
+                received = _parse_dt(row.get("received_at")) or _utcnow()
+                created = _parse_dt(row.get("created_at")) or received
+                self._emails[email_id] = EmailRecord(
+                    id=email_id,
+                    account_id=str(row.get("account_id") or ""),
+                    user_id=str(row.get("user_id") or "local"),
+                    message_id=str(row.get("message_id") or email_id),
+                    uid=int(row["uid"]) if row.get("uid") is not None else None,
+                    folder=str(row.get("folder") or "INBOX"),
+                    from_address=str(row.get("from_address") or "unknown"),
+                    from_name=row.get("from_name"),
+                    to_addresses=list(row.get("to_addresses") or []),
+                    cc_addresses=list(row.get("cc_addresses") or []),
+                    subject=str(row.get("subject") or ""),
+                    body_text=row.get("body_text"),
+                    body_html=row.get("body_html"),
+                    preview=row.get("preview"),
+                    has_attachments=bool(row.get("has_attachments")),
+                    is_read=bool(row.get("is_read")),
+                    is_starred=bool(row.get("is_starred")),
+                    is_trashed=bool(row.get("is_trashed")),
+                    ai_summary=row.get("ai_summary"),
+                    ai_tags=list(row.get("ai_tags") or []),
+                    ai_priority=str(row.get("ai_priority") or "normal"),
+                    received_at=received,
+                    created_at=created,
+                )
+            except Exception:
+                continue
 
     def _persist_to_disk(self) -> None:
         path = _email_store_path()
@@ -303,7 +337,8 @@ class EmailStore:
                     "oauth_vault_item_id": account.oauth_vault_item_id,
                 }
                 for account in self._accounts.values()
-            ]
+            ],
+            "emails": [record.to_dict() for record in self._emails.values()],
         }
         tmp = path.with_suffix(".tmp")
         tmp.write_text(json.dumps(payload, indent=2, default=_json_default), encoding="utf-8")
@@ -475,7 +510,8 @@ class EmailStore:
                 created_at=now,
             )
             self._emails[email_id] = record
-            return record
+        self._persist_to_disk()
+        return record
 
     async def list_emails(
         self,
@@ -513,7 +549,8 @@ class EmailStore:
             for key, value in updates.items():
                 if hasattr(record, key):
                     setattr(record, key, value)
-            return record
+        self._persist_to_disk()
+        return record
 
     async def search_emails(self, user_id: str, query: str, limit: int = 50) -> list[EmailRecord]:
         q = query.lower()

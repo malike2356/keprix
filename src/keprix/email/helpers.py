@@ -64,16 +64,29 @@ def open_imap_connection(
     use_starttls: bool,
     timeout: int = IMAP_TIMEOUT,
 ) -> imaplib.IMAP4:
+    """Open IMAP. Port 993 is always implicit SSL (Gmail/Outlook IMAPS).
+
+    ``use_starttls`` is the SMTP checkbox in the connect form. It must not
+    force a plaintext IMAP greeting on 993 — Gmail waits for TLS there and
+    the client times out, so sync looks successful later while the inbox
+    stays empty.
+    """
     port = int(port or 993)
-    if use_starttls:
-        conn = imaplib.IMAP4(host, port, timeout=timeout)
-        conn.starttls()
-    elif use_tls or port == 993:
-        conn = imaplib.IMAP4_SSL(host, port, timeout=timeout)
-    else:
-        conn = imaplib.IMAP4(host, port, timeout=timeout)
     imaplib._MAXLINE = 50_000_000
+    if port == 993 or (use_tls and port != 143):
+        return imaplib.IMAP4_SSL(host, port, timeout=timeout)
+    conn = imaplib.IMAP4(host, port, timeout=timeout)
+    if use_starttls or port == 143:
+        conn.starttls()
     return conn
+
+
+def send_imap_id(conn: imaplib.IMAP4) -> None:
+    """RFC 2971 IMAP ID. Best-effort; some hosts require it after LOGIN."""
+    try:
+        conn.xatom("ID", '("name" "keprix" "vendor" "Keprix")')
+    except Exception:
+        logger.debug("IMAP ID command not accepted", exc_info=True)
 
 
 def imap_login(conn: imaplib.IMAP4, username: str, password: str | None = None, *, access_token: str | None = None) -> None:
@@ -93,16 +106,18 @@ def imap_login(conn: imaplib.IMAP4, username: str, password: str | None = None, 
 def imap_session(account: dict[str, Any]):
     conn = open_imap_connection(
         account["imap_host"],
-        int(account["imap_port"]),
+        int(account.get("imap_port") or 993),
         use_tls=bool(account.get("use_tls", True)),
         use_starttls=bool(account.get("use_starttls", False)),
     )
     try:
         access_token = str(account.get("access_token") or "").strip() or None
         password = account.get("password")
-        if password is None and account.get("password_encrypted"):
+        if not password and account.get("password_encrypted"):
             password = decrypt_secret(account["password_encrypted"])
-        imap_login(conn, account["username"], password, access_token=access_token)
+        username = str(account.get("username") or account.get("email_address") or "").strip()
+        imap_login(conn, username, password, access_token=access_token)
+        send_imap_id(conn)
         yield conn
     finally:
         try:
@@ -299,27 +314,79 @@ def parse_message(
     }
 
 
-def fetch_new_messages(account: dict[str, Any], folder: str = "INBOX") -> list[dict[str, Any]]:
-    password = decrypt_secret(account.get("password_encrypted", ""))
-    cfg = {**account, "password": password, "username": account["username"]}
+def _select_folder(conn: imaplib.IMAP4, folder: str) -> None:
+    typ, data = conn.select(quote_mailbox(folder), readonly=True)
+    if typ != "OK":
+        typ, data = conn.select(folder, readonly=True)
+    if typ != "OK":
+        raise RuntimeError(f"IMAP could not open folder {folder}: {typ} {data}")
+
+
+def _search_uids(conn: imaplib.IMAP4) -> list[bytes]:
+    for criteria in ("ALL", "1:*"):
+        status, data = conn.uid("SEARCH", None, criteria)
+        if status == "OK" and data and data[0]:
+            return data[0].split()
+    return []
+
+
+def _rfc822_payloads(fetched: Any) -> list[bytes]:
+    payloads: list[bytes] = []
+    for item in fetched or []:
+        if isinstance(item, tuple) and len(item) >= 2 and isinstance(item[1], (bytes, bytearray)):
+            payloads.append(bytes(item[1]))
+    return payloads
+
+
+def _fetch_folder(conn: imaplib.IMAP4, folder: str, *, limit: int = 50) -> list[dict[str, Any]]:
+    _select_folder(conn, folder)
     results: list[dict[str, Any]] = []
-    with imap_session(cfg) as conn:
-        conn.select(quote_mailbox(folder), readonly=True)
-        status, data = conn.uid("SEARCH", None, "ALL")
-        if status != "OK" or not data or not data[0]:
-            return results
-        uids = data[0].split()
-        for uid_b in uids[-50:]:
-            uid = int(uid_b)
-            st, fetched = conn.uid("FETCH", uid_b, "(RFC822)")
-            if st != "OK" or not fetched:
-                continue
-            for item in fetched:
-                if not isinstance(item, tuple) or len(item) < 2:
-                    continue
-                parsed = parse_message(item[1], uid=uid, folder=folder)
-                results.append(parsed)
+    for uid_b in _search_uids(conn)[-limit:]:
+        uid = int(uid_b)
+        st, fetched = conn.uid("FETCH", uid_b, "(RFC822)")
+        if st != "OK" or not fetched:
+            st, fetched = conn.uid("FETCH", uid_b, "(BODY.PEEK[])")
+        if st != "OK" or not fetched:
+            continue
+        for raw in _rfc822_payloads(fetched):
+            results.append(parse_message(raw, uid=uid, folder=folder))
     return results
+
+
+def _fallback_folders(conn: imaplib.IMAP4, requested: str) -> list[str]:
+    names: list[str] = []
+    try:
+        names = list_imap_folders(conn)
+    except Exception:
+        logger.debug("IMAP LIST failed", exc_info=True)
+    extras: list[str] = []
+    for name in names:
+        lowered = name.lower()
+        if lowered.endswith("all mail") or lowered in {"all", "archive"}:
+            extras.append(name)
+    ordered = [requested]
+    for name in extras:
+        if name not in ordered:
+            ordered.append(name)
+    return ordered
+
+
+def fetch_new_messages(account: dict[str, Any], folder: str = "INBOX") -> list[dict[str, Any]]:
+    password = account.get("password")
+    if not password:
+        password = decrypt_secret(account.get("password_encrypted", ""))
+    username = str(account.get("username") or account.get("email_address") or "").strip()
+    cfg = {**account, "password": password, "username": username}
+    with imap_session(cfg) as conn:
+        for candidate in _fallback_folders(conn, folder or "INBOX"):
+            try:
+                results = _fetch_folder(conn, candidate)
+            except Exception:
+                logger.exception("IMAP fetch failed for folder %s", candidate)
+                continue
+            if results:
+                return results
+    return []
 
 
 def send_smtp_message(

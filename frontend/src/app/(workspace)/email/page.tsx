@@ -256,7 +256,7 @@ export default function EmailPage() {
               title={accounts.length ? "No messages yet" : "Inbox is empty"}
               description={
                 accounts.length
-                  ? "Sync now to pull mail from the connected IMAP account."
+                  ? "Sync now pulls the latest 50 messages from IMAP. If this stays empty after a successful sync, the mailbox folder had no messages to fetch."
                   : "Connect Gmail or another IMAP account, then Sync now."
               }
               icon={<EmailIcon sx={{ fontSize: 40 }} />}
