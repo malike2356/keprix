@@ -2072,6 +2072,8 @@ class TestWebServerEndpoints:
 
         monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
         monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
+        monkeypatch.setenv("KEPRIX_ENV_FILE", str(tmp_path / "keprix.env"))
+        monkeypatch.delenv("COMPANIES_HOUSE_API_KEY", raising=False)
         monkeypatch.delenv("KEPRIX_ADMIN_PASSWORD", raising=False)
         monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
         auth = AuthManager(str(tmp_path / "auth.json"))
@@ -2100,6 +2102,7 @@ class TestWebServerEndpoints:
             "/api/workspace/calendar/providers",
             "/api/email/accounts",
             "/api/email/inbox",
+            "/api/companies-house/status",
             "/api/notifications/inbox",
             "/api/voice/wake-words",
             "/api/audio/status",
@@ -2128,6 +2131,18 @@ class TestWebServerEndpoints:
         listed = client.get("/api/workspace/notes", headers=headers)
         titles = [row["title"] for row in listed.json()["items"]]
         assert "Scratch" in titles
+
+        ch_status = client.get("/api/companies-house/status", headers=headers, follow_redirects=False)
+        assert ch_status.status_code == 200, ch_status.text
+        assert "configured" in ch_status.json()
+        ch_put = client.put(
+            "/api/companies-house/settings",
+            headers=headers,
+            json={"api_key": "test-ch-key", "enabled": True},
+        )
+        assert ch_put.status_code != 405, ch_put.text
+        assert ch_put.status_code == 200, ch_put.text
+        assert ch_put.json().get("ok") is True
 
     def test_dashboard_starts_email_poller(self, monkeypatch):
         """keprix dashboard must poll IMAP; CE starts this, the dashboard did not."""

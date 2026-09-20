@@ -186,16 +186,16 @@ def _resolve_env_file() -> Path | None:
     explicit = os.getenv("KEPRIX_ENV_FILE", "").strip()
     if explicit:
         return Path(explicit)
-    project_env = Path.cwd() / ".env"
-    if project_env.exists():
-        return project_env
     try:
         from keprix_cli.config import get_env_path
 
-        path = get_env_path()
-        return path if path.exists() else None
+        return get_env_path()
     except Exception:
-        return None
+        pass
+    project_env = Path.cwd() / ".env"
+    if project_env.exists():
+        return project_env
+    return None
 
 
 def _upsert_env_file(path: Path, key: str, value: str) -> None:

@@ -11619,6 +11619,7 @@ def _mount_dashboard_workspace_routers() -> None:
     from keprix.crm.enrichment_routes import router as crm_enrichment_router
     from keprix.crm.research_routes import router as crm_research_router
     from keprix.crm.companies_house_routes import router as crm_companies_house_router
+    from keprix.integrations.companies_house.routes import router as companies_house_router
     from keprix.crm.decision_maker_routes import router as crm_decision_maker_router
     from keprix.crm.osint_routes import router as crm_osint_router
     from keprix.crm.social_routes import router as crm_social_router
@@ -11664,6 +11665,7 @@ def _mount_dashboard_workspace_routers() -> None:
         crm_enrichment_router,
         crm_research_router,
         crm_companies_house_router,
+        companies_house_router,
         crm_decision_maker_router,
         crm_osint_router,
         crm_social_router,
