@@ -8,7 +8,7 @@
 
 1. Hard-refresh the page (Ctrl+Shift+R / Cmd+Shift+R).
 2. Open the destination URL directly in the address bar (for example `/outreach/leads`, `/crm/pipeline`).
-3. Confirm you are on a recent build: Settings or footer should show Community Edition version; Contabo app should be rebuilt after frontend fixes.
+3. Confirm you are on a recent build: Settings or footer should show Community Edition version. Restart `keprix dashboard` (or `keprix dashboard restart` if installed as a service) after pulling CLI updates.
 4. If only one control fails, report the page URL and control label; if many fail, clear site data for the app origin and sign in again.
 
 **Related:** Sidebar and section tabs use plain HTML anchors (`component="a"`). Developer policy: `frontend/src/components/ui/muiNavAnchor.ts`.

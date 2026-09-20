@@ -14,5 +14,8 @@ Nous locations.
 
 Stable installers will be linked from `https://keprixai.com/download` and the
 matching GitHub Release only after signature, checksum, first-boot, update, backup,
-rollback, and uninstall gates pass. Until then, use the CLI/TUI or Docker web
-workspace, or build Desktop from source for development.
+rollback, and uninstall gates pass. Until then, use `keprix`, `keprix tui`, or
+`keprix dashboard` / `keprix dashboard install` for the local web workspace, or
+build Desktop from source for development (`keprix desktop` from an installed
+CLI). Desktop npm builds need the upstream `hermes-parser` lockfile entries;
+do not rename them to `keprix-parser`.

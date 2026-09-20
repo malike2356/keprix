@@ -13,12 +13,14 @@ function doc(path: string): string {
 export const DOCS_SECTIONS: DocsSection[] = [
   {
     title: "Getting started",
-    description: "Install, first run, and developer mode.",
+    description: "Install, local dashboard, first run, and developer mode.",
     items: [
-      { title: "Quickstart", description: "Docker install in under five minutes.", href: DOCS_QUICKSTART_URL },
-      { title: "Manual install", description: "Bare metal and custom deployments.", href: doc("getting-started/manual-install") },
-      { title: "Cloud deploy", description: "VPS and cloud checklist.", href: doc("getting-started/cloud-deploy") },
+      { title: "Install", description: "curl installer, pipx, and PATH setup.", href: doc("getting-started/install") },
+      { title: "Local web dashboard", description: "keprix dashboard and keprix dashboard install on loopback.", href: doc("getting-started/dashboard") },
       { title: "First run", description: "Setup wizard and health checks.", href: doc("getting-started/first-run") },
+      { title: "Quickstart", description: "Optional Docker Compose on your machine.", href: DOCS_QUICKSTART_URL },
+      { title: "Manual install", description: "Bare metal and custom deployments.", href: doc("getting-started/manual-install") },
+      { title: "Cloud deploy", description: "Self-host on a VPS you control. keprixai.com is marketing only.", href: doc("getting-started/cloud-deploy") },
       { title: "Authentication", description: "Login, register, roles, onboarding.", href: doc("getting-started/authentication") },
       { title: "Developer mode", description: "Local identity and API keys.", href: doc("getting-started/developer-mode") },
     ],

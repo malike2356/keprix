@@ -16,6 +16,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import TerminalIcon from "@mui/icons-material/Terminal";
 import LayersIcon from "@mui/icons-material/Layers";
 import CodeIcon from "@mui/icons-material/Code";
+import DashboardIcon from "@mui/icons-material/SpaceDashboard";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import {
@@ -40,18 +41,36 @@ const INSTALL_METHODS = [
     nextSteps: [
       { step: "1", title: "Reload your shell", code: "source ~/.bashrc", desc: "Or source ~/.zshrc so ~/.local/bin is on PATH." },
       { step: "2", title: "Start chatting", code: "keprix", desc: "Offers setup if no key is set, then starts the CLI." },
+      { step: "3", title: "Local web UI", code: "keprix dashboard install", desc: "Optional. UI at http://127.0.0.1:9120/home; survives logout." },
     ],
     details: [
       "Clones and updates under ~/.keprix/keprix (dirty clones are stashed, not aborted)",
       "Creates an isolated Python 3.11 or 3.12 virtual environment",
       "Adds keprix to ~/.local/bin and your shell config",
+      "Optional: keprix dashboard / keprix dashboard install for the local workspace UI",
+    ],
+  },
+  {
+    id: "dashboard",
+    label: "Web dashboard",
+    icon: <DashboardIcon fontSize="small" />,
+    summary: "After the CLI is installed, run the local Next.js workspace. install keeps it running as a user service.",
+    command: "keprix dashboard install",
+    nextSteps: [
+      { step: "1", title: "Open the UI", code: "http://127.0.0.1:9120/home", desc: "FastAPI backend stays on port 9119. Loopback only." },
+      { step: "2", title: "Check the service", code: "keprix dashboard status", desc: "systemd user unit / launchd. Use start, stop, restart, uninstall as needed." },
+    ],
+    details: [
+      "Sibling of keprix gateway install; does not need Docker",
+      "There is no hosted workspace at app.keprixai.com",
+      "Foreground alternative: keprix dashboard (stops when the terminal closes)",
     ],
   },
   {
     id: "docker",
     label: "Docker Compose",
     icon: <LayersIcon fontSize="small" />,
-    summary: "Complete containerized stack: Next.js Web Workspace, FastAPI backend, PostgreSQL with pgvector, and Redis.",
+    summary: "Optional containerized stack on your machine: Next.js UI, FastAPI, PostgreSQL with pgvector, and Redis. Not the Contabo marketing host.",
     command: "git clone https://github.com/malike2356/keprix.git\ncd keprix\ncp .env.example .env\ndocker compose -f docker/docker-compose.yml up -d --build",
     nextSteps: [
       { step: "1", title: "Open Web Workspace", code: "http://localhost:3000", desc: "Full Next.js workspace UI: chat, playbooks, documents, settings." },
@@ -60,7 +79,8 @@ const INSTALL_METHODS = [
     details: [
       "No host Python setup required; runs in Docker",
       "Isolated PostgreSQL 16 + pgvector database",
-      "Production-ready compose setup with health checks",
+      "Production-style compose setup with health checks on localhost",
+      "Do not run this compose file on Contabo for keprixai.com",
     ],
   },
   {

@@ -1,8 +1,13 @@
 # Contabo: enable Keprix as Carina/Aiva sidecar + OPS control
 
 **Audience:** Contabo operators  
-**Date:** 2026-08-08  
+**Date:** 2026-09-20  
 **Writing style:** plain ASCII only.
+
+**Status (2026-09-20):** Carina platform work is on hold. Keprix on Contabo is
+**marketing only**. There is no hosted workspace at `https://app.keprixai.com`
+(that host redirects to docs). Do not follow the login/API URLs below as a
+live product path. Run Keprix locally with `keprix dashboard`.
 
 ## Scope
 

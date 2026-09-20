@@ -1,6 +1,8 @@
 # Admin dashboard
 
-The admin dashboard (`/dashboard`) is the operator console for instance health, users, channels, and mutations.
+The admin dashboard (`/dashboard`) is the operator console **inside your local
+workspace** (after `keprix dashboard` or Docker Compose). It is not a page on
+`keprixai.com` or `app.keprixai.com`.
 
 ## Access
 

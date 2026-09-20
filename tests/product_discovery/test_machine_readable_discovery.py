@@ -66,7 +66,7 @@ def test_install_manifest():
 
 
 def test_agent_buy_decision_from_product_spec():
-    # Under 50 GBP/month with GDPR, without requiring SSO: Pro matches.
+    # Community Edition is free self-host; there is no hosted Pro catalog.
     decision = evaluate_buy_decision(
         {
             "maxMonthlyAmountMajor": 50,
@@ -76,10 +76,10 @@ def test_agent_buy_decision_from_product_spec():
         }
     )
     assert decision["buy"] is True
-    assert decision["recommended"]["tierId"] in {"community", "pro_month"}
-    assert any(m["tierId"] == "pro_month" for m in decision["matches"])
+    assert decision["recommended"]["tierId"] == "community"
+    assert all(m["tierId"] != "pro_month" for m in decision["matches"])
 
-    # SSO + under 50: Team+SSO addon is 129+99 = 228, so no buy.
+    # SSO is included on Community for self-host, still under 50 GBP/month.
     sso_decision = evaluate_buy_decision(
         {
             "maxMonthlyAmountMajor": 50,
@@ -88,7 +88,8 @@ def test_agent_buy_decision_from_product_spec():
             "requireCompliance": ["GDPR"],
         }
     )
-    assert sso_decision["buy"] is False
+    assert sso_decision["buy"] is True
+    assert sso_decision["recommended"]["tierId"] == "community"
 
 
 def test_llm_auditor_with_fakes():
@@ -157,7 +158,7 @@ async def test_public_discovery_routes():
 
         well = await client.get("/.well-known/keprix.json")
         assert well.status_code == 200
-        assert well.json()["openapi"].endswith("/openapi.json")
+        assert "guide/reference/api" in well.json()["openapi"]
 
         decision = await client.post(
             "/api/discovery/evaluate",

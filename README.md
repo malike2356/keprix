@@ -29,15 +29,17 @@ Then:
 ```bash
 source ~/.bashrc   # or source ~/.zshrc
 keprix             # offers setup if no key, then starts chatting
+keprix dashboard   # local web workspace at http://127.0.0.1:9120/home
+keprix dashboard install   # keep the UI running after logout
 ```
 
-Default home: `~/.keprix` (code at `~/.keprix/keprix`). Guide: [docs/getting-started/install.md](docs/getting-started/install.md).
+Default home: `~/.keprix` (code at `~/.keprix/keprix`). Guide: [docs/getting-started/install.md](docs/getting-started/install.md). Dashboard: [docs/getting-started/dashboard.md](docs/getting-started/dashboard.md).
 
 Alternatives: pipx from git (see install.md); from a checkout, `pipx install '.[tui]' --force` (needs Python 3.11 or 3.12 - add `--python python3.11` if your system's default `python3` is older, e.g. Ubuntu 22.04's 3.10).
 
-## Full stack (Docker)
+## Optional Docker stack
 
-Secondary path for web UI + API + databases:
+Secondary path if you want Postgres, Redis, and a compose-fronted UI **on this machine** (not Contabo):
 
 ```bash
 git clone https://github.com/malike2356/keprix.git
@@ -59,14 +61,14 @@ More: [docs/getting-started/quickstart.md](docs/getting-started/quickstart.md)
 
 | Component | Description |
 | --- | --- |
-| Workspace UI | Next.js: chat, documents, tasks, playbooks, agent apps, settings |
+| Workspace UI | Local Next.js: `keprix dashboard` / `install` at `http://127.0.0.1:9120/home` (optional Compose at `:3000`) |
 | Command Center TUI | Textual terminal UI: chat, sessions, slash commands, tool cards, review |
 | Agent runtime | FastAPI backend: LLM routing, tools, memory, MCP, cron |
 | Mutation engine | Self-improvement loop for tools and skills (human approval) |
 | Playbooks | Visual and YAML workflows with runs, approvals, schedules |
 | Channel Shield | Inbound email/messaging protection, quarantine, policy hooks |
 | Security | Vault, credential proxy, review gateway, ACLs, audit, Scout hooks |
-| Deploy | Docker Compose (Postgres, Redis, ChromaDB) |
+| Deploy | Self-host on your machine (CLI dashboard or optional Docker Compose). `keprixai.com` is marketing only. |
 
 ## Repository layout
 
@@ -96,6 +98,7 @@ More: [docs/getting-started/quickstart.md](docs/getting-started/quickstart.md)
 | Topic | Link |
 | --- | --- |
 | Install | [docs/getting-started/install.md](docs/getting-started/install.md) |
+| Local web dashboard | [docs/getting-started/dashboard.md](docs/getting-started/dashboard.md) |
 | Quickstart | [docs/getting-started/quickstart.md](docs/getting-started/quickstart.md) |
 | Docs index | [docs/index.md](docs/index.md) |
 | Terminal UI | [docs/features/tui.md](docs/features/tui.md) |

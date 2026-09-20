@@ -1,25 +1,22 @@
 # Keprix
 
-> Self-hosted AI agent OS with tools, playbooks, memory, governance, and optional hosted plans. Community Edition is free (BYOK); hosted Pro starts at 49 GBP/month.
+> Self-hosted AI agent OS with tools, playbooks, memory, and governance. Community Edition is free (BYOK). Run the workspace on your machine with keprix dashboard; keprixai.com is marketing and docs only.
 
 ## Product
 
 - Home: https://keprixai.com
-- App: https://app.keprixai.com
+- Docs catalog: https://keprixai.com/docs
+- Local workspace: http://127.0.0.1:9120/home after `keprix dashboard`
 - Docs: https://keprixai.com/guide/
 - Pricing: https://keprixai.com/pricing
-- OpenAPI: https://app.keprixai.com/openapi.json
+- OpenAPI: https://keprixai.com/guide/reference/api/
 - Product spec (JSON): https://keprixai.com/productSpec.json
 - Install manifest: https://keprixai.com/install.json
-- Schema graph: https://app.keprixai.com/api/product-schema.json
+- Schema graph: https://keprixai.com/product-schema.json
 
 ## Pricing (machine-readable)
 
-- Community: 0 GBP / one-time/free (sso=False, api=False)
-- Pro: 49 GBP / month (sso=False, api=False)
-- Pro (annual): 449 GBP / year (sso=False, api=False)
-- Team: 129 GBP / month (sso=False, api=True)
-- Team (annual): 1290 GBP / year (sso=False, api=True)
+- Community: 0 GBP / one-time/free (sso=True, api=True)
 
 ## Compliance
 
@@ -31,4 +28,6 @@
 ## Install
 
 - Prefer install.json for agent-driven setup
-- Docker: docker compose -f docker/docker-compose.yml up -d --build
+- curl -fsSL https://keprixai.com/install.sh | bash
+- Local UI: keprix dashboard install (http://127.0.0.1:9120/home)
+- Optional Docker: docker compose -f docker/docker-compose.yml up -d --build

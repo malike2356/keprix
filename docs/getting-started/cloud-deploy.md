@@ -1,5 +1,9 @@
 # Cloud deploy
 
+Public **keprixai.com** is a marketing frontend. It is not a hosted Keprix
+workspace. Self-host on a VPS you control, or run `keprix dashboard` on a
+workstation. See [keprixai.com origin](../operations/keprixai-com-origin.md).
+
 **Primary path:** [VPS deploy](../operations/vps-deploy.md) with Docker Compose + Caddy via `scripts/deploy-keprix-production.sh`.
 
 Contabo shared-nginx / marketing-origin patterns differ from this Caddy-only VPS path.

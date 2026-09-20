@@ -1,6 +1,9 @@
 # Workspace overview
 
-The Keprix **workspace** is the signed-in web application: home launcher, sidebar navigation, and per-user data.
+The Keprix **workspace** is the signed-in web application on **your machine**
+(`keprix dashboard` at `http://127.0.0.1:9120/home`, or Docker Compose at
+`:3000`): home launcher, sidebar navigation, and per-user data. It is not
+hosted at `app.keprixai.com`.
 
 ## Home (`/launcher`)
 
@@ -31,7 +34,9 @@ Workspace entities are scoped per user (and instance):
 - Email cache, contacts, gallery assets
 - Memory documents and embeddings
 
-Production storage: PostgreSQL + Redis + vector store (see [Data planes](../operations/data-planes.md)).
+CLI dashboard storage defaults to `~/.keprix` (JSON/SQLite and related local
+files). Docker Compose production-style storage is PostgreSQL + Redis + vector
+store (see [Data planes](../operations/data-planes.md)).
 
 ## API prefix
 

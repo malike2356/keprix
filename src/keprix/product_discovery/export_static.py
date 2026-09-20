@@ -24,7 +24,7 @@ def export_static(public_dir: Path | None = None) -> list[Path]:
     well_known.mkdir(parents=True, exist_ok=True)
 
     # Freeze lastUpdated for reproducible static exports in CI.
-    spec = build_product_spec(last_updated="2026-08-10T00:00:00Z")
+    spec = build_product_spec(last_updated="2026-09-20T00:00:00Z")
     written: list[Path] = []
 
     def write_json(path: Path, payload: object) -> None:
@@ -39,8 +39,8 @@ def export_static(public_dir: Path | None = None) -> list[Path]:
         "version": spec["version"],
         "productSpec": "/productSpec.json",
         "install": "/install.json",
-        "openapi": "https://app.keprixai.com/openapi.json",
-        "schema": "https://app.keprixai.com/api/product-schema.json",
+        "openapi": spec["apiDocsUrl"],
+        "schema": spec["productSchemaUrl"],
         "llmsTxt": "/llms.txt",
         "app": spec["appUrl"],
         "home": spec["url"],

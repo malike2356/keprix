@@ -223,6 +223,7 @@ Examples:
     keprix debug share             Upload debug report for support
     keprix update                 Update to latest version
     keprix dashboard              Start web UI dashboard (port 9119)
+    keprix dashboard install      Persist the local UI as a user service
     keprix dashboard --stop       Stop running dashboard processes
     keprix dashboard --status     List running dashboard processes
 

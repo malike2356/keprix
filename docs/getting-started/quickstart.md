@@ -1,10 +1,10 @@
 # Quickstart
 
-See also [Install](install.md) and [First run](first-run.md).
+See also [Install](install.md), [Local web dashboard](dashboard.md), and [First run](first-run.md).
 
-Keprix has two install paths. The **CLI / TUI** path (Option A) is primary for day-to-day agent use. **Docker Compose** (Option B) is the full web stack path (UI + API + Postgres + Redis and related services).
+Keprix has two install paths. The **CLI / TUI / local dashboard** path (Option A) is primary. **Docker Compose** (Option B) is optional on **your** machine when you want Postgres, Redis, and the compose-fronted UI. Public `keprixai.com` is marketing and docs only; `app.keprixai.com` redirects to `/docs` and is not a hosted workspace.
 
-## Option A: curl installer (CLI / TUI)
+## Option A: curl installer (CLI / TUI / dashboard)
 
 See [Install](install.md) for the full guide.
 
@@ -21,11 +21,15 @@ After install:
 ```bash
 source ~/.bashrc   # or source ~/.zshrc
 keprix             # offers setup if needed, then starts chatting
+keprix dashboard   # local web workspace (this terminal)
+keprix dashboard install   # persist the UI (systemd user unit / launchd)
 ```
 
-## Option B: Docker Compose (full web stack)
+Open **http://127.0.0.1:9120/home**. Details: [Local web dashboard](dashboard.md).
 
-Use this when you want the browser workspace plus the API and databases on one machine.
+## Option B: Docker Compose (optional, localhost)
+
+Use this when you want Postgres, Redis, and the compose-fronted browser workspace **on the machine where you run Docker**. Do not run this stack on Contabo for `keprixai.com`.
 
 ### Prerequisites
 
@@ -78,7 +82,7 @@ before `up` is harmless if you are unsure.)
 
 Compose `depends_on` (default full stack): the **frontend** waits until the **backend** healthcheck passes; the **backend** waits until **postgres** and **redis** are healthy. That is the default `docker/docker-compose.yml` behavior.
 
-Marketing-only frontend on Contabo/Cloudflare is optional and not the default Compose stack. See [Cloud deploy](cloud-deploy.md) and [VPS deploy](../operations/vps-deploy.md). Public origin notes may expand later.
+Contabo serves the marketing frontend only. See [keprixai.com origin](../operations/keprixai-com-origin.md), [Cloud deploy](cloud-deploy.md), and [VPS deploy](../operations/vps-deploy.md).
 
 ### Wait until healthy
 
@@ -180,7 +184,7 @@ The first `--build` downloads base images and compiles the frontend. Later start
 
 ### Without Docker
 
-CLI/TUI without Compose: [Install](install.md). Manual contributor setup: [Manual install](manual-install.md).
+CLI/TUI/dashboard without Compose: [Install](install.md), [Local web dashboard](dashboard.md). Manual contributor setup: [Manual install](manual-install.md).
 
 ### Next steps
 

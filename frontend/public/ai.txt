@@ -2,6 +2,6 @@
 contact: billing@verlox.uk
 product-spec: https://keprixai.com/productSpec.json
 install: https://keprixai.com/install.json
-openapi: https://app.keprixai.com/openapi.json
+openapi: https://keprixai.com/guide/reference/api/
 llms: https://keprixai.com/llms.txt
-schema: https://app.keprixai.com/api/product-schema.json
+schema: https://keprixai.com/product-schema.json

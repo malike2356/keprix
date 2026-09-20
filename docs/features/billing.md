@@ -1,6 +1,8 @@
 # Billing and subscription (workspace UI)
 
-Keprix can run SaaS-style subscription billing when configured. The signed-in workspace hub is at **`/settings/billing`**.
+Keprix can run SaaS-style subscription billing **on your self-hosted instance**
+when you configure Stripe. Verlox does not sell a hosted Keprix workspace at
+`app.keprixai.com`. The signed-in workspace hub is at **`/settings/billing`**.
 
 ## Enable billing locally
 

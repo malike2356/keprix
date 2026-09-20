@@ -23,7 +23,18 @@ source ~/.bashrc   # or source ~/.zshrc
 keprix
 ```
 
-If no provider key is set, `keprix` offers setup in the same terminal, then starts chatting. `keprix dashboard` is optional and is not the first-run product.
+If no provider key is set, `keprix` offers setup in the same terminal, then starts chatting.
+
+### Local web dashboard
+
+CLI chat does not need a browser. When you want the workspace UI on this machine:
+
+```bash
+keprix dashboard                 # foreground (this terminal)
+keprix dashboard install         # persist as a user systemd / launchd service
+```
+
+Default UI: `http://127.0.0.1:9120/home` (API on `9119`). Loopback only unless you pass `--insecure`. There is no hosted workspace at `app.keprixai.com`. Full guide: [Local web dashboard](dashboard.md).
 
 ---
 
@@ -123,8 +134,9 @@ Normal users should not need `PYTHONPATH`, an activated development venv, or man
 
 ## Next
 
+- [Local web dashboard](dashboard.md)
 - [First run](first-run.md)
-- [Quickstart](quickstart.md) (Docker Compose full stack)
+- [Quickstart](quickstart.md) (optional Docker Compose on your machine)
 
 ## Uninstall / reset
 

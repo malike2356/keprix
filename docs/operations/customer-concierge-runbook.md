@@ -49,18 +49,21 @@
 2. Sequence `stop_on_booking` must remain enabled for sales cadences.
 3. Retry dead-letter only after consent/suppression check.
 
-### Contabo public health regression
+### Public marketing health (Contabo)
 
-Mandatory after every Contabo deploy:
+Mandatory after every **owner-side** Contabo marketing deploy. There is no
+public Keprix API on Contabo.
 
 ```bash
-curl -fsS -o /dev/null -w '%{http_code}\n' https://app.keprixai.com/
-curl -fsS -o /dev/null -w '%{http_code}\n' https://app.keprixai.com/api/health
 curl -fsS -o /dev/null -w '%{http_code}\n' https://keprixai.com/
+curl -fsSI -o /dev/null -w '%{http_code} %{redirect_url}\n' https://app.keprixai.com/
 curl -fsS -o /dev/null -w '%{http_code}\n' https://carinaai.uk/
 ```
 
-Expect `200` for all four. If `carinaai.uk` is not 200, repair marketing nginx before ending the session (`core.carinaai.uk` `reload-marketing-nginx.sh`).
+Expect `keprixai.com` and `carinaai.uk` `200`. `app.keprixai.com` should
+redirect to `https://keprixai.com/docs`. Do not require
+`https://app.keprixai.com/api/health`. If `carinaai.uk` is not 200, repair
+marketing nginx on the owner deploy device before ending the session.
 
 ## Rollback
 

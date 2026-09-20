@@ -43,8 +43,15 @@ export default function DownloadPage() {
           <h2 id="source-install">Stable native packages are not published yet</h2>
           <p>No unverified or placeholder installer is offered. You can use the reviewed source path now:</p>
           <pre style={{ overflowX: "auto", padding: 16, background: "var(--kp-bg-paper)", color: "var(--kp-text-primary)", border: "1px solid var(--kp-border)", borderRadius: 8 }}>
-            <code>git clone https://github.com/malike2356/keprix.git{`\n`}cd keprix{`\n`}bash scripts/install.sh</code>
+            <code>{`curl -fsSL https://keprixai.com/install.sh | bash
+source ~/.bashrc
+keprix
+keprix dashboard install`}</code>
           </pre>
+          <p>
+            The web workspace is local: <code>http://127.0.0.1:9120/home</code>.
+            There is no hosted product at app.keprixai.com.
+          </p>
         </section>
       ) : (
         <section aria-labelledby="verified-downloads" style={{ marginTop: 40 }}>
@@ -70,8 +77,9 @@ export default function DownloadPage() {
       <section style={{ marginTop: 40 }}>
         <h2>Other installation paths</h2>
         <ul>
-          <li><Link href="/guide/getting-started/install/">Bare metal and terminal guide</Link></li>
-          <li><Link href="/guide/getting-started/quickstart/">Docker Compose guide</Link></li>
+          <li><Link href="/guide/getting-started/install/">CLI and terminal guide</Link></li>
+          <li><Link href="/guide/getting-started/dashboard/">Local web dashboard</Link></li>
+          <li><Link href="/guide/getting-started/quickstart/">Optional Docker Compose</Link></li>
           <li><a href={manifest.release_notes_url}>Release notes and known issues</a></li>
           <li><a href={manifest.support_url}>Community support</a></li>
         </ul>

@@ -21,4 +21,6 @@ export function docsPageUrl(path = ""): string {
 }
 
 export const DOCS_QUICKSTART_URL = docsPageUrl("getting-started/quickstart");
+export const DOCS_INSTALL_URL = docsPageUrl("getting-started/install");
+export const DOCS_DASHBOARD_URL = docsPageUrl("getting-started/dashboard");
 export const DOCS_HOME_URL = docsPageUrl();

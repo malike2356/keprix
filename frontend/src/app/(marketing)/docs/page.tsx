@@ -28,7 +28,7 @@ import {
   DOCS_GITHUB_EDIT_URL,
   DOCS_SECTIONS,
 } from "@/lib/docs-catalog";
-import { DOCS_QUICKSTART_URL, docsPageUrl, isExternalDocsUrl } from "@/lib/docs-url";
+import { DOCS_DASHBOARD_URL, DOCS_INSTALL_URL, DOCS_QUICKSTART_URL, docsPageUrl, isExternalDocsUrl } from "@/lib/docs-url";
 import { KEPRIX_INSTALL_CMD } from "@/lib/install";
 
 const DottedSurfaceBackground = dynamic(
@@ -53,10 +53,10 @@ const SECTION_META: Record<string, { icon: React.ElementType; color: string; acc
 };
 
 const QUICK_LINKS = [
-  { label: "Quickstart (Docker)", href: DOCS_QUICKSTART_URL },
-  { label: "Environment variables", href: docsPageUrl("configuration/environment-variables") },
+  { label: "Install (curl)", href: DOCS_INSTALL_URL },
+  { label: "Local web dashboard", href: DOCS_DASHBOARD_URL },
+  { label: "Docker Compose (optional)", href: DOCS_QUICKSTART_URL },
   { label: "LLM providers", href: docsPageUrl("configuration/llm-providers") },
-  { label: "Mutation engine", href: docsPageUrl("features/agent") },
   { label: "SDK reference", href: docsPageUrl("integrations/sdk") },
   { label: "REST API", href: docsPageUrl("reference/api") },
 ] as const;

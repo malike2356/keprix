@@ -17,17 +17,19 @@ def build_install_manifest() -> dict[str, Any]:
         "homepage": spec["url"],
         "repository": spec["repositoryUrl"],
         "license": "MIT",
-        "installCommand": (
-            "git clone https://github.com/malike2356/keprix.git && "
-            "cd keprix && bash scripts/install.sh"
-        ),
+        "installCommand": "curl -fsSL https://keprixai.com/install.sh | bash",
         "alternateInstallCommands": [
+            {
+                "id": "dashboard_persist",
+                "command": "keprix dashboard install",
+                "docs": "https://keprixai.com/guide/getting-started/dashboard/",
+            },
             {
                 "id": "docker_compose",
                 "command": (
                     "docker compose -f docker/docker-compose.yml up -d --build"
                 ),
-                "docs": "https://keprixai.com/guide/",
+                "docs": "https://keprixai.com/guide/getting-started/quickstart/",
             },
             {
                 "id": "pipx_cli",
@@ -66,13 +68,20 @@ def build_install_manifest() -> dict[str, Any]:
         ],
         "postInstallChecks": [
             {
-                "id": "health",
-                "command": "curl -fsS http://127.0.0.1:3333/api/health",
-                "expectHttp": 200,
-            },
-            {
                 "id": "cli_version",
                 "command": "keprix --version",
+            },
+            {
+                "id": "dashboard_ui",
+                "command": "curl -fsSI http://127.0.0.1:9120/home",
+                "expectHttp": 200,
+                "optional": True,
+            },
+            {
+                "id": "compose_health",
+                "command": "curl -fsS http://127.0.0.1:3333/api/health",
+                "expectHttp": 200,
+                "optional": True,
             },
             {
                 "id": "product_spec",
@@ -87,8 +96,10 @@ def build_install_manifest() -> dict[str, Any]:
             "llmsTxtUrl": "https://keprixai.com/llms.txt",
         },
         "configureHints": [
-            "Copy .env.example to .env and add a provider API key",
-            "For hosted SaaS use https://app.keprixai.com instead of local install",
+            "Reload your shell, then run keprix (offers setup if no provider key)",
+            "Optional web UI: keprix dashboard or keprix dashboard install "
+            "(http://127.0.0.1:9120/home). There is no hosted workspace at "
+            "app.keprixai.com.",
             "Grant AI feature consent under Privacy when KEPRIX_AI_CONSENT_REQUIRED=true",
         ],
     }

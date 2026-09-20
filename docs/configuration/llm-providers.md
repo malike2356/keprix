@@ -3,14 +3,13 @@
 Keprix routes inference through pluggable providers. Prefer the **GUI** on a
 running instance; `.env` / CLI remain valid for automation.
 
-## GUI (recommended for Contabo sidecar / app.keprixai.com)
+## GUI (recommended)
 
-1. Sign in as admin at `https://app.keprixai.com/auth/login` (or your instance).
+1. Open your **local** workspace (`keprix dashboard` → `http://127.0.0.1:9120/home`, or Compose at `http://127.0.0.1:3000`).
 2. Open **Admin → Settings** (`/dashboard/settings`).
-3. Tab **LLM Providers** → **DeepSeek** → paste API key → Save.
+3. Tab **LLM Providers** → paste an API key → Save.
 4. Optionally **Set as default**, then **Test**.
-5. Keys persist under `KEPRIX_HOME/.env` (Docker: `/home/keprix/.keprix/.env`)
-   and apply immediately to the Carina/Aiva product sidecar on the same backend.
+5. Keys persist under `KEPRIX_HOME/.env` (Docker: `/home/keprix/.keprix/.env`).
 
 Do not put LLM keys only in the host compose `.env` and expect GUI edits to
 update that file; the GUI SoT is `KEPRIX_HOME/.env` (and `KEPRIX_ENV_FILE` when set).

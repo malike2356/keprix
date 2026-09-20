@@ -17,7 +17,7 @@ Restart backend if unhealthy. Confirm `.env` has at least one LLM provider key f
 
 ## Symptom: Wrong ports on Contabo
 
-Public app is `https://app.keprixai.com`. Host loopback for sidecars is often `127.0.0.1:13333`. See [keprixai.com origin](../operations/keprixai-com-origin.md).
+Public site is `https://keprixai.com` (marketing + docs). `https://app.keprixai.com` redirects to `/docs` and is **not** a hosted workspace. Local UI after `keprix dashboard install` is `http://127.0.0.1:9120/home` (API `9119`). Host loopback for sidecars is often `127.0.0.1:13333`. See [keprixai.com origin](../operations/keprixai-com-origin.md).
 
 ## Related
 

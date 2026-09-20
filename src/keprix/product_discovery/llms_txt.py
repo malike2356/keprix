@@ -15,7 +15,8 @@ def build_llms_txt() -> str:
         "## Product",
         "",
         f"- Home: {spec['url']}",
-        f"- App: {spec['appUrl']}",
+        f"- Docs catalog: {spec['appUrl']}",
+        f"- Local workspace: http://127.0.0.1:9120/home after `keprix dashboard`",
         f"- Docs: {spec['humanDocsUrl']}",
         f"- Pricing: {spec['pricingUrl']}",
         f"- OpenAPI: {spec['apiDocsUrl']}",
@@ -42,7 +43,9 @@ def build_llms_txt() -> str:
             "## Install",
             "",
             "- Prefer install.json for agent-driven setup",
-            "- Docker: docker compose -f docker/docker-compose.yml up -d --build",
+            "- curl -fsSL https://keprixai.com/install.sh | bash",
+            "- Local UI: keprix dashboard install (http://127.0.0.1:9120/home)",
+            "- Optional Docker: docker compose -f docker/docker-compose.yml up -d --build",
             "",
         ]
     )
@@ -56,9 +59,9 @@ def build_ai_txt() -> str:
             "contact: billing@verlox.uk",
             "product-spec: https://keprixai.com/productSpec.json",
             "install: https://keprixai.com/install.json",
-            "openapi: https://app.keprixai.com/openapi.json",
+            "openapi: https://keprixai.com/guide/reference/api/",
             "llms: https://keprixai.com/llms.txt",
-            "schema: https://app.keprixai.com/api/product-schema.json",
+            "schema: https://keprixai.com/product-schema.json",
             "",
         ]
     )

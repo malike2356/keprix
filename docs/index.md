@@ -9,7 +9,8 @@ This site is the complete operator and developer reference for every workspace s
 | I want to... | Read |
 | --- | --- |
 | Install CLI / TUI (curl primary) | [Install Keprix](getting-started/install.md) |
-| Run the full Docker stack | [Quickstart](getting-started/quickstart.md) |
+| Open the local web workspace | [Local web dashboard](getting-started/dashboard.md) (`keprix dashboard` / `install`) |
+| Run optional Docker Compose on this machine | [Quickstart](getting-started/quickstart.md) |
 | Complete setup after install | [First run](getting-started/first-run.md) |
 | Understand the full product | [Full product map](features/full-product-map.md) |
 | Configure `.env` and providers | [Environment variables](configuration/environment-variables.md), [LLM providers](configuration/llm-providers.md) |
@@ -21,13 +22,13 @@ This site is the complete operator and developer reference for every workspace s
 | Fix a broken click, Soft Wall, CRM, or Companies House issue | [Troubleshooting](troubleshooting/index.md) |
 | Teach the agent about Keprix itself | [Self-knowledge](troubleshooting/self-knowledge.md) (`keprix memory index-self`) |
 
-Marketing site: [https://keprixai.com](https://keprixai.com) (origin may still be provisioning; see public GTM notes).
+Marketing site: [https://keprixai.com](https://keprixai.com). `app.keprixai.com` redirects to `/docs` and is not a hosted workspace.
 
 ```bash
 curl -fsSL https://keprixai.com/install.sh | bash
 ```
 
-After install: `source ~/.bashrc` (or `source ~/.zshrc`), then `keprix`.
+After install: `source ~/.bashrc` (or `source ~/.zshrc`), then `keprix`. Local UI: `keprix dashboard` or `keprix dashboard install` → `http://127.0.0.1:9120/home`.
 
 ## Product map
 
@@ -104,12 +105,18 @@ After install: `source ~/.bashrc` (or `source ~/.zshrc`), then `keprix`.
 ## Health checks
 
 ```bash
+# CLI dashboard (default after `keprix dashboard` / `keprix dashboard install`)
+curl -sI http://127.0.0.1:9120/home
+curl -sI http://127.0.0.1:9119/
+
+# Docker Compose full stack only (localhost, not Contabo)
 curl -s http://127.0.0.1:3333/api/health
 ```
 
-- Backend API: `http://localhost:3333`
-- Web UI: `http://localhost:3000`
-- Interactive API explorer: `http://localhost:3000/api/docs`
+- CLI UI: `http://127.0.0.1:9120/home`
+- CLI API: `http://127.0.0.1:9119`
+- Compose UI: `http://localhost:3000`
+- Compose API: `http://localhost:3333`
 - MkDocs (local): `bash scripts/serve-docs.sh` then `http://127.0.0.1:8000`
 
 ## Support

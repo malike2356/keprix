@@ -54,7 +54,7 @@ const FAQS = [
   },
   {
     q: "Where is my data stored?",
-    a: "On your server. PostgreSQL and Redis run inside Docker on your machine. Nothing leaves your infrastructure unless you explicitly connect a cloud LLM.",
+    a: "On your machine. The CLI dashboard stores data under ~/.keprix. Optional Docker Compose adds PostgreSQL and Redis on that same machine. Nothing leaves your infrastructure unless you explicitly connect a cloud LLM.",
   },
   {
     q: "Can I use Keprix with my own LLM?",
@@ -62,11 +62,11 @@ const FAQS = [
   },
   {
     q: "What is the difference between Keprix and managed SaaS?",
-    a: "Keprix is the self-hosted open-source agent OS. Managed SaaS products can extend Keprix with billing, hosting, and vendor-specific features. They are separate distributions.",
+    a: "Keprix is the self-hosted open-source agent OS. There is no Verlox-hosted workspace. Operators can optionally enable Stripe billing on their own instance.",
   },
   {
     q: "Is there a hosted or cloud version of Keprix?",
-    a: "No. Core Keprix is intentionally self-hosted. Vendors may offer managed hosting as a separate product built on the platform.",
+    a: "No. Keprix runs on your hardware. keprixai.com is the marketing and docs site; app.keprixai.com redirects to /docs. Use keprix dashboard (or keprix dashboard install) for the local workspace.",
   },
   {
     q: "Where can I see every feature?",
