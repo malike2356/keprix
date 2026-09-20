@@ -7,12 +7,16 @@ Before any commit or push to GitHub, track **only files that make this product w
 
 Follow `<workspace-root>/AGENTS.md` for writing style and shared Verlox rules.
 
-## CRITICAL: 3-way deploy (local → git → Contabo)
+## CRITICAL: git first; owner deploys Contabo from another device
 
-When you finish building and have deployed or verified locally, complete all three legs in the same session unless the owner says local-only:
+Coding agents on this workstation commit and `git push origin HEAD` only (no secrets). Stay in sync first: `git fetch`, then `git diff` against `origin/<branch>` so you never work behind a push you have not pulled. Do **not** rsync or SSH-deploy to Contabo from this machine.
 
-1. **Local** - Docker Compose smoke on the workstation.
-2. **Git** - commit in `keprix/` (no secrets) and `git push origin HEAD`.
+Contabo is an rsync mirror, not a git pull. The owner deploys from a device that already has `malike@80.190.81.208` SSH. After each agent push, leave a note in `agent-sync/memory/handoff.md` with the SHA and that Contabo deploy is owner-side.
+
+### Owner-device recipe (not for this workstation)
+
+1. **Local** - optional Docker Compose smoke on the deploy device.
+2. **Git** - `git pull origin main` and confirm the SHA you intend to ship.
 3. **Server** - rsync to Contabo `/home/malike/apps/keprix` (preserve remote `.env`), then rebuild:
 
 ```bash
@@ -31,7 +35,7 @@ ssh malike@80.190.81.208 'cd /home/malike/apps/keprix && docker compose \
   -f deploy/contabo/docker-compose.app.yml up -d --build'
 ```
 
-Verify `https://app.keprixai.com/`, `/api/health`, `https://keprixai.com/`, and `https://carinaai.uk/` return HTTP 200. Contabo checkout is an rsync mirror, not a git pull. Full note: `shared/workspace-governance/THREE-WAY-DEPLOY.md` and `docs/operations/keprixai-com-origin.md`.
+Owner verifies `https://app.keprixai.com/`, `/api/health`, `https://keprixai.com/`, and `https://carinaai.uk/` return HTTP 200. Full note: `docs/operations/keprixai-com-origin.md`.
 
 ## Public GitHub hygiene (working product only)
 
