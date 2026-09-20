@@ -167,7 +167,6 @@ function useApiKeyCatalog(): ApiKeyOption[] {
 }
 
 const PROVIDER_DISPLAY: Record<string, { order: number; title: string }> = {
-  nous: { order: 0, title: 'Keprix Portal' },
   'openai-codex': { order: 1, title: 'OpenAI OAuth (ChatGPT)' },
   'minimax-oauth': { order: 2, title: 'MiniMax' },
   'qwen-oauth': { order: 3, title: 'Qwen Code' },
@@ -408,8 +407,8 @@ function Header() {
   )
 }
 
-export const FEATURED_ID = 'nous'
-const SHOW_ALL_KEY = 'hermes-onboarding-show-all-v1'
+export const FEATURED_ID = ''
+const SHOW_ALL_KEY = 'keprix-onboarding-show-all-v1'
 
 const readShowAll = () => {
   try {

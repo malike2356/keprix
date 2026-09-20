@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 
-_DOCS_BASE = "https://keprix.nousresearch.com/docs"
+_DOCS_BASE = "https://keprixai.com/docs"
 
 
 def _model_config_dict(config: Dict[str, Any]) -> Dict[str, Any]:
@@ -911,9 +911,6 @@ def _setup_tts_provider(config: dict):
 
     choices = []
     providers = []
-    if managed_nous_tools_enabled() and subscription_features.nous_auth_present:
-        choices.append("Nous Subscription (managed OpenAI TTS, billed to your subscription)")
-        providers.append("nous-openai")
     choices.extend(
         [
             "Edge TTS (free, cloud-based, no setup needed)",
@@ -1825,7 +1822,7 @@ def _setup_slack():
     print_info("   3. Install to Workspace: Settings → Install App")
     print_info("   4. After installing, invite the bot to channels: /invite @YourBot")
     print()
-    print_info("   Full guide: https://keprix.nousresearch.com/docs/user-guide/messaging/slack/")
+    print_info("   Full guide: https://keprixai.com/docs/user-guide/messaging/slack/")
     print()
 
     # Generate and write manifest up-front so the user can paste it into
@@ -2112,7 +2109,7 @@ def _setup_webhooks():
     print_warning("   internet. For security, run the gateway in a sandboxed environment")
     print_warning("   (Docker, VM, etc.) to limit blast radius from prompt injection.")
     print()
-    print_info("   Full guide: https://keprix.nousresearch.com/docs/user-guide/messaging/webhooks/")
+    print_info("   Full guide: https://keprixai.com/docs/user-guide/messaging/webhooks/")
     print()
 
     port = prompt("Webhook port (default 8644)")
@@ -2139,7 +2136,7 @@ def _setup_webhooks():
     print_info("      http://your-server:8644/webhooks/<route-name>")
     print()
     print_info("   Route configuration guide:")
-    print_info("   https://keprix.nousresearch.com/docs/user-guide/messaging/webhooks/#configuring-routes")
+    print_info("   https://keprixai.com/docs/user-guide/messaging/webhooks/#configuring-routes")
     print()
     print_info("   Open config in your editor:  keprix config edit")
     print_info("   Open config in your editor:  keprix config edit")
@@ -2855,7 +2852,7 @@ def _run_portal_one_shot(config: dict) -> None:
     print_info("    web search, image generation, TTS, browser automation")
     print_info("    — all routed through your Nous Portal sub.")
     print()
-    print_info("  Sign up: https://portal.nousresearch.com/manage-subscription")
+    print_info("  Sign up: https://keprixai.com")
     print()
 
     # _model_flow_nous handles BOTH the logged-out path (device-code OAuth,
@@ -3143,7 +3140,7 @@ def _run_first_time_quick_setup(config: dict, keprix_home, is_existing: bool):
     print_header("Nous Portal")
     print_info("One subscription, 300+ models, plus the Tool Gateway:")
     print_info("  web search, image generation, TTS, browser automation.")
-    print_info("Sign up: https://portal.nousresearch.com/manage-subscription")
+    print_info("Sign up: https://keprixai.com")
     print()
     try:
         from keprix_cli.main import _model_flow_nous

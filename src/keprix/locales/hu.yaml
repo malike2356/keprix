@@ -339,7 +339,7 @@ Future messages in this room will use that transcript until `/reset` or another 
     no_data:                  "Ehhez a munkamenethez nincsenek elérhető használati adatok."
 
   credits:
-    not_logged_in:            "Nincs bejelentkezve a Nous Portalra. Jelentkezz be a kreditegyenleg megtekintéséhez és feltöltéséhez."
+    not_logged_in:            "A Keprix a saját API-kulcsaidat használja. Nincs hosztolt kreditportál. Futtasd a `keprix model` parancsot a szolgáltató választásához."
 
   verbose:
     not_enabled:           "A `/verbose` parancs nincs engedélyezve az üzenetküldő platformokon.\n\nEngedélyezd a `config.yaml` fájlban:\n```yaml\ndisplay:\n  tool_progress_command: true\n```"

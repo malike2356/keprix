@@ -1997,7 +1997,7 @@ async def get_portal_status():
         "portal_url": auth.get("portal_base_url"),
         "inference_url": auth.get("inference_base_url"),
         "provider": str((model_cfg or {}).get("provider") or ""),
-        "subscription_url": "https://portal.nousresearch.com/manage-subscription",
+        "subscription_url": "https://keprixai.com",
         "features": features,
     }
 
@@ -3838,7 +3838,7 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "email": {
         "name": "Email",
         "description": "Talk to Keprix through an IMAP/SMTP mailbox.",
-        "docs_url": "https://keprix.nousresearch.com/docs/user-guide/messaging/",
+        "docs_url": "https://keprixai.com/docs/user-guide/messaging/",
         "env_vars": (
             "EMAIL_ADDRESS",
             "EMAIL_PASSWORD",
@@ -3905,7 +3905,7 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "weixin": {
         "name": "Weixin / WeChat (Personal)",
         "description": "Connect a personal WeChat account through Tencent's iLink Bot API.",
-        "docs_url": "https://keprix.nousresearch.com/docs/user-guide/messaging/weixin/",
+        "docs_url": "https://keprixai.com/docs/user-guide/messaging/weixin/",
         "env_vars": ("WEIXIN_ACCOUNT_ID", "WEIXIN_TOKEN", "WEIXIN_BASE_URL"),
         "required_env": ("WEIXIN_ACCOUNT_ID", "WEIXIN_TOKEN"),
     },
@@ -3936,7 +3936,7 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "api_server": {
         "name": "API server",
         "description": "Expose Keprix as an OpenAI-compatible HTTP API for tools like Open WebUI.",
-        "docs_url": "https://keprix.nousresearch.com/docs/user-guide/messaging/",
+        "docs_url": "https://keprixai.com/docs/user-guide/messaging/",
         "env_vars": (
             "API_SERVER_ENABLED",
             "API_SERVER_KEY",
@@ -3949,7 +3949,7 @@ _PLATFORM_OVERRIDES: dict[str, dict[str, Any]] = {
     "webhook": {
         "name": "Webhooks",
         "description": "Receive events from GitHub, GitLab, and other webhook sources.",
-        "docs_url": "https://keprix.nousresearch.com/docs/user-guide/messaging/webhooks/",
+        "docs_url": "https://keprixai.com/docs/user-guide/messaging/webhooks/",
         "env_vars": ("WEBHOOK_ENABLED", "WEBHOOK_PORT", "WEBHOOK_SECRET"),
         "required_env": (),
     },
@@ -4420,7 +4420,7 @@ def _write_platform_enabled(platform_id: str, enabled: bool) -> None:
     save_config(config)
 
 
-_TELEGRAM_ONBOARDING_DEFAULT_URL = "https://setup.keprix.nousresearch.com"
+_TELEGRAM_ONBOARDING_DEFAULT_URL = "https://keprixai.com"
 _TELEGRAM_ONBOARDING_USER_AGENT = f"KeprixDashboard/{__version__}"
 _TELEGRAM_USER_ID_RE = re.compile(r"^\d+$")
 
@@ -5079,7 +5079,7 @@ _OAUTH_PROVIDER_CATALOG: tuple[Dict[str, Any], ...] = (
         # lands back on the loopback listener — no code to copy/paste.
         "flow": "loopback",
         "cli_command": "keprix auth add xai-oauth",
-        "docs_url": "https://keprix.nousresearch.com/docs/guides/xai-grok-oauth",
+        "docs_url": "https://keprixai.com/docs/guides/xai-grok-oauth",
         "status_fn": None,  # dispatched via auth.get_xai_oauth_auth_status
     },
     # ── Anthropic / Claude entries sit at the bottom: the API-key path

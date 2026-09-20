@@ -135,7 +135,7 @@ KEPRIX_AGENT_HELP_GUIDANCE = (
     "understand your own features, tools, or capabilities, use (in order): "
     "(1) retrieved Keprix self-knowledge RAG chunks in context when present, "
     "(2) the local product docs under docs/features/ and the `keprix` skill via "
-    "skill_view(name='keprix'), and (3) https://keprix.nousresearch.com/docs when "
+    "skill_view(name='keprix'), and (3) https://keprixai.com/docs when "
     "online docs are available. Prefer local indexed knowledge over guessing. "
     "Never invent modules, routes, or tools that are not in the inventory or RAG hits."
 )

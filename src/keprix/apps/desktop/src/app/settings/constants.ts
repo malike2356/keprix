@@ -39,13 +39,6 @@ export const CONTROL_TEXT = 'text-xs'
 
 export const PROVIDER_GROUPS: ProviderPrefix[] = [
   {
-    prefix: 'NOUS_',
-    name: 'Keprix Portal',
-    description: 'Hosted subscription models',
-    docsUrl: 'https://portal.nousresearch.com',
-    priority: 0
-  },
-  {
     prefix: 'OPENROUTER_',
     name: 'OpenRouter',
     description: 'Aggregator for hundreds of frontier models',

@@ -8458,12 +8458,12 @@ class KeprixCLI(CLIAgentSetupMixin, CLICommandsMixin):
 
         if not view.logged_in:
             print()
-            print(f"  💳 {_DIM}Not logged into Nous Portal.{_RST}")
-            print("  Run `keprix portal` to log in, then /credits.")
+            print(f"  {_DIM}No hosted credit balance. Keprix uses your own API keys.{_RST}")
+            print("  Run `keprix model` to choose a BYOK provider.")
             return
 
         print()
-        print("  💳 Nous credits")
+        print("  Credits")
         print(f"  {'─' * 41}")
         for line in view.balance_lines:
             # Drop the helper's own "📈 Nous credits" header — we print our own.
