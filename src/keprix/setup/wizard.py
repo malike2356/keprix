@@ -11,6 +11,64 @@ from typing import Any
 from keprix.auth.config import data_dir
 
 
+def _provider_registry() -> dict[str, Any]:
+    try:
+        from keprix_cli.auth import PROVIDER_REGISTRY
+    except ImportError:
+        from keprix.keprix_cli.auth import PROVIDER_REGISTRY
+    return PROVIDER_REGISTRY
+
+
+def wizard_llm_providers() -> list[dict[str, str]]:
+    """API-key providers from the CLI registry. No named default."""
+    seen: set[str] = set()
+    rows: list[dict[str, str]] = []
+    for key, cfg in _provider_registry().items():
+        if str(getattr(cfg, "auth_type", "") or "") != "api_key":
+            continue
+        provider_id = str(getattr(cfg, "id", "") or key).strip()
+        if not provider_id or provider_id in seen:
+            continue
+        seen.add(provider_id)
+        rows.append({
+            "id": provider_id,
+            "name": str(getattr(cfg, "name", "") or provider_id).strip(),
+        })
+    rows.sort(key=lambda row: (row["name"].lower(), row["id"]))
+    return rows
+
+
+def apply_wizard_provider_key(provider_id: str, api_key: str) -> dict[str, Any]:
+    """Store a first-run key on whichever registry provider the owner picked."""
+    registry = _provider_registry()
+    cfg = registry.get(provider_id.strip())
+    if cfg is None or str(getattr(cfg, "auth_type", "") or "") != "api_key":
+        raise ValueError("Unknown provider")
+    canonical = str(getattr(cfg, "id", "") or provider_id).strip()
+    env_vars = tuple(getattr(cfg, "api_key_env_vars", ()) or ())
+    if env_vars:
+        _persist_provider_env(str(env_vars[0]), api_key.strip())
+    _set_active_provider(canonical, str(getattr(cfg, "inference_base_url", "") or ""))
+    return {"ok": True, "provider": canonical}
+
+
+def _persist_provider_env(key: str, value: str) -> None:
+    try:
+        from keprix_cli.config import save_env_value
+    except ImportError:
+        from keprix.keprix_cli.config import save_env_value
+    save_env_value(key, value)
+
+
+def _set_active_provider(provider_id: str, inference_base_url: str) -> None:
+    try:
+        from keprix_cli.auth import _update_config_for_provider, deactivate_provider
+    except ImportError:
+        from keprix.keprix_cli.auth import _update_config_for_provider, deactivate_provider
+    _update_config_for_provider(provider_id, inference_base_url)
+    deactivate_provider()
+
+
 def _marker_path() -> Path:
     return Path(data_dir()) / ".setup_complete"
 
@@ -47,7 +105,11 @@ def mark_setup_complete(*, owner_email: str | None = None) -> dict[str, Any]:
 
 
 def wizard_status() -> dict[str, Any]:
-    return {"complete": is_setup_complete(), "public_setup_disabled": is_public_setup_disabled()}
+    return {
+        "complete": is_setup_complete(),
+        "public_setup_disabled": is_public_setup_disabled(),
+        "providers": wizard_llm_providers(),
+    }
 
 
 def credential_management_options() -> list[dict[str, Any]]:

@@ -15,7 +15,7 @@ import { ceApi } from "@/lib/ce-api";
 
 const steps = ["Welcome", "Owner account", "LLM provider", "Done"];
 
-const providers = ["anthropic", "openai", "gemini", "groq", "ollama"];
+type WizardProvider = { id: string; name: string };
 
 export default function AuthSetupPage() {
   const router = useRouter();
@@ -24,7 +24,8 @@ export default function AuthSetupPage() {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
-  const [provider, setProvider] = React.useState("anthropic");
+  const [providers, setProviders] = React.useState<WizardProvider[]>([]);
+  const [provider, setProvider] = React.useState("");
   const [apiKey, setApiKey] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -40,12 +41,19 @@ export default function AuthSetupPage() {
           setPublicSetupDisabled(false);
           return;
         }
-        const body = (await response.json()) as { complete?: boolean; public_setup_disabled?: boolean };
+        const body = (await response.json()) as {
+          complete?: boolean;
+          public_setup_disabled?: boolean;
+          providers?: WizardProvider[];
+        };
         if (body.public_setup_disabled) {
           setPublicSetupDisabled(true);
           return;
         }
         setPublicSetupDisabled(false);
+        const list = (body.providers || []).filter((item) => item.id && item.name);
+        setProviders(list);
+        setProvider((current) => current || list[0]?.id || "");
         if (body.complete) {
           router.replace("/dashboard");
         }
@@ -216,12 +224,12 @@ export default function AuthSetupPage() {
       {activeStep === 2 && (
         <Box sx={{ display: "grid", gap: 2 }}>
           <Typography variant="body2" color="text.secondary">
-            Optional. Add a key now, or skip and configure DeepSeek (or any provider) after login.
+            Optional. Add a key now, or skip and add one after login.
           </Typography>
           <TextField select label="Primary LLM" value={provider} onChange={(e) => setProvider(e.target.value)}>
             {providers.map((item) => (
-              <MenuItem key={item} value={item}>
-                {item}
+              <MenuItem key={item.id} value={item.id}>
+                {item.name}
               </MenuItem>
             ))}
           </TextField>

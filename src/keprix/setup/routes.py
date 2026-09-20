@@ -17,6 +17,7 @@ from keprix.setup.runtime_config import get_runtime_config
 from keprix.setup.status import setup_status_snapshot
 from keprix.setup.validation import validate_service
 from keprix.setup.wizard import (
+    apply_wizard_provider_key,
     is_public_setup_disabled,
     is_setup_complete,
     mark_setup_complete,
@@ -44,7 +45,7 @@ class WizardStep1Body(BaseModel):
 
 
 class WizardStep2Body(BaseModel):
-    provider: str = Field(..., min_length=1)
+    provider: str = ""
     api_key: str = ""
 
 
@@ -90,36 +91,13 @@ async def wizard_step(step: int, request: Request) -> dict[str, Any]:
 
     if step == 2:
         body = WizardStep2Body.model_validate(await request.json())
-        if body.api_key.strip():
-            item = get_item(body.provider)
-            if item is None:
-                raise HTTPException(status_code=404, detail="Unknown provider")
-            validation = await validate_service(body.provider, {"api_key": body.api_key.strip()})
-            vault = get_vault_service()
-            user_id = "admin"
-            secret_value = json.dumps({"api_key": body.api_key.strip()})
-            vault_item = await vault.create_item(
-                user_id,
-                label=f"{item.name} credentials",
-                value=secret_value,
-                category="setup",
-                tags=[body.provider],
-            )
-            if validation["ok"]:
-                get_runtime_config().set_service(
-                    body.provider,
-                    vault_item_id=vault_item.id,
-                    enabled=True,
-                    metadata={"label": item.name},
-                )
-                try:
-                    from keprix.agent_os.onboarding_events import record_onboarding_event
-
-                    record_onboarding_event("admin", "provider.connected")
-                except Exception:
-                    pass
-            return {"ok": validation["ok"], "step": 2, "validation": validation}
-        return {"ok": True, "step": 2, "skipped": True}
+        if not body.api_key.strip():
+            return {"ok": True, "step": 2, "skipped": True}
+        try:
+            payload = apply_wizard_provider_key(body.provider, body.api_key)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from None
+        return {"ok": True, "step": 2, **payload}
 
     if step == 3:
         payload = mark_setup_complete()

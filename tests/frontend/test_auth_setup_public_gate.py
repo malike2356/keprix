@@ -44,3 +44,7 @@ def test_auth_setup_page_can_skip_llm_provider() -> None:
     assert "handleSkipProvider" in page
     assert 'api_key: ""' in page
     assert "API key (optional)" in page
+    assert "body.providers" in page
+    assert "DeepSeek" not in page
+    assert "anthropic" not in page
+    assert 'const providers = [' not in page
