@@ -14,7 +14,7 @@ from keprix.auth.dependencies import get_current_user
 from keprix.auth.request_context import client_ip, client_label
 from keprix.auth.session import auth_manager
 from keprix.security.audit import audit_log
-from keprix.security.rate_limiter import rate_limit
+from keprix.security.rate_limiter import clear_rate_limit, rate_limit
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -62,7 +62,9 @@ class ProfileUpdateRequest(BaseModel):
 @router.post("/login")
 async def login(body: LoginRequest, request: Request) -> dict[str, Any]:
     ip = client_ip(request)
-    if not rate_limit("auth_login", ip, limit=5, window_seconds=600):
+    peer = request.client.host if request.client else ""
+    loopback = peer in {"127.0.0.1", "::1", "localhost"}
+    if not loopback and not rate_limit("auth_login", ip, limit=5, window_seconds=600):
         raise HTTPException(status_code=429, detail="Too many login attempts", headers={"Retry-After": "600"})
 
     token, user, error = auth_manager.login(
@@ -97,6 +99,8 @@ async def login(body: LoginRequest, request: Request) -> dict[str, Any]:
         )
 
     await audit_log("login", user_id=user["id"], ip_address=ip)
+    if not loopback:
+        clear_rate_limit("auth_login", ip)
     return {"token": token, "user": _public_user(user)}
 
 

@@ -229,24 +229,55 @@ from keprix_cli.dashboard_auth.public_paths import (
 )
 
 
+def _digest_equal(left: str, right: str) -> bool:
+    """Length-safe ``hmac.compare_digest``. Mismatched lengths must not raise."""
+    left_b = left.encode()
+    right_b = right.encode()
+    if len(left_b) != len(right_b):
+        return False
+    return hmac.compare_digest(left_b, right_b)
+
+
+def _has_valid_workspace_bearer(request: Request) -> bool:
+    """True if Authorization is an AuthManager session from /api/auth/login.
+
+    The Next.js sibling never gets ``window.__KEPRIX_SESSION_TOKEN__``, so
+    after owner login the SPA sends ``Bearer <workspace session>``. That
+    must pass the loopback API gate or /api/auth/me 401s and the UI looks
+    locked out.
+    """
+    auth = request.headers.get("authorization", "")
+    if not auth.lower().startswith("bearer "):
+        return False
+    token = auth.split(" ", 1)[1].strip()
+    if not token:
+        return False
+    try:
+        from keprix.auth.session import auth_manager
+
+        return auth_manager.validate_token(token) is not None
+    except Exception:
+        return False
+
+
 def _has_valid_session_token(request: Request) -> bool:
     """True if the request carries a valid dashboard session token.
 
     The dedicated session header avoids collisions with reverse proxies that
     already use ``Authorization`` (for example Caddy ``basic_auth``). We still
     accept the legacy Bearer path for backward compatibility with older
-    dashboard bundles.
+    dashboard bundles, and workspace login Bearers (see
+    ``_has_valid_workspace_bearer``).
     """
     session_header = request.headers.get(_SESSION_HEADER_NAME, "")
-    if session_header and hmac.compare_digest(
-        session_header.encode(),
-        _SESSION_TOKEN.encode(),
-    ):
+    if session_header and _digest_equal(session_header, _SESSION_TOKEN):
         return True
 
     auth = request.headers.get("authorization", "")
     expected = f"Bearer {_SESSION_TOKEN}"
-    return hmac.compare_digest(auth.encode(), expected.encode())
+    if _digest_equal(auth, expected):
+        return True
+    return _has_valid_workspace_bearer(request)
 
 
 # Routes that may also authenticate via a ``?token=`` query param, for download

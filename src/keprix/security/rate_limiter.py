@@ -51,3 +51,18 @@ def _rate_limit_redis(key: str, identifier: str, *, limit: int, window_seconds: 
 def reset_rate_limits() -> None:
     with _memory_lock:
         _memory_counters.clear()
+
+
+def clear_rate_limit(key: str, identifier: str) -> None:
+    bucket_key = f"{key}:{identifier}"
+    with _memory_lock:
+        _memory_counters.pop(bucket_key, None)
+    redis_url = os.getenv("REDIS_URL", "")
+    if not redis_url:
+        return
+    try:
+        import redis
+
+        redis.from_url(redis_url).delete(f"keprix:rate:{key}:{identifier}")
+    except Exception as exc:
+        logger.debug("Redis rate limit clear failed: %s", exc)
