@@ -2,8 +2,7 @@
 
 ## 2026-09-20: recorded-session tests (772) pushed; Contabo owner-side
 
-- **Git tip:** see latest `origin/main` after push (feature commit message
-  `feat(trajectory): recorded-session snapshot tests`)
+- **Git tip:** `ee8f777` on `origin/main`
 - **Feature:** `keprix.trajectory.recorded` offline harness; fixtures
   `soft-wall-deny`, `multi-tool-success`, `mutation-propose-stub`;
   CI step runs without LLM API keys
