@@ -3251,7 +3251,7 @@ def run_conversation(
                             force=True,
                         )
                         agent._vprint(
-                            f"{agent.log_prefix}   then run: keprix config set ANTHROPIC_WORKSPACE_ID wrkspc_...",
+                            f"{agent.log_prefix}   then run: keprix config set ANTHROPIC_WORKSPACE_ID <paste the Console ID>",
                             force=True,
                         )
                         agent._vprint(

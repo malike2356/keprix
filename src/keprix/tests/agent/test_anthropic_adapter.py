@@ -110,16 +110,23 @@ class TestBuildAnthropicClient:
             assert "claude-code-20250219" not in betas  # OAuth-only beta NOT present
             assert "anthropic-workspace-id" not in kwargs["default_headers"]
 
+    def test_placeholder_workspace_id_is_ignored(self, monkeypatch):
+        monkeypatch.setenv("ANTHROPIC_WORKSPACE_ID", "wrkspc_YOUR_ID")
+        with patch("agent.anthropic_adapter._anthropic_sdk") as mock_sdk:
+            build_anthropic_client("sk-ant-api03-something")
+            kwargs = mock_sdk.Anthropic.call_args[1]
+            assert "anthropic-workspace-id" not in kwargs["default_headers"]
+
     def test_api_key_attaches_workspace_header_from_env(self, monkeypatch):
-        monkeypatch.setenv("ANTHROPIC_WORKSPACE_ID", "wrkspc_test123")
+        monkeypatch.setenv("ANTHROPIC_WORKSPACE_ID", "wrkspc_01TestWorkspace99")
         with patch("agent.anthropic_adapter._anthropic_sdk") as mock_sdk:
             build_anthropic_client("sk-ant-api03-something")
             kwargs = mock_sdk.Anthropic.call_args[1]
             assert kwargs["api_key"] == "sk-ant-api03-something"
-            assert kwargs["default_headers"]["anthropic-workspace-id"] == "wrkspc_test123"
+            assert kwargs["default_headers"]["anthropic-workspace-id"] == "wrkspc_01TestWorkspace99"
 
     def test_third_party_endpoint_skips_workspace_header(self, monkeypatch):
-        monkeypatch.setenv("ANTHROPIC_WORKSPACE_ID", "wrkspc_test123")
+        monkeypatch.setenv("ANTHROPIC_WORKSPACE_ID", "wrkspc_01TestWorkspace99")
         with patch("agent.anthropic_adapter._anthropic_sdk") as mock_sdk:
             build_anthropic_client("sk-ant-api03-x", base_url="https://custom.api.com")
             kwargs = mock_sdk.Anthropic.call_args[1]

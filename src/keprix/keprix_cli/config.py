@@ -6319,6 +6319,13 @@ def set_config_value(key: str, value: str):
     ]
     
     if key.upper() in api_keys or key.upper().endswith(('_API_KEY', '_TOKEN')) or key.upper().startswith('TERMINAL_SSH'):
+        if key.upper() in {"ANTHROPIC_WORKSPACE_ID", "ANTHROPIC_WORKSPACE"}:
+            from agent.anthropic_adapter import is_valid_anthropic_workspace_id
+            if not is_valid_anthropic_workspace_id(value):
+                print("Invalid Anthropic workspace ID.")
+                print("Copy the real ID from https://platform.claude.com/settings/workspaces")
+                print("Do not paste the example placeholder from the error text.")
+                return
         save_env_value(key.upper(), value)
         print(f"✓ Set {key} in {get_env_path()}")
         return

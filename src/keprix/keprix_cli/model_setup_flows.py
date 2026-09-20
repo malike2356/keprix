@@ -2591,6 +2591,10 @@ def _prompt_anthropic_workspace_id(save_fn) -> None:
         print()
         return
     if workspace_id:
+        from agent.anthropic_adapter import is_valid_anthropic_workspace_id
+        if not is_valid_anthropic_workspace_id(workspace_id):
+            print("  That is not a valid workspace ID. Copy the wrkspc_ value from the Console.")
+            return
         save_fn("ANTHROPIC_WORKSPACE_ID", workspace_id)
         print("  Workspace ID saved.")
 

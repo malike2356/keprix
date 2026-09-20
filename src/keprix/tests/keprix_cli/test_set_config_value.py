@@ -38,7 +38,6 @@ class TestExplicitAllowlist:
         "OPENROUTER_API_KEY",
         "OPENAI_API_KEY",
         "ANTHROPIC_API_KEY",
-        "ANTHROPIC_WORKSPACE_ID",
         "HONCHO_API_KEY",
         "FIRECRAWL_API_KEY",
         "BROWSERBASE_API_KEY",
@@ -56,6 +55,19 @@ class TestExplicitAllowlist:
         assert f"{key}=test-value-123" in env_content
         # Must NOT appear in config.yaml
         assert key not in _read_config(_isolated_keprix_home)
+
+
+class TestAnthropicWorkspaceId:
+    def test_valid_workspace_id_routes_to_env(self, _isolated_keprix_home):
+        set_config_value("ANTHROPIC_WORKSPACE_ID", "wrkspc_01TestWorkspace99")
+        env_content = _read_env(_isolated_keprix_home)
+        assert "ANTHROPIC_WORKSPACE_ID=wrkspc_01TestWorkspace99" in env_content
+        assert "ANTHROPIC_WORKSPACE_ID" not in _read_config(_isolated_keprix_home)
+
+    def test_placeholder_workspace_id_is_rejected(self, _isolated_keprix_home, capsys):
+        set_config_value("ANTHROPIC_WORKSPACE_ID", "wrkspc_YOUR_ID")
+        assert "wrkspc_YOUR_ID" not in _read_env(_isolated_keprix_home)
+        assert "Invalid Anthropic workspace ID" in capsys.readouterr().out
 
 
 # ---------------------------------------------------------------------------

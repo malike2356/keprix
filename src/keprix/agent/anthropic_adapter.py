@@ -438,17 +438,30 @@ def _is_third_party_anthropic_endpoint(base_url: str | None) -> bool:
     return True  # Any other endpoint is a third-party proxy
 
 
+def is_valid_anthropic_workspace_id(value: str) -> bool:
+    """Return True for a Console workspace ID, False for placeholders."""
+    import re
+
+    text = (value or "").strip()
+    if not re.fullmatch(r"wrkspc_[A-Za-z0-9]+", text):
+        return False
+    rest = text[len("wrkspc_"):].upper()
+    if "YOUR" in rest or "EXAMPLE" in rest or "PLACEHOLDER" in rest:
+        return False
+    return len(rest) >= 8
+
+
 def resolve_anthropic_workspace_id() -> str:
     """Return the Anthropic workspace ID for unscoped API keys.
 
     Identity-backed personal and service-account keys that are not bound to
     one workspace require the ``anthropic-workspace-id`` header on every
     native Anthropic request. Read ``ANTHROPIC_WORKSPACE_ID`` first, then
-    ``ANTHROPIC_WORKSPACE``. Empty when unset.
+    ``ANTHROPIC_WORKSPACE``. Empty when unset or the value is a placeholder.
     """
     for name in ("ANTHROPIC_WORKSPACE_ID", "ANTHROPIC_WORKSPACE"):
         value = os.getenv(name, "").strip()
-        if value:
+        if value and is_valid_anthropic_workspace_id(value):
             return value
     return ""
 
