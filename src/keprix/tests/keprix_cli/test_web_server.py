@@ -2388,6 +2388,54 @@ class TestWebServerEndpoints:
         assert "indexed" in body
         assert "document_count" in body
 
+    def test_readiness_report_on_dashboard(self, tmp_path, monkeypatch):
+        """Admin -> Readiness reads /api/admin/readiness on the dashboard."""
+        from starlette.testclient import TestClient
+        from keprix.auth.session import AuthManager
+        from keprix_cli.web_server import app
+
+        monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path / "data"))
+        monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
+        monkeypatch.delenv("KEPRIX_ADMIN_PASSWORD", raising=False)
+        monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+        auth = AuthManager(str(tmp_path / "auth.json"))
+        ok, _message = auth.bootstrap_owner("owner@example.com", "solo-pass-1")
+        assert ok is True
+        token, _user, error = auth.login("owner@example.com", "solo-pass-1")
+        assert error is None and token
+        monkeypatch.setattr("keprix.auth.session.auth_manager", auth)
+        monkeypatch.setattr("keprix.auth.dependencies.auth_manager", auth)
+
+        class Report:
+            def to_dict(self):
+                return {
+                    "overall": "pass",
+                    "market": "pass",
+                    "upgrade": "pass",
+                    "recovery": "pass",
+                    "checks": [],
+                    "counts": {"pass": 0},
+                    "notes": [],
+                }
+
+        monkeypatch.setattr("keprix.readiness.routes.build_report", lambda **_kwargs: Report())
+
+        client = TestClient(app)
+        headers = {"Authorization": f"Bearer {token}"}
+        missing = client.get("/api/admin/readiness", follow_redirects=False)
+        assert missing.status_code == 401
+
+        status = client.get("/api/admin/readiness", headers=headers, follow_redirects=False)
+        assert status.status_code == 200, status.text[:400]
+        assert status.headers.get("location") is None
+        body = status.json()
+        assert body.get("overall") == "pass"
+        assert "checks" in body
+
+        evidence = client.get("/api/admin/readiness/restore-evidence", headers=headers, follow_redirects=False)
+        assert evidence.status_code == 200, evidence.text[:400]
+        assert "evidence" in evidence.json()
+
     def test_missing_api_does_not_redirect_to_frontend(self, tmp_path, monkeypatch):
         """Authenticated GET /api/* with no handler must 404, not 302 to Next.js."""
         from starlette.testclient import TestClient
