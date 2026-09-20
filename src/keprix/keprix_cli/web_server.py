@@ -11633,6 +11633,7 @@ def _mount_dashboard_workspace_routers() -> None:
     from keprix.api.self_knowledge_routes import router as self_knowledge_router
     from keprix.readiness.routes import router as readiness_router
     from keprix.workspace.backup_routes import router as backup_router
+    from keprix.api.upstream_routes import router as upstream_router
     from keprix_cli.dashboard_auth.routes import router as dashboard_auth_router
 
     for router in (
@@ -11682,6 +11683,7 @@ def _mount_dashboard_workspace_routers() -> None:
         self_knowledge_router,
         readiness_router,
         backup_router,
+        upstream_router,
         dashboard_auth_router,
     ):
         app.include_router(router)
