@@ -259,3 +259,38 @@ class TestUnifiedDashboardRouting:
                 "thread_name": "dashboard-mcp-discovery",
             }
         ]
+
+    def test_skip_build_without_legacy_web_dist_still_starts(self, main_mod, monkeypatch):
+        """systemd used --skip-build; the Vite web/ tree is gone, so missing
+        keprix_cli/web_dist must not exit 1 (that crash-looped the unit)."""
+        monkeypatch.setattr(
+            "keprix_cli.profiles.get_active_profile_name", lambda: "default"
+        )
+        monkeypatch.setattr(main_mod, "_dashboard_listening", lambda host, port: False)
+        monkeypatch.delenv("KEPRIX_WEB_DIST", raising=False)
+        monkeypatch.setattr(main_mod, "_sync_bundled_skills_quietly", lambda: None)
+        monkeypatch.setitem(sys.modules, "fastapi", types.SimpleNamespace())
+        monkeypatch.setitem(sys.modules, "uvicorn", types.SimpleNamespace())
+        monkeypatch.setitem(
+            sys.modules,
+            "keprix_logging",
+            types.SimpleNamespace(setup_logging=lambda **_k: None),
+        )
+        monkeypatch.setitem(
+            sys.modules,
+            "keprix_cli.plugins",
+            types.SimpleNamespace(discover_plugins=lambda: None),
+        )
+        monkeypatch.setattr(
+            "keprix_cli.mcp_startup.start_background_mcp_discovery",
+            lambda **kwargs: None,
+        )
+        started = []
+        monkeypatch.setitem(
+            sys.modules,
+            "keprix_cli.web_server",
+            types.SimpleNamespace(start_server=lambda **kwargs: started.append(kwargs)),
+        )
+
+        main_mod.cmd_dashboard(_args(skip_build=True))
+        assert started

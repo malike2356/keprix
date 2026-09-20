@@ -523,6 +523,7 @@ def systemd_restart(system: bool = False) -> None:
     else:
         _preflight_user_systemd()
     _require_installed("restart", system=system)
+    _refresh_unit_if_needed(system=system)
     _run_systemctl(
         ["reset-failed", get_service_name()],
         system=system,
