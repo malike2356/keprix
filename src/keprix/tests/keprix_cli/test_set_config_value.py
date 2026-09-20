@@ -38,6 +38,7 @@ class TestExplicitAllowlist:
         "OPENROUTER_API_KEY",
         "OPENAI_API_KEY",
         "ANTHROPIC_API_KEY",
+        "ANTHROPIC_WORKSPACE_ID",
         "HONCHO_API_KEY",
         "FIRECRAWL_API_KEY",
         "BROWSERBASE_API_KEY",

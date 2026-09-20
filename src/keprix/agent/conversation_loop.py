@@ -3239,7 +3239,25 @@ def run_conversation(
                             if base_url_host_matches(str(_base), "openrouter.ai"):
                                 agent._vprint(f"{agent.log_prefix}      • Check credits: https://openrouter.ai/settings/credits", force=True)
                     else:
-                        agent._vprint(f"{agent.log_prefix}   💡 This type of error won't be fixed by retrying.", force=True)
+                        agent._vprint(f"{agent.log_prefix}   This type of error won't be fixed by retrying.", force=True)
+                    err_blob = f"{classified.message} {api_error}".lower()
+                    if "anthropic-workspace-id" in err_blob or "not scoped to a workspace" in err_blob:
+                        agent._vprint(
+                            f"{agent.log_prefix}   This Anthropic key is not bound to one workspace, so every request needs anthropic-workspace-id.",
+                            force=True,
+                        )
+                        agent._vprint(
+                            f"{agent.log_prefix}   Copy the wrkspc_ value from https://platform.claude.com/settings/workspaces",
+                            force=True,
+                        )
+                        agent._vprint(
+                            f"{agent.log_prefix}   then run: keprix config set ANTHROPIC_WORKSPACE_ID wrkspc_...",
+                            force=True,
+                        )
+                        agent._vprint(
+                            f"{agent.log_prefix}   Restart keprix after setting it.",
+                            force=True,
+                        )
                     # Content-policy blocks deserve their own actionable
                     # guidance — neither "fix your API key" nor "retry won't
                     # help" tells the user what to actually do. The provider

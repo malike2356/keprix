@@ -2574,6 +2574,27 @@ def _model_flow_api_key_provider(config, provider_id, current_model=""):
     else:
         print("No change.")
 
+
+def _prompt_anthropic_workspace_id(save_fn) -> None:
+    """Ask for ANTHROPIC_WORKSPACE_ID when an unscoped API key needs it."""
+    from agent.anthropic_adapter import resolve_anthropic_workspace_id
+
+    if resolve_anthropic_workspace_id():
+        return
+    print()
+    print("  Unscoped Anthropic API keys need a workspace ID on every request.")
+    print("  Copy it from: https://platform.claude.com/settings/workspaces")
+    print("  Leave empty if this key is already scoped to one workspace.")
+    try:
+        workspace_id = input("  Workspace ID (wrkspc_...): ").strip()
+    except (KeyboardInterrupt, EOFError):
+        print()
+        return
+    if workspace_id:
+        save_fn("ANTHROPIC_WORKSPACE_ID", workspace_id)
+        print("  Workspace ID saved.")
+
+
 def _model_flow_anthropic(config, current_model=""):
     """Flow for Anthropic provider — OAuth subscription, API key, or Claude Code creds."""
     from keprix_cli.main import _run_anthropic_oauth_flow
@@ -2682,7 +2703,8 @@ def _model_flow_anthropic(config, current_model=""):
                 print("  Cancelled.")
                 return
             save_anthropic_api_key(api_key, save_fn=save_env_value)
-            print("  ✓ API key saved.")
+            print("  API key saved.")
+            _prompt_anthropic_workspace_id(save_env_value)
 
         else:
             print("  No change.")

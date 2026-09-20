@@ -59,6 +59,11 @@ class TestIsOAuthToken:
 
 
 class TestBuildAnthropicClient:
+    @pytest.fixture(autouse=True)
+    def _clear_workspace_env(self, monkeypatch):
+        monkeypatch.delenv("ANTHROPIC_WORKSPACE_ID", raising=False)
+        monkeypatch.delenv("ANTHROPIC_WORKSPACE", raising=False)
+
     def test_setup_token_uses_auth_token(self):
         with patch("agent.anthropic_adapter._anthropic_sdk") as mock_sdk:
             build_anthropic_client("sk-ant-oat01-" + "x" * 60)
@@ -103,6 +108,22 @@ class TestBuildAnthropicClient:
             assert "context-1m-2025-08-07" not in betas
             assert "oauth-2025-04-20" not in betas  # OAuth-only beta NOT present
             assert "claude-code-20250219" not in betas  # OAuth-only beta NOT present
+            assert "anthropic-workspace-id" not in kwargs["default_headers"]
+
+    def test_api_key_attaches_workspace_header_from_env(self, monkeypatch):
+        monkeypatch.setenv("ANTHROPIC_WORKSPACE_ID", "wrkspc_test123")
+        with patch("agent.anthropic_adapter._anthropic_sdk") as mock_sdk:
+            build_anthropic_client("sk-ant-api03-something")
+            kwargs = mock_sdk.Anthropic.call_args[1]
+            assert kwargs["api_key"] == "sk-ant-api03-something"
+            assert kwargs["default_headers"]["anthropic-workspace-id"] == "wrkspc_test123"
+
+    def test_third_party_endpoint_skips_workspace_header(self, monkeypatch):
+        monkeypatch.setenv("ANTHROPIC_WORKSPACE_ID", "wrkspc_test123")
+        with patch("agent.anthropic_adapter._anthropic_sdk") as mock_sdk:
+            build_anthropic_client("sk-ant-api03-x", base_url="https://custom.api.com")
+            kwargs = mock_sdk.Anthropic.call_args[1]
+            assert "anthropic-workspace-id" not in (kwargs.get("default_headers") or {})
 
     def test_custom_base_url(self):
         with patch("agent.anthropic_adapter._anthropic_sdk") as mock_sdk:

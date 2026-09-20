@@ -2620,6 +2620,11 @@ def _fetch_anthropic_models(
         headers["anthropic-beta"] = ",".join(_COMMON_BETAS + _OAUTH_ONLY_BETAS)
     else:
         headers["x-api-key"] = token
+    try:
+        from agent.anthropic_adapter import anthropic_workspace_headers
+        headers.update(anthropic_workspace_headers(base_url=base_url))
+    except Exception:
+        pass
 
     def _do_request(h: dict[str, str]):
         req = urllib.request.Request(
