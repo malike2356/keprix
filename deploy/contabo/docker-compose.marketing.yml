@@ -1,36 +1,21 @@
-# Contabo marketing-only frontend for keprixai.com (apex).
-# Joins external `proxy` network so shared Carina nginx can reach keprix-frontend.
-# Does NOT bind host 80/443. Does NOT require keprix-backend.
+# Keprix Contabo marketing-only stack (no backend / Postgres / Redis).
 #
-# Product workspace/API: use docker-compose.app.yml (app.keprixai.com).
-# That compose reuses container name keprix-frontend; stop this file first when
-# promoting to the full Contabo app stack, or run app compose alone.
+# Use after local image build + docker save/load (see
+# shared/workspace-governance/CONTABO-LOCAL-IMAGE-DEPLOY.md).
 #
-# Usage (on Contabo, from a Keprix product checkout):
+# Does NOT bind host 80/443. Shared Carina nginx proxies keprixai.com.
+#
 #   docker compose --project-directory /home/malike/apps/keprix \
 #     --env-file /home/malike/apps/keprix/.env \
-#     -f deploy/contabo/docker-compose.marketing.yml up -d --build
-#
-# Build context and .env paths are relative to --project-directory (repo root).
+#     -f deploy/contabo/docker-compose.marketing.yml up -d
 
-# Then install/reload:
-#   carina/02-backends/core.carinaai.uk/docker/nginx/keprixai.com.conf
-#   carina/02-backends/core.carinaai.uk/docker/nginx/app.keprixai.com.conf
-# Verify:
-#   curl -fsS -o /dev/null -w '%{http_code}\n' https://keprixai.com/
-#   curl -fsS -o /dev/null -w '%{http_code}\n' https://carinaai.uk/
-#
-# Full runbook: docs/operations/keprixai-com-origin.md
+name: keprix-marketing
 
 services:
   keprix-frontend:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile.frontend
     image: keprix-frontend:${KEPRIX_IMAGE_TAG:-latest}
     container_name: keprix-frontend
     restart: unless-stopped
-    # Localhost-only host publish for debug; nginx uses Docker DNS on `proxy`.
     ports:
       - "127.0.0.1:13000:3000"
     environment:
@@ -53,4 +38,3 @@ services:
 networks:
   proxy:
     external: true
-    name: ${KEPRIX_CONTABO_PROXY_NETWORK:-proxy}

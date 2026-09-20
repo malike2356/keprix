@@ -7,35 +7,30 @@ Before any commit or push to GitHub, track **only files that make this product w
 
 Follow `<workspace-root>/AGENTS.md` for writing style and shared Verlox rules.
 
-## CRITICAL: git first; owner deploys Contabo from another device
+## CRITICAL: Contabo is marketing-only for Keprix (from 2026-09-20)
 
-Coding agents on this workstation commit and `git push origin HEAD` only (no secrets). Stay in sync first: `git fetch`, then `git diff` against `origin/<branch>` so you never work behind a push you have not pulled. Do **not** rsync or SSH-deploy to Contabo from this machine.
+Live Contabo keeps **keprixai.com** (frontend image only). Backend, Postgres,
+and Redis are not run on the VPS. Installers still pull from GitHub.
 
-Contabo is an rsync mirror, not a git pull. The owner deploys from a device that already has `malike@80.190.81.208` SSH. After each agent push, leave a note in `agent-sync/memory/handoff.md` with the SHA and that Contabo deploy is owner-side.
+- Compose: `deploy/contabo/docker-compose.marketing.yml` (no `--build` on server)
+- Ship images via local build + `docker save` / `scp` / `docker load` (see
+  `<workspace-root>/shared/workspace-governance/CONTABO-LOCAL-IMAGE-DEPLOY.md`)
+- `https://app.keprixai.com/` redirects to `https://keprixai.com/docs`
 
-### Owner-device recipe (not for this workstation)
+## CRITICAL: git first; Contabo deploy prefers pre-built images
 
-1. **Local** - optional Docker Compose smoke on the deploy device.
-2. **Git** - `git pull origin main` and confirm the SHA you intend to ship.
-3. **Server** - rsync to Contabo `/home/malike/apps/keprix` (preserve remote `.env`), then rebuild:
+Coding agents on this workstation commit and `git push origin HEAD` only (no secrets). Stay in sync first: `git fetch`, then `git diff` against `origin/<branch>` so you never work behind a push you have not pulled.
 
-```bash
-rsync -az --delete \
-  --exclude '.git/' --exclude '.env' --exclude '.env.*' --exclude '!.env.example' \
-  --exclude '.keprix/' --exclude '.keprix-data/' --exclude 'keprix-data/' \
-  --exclude '1st-plan/' --exclude 'apps-on-keprix/' \
-  --exclude 'node_modules/' --exclude 'frontend/node_modules/' --exclude 'frontend/.next/' \
-  --exclude '.venv/' --exclude 'venv/' --exclude '__pycache__/' \
-  <workspace-root>/keprix/ \
-  malike@80.190.81.208:/home/malike/apps/keprix/
+When Contabo ship is required (owner-requested): build the frontend image **locally**, transfer it, then `up -d` with `docker-compose.marketing.yml`. Do not `docker compose ... --build` on Contabo.
 
-ssh malike@80.190.81.208 'cd /home/malike/apps/keprix && docker compose \
-  --project-directory /home/malike/apps/keprix \
-  --env-file /home/malike/apps/keprix/.env \
-  -f deploy/contabo/docker-compose.app.yml up -d --build'
-```
+### Owner-device marketing ship
 
-Owner verifies `https://app.keprixai.com/`, `/api/health`, `https://keprixai.com/`, and `https://carinaai.uk/` return HTTP 200. Full note: `docs/operations/keprixai-com-origin.md`.
+1. Local: `docker build -f docker/Dockerfile.frontend -t keprix-frontend:<tag> .`
+2. Transfer: `docker save ... | gzip` then `scp` + `docker load` on Contabo
+3. Server: `docker compose ... -f deploy/contabo/docker-compose.marketing.yml up -d`
+4. Smoke: `https://keprixai.com/` and `https://carinaai.uk/` HTTP 200
+
+Full note: `docs/operations/keprixai-com-origin.md`, `CONTABO-LOCAL-IMAGE-DEPLOY.md`.
 
 ## Public GitHub hygiene (working product only)
 
