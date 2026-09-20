@@ -1948,6 +1948,32 @@ class TestWebServerEndpoints:
         allowed = unauth_client.get("/api/env", headers={"Authorization": f"Bearer {token}"})
         assert allowed.status_code != 401
 
+    def test_workspace_conversations_list_on_dashboard(self, tmp_path, monkeypatch):
+        from starlette.testclient import TestClient
+        from keprix.auth.session import AuthManager
+        from keprix_cli.web_server import app
+
+        monkeypatch.setenv("KEPRIX_MULTI_USER", "false")
+        monkeypatch.delenv("KEPRIX_ADMIN_PASSWORD", raising=False)
+        monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+        auth = AuthManager(str(tmp_path / "auth.json"))
+        ok, _message = auth.bootstrap_owner("owner@example.com", "solo-pass-1")
+        assert ok is True
+        token, _user, error = auth.login("owner@example.com", "solo-pass-1")
+        assert error is None and token
+        monkeypatch.setattr("keprix.auth.session.auth_manager", auth)
+        monkeypatch.setattr("keprix.auth.dependencies.auth_manager", auth)
+
+        unauth_client = TestClient(app)
+        missing = unauth_client.get("/api/conversations")
+        assert missing.status_code == 401
+        listed = unauth_client.get(
+            "/api/conversations?limit=5&sort=updated_at:desc",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        assert listed.status_code == 200, listed.text
+        assert "items" in listed.json()
+
     def test_path_traversal_blocked(self):
         """Verify URL-encoded path traversal is blocked."""
         # %2e%2e = ..
