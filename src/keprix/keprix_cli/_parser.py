@@ -75,6 +75,7 @@ Examples:
     keprix dashboard              Start web UI dashboard (port 9119)
     keprix dashboard --stop       Stop running dashboard processes
     keprix dashboard --status     List running dashboard processes
+    keprix dashboard install      Install dashboard as a background service
 
 For more help on a command:
     keprix <command> --help

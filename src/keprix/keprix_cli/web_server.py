@@ -11706,6 +11706,95 @@ def _read_bound_port(server: "uvicorn.Server", fallback: int) -> int:
     return fallback
 
 
+def _dashboard_ui_url_path() -> Path:
+    return get_keprix_home() / "dashboard-ui.url"
+
+
+def write_dashboard_ui_url(url: str) -> None:
+    """Persist the live UI URL so ``keprix dashboard`` can attach to it."""
+    try:
+        path = _dashboard_ui_url_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(url.rstrip() + "\n", encoding="utf-8")
+    except OSError:
+        pass
+
+
+def clear_dashboard_ui_url() -> None:
+    try:
+        _dashboard_ui_url_path().unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
+def read_dashboard_ui_url() -> str | None:
+    """Return the last published dashboard UI URL, or None if missing/stale."""
+    try:
+        raw = _dashboard_ui_url_path().read_text(encoding="utf-8").strip()
+    except OSError:
+        return None
+    if not raw.startswith("http://") and not raw.startswith("https://"):
+        return None
+    return raw.split()[0]
+
+
+def open_dashboard_url(url: str) -> bool:
+    """Open *url* in a graphical browser without signalling this process.
+
+    ``webbrowser.open()`` launches xdg-open / a TUI browser in the dashboard's
+    process group. On Linux that routinely delivers SIGTERM/SIGHUP back to
+    the server (the process prints READY, then bash reports ``Terminated``).
+    Spawn a detached opener instead, and refuse console browsers.
+    """
+    try:
+        from keprix_cli.auth import _can_open_graphical_browser
+        if not _can_open_graphical_browser():
+            return False
+    except Exception:
+        if sys.platform.startswith("linux") and not (
+            os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")
+        ):
+            return False
+
+    if sys.platform == "win32":
+        try:
+            os.startfile(url)  # type: ignore[attr-defined]
+            return True
+        except OSError:
+            cmd = ["cmd", "/c", "start", "", url]
+    elif sys.platform == "darwin":
+        opener = shutil.which("open")
+        if not opener:
+            return False
+        cmd = [opener, url]
+    else:
+        opener = shutil.which("xdg-open")
+        if not opener:
+            return False
+        cmd = [opener, url]
+
+    popen_kwargs: dict = {
+        "stdin": subprocess.DEVNULL,
+        "stdout": subprocess.DEVNULL,
+        "stderr": subprocess.DEVNULL,
+        "close_fds": True,
+    }
+    if sys.platform == "win32":
+        popen_kwargs["creationflags"] = (
+            subprocess.CREATE_NEW_PROCESS_GROUP  # type: ignore[attr-defined]
+            | getattr(subprocess, "DETACHED_PROCESS", 0)
+            | getattr(subprocess, "CREATE_NO_WINDOW", 0)
+        )
+    else:
+        popen_kwargs["start_new_session"] = True
+
+    try:
+        subprocess.Popen(cmd, **popen_kwargs)
+        return True
+    except OSError:
+        return False
+
+
 def _maybe_open_browser(
     host: str, actual_port: int, open_browser: bool, initial_profile: str
 ) -> None:
@@ -11718,19 +11807,7 @@ def _maybe_open_browser(
     """
     if not open_browser:
         return
-
-    import webbrowser
-
-    _has_display = (
-        sys.platform != "linux"
-        or bool(os.environ.get("DISPLAY"))
-        or bool(os.environ.get("WAYLAND_DISPLAY"))
-    )
-    if not _has_display:
-        _log.debug(
-            "Skipping browser-open: no DISPLAY or WAYLAND_DISPLAY detected "
-            "(headless Linux). Pass --no-open to suppress this detection."
-        )
+    if os.environ.get("KEPRIX_DASHBOARD_SERVICE") == "1":
         return
 
     _display_host = host if host not in ("0.0.0.0", "::") else "127.0.0.1"
@@ -11742,7 +11819,7 @@ def _maybe_open_browser(
     def _open():
         try:
             time.sleep(1.0)
-            webbrowser.open(_open_url)
+            open_dashboard_url(_open_url)
         except Exception:
             pass
 
@@ -11763,7 +11840,16 @@ def start_server(
     — used when a profile alias (``<profile> dashboard``) routes to the
     machine dashboard.
     """
+    import signal
     import uvicorn
+
+    # TUI browsers and some xdg-open helpers SIGHUP the process group that
+    # launched them. systemd stop still uses SIGTERM (not ignored here).
+    if hasattr(signal, "SIGHUP"):
+        try:
+            signal.signal(signal.SIGHUP, signal.SIG_IGN)
+        except (ValueError, OSError):
+            pass
 
     # Phase 0: stash the auth-gate flag on app.state so middleware / SPA-token
     # injection / WS-auth paths can branch on it consistently.  Phase 3.5
@@ -11903,7 +11989,9 @@ def start_server(
                     if ready:
                         app.state.frontend_port = frontend_port
                         open_host, open_port = host, frontend_port
-                        print(f"  Keprix Web UI → http://{open_host}:{open_port}/home", flush=True)
+                        ui_url = f"http://{open_host}:{open_port}/home"
+                        write_dashboard_ui_url(ui_url)
+                        print(f"  Keprix Web UI → {ui_url}", flush=True)
                     else:
                         _log.warning(
                             "Dashboard frontend did not become ready within 30s "
@@ -11931,6 +12019,7 @@ def start_server(
                     flush=True,
                 )
 
+            write_dashboard_ui_url(f"http://{open_host}:{open_port}/home")
             _maybe_open_browser(open_host, open_port, open_browser, initial_profile)
 
             try:
@@ -11938,6 +12027,7 @@ def start_server(
                 if server.started:
                     await server.shutdown()
             finally:
+                clear_dashboard_ui_url()
                 if frontend_proc is not None:
                     from keprix_cli import frontend_standalone as _fe
                     _fe.terminate_frontend_server(frontend_proc)

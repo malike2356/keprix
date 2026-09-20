@@ -83,3 +83,11 @@ def test_root_lockfile_has_no_camofox_entries() -> None:
         "package-lock.json still references camoufox-js (transitive of "
         "@askjo/camofox-browser). Regenerate the lockfile."
     )
+    assert "keprix-parser" not in text, (
+        "package-lock.json must not rewrite Facebook's hermes-parser into a "
+        "fake keprix-parser npm package (that 404s on registry.npmjs.org and "
+        "breaks `keprix desktop`). Keep hermes-parser / hermes-estree."
+    )
+    assert "keprix-estree" not in text, (
+        "package-lock.json must not rewrite hermes-estree into keprix-estree."
+    )

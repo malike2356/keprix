@@ -89,9 +89,17 @@ def test_single_handler_builders(name, builder, kw, argv):
 def test_dashboard_builder_two_handlers():
     parser = argparse.ArgumentParser(prog="keprix")
     sub = parser.add_subparsers(dest="command")
-    dash, reg = _h("dashboard"), _h("dashboard_register")
-    build_dashboard_parser(sub, cmd_dashboard=dash, cmd_dashboard_register=reg)
+    dash, reg, svc = _h("dashboard"), _h("dashboard_register"), _h("dashboard_service")
+    build_dashboard_parser(
+        sub, cmd_dashboard=dash, cmd_dashboard_register=reg,
+        cmd_dashboard_service=svc,
+    )
     # bare dashboard -> launch handler
     assert parser.parse_args(["dashboard"]).func is dash
     # dashboard register -> register handler
     assert parser.parse_args(["dashboard", "register"]).func is reg
+    assert parser.parse_args(["dashboard", "install"]).func is svc
+    assert parser.parse_args(["dashboard", "status"]).func is svc
+    ns = parser.parse_args(["dashboard", "install", "--port", "9121", "--no-start"])
+    assert ns.port == 9121
+    assert ns.no_start is True

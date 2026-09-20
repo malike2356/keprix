@@ -97,6 +97,7 @@ TIPS = [
     "keprix profile create coder creates an isolated profile that becomes its own command.",
     "keprix profile create work --clone copies your current config and keys to a new profile.",
     "keprix update syncs new bundled skills to ALL profiles automatically.",
+    "keprix dashboard install keeps the web UI running after you close the terminal.",
     "keprix gateway install sets up Keprix as a system service (systemd/launchd).",
     "keprix memory setup lets you configure an external memory provider (Honcho, Mem0, etc.).",
     "keprix webhook subscribe creates event-driven webhook routes with HMAC validation.",

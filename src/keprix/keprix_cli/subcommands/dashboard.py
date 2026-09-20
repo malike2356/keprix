@@ -11,7 +11,8 @@ from typing import Callable
 
 
 def build_dashboard_parser(
-    subparsers, *, cmd_dashboard: Callable, cmd_dashboard_register: Callable
+    subparsers, *, cmd_dashboard: Callable, cmd_dashboard_register: Callable,
+    cmd_dashboard_service: Callable,
 ) -> None:
     """Attach the ``dashboard`` subcommand (and its ``register`` action)."""
     # =========================================================================
@@ -65,12 +66,11 @@ def build_dashboard_parser(
         default="",
         help=argparse.SUPPRESS,
     )
-    # Lifecycle flags — mutually exclusive with each other and with the
-    # start-a-server flags above (if both are passed, --stop / --status win
-    # because they exit before the server is started).  The dashboard has
-    # no service manager and no PID file, so these scan the process table
-    # for `keprix dashboard` cmdlines and SIGTERM them directly — the same
-    # path `keprix update` uses to clean up stale dashboards.
+    # Lifecycle flags — process-table scan (stray foreground `keprix dashboard`
+    # processes). Distinct from `keprix dashboard stop` / `status`, which talk
+    # to the systemd/launchd unit created by `keprix dashboard install`.
+    # If both a flag and a start-a-server option are passed, --stop / --status
+    # win because they exit before the server is started.
     dashboard_parser.add_argument(
         "--stop",
         action="store_true",
@@ -135,3 +135,71 @@ def build_dashboard_parser(
         help="Ignored. Nous Portal registration was removed.",
     )
     dashboard_register_parser.set_defaults(func=cmd_dashboard_register)
+
+    def _add_system_flag(parser: argparse.ArgumentParser) -> None:
+        parser.add_argument(
+            "--system",
+            action="store_true",
+            help="Target the Linux system-level dashboard service",
+        )
+
+    dashboard_install = dashboard_subparsers.add_parser(
+        "install",
+        help="Install dashboard as a systemd/launchd background service",
+    )
+    dashboard_install.add_argument("--force", action="store_true", help="Force reinstall")
+    _add_system_flag(dashboard_install)
+    dashboard_install.add_argument(
+        "--port", type=int, default=9119, help="Backend port (default 9119)"
+    )
+    dashboard_install.add_argument(
+        "--host", default="127.0.0.1", help="Bind host (default 127.0.0.1)"
+    )
+    dashboard_install.add_argument(
+        "--frontend-port",
+        dest="frontend_port",
+        type=int,
+        default=9120,
+        help="Pinned Next.js UI port (default 9120)",
+    )
+    dashboard_install.add_argument(
+        "--run-as-user",
+        dest="run_as_user",
+        help="User account the Linux system service should run as",
+    )
+    dashboard_install.add_argument(
+        "--no-start",
+        action="store_true",
+        help="Write and enable the unit without starting it now",
+    )
+    dashboard_install.set_defaults(func=cmd_dashboard_service)
+
+    dashboard_uninstall = dashboard_subparsers.add_parser(
+        "uninstall", help="Uninstall dashboard service"
+    )
+    _add_system_flag(dashboard_uninstall)
+    dashboard_uninstall.set_defaults(func=cmd_dashboard_service)
+
+    dashboard_start = dashboard_subparsers.add_parser(
+        "start", help="Start the installed dashboard background service"
+    )
+    _add_system_flag(dashboard_start)
+    dashboard_start.set_defaults(func=cmd_dashboard_service)
+
+    dashboard_stop_svc = dashboard_subparsers.add_parser(
+        "stop", help="Stop the installed dashboard background service"
+    )
+    _add_system_flag(dashboard_stop_svc)
+    dashboard_stop_svc.set_defaults(func=cmd_dashboard_service)
+
+    dashboard_restart = dashboard_subparsers.add_parser(
+        "restart", help="Restart the installed dashboard background service"
+    )
+    _add_system_flag(dashboard_restart)
+    dashboard_restart.set_defaults(func=cmd_dashboard_service)
+
+    dashboard_status_svc = dashboard_subparsers.add_parser(
+        "status", help="Show dashboard service status"
+    )
+    _add_system_flag(dashboard_status_svc)
+    dashboard_status_svc.set_defaults(func=cmd_dashboard_service)

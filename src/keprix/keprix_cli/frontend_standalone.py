@@ -526,6 +526,21 @@ def find_free_port(host: str = "127.0.0.1") -> int:
         return s.getsockname()[1]
 
 
+def _resolve_frontend_port(host: str) -> int:
+    """Use ``KEPRIX_DASHBOARD_FRONTEND_PORT`` when set; otherwise pick a free port.
+
+    The persistent ``keprix dashboard install`` unit pins this so the UI URL
+    stays stable across restarts. Foreground ``keprix dashboard`` leaves it
+    unset and keeps the historical ephemeral bind.
+    """
+    raw = os.environ.get("KEPRIX_DASHBOARD_FRONTEND_PORT", "").strip()
+    if raw.isdigit():
+        port = int(raw)
+        if 1 <= port <= 65535:
+            return port
+    return find_free_port(host)
+
+
 def spawn_frontend_server(*, host: str, backend_port: int) -> "tuple[subprocess.Popen, int]":
     """Launch the standalone Next.js server as a managed child process.
 
@@ -545,7 +560,7 @@ def spawn_frontend_server(*, host: str, backend_port: int) -> "tuple[subprocess.
             "node executable not found on PATH; Node.js is required to run the built dashboard frontend"
         )
 
-    frontend_port = find_free_port(host)
+    frontend_port = _resolve_frontend_port(host)
     server_js = str((FRONTEND_DIST / "server.js").resolve())
 
     from keprix_constants import get_keprix_home

@@ -48,8 +48,14 @@ class TestUnifiedDashboardRouting:
         )
         monkeypatch.setattr(main_mod, "_dashboard_listening", lambda host, port: True)
         opened = []
-        import webbrowser
-        monkeypatch.setattr(webbrowser, "open", lambda url: opened.append(url))
+        monkeypatch.setattr(
+            "keprix_cli.web_server.open_dashboard_url",
+            lambda url: opened.append(url),
+        )
+        monkeypatch.setattr(
+            "keprix_cli.web_server.read_dashboard_ui_url",
+            lambda: None,
+        )
 
         with pytest.raises(SystemExit) as exc:
             main_mod.cmd_dashboard(_args(no_open=False))
@@ -162,20 +168,40 @@ class TestUnifiedDashboardRouting:
             main_mod.cmd_dashboard(_args(isolated=True))
         assert listening_calls == []
 
-    def test_default_profile_launch_skips_routing(self, main_mod, monkeypatch):
+    def test_default_profile_attaches_when_already_listening(self, main_mod, monkeypatch):
+        monkeypatch.setattr(
+            "keprix_cli.profiles.get_active_profile_name", lambda: "default"
+        )
+        monkeypatch.setattr(main_mod, "_dashboard_listening", lambda host, port: True)
+        monkeypatch.setattr(
+            "keprix_cli.web_server.read_dashboard_ui_url",
+            lambda: "http://127.0.0.1:9120/home",
+        )
+        opened = []
+        monkeypatch.setattr(
+            "keprix_cli.web_server.open_dashboard_url",
+            lambda url: opened.append(url),
+        )
+
+        with pytest.raises(SystemExit) as exc:
+            main_mod.cmd_dashboard(_args(no_open=False))
+        assert exc.value.code == 0
+        assert opened == ["http://127.0.0.1:9120/home"]
+
+    def test_default_profile_starts_when_not_listening(self, main_mod, monkeypatch):
         monkeypatch.setattr(
             "keprix_cli.profiles.get_active_profile_name", lambda: "default"
         )
         listening_calls = []
         monkeypatch.setattr(
             main_mod, "_dashboard_listening",
-            lambda host, port: listening_calls.append(1) or True,
+            lambda host, port: listening_calls.append(1) or False,
         )
         monkeypatch.setitem(sys.modules, "fastapi", None)
 
         with pytest.raises((SystemExit, AttributeError, ImportError, TypeError)):
             main_mod.cmd_dashboard(_args())
-        assert listening_calls == []
+        assert listening_calls == [1]
 
     def test_reexec_child_does_not_reroute(self, main_mod, monkeypatch):
         """The re-exec'd child carries --open-profile; the guard must treat
@@ -198,6 +224,7 @@ class TestUnifiedDashboardRouting:
         monkeypatch.setattr(
             "keprix_cli.profiles.get_active_profile_name", lambda: "default"
         )
+        monkeypatch.setattr(main_mod, "_dashboard_listening", lambda host, port: False)
         monkeypatch.delenv("KEPRIX_WEB_DIST", raising=False)
         monkeypatch.setattr(main_mod, "_sync_bundled_skills_quietly", lambda: None)
         monkeypatch.setattr(main_mod, "_build_web_ui", lambda *_a, **_k: True)

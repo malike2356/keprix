@@ -38,6 +38,9 @@ Usage:
     keprix update              Update to latest version
     keprix uninstall           Uninstall Keprix
     keprix acp                 Run as an ACP server for editor integration
+    keprix dashboard           Start web UI dashboard
+    keprix dashboard install   Install dashboard as a background service
+    keprix dashboard --stop    Stop running dashboard processes
     keprix sessions browse     Interactive session picker with search
 
     keprix claw migrate --dry-run  # Preview migration without changes
@@ -5555,11 +5558,11 @@ def _find_stale_dashboard_pids(
     disk is updated, causing a silent frontend/backend mismatch (e.g. new
     auth headers the old backend doesn't recognise → every API call 401s).
 
-    The dashboard has no service manager (systemd / launchd), no PID file,
-    and we can't know the original launch args — so the only sane action
-    after an update is to kill the stale process and let the user restart
-    it.  This helper is just the detection step; see
-    ``_kill_stale_dashboard_processes`` for the kill.
+    The dashboard's persistent service (`keprix dashboard install`) is
+    separate: these helpers still scan the process table for stray
+    foreground ``keprix dashboard`` processes so ``keprix update`` and
+    ``keprix dashboard --stop`` can reap them. The systemd/launchd unit
+    is managed by ``keprix dashboard stop`` / ``uninstall``.
 
     *exclude_pids* is an optional set of PIDs that must never be returned.
     This is used by the Keprix Desktop Electron app to protect its own
@@ -10832,72 +10835,83 @@ def cmd_dashboard(args):
     except Exception:
         _launch_profile = "default"
 
+    _desktop_backend = os.environ.get("KEPRIX_DESKTOP") == "1"
+    _already_routed = bool(getattr(args, "open_profile", ""))
     if (
-        _launch_profile not in ("default", "custom")
-        and not getattr(args, "isolated", False)
-        and not getattr(args, "open_profile", "")
+        not getattr(args, "isolated", False)
+        and not _already_routed
         # Desktop pool backends are intentionally per-profile.
-        and os.environ.get("KEPRIX_DESKTOP") != "1"
+        and not _desktop_backend
     ):
-        url = f"http://{args.host or '127.0.0.1'}:{args.port}/home?profile={_launch_profile}"
         if _dashboard_listening(args.host, args.port):
-            print(f"Machine dashboard already running on port {args.port}.")
-            print(f"  Managing profile '{_launch_profile}': {url}")
+            from keprix_cli.web_server import open_dashboard_url, read_dashboard_ui_url
+            ui = read_dashboard_ui_url() or (
+                f"http://{args.host or '127.0.0.1'}:{args.port}/home"
+            )
+            if _launch_profile not in ("default", "custom"):
+                sep = "&" if "?" in ui else "?"
+                url = f"{ui}{sep}profile={_launch_profile}"
+                print(f"Machine dashboard already running on port {args.port}.")
+                print(f"  Managing profile '{_launch_profile}': {url}")
+            else:
+                url = ui
+                print(f"Dashboard already running on port {args.port}.")
+                print(f"  {url}")
             if not args.no_open:
                 try:
-                    import webbrowser
-                    webbrowser.open(url)
+                    open_dashboard_url(url)
                 except Exception:
                     pass
             sys.exit(0)
 
-        print(
-            f"Routing to the machine dashboard (profile '{_launch_profile}' "
-            f"preselected). Use --isolated for a dedicated per-profile server."
-        )
-        reexec_argv = [
-            sys.executable, "-m", "keprix_cli.main",
-            "-p", "default",
-            "dashboard",
-            "--port", str(args.port),
-            "--host", args.host,
-            "--open-profile", _launch_profile,
-        ]
-        if args.no_open:
-            reexec_argv.append("--no-open")
-        if getattr(args, "insecure", False):
-            reexec_argv.append("--insecure")
-        if getattr(args, "skip_build", False):
-            reexec_argv.append("--skip-build")
-        env = os.environ.copy()
-        # Pin the child to the machine ROOT, not the launching profile's
-        # KEPRIX_HOME.  We must resolve the root explicitly instead of just
-        # dropping KEPRIX_HOME: in the Docker layout the machine root is
-        # /opt/data (set via `ENV KEPRIX_HOME=/opt/data`), so an unset
-        # KEPRIX_HOME falls back to $HOME/.keprix = /opt/data/.keprix — an
-        # empty, auto-seeded home where the dashboard sees only the default
-        # profile and the install-method stamp is missing (so the Docker
-        # update-button guard also misfires).  get_default_keprix_root()
-        # returns the root for both layouts: ~/.keprix for a standard install
-        # and /opt/data for Docker (it strips a trailing profiles/<name>).
-        # See the support report for the double-mount workaround this avoids.
-        try:
-            from keprix_constants import get_default_keprix_root
-            env["KEPRIX_HOME"] = str(get_default_keprix_root())
-        except Exception:
-            # Best-effort: if root resolution fails, fall back to the prior
-            # behaviour (drop KEPRIX_HOME) rather than block the reroute.
-            env.pop("KEPRIX_HOME", None)
-        # On Windows, os.execvpe() does not truly replace the process — it
-        # spawns via CreateProcess then the parent exits.  Under Python 3.14+
-        # this can crash with STATUS_ACCESS_VIOLATION (0xC0000005) when
-        # re-executing the dashboard for a non-default profile.  Use
-        # subprocess.Popen + sys.exit() on Windows to avoid the crash.
-        if sys.platform == "win32":
-            proc = subprocess.Popen(reexec_argv, env=env)
-            sys.exit(proc.wait())
-        else:
-            os.execvpe(sys.executable, reexec_argv, env)
+        if _launch_profile not in ("default", "custom"):
+            print(
+                f"Routing to the machine dashboard (profile '{_launch_profile}' "
+                f"preselected). Use --isolated for a dedicated per-profile server."
+            )
+            reexec_argv = [
+                sys.executable, "-m", "keprix_cli.main",
+                "-p", "default",
+                "dashboard",
+                "--port", str(args.port),
+                "--host", args.host,
+                "--open-profile", _launch_profile,
+            ]
+            if args.no_open:
+                reexec_argv.append("--no-open")
+            if getattr(args, "insecure", False):
+                reexec_argv.append("--insecure")
+            if getattr(args, "skip_build", False):
+                reexec_argv.append("--skip-build")
+            env = os.environ.copy()
+            # Pin the child to the machine ROOT, not the launching profile's
+            # KEPRIX_HOME.  We must resolve the root explicitly instead of just
+            # dropping KEPRIX_HOME: in the Docker layout the machine root is
+            # /opt/data (set via `ENV KEPRIX_HOME=/opt/data`), so an unset
+            # KEPRIX_HOME falls back to $HOME/.keprix = /opt/data/.keprix — an
+            # empty, auto-seeded home where the dashboard sees only the default
+            # profile and the install-method stamp is missing (so the Docker
+            # update-button guard also misfires).  get_default_keprix_root()
+            # returns the root for both layouts: ~/.keprix for a standard install
+            # and /opt/data for Docker (it strips a trailing profiles/<name>).
+            # See the support report for the double-mount workaround this avoids.
+            try:
+                from keprix_constants import get_default_keprix_root
+                env["KEPRIX_HOME"] = str(get_default_keprix_root())
+            except Exception:
+                # Best-effort: if root resolution fails, fall back to the prior
+                # behaviour (drop KEPRIX_HOME) rather than block the reroute.
+                env.pop("KEPRIX_HOME", None)
+            # On Windows, os.execvpe() does not truly replace the process — it
+            # spawns via CreateProcess then the parent exits.  Under Python 3.14+
+            # this can crash with STATUS_ACCESS_VIOLATION (0xC0000005) when
+            # re-executing the dashboard for a non-default profile.  Use
+            # subprocess.Popen + sys.exit() on Windows to avoid the crash.
+            if sys.platform == "win32":
+                proc = subprocess.Popen(reexec_argv, env=env)
+                sys.exit(proc.wait())
+            else:
+                os.execvpe(sys.executable, reexec_argv, env)
 
     # Attach gui.log early so dashboard startup/build failures are captured in
     # the same logs directory as every other Keprix surface.
@@ -11017,10 +11031,11 @@ def cmd_dashboard(args):
     # The in-browser Chat tab (the embedded TUI over PTY/WebSocket) is always
     # available — the desktop app and the dashboard's own Chat tab both rely on
     # the `/api/ws` + `/api/pty` sockets, so there is no reason to gate them.
+    service_mode = os.environ.get("KEPRIX_DASHBOARD_SERVICE") == "1"
     start_server(
         host=args.host,
         port=args.port,
-        open_browser=not args.no_open,
+        open_browser=not args.no_open and not service_mode,
         allow_public=getattr(args, "insecure", False),
         initial_profile=getattr(args, "open_profile", "") or "",
     )
@@ -11034,6 +11049,13 @@ def cmd_dashboard_register(args):
         "or a self-hosted OIDC provider."
     )
     raise SystemExit(1)
+
+
+def cmd_dashboard_service(args):
+    """Install / start / stop the persistent dashboard service."""
+    from keprix_cli.dashboard_service import dashboard_service_command
+
+    dashboard_service_command(args)
 
 
 def cmd_completion(args, parser=None):
@@ -12707,6 +12729,7 @@ def main():
         subparsers,
         cmd_dashboard=cmd_dashboard,
         cmd_dashboard_register=cmd_dashboard_register,
+        cmd_dashboard_service=cmd_dashboard_service,
     )
 
 
