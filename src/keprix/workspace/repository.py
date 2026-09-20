@@ -517,6 +517,10 @@ class WorkspaceRepository:
         if fields.get("password"):
             source["password_encrypted"] = _encrypt_secret(str(fields["password"]))
             source["has_password"] = True
+        if fields.get("vault_item_id"):
+            source["vault_item_id"] = fields["vault_item_id"]
+            source["password_encrypted"] = None
+            source["has_password"] = True
         if source.get("provider") == "google" and source.get("username") and not source.get("url"):
             from keprix.workspace.calendar_sync import default_google_caldav_url
 
@@ -603,7 +607,9 @@ class WorkspaceRepository:
             "url": source.get("url"),
             "username": source.get("username"),
             "vault_item_id": source.get("vault_item_id"),
-            "has_password": bool(source.get("has_password") or source.get("password_encrypted")),
+            "has_password": bool(
+                source.get("has_password") or source.get("password_encrypted") or source.get("vault_item_id")
+            ),
             "sync_direction": source.get("sync_direction") or "bidirectional",
             "calendar_href": source.get("calendar_href"),
             "calendar_name": source.get("calendar_name"),

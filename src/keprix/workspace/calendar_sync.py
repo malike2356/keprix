@@ -24,7 +24,7 @@ PROVIDER_PRESETS: list[dict[str, Any]] = [
         "provider": "google",
         "sync_modes": ["pull", "push", "bidirectional"],
         "url_hint": "https://apidata.googleusercontent.com/caldav/v2/YOUR_EMAIL/events",
-        "help": "Use your Google account email as username and an OAuth access token with Calendar access as the password. Gmail app passwords do not work with Google Calendar. For pull-only, connect the secret ICS URL instead.",
+        "help": "Connect with Google (OAuth). Gmail app passwords cannot access Calendar. For pull-only without OAuth, paste the secret iCal URL from Google Calendar settings.",
     },
     {
         "id": "google-ics",
@@ -197,6 +197,63 @@ def _event_to_ics(event: dict[str, Any]) -> bytes:
 
 def default_google_caldav_url(email: str) -> str:
     return f"https://apidata.googleusercontent.com/caldav/v2/{quote(email.strip())}/events"
+
+
+def looks_like_gmail_app_password(value: str | None) -> bool:
+    """Google app passwords are 16 lowercase letters, often grouped in fours."""
+    compact = "".join(ch for ch in str(value or "") if not ch.isspace())
+    return len(compact) == 16 and compact.isalpha() and compact.islower()
+
+
+def looks_like_google_oauth_token(value: str | None) -> bool:
+    token = str(value or "").strip()
+    if not token or looks_like_gmail_app_password(token):
+        return False
+    return token.startswith("ya29.") or len(token) >= 32
+
+
+def google_app_password_error() -> str:
+    return (
+        "Gmail app passwords cannot access Google Calendar. "
+        "Use Connect with Google (OAuth with calendar.events), or paste the "
+        "secret iCal URL from Google Calendar → Settings → Integrate calendar."
+    )
+
+
+async def resolve_google_access_token(source: dict[str, Any], repo: Any) -> str:
+    """Return a Calendar API Bearer token. Never uses a Gmail app password."""
+    vault_id = str(source.get("vault_item_id") or "").strip()
+    user_id = str(source.get("user_id") or "").strip()
+    if vault_id and user_id:
+        try:
+            from keprix.oauth.tokens import load_oauth_tokens, refresh_google_tokens
+
+            tokens = await load_oauth_tokens(vault_id, user_id)
+            access = str(tokens.get("access_token") or "").strip()
+            expires_at = int(tokens.get("expires_at") or 0)
+            if expires_at and expires_at < int(_utcnow().timestamp()) + 60:
+                tokens = await refresh_google_tokens(vault_id, user_id)
+                access = str(tokens.get("access_token") or "").strip()
+            if looks_like_google_oauth_token(access):
+                return access
+        except Exception as exc:
+            logger.info("Google Calendar vault token failed: %s", exc)
+    stored = repo.get_source_password(source["id"]) if hasattr(repo, "get_source_password") else None
+    if looks_like_google_oauth_token(stored):
+        return str(stored).strip()
+    try:
+        from keprix.integrations.google_workspace.oauth_store import GoogleWorkspaceOAuthStore
+
+        token = GoogleWorkspaceOAuthStore().load()
+        access = str(token.access_token or "").strip()
+        if token.connected and looks_like_google_oauth_token(access):
+            return access
+    except Exception:
+        pass
+    env_token = os.environ.get("KEPRIX_GOOGLE_CALENDAR_ACCESS_TOKEN", "").strip()
+    if looks_like_google_oauth_token(env_token):
+        return env_token
+    raise ValueError(google_app_password_error())
 
 
 def _rfc3339(value: datetime) -> str:
@@ -377,7 +434,15 @@ async def sync_one_source(user: dict[str, Any], source: dict[str, Any], repo: An
     if direction in {"pull", "bidirectional"}:
         pulled = await _pull_external(user, source, repo)
     if direction in {"push", "bidirectional"}:
-        pushed = await _push_caldav(user, source, repo)
+        if str(source.get("provider") or "").lower() == "google":
+            try:
+                pushed = await _push_google_api(user, source, repo)
+            except Exception as exc:
+                if pulled == 0:
+                    raise
+                logger.info("Google Calendar push failed after a successful pull: %s", exc)
+        else:
+            pushed = await _push_caldav(user, source, repo)
     kind = "Google" if str(source.get("provider") or "").lower() == "google" else "CalDAV"
     return {
         "source_id": source["id"],
@@ -496,9 +561,7 @@ def _pick_calendar(client: Any, source: dict[str, Any]):
 
 
 async def _try_google_calendar_api(user: dict[str, Any], source: dict[str, Any], repo: Any) -> int:
-    password = repo.get_source_password(source["id"])
-    if not password:
-        raise ValueError("Google Calendar access token is required")
+    password = await resolve_google_access_token(source, repo)
     calendar_id = str(source.get("calendar_name") or source.get("username") or "primary").strip() or "primary"
     start = _utcnow() - timedelta(days=int(source.get("pull_past_days") or 90))
     end = _utcnow() + timedelta(days=int(source.get("pull_future_days") or 365))
@@ -522,10 +585,7 @@ async def _try_google_calendar_api(user: dict[str, Any], source: dict[str, Any],
                 query["pageToken"] = page_token
             response = await client.get(url, headers=headers, params=query)
             if response.status_code in {401, 403}:
-                raise ValueError(
-                    "Google Calendar rejected the token. Use an OAuth access token with calendar.events "
-                    "scope, not a Gmail app password. For pull-only, connect the secret ICS URL instead."
-                )
+                raise ValueError(google_app_password_error())
             if response.status_code == 404 and not retried_primary:
                 url = "https://www.googleapis.com/calendar/v3/calendars/primary/events"
                 retried_primary = True
@@ -550,19 +610,21 @@ async def _try_google_calendar_api(user: dict[str, Any], source: dict[str, Any],
 
 
 async def _pull_external(user: dict[str, Any], source: dict[str, Any], repo: Any) -> int:
-    google_error: Exception | None = None
     if str(source.get("provider") or "").lower() == "google":
+        stored = repo.get_source_password(source["id"]) if hasattr(repo, "get_source_password") else None
+        if looks_like_gmail_app_password(stored) and not source.get("vault_item_id"):
+            return await _try_google_calendar_api(user, source, repo)
         try:
             return await _try_google_calendar_api(user, source, repo)
         except Exception as exc:
-            google_error = exc
+            if looks_like_gmail_app_password(stored):
+                raise ValueError(google_app_password_error()) from exc
             logger.info("Google Calendar API pull failed, trying CalDAV: %s", exc)
-    try:
-        return await _pull_caldav(user, source, repo)
-    except Exception as caldav_exc:
-        if google_error is not None:
-            raise ValueError(f"{google_error} CalDAV also failed: {caldav_exc}") from caldav_exc
-        raise
+            try:
+                return await _pull_caldav(user, source, repo)
+            except Exception as caldav_exc:
+                raise ValueError(f"{exc} CalDAV also failed: {caldav_exc}") from caldav_exc
+    return await _pull_caldav(user, source, repo)
 
 
 async def _pull_caldav(user: dict[str, Any], source: dict[str, Any], repo: Any) -> int:
@@ -608,6 +670,73 @@ async def _pull_caldav(user: dict[str, Any], source: dict[str, Any], repo: Any) 
         return count
 
     return await asyncio.to_thread(_run)
+
+
+def _google_event_body(event: dict[str, Any]) -> dict[str, Any]:
+    start = _as_aware(event["start_at"] if isinstance(event.get("start_at"), datetime) else _parse_dt(event.get("start_at")))
+    end = _as_aware(event["end_at"] if isinstance(event.get("end_at"), datetime) else _parse_dt(event.get("end_at")))
+    body: dict[str, Any] = {
+        "summary": event.get("title") or "Untitled",
+        "description": event.get("description") or "",
+        "location": event.get("location") or "",
+    }
+    if event.get("all_day") and start and end:
+        body["start"] = {"date": start.date().isoformat()}
+        body["end"] = {"date": end.date().isoformat()}
+    else:
+        if start:
+            body["start"] = {"dateTime": _rfc3339(start)}
+        if end:
+            body["end"] = {"dateTime": _rfc3339(end)}
+    return body
+
+
+async def _push_google_api(user: dict[str, Any], source: dict[str, Any], repo: Any) -> int:
+    token = await resolve_google_access_token(source, repo)
+    calendar_id = str(source.get("calendar_name") or source.get("username") or "primary").strip() or "primary"
+    encoded_id = quote(calendar_id, safe="@.")
+    local_events = [
+        event
+        for event in repo.list_events(user)
+        if event.get("caldav_source_id") in {None, source["id"]} and not event.get("external_readonly")
+    ]
+    pushable = [
+        event
+        for event in local_events
+        if event.get("caldav_source_id") == source["id"]
+        or (source.get("push_local_events") and not event.get("caldav_source_id"))
+    ]
+    headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+    count = 0
+    async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+        for event in pushable:
+            body = _google_event_body(event)
+            uid = str(event.get("uid") or "").strip()
+            if uid and not str(uid).startswith("keprix-"):
+                url = f"https://www.googleapis.com/calendar/v3/calendars/{encoded_id}/events/{quote(uid, safe='')}"
+                response = await client.patch(url, headers=headers, json=body)
+                if response.status_code == 404:
+                    url = f"https://www.googleapis.com/calendar/v3/calendars/{encoded_id}/events"
+                    response = await client.post(url, headers=headers, json=body)
+            else:
+                url = f"https://www.googleapis.com/calendar/v3/calendars/{encoded_id}/events"
+                response = await client.post(url, headers=headers, json=body)
+            if response.status_code in {401, 403}:
+                raise ValueError(google_app_password_error())
+            if response.status_code >= 400:
+                logger.info("Google Calendar push HTTP %s: %s", response.status_code, response.text[:200])
+                continue
+            payload = response.json() if response.content else {}
+            new_uid = str(payload.get("id") or uid or f"keprix-{event['id']}@local")
+            repo.update_event(
+                user,
+                event["id"],
+                caldav_source_id=source["id"],
+                uid=new_uid,
+                external_etag=True,
+            )
+            count += 1
+    return count
 
 
 async def _push_caldav(user: dict[str, Any], source: dict[str, Any], repo: Any) -> int:
@@ -661,6 +790,21 @@ async def push_event_to_source(user: dict[str, Any], source: dict[str, Any], eve
     direction = str(source.get("sync_direction") or "bidirectional").lower()
     if direction not in {"push", "bidirectional"}:
         return False
+    if str(source.get("provider") or "").lower() == "google":
+        try:
+            token = await resolve_google_access_token(source, repo)
+            calendar_id = str(source.get("calendar_name") or source.get("username") or "primary").strip() or "primary"
+            encoded_id = quote(calendar_id, safe="@.")
+            headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+            async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+                response = await client.post(
+                    f"https://www.googleapis.com/calendar/v3/calendars/{encoded_id}/events",
+                    headers=headers,
+                    json=_google_event_body(event),
+                )
+            return response.status_code < 400
+        except Exception:
+            return False
     import asyncio
 
     password = repo.get_source_password(source["id"])

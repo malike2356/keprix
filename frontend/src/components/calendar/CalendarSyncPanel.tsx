@@ -26,12 +26,16 @@ import {
   createCalendarSource,
   deleteCalendarSource,
   fetchCalendarAutoSyncStatus,
+  fetchCalendarGoogleAuthUrl,
+  fetchCalendarGoogleOAuthConfig,
   fetchCalendarProviders,
   fetchCalendarSources,
+  saveCalendarGoogleOAuthConfig,
   syncCalendarSource,
   syncCalendarSources,
   updateCalendarSource,
   type CalendarAutoSyncStatus,
+  type CalendarGoogleOAuthConfig,
   type CalendarProviderPreset,
   type CalendarSource,
 } from "@/lib/workspace-api";
@@ -64,6 +68,13 @@ export default function CalendarSyncPanel({ onSynced }: Props) {
   const [autoSync, setAutoSync] = React.useState(true);
   const [intervalMinutes, setIntervalMinutes] = React.useState(15);
   const [saving, setSaving] = React.useState(false);
+  const [googleConfig, setGoogleConfig] = React.useState<CalendarGoogleOAuthConfig | null>(null);
+  const [googleModalOpen, setGoogleModalOpen] = React.useState(false);
+  const [googleClientId, setGoogleClientId] = React.useState("");
+  const [googleClientSecret, setGoogleClientSecret] = React.useState("");
+  const [googleSaving, setGoogleSaving] = React.useState(false);
+  const [icsRepairId, setIcsRepairId] = React.useState<string | null>(null);
+  const [icsRepairUrl, setIcsRepairUrl] = React.useState("");
 
   const preset = providers.find((item) => item.id === presetId) || providers[0];
 
@@ -71,14 +82,16 @@ export default function CalendarSyncPanel({ onSynced }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const [nextSources, nextProviders, nextAuto] = await Promise.all([
+      const [nextSources, nextProviders, nextAuto, nextGoogle] = await Promise.all([
         fetchCalendarSources(),
         fetchCalendarProviders(),
         fetchCalendarAutoSyncStatus().catch(() => null),
+        fetchCalendarGoogleOAuthConfig().catch(() => null),
       ]);
       setSources(nextSources);
       setProviders(nextProviders);
       setAutoStatus(nextAuto);
+      if (nextGoogle) setGoogleConfig(nextGoogle);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load calendar sources");
     } finally {
@@ -89,6 +102,24 @@ export default function CalendarSyncPanel({ onSynced }: Props) {
   React.useEffect(() => {
     void load();
   }, [load]);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const google = params.get("google");
+    const oauthError = params.get("error");
+    if (!google && !oauthError) return;
+    setOpen(true);
+    if (oauthError || google === "error") {
+      setError(oauthError || "Google Calendar OAuth failed");
+    } else if (google === "connected") {
+      setStatus("Google Calendar connected. Events will appear after the first sync.");
+    }
+    params.delete("google");
+    params.delete("error");
+    const next = `${window.location.pathname}${params.toString() ? `?${params}` : ""}`;
+    window.history.replaceState({}, "", next);
+  }, []);
 
   React.useEffect(() => {
     if (open) {
@@ -184,6 +215,69 @@ export default function CalendarSyncPanel({ onSynced }: Props) {
     }
   }
 
+  async function connectGoogleOAuth() {
+    setError(null);
+    try {
+      const config = googleConfig || (await fetchCalendarGoogleOAuthConfig());
+      setGoogleConfig(config);
+      if (!config.configured) {
+        setGoogleModalOpen(true);
+        return;
+      }
+      window.location.href = await fetchCalendarGoogleAuthUrl();
+    } catch (err) {
+      setGoogleModalOpen(true);
+      setError(err instanceof Error ? err.message : "Google Calendar OAuth is not configured");
+    }
+  }
+
+  async function saveGoogleCredentialsAndConnect() {
+    if (!googleClientId.trim() || !googleClientSecret.trim()) {
+      setError("Client ID and Client Secret are required");
+      return;
+    }
+    setGoogleSaving(true);
+    setError(null);
+    try {
+      const saved = await saveCalendarGoogleOAuthConfig({
+        client_id: googleClientId.trim(),
+        client_secret: googleClientSecret.trim(),
+      });
+      setGoogleConfig(saved);
+      setGoogleClientSecret("");
+      setGoogleModalOpen(false);
+      setStatus("Google OAuth app saved. Continuing to Google consent…");
+      window.location.href = await fetchCalendarGoogleAuthUrl();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save Google credentials");
+    } finally {
+      setGoogleSaving(false);
+    }
+  }
+
+  async function repairWithIcs(sourceId: string) {
+    const nextUrl = icsRepairUrl.trim();
+    if (!nextUrl.toLowerCase().includes(".ics")) {
+      setError("Paste the secret iCal URL from Google Calendar settings (it ends in .ics).");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      await updateCalendarSource(sourceId, { url: nextUrl, provider: "ics" });
+      setIcsRepairId(null);
+      setIcsRepairUrl("");
+      const result = await syncCalendarSource(sourceId);
+      setStatus(result.message || "ICS feed connected");
+      await load();
+      onSynced?.();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to switch to ICS feed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function handleRemove(source: CalendarSource) {
     if (!(await keprixConfirm({
       title: `Disconnect "${source.name}"?`,
@@ -256,8 +350,8 @@ export default function CalendarSyncPanel({ onSynced }: Props) {
           </Stack>
 
           <Typography variant="body2" color="text.secondary">
-            CalDAV sources default to bidirectional auto-sync on a configurable interval. ICS feeds stay pull-only but can
-            still auto-refresh.
+            Google Calendar needs OAuth or a secret iCal URL. Gmail app passwords only work for email, not Calendar.
+            CalDAV (iCloud, Nextcloud) still uses app passwords.
           </Typography>
 
           {error ? <Alert severity="error">{error}</Alert> : null}
@@ -269,7 +363,8 @@ export default function CalendarSyncPanel({ onSynced }: Props) {
             </Typography>
           ) : !sources.length ? (
             <Typography variant="body2" color="text.secondary">
-              No external calendars connected yet. Prefer Google CalDAV / iCloud / Nextcloud for 2-way automation.
+              No external calendars connected yet. Use Connect with Google, a secret iCal URL, or CalDAV (iCloud /
+              Nextcloud).
             </Typography>
           ) : (
             <Stack spacing={1}>
@@ -310,6 +405,31 @@ export default function CalendarSyncPanel({ onSynced }: Props) {
                           }`
                         : "Not synced yet"}
                     </Typography>
+                    {source.last_sync_ok === false && source.provider === "google" ? (
+                      <Box sx={{ mt: 1, display: "grid", gap: 1 }}>
+                        <Button size="small" variant="contained" onClick={() => void connectGoogleOAuth()}>
+                          Connect with Google
+                        </Button>
+                        {icsRepairId === source.id ? (
+                          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                            <TextField
+                              size="small"
+                              label="Secret iCal URL"
+                              value={icsRepairUrl}
+                              onChange={(e) => setIcsRepairUrl(e.target.value)}
+                              sx={{ minWidth: 240, flex: 1 }}
+                            />
+                            <Button size="small" onClick={() => void repairWithIcs(source.id)} disabled={saving}>
+                              Use ICS
+                            </Button>
+                          </Stack>
+                        ) : (
+                          <Button size="small" onClick={() => { setIcsRepairId(source.id); setIcsRepairUrl(""); }}>
+                            Or paste secret ICS URL
+                          </Button>
+                        )}
+                      </Box>
+                    ) : null}
                     {source.auto_sync && source.next_sync_at ? (
                       <Typography variant="caption" color="text.secondary" display="block">
                         Next auto-sync: {new Date(source.next_sync_at).toLocaleString()}
@@ -385,25 +505,30 @@ export default function CalendarSyncPanel({ onSynced }: Props) {
           ) : null}
           <TextField label="Display name" value={name} onChange={(e) => setName(e.target.value)} />
           <TextField
-            label={preset?.provider === "ics" ? "ICS feed URL" : "CalDAV URL"}
+            label={preset?.provider === "ics" || presetId === "google-ics" ? "ICS feed URL" : "CalDAV URL"}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder={preset?.url_hint}
             helperText={
-              preset?.provider === "google" && !url
-                ? "Leave blank to use the Google CalDAV URL for the email below."
+              preset?.provider === "google"
+                ? "Leave blank for OAuth. Or paste a secret iCal URL ending in .ics for pull-only."
                 : undefined
             }
           />
-          {preset?.provider !== "ics" ? (
+          {preset?.provider === "google" ? (
+            <Button variant="contained" onClick={() => void connectGoogleOAuth()}>
+              Connect with Google
+            </Button>
+          ) : null}
+          {preset?.provider !== "ics" && preset?.provider !== "google" ? (
             <>
               <TextField
-                label={preset?.provider === "google" ? "Google email" : "Username"}
+                label="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
               <TextField
-                label={preset?.provider === "google" ? "OAuth access token or password" : "Password / app password"}
+                label="Password / app password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -464,8 +589,52 @@ export default function CalendarSyncPanel({ onSynced }: Props) {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConnectOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleConnect} disabled={saving || !name.trim()}>
-            Connect
+          {preset?.provider === "google" && !url.trim() ? null : (
+            <Button variant="contained" onClick={handleConnect} disabled={saving || !name.trim()}>
+              Connect
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={googleModalOpen} onClose={() => setGoogleModalOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Google Calendar OAuth credentials</DialogTitle>
+        <DialogContent sx={{ display: "grid", gap: 2, pt: 1 }}>
+          <Typography variant="body2" color="text.secondary">
+            Create an OAuth client (Web application) in Google Cloud Console, enable Calendar API, then paste the
+            Client ID and Client Secret. Add this exact Authorized redirect URI:
+          </Typography>
+          <TextField
+            label="Authorized redirect URI (copy into Google Cloud)"
+            value={googleConfig?.redirect_uri || "http://127.0.0.1:9119/api/workspace/calendar/google/callback"}
+            InputProps={{ readOnly: true }}
+            onFocus={(e) => e.target.select()}
+          />
+          {googleConfig?.configured ? (
+            <Alert severity="info">Saved client: {googleConfig.client_id_masked}. Enter a new secret to replace it.</Alert>
+          ) : null}
+          <TextField
+            label="Client ID"
+            value={googleClientId}
+            onChange={(e) => setGoogleClientId(e.target.value)}
+            placeholder="123456789-abc.apps.googleusercontent.com"
+            autoComplete="off"
+          />
+          <TextField
+            label="Client Secret"
+            type="password"
+            value={googleClientSecret}
+            onChange={(e) => setGoogleClientSecret(e.target.value)}
+            autoComplete="new-password"
+          />
+          <Typography variant="caption" color="text.secondary">
+            {googleConfig?.calendar_api_hint || "Enable Google Calendar API on the same Cloud project."}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setGoogleModalOpen(false)}>Cancel</Button>
+          <Button variant="contained" disabled={googleSaving} onClick={() => void saveGoogleCredentialsAndConnect()}>
+            Save and connect
           </Button>
         </DialogActions>
       </Dialog>

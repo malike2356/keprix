@@ -64,3 +64,5 @@ def test_month_fetch_covers_overflow_grid_and_connect_reloads():
     panel = (CALENDAR / "CalendarSyncPanel.tsx").read_text(encoding="utf-8")
     assert "onSynced?.()" in panel
     assert "last_sync_ok" in panel
+    assert "Connect with Google" in panel
+    assert "secret iCal URL" in panel

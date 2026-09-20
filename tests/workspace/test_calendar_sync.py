@@ -290,6 +290,99 @@ def test_google_calendar_api_pulls_events(tmp_path: Path, monkeypatch: pytest.Mo
     assert holiday["all_day"] is True
 
 
+def test_gmail_app_password_detection():
+    from keprix.workspace.calendar_sync import looks_like_gmail_app_password, looks_like_google_oauth_token
+
+    assert looks_like_gmail_app_password("abcdefghijklmnop") is True
+    assert looks_like_gmail_app_password("abcd efgh ijkl mnop") is True
+    assert looks_like_gmail_app_password("ya29.access-token") is False
+    assert looks_like_google_oauth_token("ya29.access-token") is True
+    assert looks_like_google_oauth_token("abcdefghijklmnop") is False
+
+
+def test_google_app_password_is_not_sent_as_bearer(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    import asyncio
+
+    monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("KEPRIX_SESSION_SECRET", "test-calendar-secret")
+    from keprix.workspace.calendar_sync import google_app_password_error, sync_one_source
+
+    repo = WorkspaceRepository()
+    user = {"id": "u-app-pw"}
+    source = repo.add_caldav_source(
+        user,
+        name="Google Calendar",
+        provider="google",
+        username="me@example.com",
+        password="abcdefghijklmnop",
+        sync_direction="bidirectional",
+    )
+    full = repo.get_caldav_source(user, source["id"])
+
+    class FakeClient:
+        def __init__(self, *args, **kwargs):
+            raise AssertionError("must not call Google APIs with an app password")
+
+    monkeypatch.setattr("keprix.workspace.calendar_sync.httpx.AsyncClient", FakeClient)
+    with pytest.raises(ValueError, match="Gmail app passwords cannot access Google Calendar"):
+        asyncio.run(sync_one_source(user, full, repo))
+    assert "OAuth" in google_app_password_error()
+
+
+def test_add_source_rejects_gmail_app_password(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    import asyncio
+
+    monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("KEPRIX_SESSION_SECRET", "test-calendar-secret")
+    from fastapi import HTTPException
+
+    from keprix.workspace.routes import calendar_routes
+    from keprix.workspace.schemas import CaldavSourceCreate
+
+    repo = WorkspaceRepository()
+    monkeypatch.setattr(calendar_routes, "workspace_repo", repo)
+    body = CaldavSourceCreate(
+        name="Google Calendar",
+        provider="google",
+        username="me@example.com",
+        password="abcdefghijklmnop",
+        sync_direction="bidirectional",
+    )
+    with pytest.raises(HTTPException) as exc:
+        asyncio.run(calendar_routes.add_source(body, user={"id": "u-reject"}))
+    assert exc.value.status_code == 400
+    assert "Gmail app passwords" in str(exc.value.detail)
+
+
+def test_google_ics_url_becomes_pull_only(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    import asyncio
+
+    monkeypatch.setenv("KEPRIX_DATA_DIR", str(tmp_path))
+    monkeypatch.setenv("KEPRIX_SESSION_SECRET", "test-calendar-secret")
+    from keprix.workspace.routes import calendar_routes
+    from keprix.workspace.schemas import CaldavSourceCreate
+
+    repo = WorkspaceRepository()
+
+    async def fake_sync(user_arg, source_arg, repo_arg):
+        assert source_arg["provider"] == "ics"
+        return {"message": "Pulled 0 events from ICS feed", "pulled": 0, "pushed": 0}
+
+    monkeypatch.setattr(calendar_routes, "workspace_repo", repo)
+    monkeypatch.setattr(calendar_routes, "sync_one_source", fake_sync)
+    body = CaldavSourceCreate(
+        name="Google Calendar",
+        provider="google",
+        url="https://calendar.google.com/calendar/ical/me%40gmail.com/private-abc/basic.ics",
+        username="me@example.com",
+        sync_direction="bidirectional",
+    )
+    result = asyncio.run(calendar_routes.add_source(body, user={"id": "u-ics"}))
+    stored = repo.get_caldav_source({"id": "u-ics"}, result["id"])
+    assert stored["provider"] == "ics"
+    assert stored["sync_direction"] == "pull"
+
+
 def test_add_source_syncs_immediately(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     import asyncio
 

@@ -52,6 +52,7 @@ PUBLIC_API_PATHS: frozenset[str] = frozenset({
     "/api/setup/wizard",
     "/api/auth/login",
     "/api/auth/config",
+    "/api/workspace/calendar/google/callback",
 })
 
 # Prefix match (both auth middlewares). Exact ``PUBLIC_API_PATHS`` matching

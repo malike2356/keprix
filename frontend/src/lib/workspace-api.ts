@@ -504,6 +504,9 @@ export async function updateCalendarSource(
     sync_direction?: string;
     push_local_events?: boolean;
     enabled?: boolean;
+    url?: string;
+    provider?: string;
+    password?: string;
   },
 ): Promise<CalendarSource> {
   return parseJson(
@@ -538,6 +541,43 @@ export async function syncCalendarSource(sourceId: string): Promise<CalendarSync
     await ceApi(`/api/workspace/calendar/sources/${sourceId}/sync`, { method: "POST" }),
     "Failed to sync calendar source",
   );
+}
+
+export type CalendarGoogleOAuthConfig = {
+  configured: boolean;
+  source: string;
+  client_id_masked: string;
+  redirect_uri: string;
+  calendar_api_hint?: string;
+};
+
+export async function fetchCalendarGoogleOAuthConfig(): Promise<CalendarGoogleOAuthConfig> {
+  return parseJson(
+    await ceApi("/api/workspace/calendar/google/config"),
+    "Failed to load Google Calendar OAuth config",
+  );
+}
+
+export async function saveCalendarGoogleOAuthConfig(body: {
+  client_id: string;
+  client_secret: string;
+}): Promise<CalendarGoogleOAuthConfig> {
+  return parseJson(
+    await ceApi("/api/workspace/calendar/google/config", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }),
+    "Failed to save Google Calendar OAuth credentials",
+  );
+}
+
+export async function fetchCalendarGoogleAuthUrl(): Promise<string> {
+  const data = await parseJson<{ auth_url: string }>(
+    await ceApi("/api/workspace/calendar/google/auth"),
+    "Google Calendar OAuth is not configured",
+  );
+  return data.auth_url;
 }
 
 export async function createConversation(title = "New conversation"): Promise<{ id: string }> {
