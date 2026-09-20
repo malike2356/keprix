@@ -2,7 +2,7 @@
 
 ## 2026-09-20: capability presets (771) pushed; Contabo owner-side
 
-- **Git tip (after push):** see latest `origin/main`
+- **Git tip:** `fbcda33` on `origin/main`
 - **Feature:** declarative capability packs (`coding`, `crm`, `sidecar`) in
   `keprix.capability_presets`; apply via 769; CLI `keprix presets`;
   API `/api/capability-presets`
