@@ -26,7 +26,7 @@ from keprix_cli.dashboard_auth import list_providers
 from keprix_cli.dashboard_auth.audit import AuditEvent, audit_log
 from keprix_cli.dashboard_auth.base import ProviderError, RefreshExpiredError
 from keprix_cli.dashboard_auth.cookies import read_session_cookies
-from keprix_cli.dashboard_auth.public_paths import PUBLIC_API_PATHS
+from keprix_cli.dashboard_auth.public_paths import is_public_api_path
 
 _log = logging.getLogger(__name__)
 
@@ -41,6 +41,7 @@ _GATE_PUBLIC_PREFIXES: tuple[str, ...] = (
     "/auth/password-login",
     "/auth/logout",
     "/login",
+    "/auth/setup",
     "/api/auth/providers",
     "/assets/",
     "/favicon.ico",
@@ -55,7 +56,7 @@ def _path_is_public(path: str) -> bool:
 
     Two sources of public-ness:
 
-    * :data:`PUBLIC_API_PATHS` — the shared ``/api/*`` allowlist that
+    * :func:`is_public_api_path` — the shared ``/api/*`` allowlist that
       the legacy ``_SESSION_TOKEN`` middleware also honours. Matched
       exactly (no prefix expansion) so adding ``/api/status`` doesn't
       accidentally expose ``/api/status/secret-extension``.
@@ -63,7 +64,7 @@ def _path_is_public(path: str) -> bool:
       mounts. Prefix-matched so ``/assets/foo.css`` lights up via
       ``/assets/``.
     """
-    if path in PUBLIC_API_PATHS:
+    if is_public_api_path(path):
         return True
     return any(
         path == prefix or path.startswith(prefix)

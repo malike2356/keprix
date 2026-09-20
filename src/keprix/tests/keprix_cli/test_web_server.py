@@ -1917,6 +1917,8 @@ class TestWebServerEndpoints:
         # Public endpoints should still work
         resp = unauth_client.get("/api/status")
         assert resp.status_code == 200
+        resp = unauth_client.get("/api/setup/wizard")
+        assert resp.status_code != 401
         resp = unauth_client.get("/api/dashboard/plugins")
         assert resp.status_code == 200
         resp = unauth_client.get("/api/dashboard/plugins/rescan")

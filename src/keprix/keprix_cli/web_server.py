@@ -225,7 +225,7 @@ app.add_middleware(
 # endpoints belong there.
 # ---------------------------------------------------------------------------
 from keprix_cli.dashboard_auth.public_paths import (
-    PUBLIC_API_PATHS as _PUBLIC_API_PATHS,
+    is_public_api_path as _is_public_api_path,
 )
 
 
@@ -417,7 +417,7 @@ async def auth_middleware(request: Request, call_next):
     if getattr(request.app.state, "auth_required", False):
         return await call_next(request)
     path = request.url.path
-    if path.startswith("/api/") and path not in _PUBLIC_API_PATHS:
+    if path.startswith("/api/") and not _is_public_api_path(path):
         if not _has_valid_session_token(request) and not _has_valid_query_token(request, path):
             return JSONResponse(
                 status_code=401,
@@ -11484,7 +11484,14 @@ _mount_plugin_api_routes()
 # SPA catch-all so /{full_path:path} doesn't swallow them.  These are
 # always mounted — the gate middleware decides whether to enforce auth,
 # not whether the routes exist.
+from keprix.setup.routes import router as _workspace_setup_router  # noqa: E402
+from keprix.auth.routes import router as _workspace_auth_router  # noqa: E402
 from keprix_cli.dashboard_auth.routes import router as _dashboard_auth_router  # noqa: E402
+
+# Workspace login/setup must win over dashboard-oauth /api/auth/me so the
+# Next.js /auth/setup wizard can mint the owner account on loopback.
+app.include_router(_workspace_setup_router)
+app.include_router(_workspace_auth_router)
 app.include_router(_dashboard_auth_router)
 
 mount_spa(app)

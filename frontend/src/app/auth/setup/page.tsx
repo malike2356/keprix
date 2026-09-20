@@ -34,22 +34,35 @@ export default function AuthSetupPage() {
   const [publicSetupDisabled, setPublicSetupDisabled] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
-    void ceApi("/api/setup/wizard").then(async (response) => {
-      if (!response.ok) return;
-      const body = (await response.json()) as { complete?: boolean; public_setup_disabled?: boolean };
-      if (body.public_setup_disabled) {
-        setPublicSetupDisabled(true);
-        return;
-      }
-      setPublicSetupDisabled(false);
-      if (body.complete) {
-        router.replace("/dashboard");
-      }
-    });
+    void ceApi("/api/setup/wizard")
+      .then(async (response) => {
+        if (!response.ok) {
+          setPublicSetupDisabled(false);
+          return;
+        }
+        const body = (await response.json()) as { complete?: boolean; public_setup_disabled?: boolean };
+        if (body.public_setup_disabled) {
+          setPublicSetupDisabled(true);
+          return;
+        }
+        setPublicSetupDisabled(false);
+        if (body.complete) {
+          router.replace("/dashboard");
+        }
+      })
+      .catch(() => {
+        setPublicSetupDisabled(false);
+      });
   }, [router]);
 
   if (publicSetupDisabled === null) {
-    return <AuthLayout>{null}</AuthLayout>;
+    return (
+      <AuthLayout>
+        <Typography variant="body2" color="text.secondary">
+          Loading setup…
+        </Typography>
+      </AuthLayout>
+    );
   }
 
   if (publicSetupDisabled) {

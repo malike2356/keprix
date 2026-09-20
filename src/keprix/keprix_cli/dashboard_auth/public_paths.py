@@ -46,4 +46,23 @@ PUBLIC_API_PATHS: frozenset[str] = frozenset({
     # Read-only theme + plugin manifests for the dashboard skin engine.
     "/api/dashboard/themes",
     "/api/dashboard/plugins",
+    # First-run owner wizard. Next.js dashboard never receives the loopback
+    # ``_SESSION_TOKEN`` HTML injection, so these must be reachable before login.
+    # Handlers still 403 after setup is complete / on public demo instances.
+    "/api/setup/wizard",
+    "/api/auth/login",
+    "/api/auth/config",
 })
+
+# Prefix match (both auth middlewares). Exact ``PUBLIC_API_PATHS`` matching
+# would miss ``/api/setup/step/0`` … ``/3``.
+PUBLIC_API_PREFIXES: tuple[str, ...] = (
+    "/api/setup/step/",
+)
+
+
+def is_public_api_path(path: str) -> bool:
+    """True if ``path`` is on the shared unauthenticated API allowlist."""
+    if path in PUBLIC_API_PATHS:
+        return True
+    return any(path.startswith(prefix) for prefix in PUBLIC_API_PREFIXES)

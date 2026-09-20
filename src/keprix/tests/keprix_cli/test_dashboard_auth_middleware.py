@@ -89,6 +89,7 @@ def test_gated_status_is_public(gated_app):
     "/api/model/info",
     "/api/dashboard/themes",
     "/api/dashboard/plugins",
+    "/api/setup/wizard",
 ])
 def test_other_public_api_paths_are_public_under_gate(gated_app, path):
     """The remaining ``PUBLIC_API_PATHS`` entries must also bypass the
