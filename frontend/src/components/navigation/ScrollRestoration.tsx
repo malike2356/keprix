@@ -1,14 +1,13 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import * as React from "react";
 
 const STORAGE_PREFIX = "keprix:scroll:";
 
 export default function ScrollRestoration() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const routeKey = `${pathname}?${searchParams.toString()}`;
+  const routeKey = pathname || "/";
 
   React.useEffect(() => {
     if (!("scrollRestoration" in window.history)) return;
