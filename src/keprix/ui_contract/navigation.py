@@ -53,6 +53,7 @@ NAV_ITEMS: list[dict[str, Any]] = [
     {"id": "home", "label": "Home", "href": "/home", "group": "workspace", "icon": "home"},
     {"id": "chat", "label": "Chat", "href": "/chat", "group": "workspace", "icon": "chat"},
     {"id": "sessions", "label": "Sessions", "href": "/sessions", "group": "workspace", "icon": "chat"},
+    {"id": "trajectory", "label": "Trajectory", "href": "/trajectory", "group": "workspace", "icon": "activity"},
     {"id": "voice", "label": "Voice", "href": "/voice", "group": "workspace", "icon": "voice"},
     {"id": "tasks", "label": "Tasks", "href": "/tasks", "group": "workspace", "icon": "tasks"},
     {"id": "calendar", "label": "Calendar", "href": "/calendar", "group": "workspace", "icon": "calendar"},

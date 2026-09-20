@@ -83,6 +83,12 @@ id), MCP bindings, and seam Providers via `keprix.plugin_lifecycle`. Do not dele
 plugin files on disable. Architecture:
 `docs/architecture/reversible-plugin-lifecycle.md`.
 
+## Session trajectory
+
+Append-only session event trajectories (`keprix.trajectory`) support search,
+fork, and recorded-result replay for Soft Wall / mutation debugging. UI:
+`/trajectory`. Docs: `docs/architecture/session-trajectory.md`.
+
 ## Self-knowledge RAG
 
 Teach Keprix about itself via the shared RAG corpus (user `__keprix_self__`):

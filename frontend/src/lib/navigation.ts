@@ -55,6 +55,7 @@ export const primaryNavigation: NavItem[] = [
   { id: "home", label: "Home", href: "/home", icon: "home", group: "workspace" },
   { id: "chat", label: "Chat", href: "/chat", icon: "chat", group: "workspace" },
   { id: "sessions", label: "Sessions", href: "/sessions", icon: "chat", group: "workspace" },
+  { id: "trajectory", label: "Trajectory", href: "/trajectory", icon: "activity", group: "workspace" },
   { id: "voice", label: "Voice", href: "/voice", icon: "voice", group: "workspace" },
   { id: "tasks", label: "Tasks", href: "/tasks", icon: "tasks", group: "workspace" },
   { id: "calendar", label: "Calendar", href: "/calendar", icon: "calendar", group: "workspace" },
