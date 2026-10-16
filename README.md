@@ -137,6 +137,19 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/community/contributing.md](docs
 
 MIT Community Edition. See [LICENSE](LICENSE). Third-party notices and upstream Hermes Agent copyright: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Self-host on your own infrastructure.
 
+## Authorship
+
+Keprix Community Edition is maintained by **Laud Paul Gablah** ([@malike2356](https://github.com/malike2356)),
+founder of Verlox Ltd ([keprixai.com](https://keprixai.com)).
+
+Keprix is a derivative work. The CLI runtime, REPL, tool dispatch, bootstrap layer
+and skill architecture come from [Hermes Agent](https://github.com/nousresearch/hermes-agent)
+by Nous Research. The human-approved self-modification engine, multi-tenant
+isolation, credential vault and Channel Shield are Verlox additions.
+See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for upstream attribution, and
+[docs/architecture/contribution-summary.md](docs/architecture/contribution-summary.md)
+for what was added, where the evidence lives, and how to verify it.
+
 ## Contact
 
 Verlox Ltd: [contact@verlox.uk](mailto:contact@verlox.uk)
