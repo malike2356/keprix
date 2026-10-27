@@ -8,16 +8,6 @@ CI and Release badges resolve for anonymous users after the GitHub repository is
 
 **Keprix** is a self-hosted AI agent OS, forked from [Hermes Agent](https://github.com/nousresearch/hermes-agent) by Nous Research and significantly expanded. Community Edition is MIT-licensed. Run agents, tools, memory, a Command Center TUI, and a web workspace on your own infrastructure. A mutation engine can propose tool and skill changes with human approval. Channel Shield and a vault/credential layer protect inbound channels and secrets.
 
-## Research context
-
-The mutation engine is a working test bed for one question: under what conditions is an AI
-system's self-modification trustworthy, rather than simply self-reported as an improvement.
-Proposed changes only apply after a second human approves them and the normal test suite
-passes; there is no auto-approve path. Not taking an AI system's claims about its own output at
-face value, and building the governance to check instead, is the same underlying concern as
-work on AI-driven manipulation: in both cases, the system's own account of itself is not the
-evidence.
-
 ## Quick Install
 
 Stable installers and immutable terminal releases will appear at
@@ -79,6 +69,17 @@ More: [docs/getting-started/quickstart.md](docs/getting-started/quickstart.md)
 | Channel Shield | Inbound email/messaging protection, quarantine, policy hooks |
 | Security | Vault, credential proxy, review gateway, ACLs, audit, Scout hooks |
 | Deploy | Self-host on your machine (CLI dashboard or optional Docker Compose). `keprixai.com` is marketing only. |
+
+## Research notes
+
+Channel Shield is a manipulation-defence surface for inbound messages: quarantine, policy hooks
+and review before anything reaches the agent. The mutation engine is a study in gated
+self-modification, where changes only apply after a second human approves them and the normal
+test suite passes, with no auto-approve path.
+
+Both are engineering substrates, not research outputs in themselves. Related detection and
+adversarial-evaluation work is being scoped as a separate repository; nothing from that work
+exists yet.
 
 ## Repository layout
 
