@@ -8,6 +8,16 @@ CI and Release badges resolve for anonymous users after the GitHub repository is
 
 **Keprix** is a self-hosted AI agent OS, forked from [Hermes Agent](https://github.com/nousresearch/hermes-agent) by Nous Research and significantly expanded. Community Edition is MIT-licensed. Run agents, tools, memory, a Command Center TUI, and a web workspace on your own infrastructure. A mutation engine can propose tool and skill changes with human approval. Channel Shield and a vault/credential layer protect inbound channels and secrets.
 
+## Research context
+
+The mutation engine is a working test bed for one question: under what conditions is an AI
+system's self-modification trustworthy, rather than simply self-reported as an improvement.
+Proposed changes only apply after a second human approves them and the normal test suite
+passes; there is no auto-approve path. Not taking an AI system's claims about its own output at
+face value, and building the governance to check instead, is the same underlying concern as
+work on AI-driven manipulation: in both cases, the system's own account of itself is not the
+evidence.
+
 ## Quick Install
 
 Stable installers and immutable terminal releases will appear at
