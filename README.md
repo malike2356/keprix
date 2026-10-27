@@ -1,10 +1,11 @@
 # Keprix
 
-[![CI](https://github.com/malike2356/keprix/actions/workflows/ci.yml/badge.svg)](https://github.com/malike2356/keprix/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/malike2356/keprix)](https://github.com/malike2356/keprix/releases)
 
-CI and Release badges resolve for anonymous users after the GitHub repository is public.
+CI and release automation run on GitHub Actions; their badges are hidden here while account-level
+billing is unresolved (so a billing lock does not display as a code or test failure). The
+workflows and test suite themselves are in `.github/workflows/` and `src/keprix/tests/` /
+`tests/` for direct inspection.
 
 **Keprix** is a self-hosted AI agent OS, forked from [Hermes Agent](https://github.com/nousresearch/hermes-agent) by Nous Research and significantly expanded. Community Edition is MIT-licensed. Run agents, tools, memory, a Command Center TUI, and a web workspace on your own infrastructure. A mutation engine can propose tool and skill changes with human approval. Channel Shield and a vault/credential layer protect inbound channels and secrets.
 
