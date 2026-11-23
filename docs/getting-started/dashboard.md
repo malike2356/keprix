@@ -1,7 +1,7 @@
 # Local web dashboard
 
 The Keprix workspace runs **on your machine**. There is no hosted product at
-`app.keprixai.com` — that hostname redirects to [keprixai.com/docs](https://keprixai.com/docs).
+`app.keprixai.com`; that hostname redirects to [keprixai.com/docs](https://keprixai.com/docs).
 After you install the CLI, start the dashboard locally.
 
 ## Foreground (this terminal)
@@ -78,7 +78,7 @@ curl -s http://127.0.0.1:3333/api/health
 ```
 
 Expect UI `200`. Loopback backend often returns `302` to the SPA on `/`; that
-is normal. Do not probe `https://app.keprixai.com/api/health` — there is no
+is normal. Do not probe `https://app.keprixai.com/api/health`; there is no
 public API there.
 
 ## Related

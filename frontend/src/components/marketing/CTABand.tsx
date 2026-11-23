@@ -37,7 +37,7 @@ export function CTABand() {
               mb: 1.5,
             }}
           >
-            Get started
+            Install
           </Typography>
           <Typography
             component="h2"
@@ -49,7 +49,7 @@ export function CTABand() {
               maxWidth: 560,
             }}
           >
-            Run the agent OS on your own iron.
+            Run the agent OS on your own machine.
           </Typography>
           <Typography
             sx={{
@@ -60,7 +60,7 @@ export function CTABand() {
               maxWidth: 440,
             }}
           >
-            Agents, memory, playbooks, Channel Shield, and approvals from your infrastructure.
+            Agents, memory, playbooks, Channel Shield, and human approvals for research and careful building.
           </Typography>
           <Box sx={{ display: "flex", gap: 2.5, alignItems: "center", flexWrap: "wrap" }}>
             <Button
@@ -93,7 +93,7 @@ export function CTABand() {
                 },
               }}
             >
-              Install Community
+              Install locally
             </Button>
             <Button
               component="a"

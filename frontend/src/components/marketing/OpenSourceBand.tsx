@@ -75,7 +75,7 @@ export function OpenSourceBand() {
           <Typography
             sx={{ color: c.textSecondary, mb: 5, fontSize: "1.05rem", maxWidth: 420, mx: "auto", lineHeight: 1.7 }}
           >
-            MIT license. Use it commercially. Modify it. Self-host it. No strings attached.
+            MIT license. Use it for research or personal projects. Modify it. Self-host it.
           </Typography>
 
           <Button

@@ -457,7 +457,7 @@ export function InstallSection() {
                   100% MIT Licensed
                 </Typography>
                 <Typography sx={{ fontSize: "0.8rem", color: c.textSecondary, lineHeight: 1.6 }}>
-                  Free forever for personal, team, or commercial use. No feature paywalls, license keys, or seat limits.
+                  Free under MIT for research and personal use. No feature paywalls, license keys, or seat limits.
                 </Typography>
               </CardContent>
             </Card>

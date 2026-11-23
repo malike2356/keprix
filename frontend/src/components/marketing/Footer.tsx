@@ -20,7 +20,7 @@ const FOOTER_COLS = [
       { label: "Features", href: "/#features" },
       { label: "All capabilities", href: "/features" },
       { label: "Integrations", href: "/#integrations" },
-      { label: "Pricing", href: "/pricing" },
+      { label: "Docs", href: "/docs" },
       { label: "Proof", href: "/proof" },
       { label: "Status", href: "/status" },
       { label: "Changelog", href: "/changelog" },
@@ -61,7 +61,7 @@ const SOCIAL_LINKS = [
   { icon: IconBrandDiscord, label: "Discord", href: "https://discord.gg/keprix" },
 ] as const;
 
-/** Sibling products: see frontend/src/lib/developer-ecosystem.ts and /verlox/ecosystem-links.json */
+/** Sibling open projects: see frontend/src/lib/developer-ecosystem.ts */
 
 function TextHoverEffect({ text, duration = 0 }: { text: string; duration?: number }) {
   const { mode } = useThemeMode();

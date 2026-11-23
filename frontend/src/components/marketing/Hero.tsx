@@ -319,7 +319,7 @@ export function Hero() {
                   maxWidth: 560,
                 }}
               >
-                Self-hosted agent OS that proposes tools, then waits for you.
+                Self-hosted agent OS for research and careful building.
               </Typography>
 
               <Typography
@@ -331,8 +331,8 @@ export function Hero() {
                   maxWidth: 480,
                 }}
               >
-                Channel Shield, Soft Wall, CRM, memory, and reviewable self-coding on your
-                infrastructure. MIT licensed. No shared keys.
+                Channel Shield, Soft Wall, memory, and reviewable self-coding on your
+                machine. Changes wait for human approval. MIT licensed. No shared keys.
               </Typography>
 
               <Box sx={{ display: "flex", alignItems: "center", gap: 2.5, flexWrap: "wrap", mb: 3 }}>

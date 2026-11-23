@@ -43,7 +43,7 @@ curl -fsS -o /dev/null -w 'carina %{http_code}\n' https://carinaai.uk/
 curl -fsS -o /dev/null -w 'keprix %{http_code}\n' https://keprixai.com/
 ```
 
-Expect both `200`. Canonical rule: `shared/workspace-governance/CONTABO-CARINAAI-UK-NEVER-BREAK.md`
+Expect both `200`, then run the full Contabo never-break smoke. Canonical rule: `shared/workspace-governance/CONTABO-NEVER-BREAK-SERVICES.md`
 
 ## Facts
 
@@ -109,4 +109,4 @@ from another device. Do not rsync from the Verlox workstation.
 - [Cloud deploy](../getting-started/cloud-deploy.md) (Caddy VPS path; not Contabo)
 - [VPS deploy](vps-deploy.md)
 - [Public GTM gate](readiness.md#public-gtm-gate)
-- Never-break: `shared/workspace-governance/CONTABO-CARINAAI-UK-NEVER-BREAK.md`
+- Never-break: `shared/workspace-governance/CONTABO-NEVER-BREAK-SERVICES.md` (`bash scripts/check-contabo-never-break.sh`)

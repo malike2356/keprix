@@ -26,7 +26,7 @@ const FAQS = [
   },
   {
     q: "Is Keprix really free?",
-    a: "Yes. MIT license. Use it commercially, modify it, self-host it. Optional governance connectors are separate paid add-ons.",
+    a: "Yes. MIT license. Use it, modify it, and self-host it for research or personal projects. Optional extras on your own instance are separate.",
   },
   {
     q: "What is the Command Center TUI?",
@@ -61,8 +61,8 @@ const FAQS = [
     a: "Yes. Keprix supports Ollama for local models and any OpenAI-compatible API endpoint.",
   },
   {
-    q: "What is the difference between Keprix and managed SaaS?",
-    a: "Keprix is the self-hosted open-source agent OS. There is no Verlox-hosted workspace. Operators can optionally enable Stripe billing on their own instance.",
+    q: "Is Keprix a hosted product?",
+    a: "No. Keprix is a self-hosted open-source agent OS for research and personal projects. There is no vendor-hosted workspace. You run it on your own machine or server.",
   },
   {
     q: "Is there a hosted or cloud version of Keprix?",

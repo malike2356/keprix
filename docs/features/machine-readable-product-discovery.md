@@ -39,7 +39,7 @@ Pricing uses numeric `amountMajor` / `amountMinor` fields only.
 ## LLM visibility auditor
 
 ```bash
-# dry-run (default): no provider spend — run against YOUR local instance
+# dry-run (default): no provider spend; run against YOUR local instance
 curl -X POST 'http://127.0.0.1:9119/api/discovery/llm-audit?dry_run=true'
 
 # live probes (needs OPENAI_API_KEY / ANTHROPIC_API_KEY / GEMINI_API_KEY)

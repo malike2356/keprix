@@ -36,7 +36,7 @@ const FREE_FEATURES = [
   "Playbooks, Agent Apps, skills, and cron",
   "Vault, ACLs, and optional governance connectors",
   "Self-hosted on your own hardware",
-  "MIT license - commercial use allowed",
+  "MIT license - research and personal use welcome",
 ] as const;
 
 function OssPricingSection({ c }: { c: ReturnType<typeof getMarketingColors> }) {
@@ -51,7 +51,7 @@ function OssPricingSection({ c }: { c: ReturnType<typeof getMarketingColors> }) 
       >
         <CardContent sx={{ p: 4 }}>
           <Chip
-            label="Free forever"
+            label="Open source"
             size="small"
             sx={{
               mb: 2,
@@ -65,16 +65,16 @@ function OssPricingSection({ c }: { c: ReturnType<typeof getMarketingColors> }) 
             Self-hosted
           </Typography>
           <Typography sx={{ color: c.textSecondary, fontSize: "0.9rem", mb: 3 }}>
-            MIT license. Run it anywhere.
+            MIT license. Self-host for research or personal projects.
           </Typography>
           <Typography sx={{ fontSize: "3rem", fontWeight: 800, color: c.textPrimary, lineHeight: 1 }}>
             $0
           </Typography>
           <Typography sx={{ color: c.textSecondary, fontSize: "0.85rem", mb: 3 }}>
-            forever
+            self-hosted
           </Typography>
           <Button component="a" href="/#install" variant="contained" fullWidth size="large" sx={{ fontWeight: 700 }}>
-            Deploy free
+            Install locally
           </Button>
           <List dense sx={{ mt: 3 }}>
             {FREE_FEATURES.map((feature) => (

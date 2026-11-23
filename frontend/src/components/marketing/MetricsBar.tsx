@@ -21,7 +21,7 @@ const METRICS = [
   {
     value: "MIT",
     label: "open source license",
-    detail: "Use commercially, modify freely, then self-host.",
+    detail: "Use for research or personal projects, modify freely, self-host.",
   },
   {
     value: "~3m",
